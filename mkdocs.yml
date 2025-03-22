@@ -1,0 +1,20 @@
+site_name: My Project Docs
+repo_url: https://github.com/m3-org/clanktank
+site_url: https://m3-org.github.io/clanktank/
+
+theme:
+  name: material
+  palette:
+    scheme: slate  # Dark mode by default
+    primary: deep purple
+    accent: indigo
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/m3-org
+
+markdown_extensions:
+  - toc
+  - pymdownx.highlight
+  - pymdownx.superfences

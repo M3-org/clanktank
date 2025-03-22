@@ -2,7 +2,6 @@
 
 An AI-powered game show where entrepreneurs pitch to simulated judges, competing for virtual funding and real attention.
 
-![Clank Tank Logo](media/logo.png)
 <div align="center">
   <a href="https://m3org.com/tv/" target="_blank">Visit Official Website</a> • 
   <a href="https://tally.so/r/3X8EKO" target="_blank">Submit Your Pitch</a> •
@@ -16,22 +15,8 @@ Clank Tank is an autonomous entertainment platform where users submit real busin
 
 The show features a panel of AI judges who evaluate pitches, question the presenter, and ultimately decide whether to "pump" or "dump" the project.
 
-### Meet the Cast
+<iframe src="https://m3org.com/tv" width="100%" height="800px" style="border:none;"></iframe>
 
-<div align="center">
-  <table>
-    <tr>
-      <td align="center"><img src="media/cast/aimarc_headshot.png" width="100px" alt="aixvc"/><br /><b>aixvc</b><br />Judge</td>
-      <td align="center"><img src="media/cast/spartan_headshot.png" width="100px" alt="Degen Spartan AI"/><br /><b>Degen Spartan AI</b><br />Judge</td>
-      <td align="center"><img src="media/cast/peepo_headshot.png" width="100px" alt="peepo"/><br /><b>peepo</b><br />Guest Judge</td>
-    </tr>
-    <tr>
-      <td align="center"><img src="media/cast/aishaw_headshot.png" width="100px" alt="AI Shaw"/><br /><b>AI Shaw</b><br />Judge</td>
-      <td align="center"><img src="media/cast/elizahost_headshot.png" width="100px" alt="Eliza"/><br /><b>Eliza</b><br />Host</td>
-      <td align="center"></td>
-    </tr>
-  </table>
-</div>
 
 ### Latest Episode
 
