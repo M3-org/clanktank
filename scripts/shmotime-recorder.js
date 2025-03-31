@@ -393,7 +393,20 @@ class ShmotimePlayer {
     // Monitor important console messages
     this.page.on('console', msg => {
       const text = msg.text();
-
+  
+      // Add this specific check for the navigation message
+      if (text.includes('Navigating to next episode:')) {
+        this.log('*** Episode end detected: "Navigating to next episode" message found ***');
+        this.endDetected = true;
+        
+        // Optionally, if you want to stop checking for other end conditions:
+        if (this.navigationMonitor) {
+          clearInterval(this.navigationMonitor);
+          this.navigationMonitor = null;
+        }
+      }
+  
+      // Rest of your existing console message handling...
       if (msg.type() === 'error') {
         this.log(`Browser: ${text}`, 'error');
       } else if (msg.type() === 'warning') {
@@ -411,8 +424,8 @@ class ShmotimePlayer {
       ) {
         this.log(`Browser: ${text}`);
       }
-
-      // Detect navigation to next episode
+  
+      // Your existing detection code can remain as a fallback
       if (text.includes('Navigating to next episode:')) {
         this.log('Detected episode completion through navigation message');
         this.endDetected = true;
@@ -734,89 +747,56 @@ class ShmotimePlayer {
    */
   async waitForEpisodeToFinish(timeout = 3600000) {
     this.log(`Waiting for episode to finish (timeout: ${timeout}ms)...`);
-
+  
     const startTime = Date.now();
     let statusInterval;
-
+  
     try {
       // Reset end detection flag
       this.endDetected = false;
-
-      // Set up a status log interval
+      
+      // Add a one-time console message listener specifically for episode end
+      const navigationDetected = new Promise(resolve => {
+        const onConsoleMessage = (msg) => {
+          const text = msg.text();
+          if (text.includes('Navigating to next episode:')) {
+            this.log('Episode end detected: "Navigating to next episode" message found');
+            this.endDetected = true;
+            // Use .off() instead of .removeListener() - this is the Puppeteer way
+            this.page.off('console', onConsoleMessage);
+            resolve(true);
+          }
+        };
+        
+        this.page.on('console', onConsoleMessage);
+      });
+      
+      // Set up a status log interval (keep this for visibility)
       statusInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         this.log(`Still waiting... (${Math.floor(elapsed / 60)}m ${elapsed % 60}s elapsed)`);
-
-        // Get current playback status (only in verbose mode)
-        if (this.options.verbose) {
-          this.page.evaluate(() => {
-            const timeElem = document.querySelector('.playback-time, .time-display, [data-field="time"]');
-            const sceneElem = document.querySelector('.scene-title, [data-field="scene_name"]');
-            const dialogueElem = document.querySelector('.now-playing-container[data-field="dialogue_line"] .now-playing-text, .dialogue-text');
-
-            return {
-              time: timeElem?.textContent.trim() || '',
-              scene: sceneElem?.textContent.trim() || '',
-              dialogue: dialogueElem?.textContent.trim() || ''
-            };
-          }).then(status => {
-            if (status.scene) this.log(`Current scene: ${status.scene}`, 'debug');
-            if (status.dialogue) this.log(`Current dialogue: ${status.dialogue.substring(0, 50)}...`, 'debug');
-          }).catch(() => {});
-        }
       }, 30000); // Log status every 30 seconds
-
-      // Wait for the episode to finish or timeout
-      while (!this.endDetected && (Date.now() - startTime < timeout)) {
-        // Check for episode completion
-        try {
-          const isCompleted = await this.page.evaluate(() => {
-            // Check for completion status
-            const status = document.querySelector('.showrunner-status');
-            if (status && (
-              status.textContent.includes('complete') ||
-              status.textContent.includes('ended') ||
-              status.textContent.includes('finished')
-            )) {
-              console.log('Detected completion status - episode complete');
-              return true;
-            }
-            return false;
-          });
-
-          if (isCompleted) {
-            this.endDetected = true;
-            this.log('Episode playback finished');
-            break;
-          }
-        } catch (e) {
-          // Page might be navigating or closed
-          if (e.message.includes('Target closed') ||
-              e.message.includes('Session closed') ||
-              e.message.includes('Navigation timeout')) {
-            this.log('Page appears to have changed - episode likely complete');
-            this.endDetected = true;
-            break;
-          }
-        }
-
-        // Wait before checking again
-        await new Promise(r => setTimeout(r, 2000));
-      }
-
+  
+      // Wait for either the navigation event or timeout
+      const timeoutPromise = new Promise(resolve => {
+        setTimeout(() => {
+          this.log('Episode wait timeout reached', 'warn');
+          resolve(false);
+        }, timeout);
+      });
+  
+      // Wait for either the navigation event or timeout
+      await Promise.race([navigationDetected, timeoutPromise]);
+  
       // Clean up interval
       if (statusInterval) {
         clearInterval(statusInterval);
         statusInterval = null;
       }
-
-      if (!this.endDetected) {
-        this.log('Episode wait timeout reached', 'warn');
-      }
-
-      // Wait a moment to catch any final content
-      await new Promise(r => setTimeout(r, this.options.navigationTimeout));
-
+  
+      // Short delay to ensure complete capture
+      //await new Promise(r => setTimeout(r, 1000));
+  
       return this.endDetected;
     } catch (error) {
       this.log(`Error waiting for episode to finish: ${error.message}`, 'error');
