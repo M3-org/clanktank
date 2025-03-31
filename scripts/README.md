@@ -1,3 +1,54 @@
+# Crossfade Video Script
+A bash script that uses melt (MLT Framework) to concatenate video files with 1-second crossfades between each pair. Supports input from command-line arguments or a text file, with customizable output file.
+
+## Requirements
+
+- MLT Framework: Install melt (e.g., sudo apt install melt on Debian/Ubuntu).
+- FFmpeg: For MP4 output encoding (usually installed with melt).
+
+## Usage
+
+```bash
+./crossfade.sh [-i input.txt] [-o output.mp4] video1 video2 [video3 ...]
+```
+
+- `-i input.txt`: Read video files from a text file (one per line).
+- `-o output.mp4`: Specify output file (default: `output.mp4`).
+- `video1 video2 ...`: List video files directly (e.g., `clip1.mp4 clip2.mp4`).
+
+## Examples
+
+1. Command-Line Input:
+
+```bash
+./crossfade.sh Interview1.mp4 node.mp4 SPARTA_02B.mp4 -o result.mp4
+```
+Creates result.mp4 with crossfades.
+
+2. Text File Input:
+`videos.txt`:
+
+```
+clip1.mp4
+clip2.mp4
+clip3.mp4
+```
+
+```bash
+./crossfade.sh -i videos.txt -o final.mp4
+```
+
+## Features
+- Applies 1-second crossfades (25 frames at 25 fps) using melt’s luma transition.
+- Supports any melt-compatible video format (e.g., .mp4, .mov, .mkv).
+- Requires at least 2 videos.
+
+## Notes
+- Adjust `-mix 25` in the script for different fade durations (e.g., `-mix 50` for 2 seconds).
+For non-25 fps videos, add `fps=30` to the `-consumer` line (e.g., `-consumer avformat:$output_file fps=30`).
+
+---
+
 # Shmotime Player
 
 An automated playback and recording solution for Shmotime episodes with high-quality audio and video capture.
