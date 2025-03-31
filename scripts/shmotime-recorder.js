@@ -546,6 +546,7 @@ class ShmotimePlayer {
                 maxWidth: this.options.videoWidth,
                 minHeight: this.options.videoHeight,
                 maxHeight: this.options.videoHeight,
+                minFrameRate: this.options.frameRate,
                 maxFrameRate: this.options.frameRate
               }
             }
