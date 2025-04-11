@@ -2,7 +2,7 @@
 
 An AI-powered game show where entrepreneurs pitch to simulated judges, competing for virtual funding and real attention.
 
-![Clank Tank Logo](media/logo.png)
+![Clank Tank Logo](media/logos/logo.png)
 <div align="center">
   <a href="https://m3org.com/tv/" target="_blank">Visit Official Website</a> • 
   <a href="https://tally.so/r/3X8EKO" target="_blank">Submit Your Pitch</a> •
