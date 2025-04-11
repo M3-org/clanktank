@@ -49,21 +49,8 @@ The show features a panel of AI judges who evaluate pitches, question the presen
 
 The Clank Tank system uses a modular architecture with several key components:
 
-```
-┌─────────────────┐     ┌───────────────┐     ┌─────────────────┐
-│  Pitch System   │────▶│  Writers Room │────▶│ Episode Builder │
-└─────────────────┘     └───────────────┘     └─────────────────┘
-         │                                              │
-         ▼                                              ▼
-┌─────────────────┐                         ┌─────────────────┐
-│  Human Review   │◀────────────────────────│  JSON Episode   │
-└─────────────────┘                         └─────────────────┘
-         │                                              │
-         ▼                                              ▼
-┌─────────────────┐                         ┌─────────────────┐
-│ Video Production│◀────────────────────────│ 3D Playback     │
-└─────────────────┘                         └─────────────────┘
-```
+![Gi-snNlWYAAmOVm](https://github.com/user-attachments/assets/abbfc2c9-b77f-4d59-ad84-e1ca2662abc2)
+
 
 ## Project Structure
 
