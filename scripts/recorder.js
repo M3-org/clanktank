@@ -75,23 +75,39 @@ class ShmotimeRecorder {
   }
 
   async fixVideoFrameRateWithFfmpeg() {
-    if (!this.outputFile?.path || !this.options.fixFrameRate) return null;
+    const log = this.log.bind(this); 
+    if (!this.outputFile?.path || !this.options.fixFrameRate) {
+        log('Skipping ffmpeg frame rate fix (no input file or option disabled).', 'debug');
+        return null;
+    }
     
+    const inputFile = this.outputFile.path;
+    const targetFrameRate = this.options.frameRate;
+    const outputPath = inputFile.replace(/(\.\w+)$/, `_fps${targetFrameRate}.mp4`); // Output as MP4
+
     try {
       const { exec } = require('child_process');
       const util = require('util');
       const execAsync = util.promisify(exec);
       
-      const inputFile = this.outputFile.path;
-      const outputPath = inputFile.replace(/(\.\w+)$/, `_fps${this.options.frameRate}$1`);
-      const ffmpegCmd = `ffmpeg -i "${inputFile}" -c copy -r ${this.options.frameRate} -y "${outputPath}"`;
+      log(`Post-processing video to ${targetFrameRate}fps MP4: ${outputPath}`);
+      log(`Input: ${inputFile}`);
       
-      this.log(`Post-processing video with ffmpeg to ${this.options.frameRate}fps...`);
-      await execAsync(ffmpegCmd);
-      this.log(`Frame rate corrected: ${outputPath}`);
+      // Re-encode to H.264 video and AAC audio for MP4 compatibility
+      const ffmpegCmd = `ffmpeg -i "${inputFile}" -r ${targetFrameRate} -c:v libx264 -preset medium -crf 23 -c:a aac -strict experimental -b:a 192k -y "${outputPath}"`;
+      
+      const { stdout, stderr } = await execAsync(ffmpegCmd);
+      if (stderr && this.options.verbose) {
+          log(`FFmpeg stderr: ${stderr}`, 'debug');
+      }
+      
+      log(`Video processed to MP4: ${outputPath}`);
       return outputPath;
+      
     } catch (error) {
-      this.log(`Error fixing frame rate with ffmpeg: ${error.message}`, 'error');
+      log(`Error processing video with ffmpeg: ${error.message}`, 'error');
+      log('You can manually process with a command like:', 'info');
+      log(`ffmpeg -i "${inputFile}" -r ${targetFrameRate} -c:v libx264 -c:a aac -strict experimental "${outputPath}"`, 'info');
       return null;
     }
   }
@@ -288,36 +304,37 @@ class ShmotimeRecorder {
     if (!this.options.exportData) return;
 
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const baseFilename = this.episodeInfo?.episodeId || this.episodeData?.id || 'episode';
-      
-      if (this.showConfig) {
-        const showConfigPath = path.join(this.options.outputDir, `${baseFilename}-show-config-${timestamp}.json`);
-        fs.writeFileSync(showConfigPath, JSON.stringify(this.showConfig, null, 2));
-        this.log(`Show config exported to: ${showConfigPath}`);
+      let baseNameForLog;
+      const jsonExportTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+      if (this.outputFile?.path) {
+        // If a video was recorded, base the JSON name on the video filename (without its extension)
+        baseNameForLog = path.basename(this.outputFile.path).replace(/\.\w+$/, '');
+      } else {
+        // If no video, create a unique name for the JSON log using current timestamp
+        const showPart = (this.episodeInfo?.showTitle || this.showConfig?.title || 'show').replace(/[^a-zA-Z0-9]/g, '-');
+        const titlePart = (this.episodeInfo?.title || this.episodeData?.title || this.episodeData?.id || 'episode').replace(/[^a-zA-Z0-9]/g, '-');
+        baseNameForLog = `${showPart}-${titlePart}-${jsonExportTimestamp}`;
       }
 
-      if (this.episodeData) {
-        const episodeDataPath = path.join(this.options.outputDir, `${baseFilename}-episode-data-${timestamp}.json`);
-        fs.writeFileSync(episodeDataPath, JSON.stringify(this.episodeData, null, 2));
-        this.log(`Episode data exported to: ${episodeDataPath}`);
-      }
+      const finalJsonPath = path.join(this.options.outputDir, `${baseNameForLog}-session-log.json`);
 
-      const eventsPath = path.join(this.options.outputDir, `${baseFilename}-events-${timestamp}.json`);
-      fs.writeFileSync(eventsPath, JSON.stringify({
-        episode_id: this.episodeData?.id || '',
-        show_id: this.showConfig?.id || '',
-        recording_session: {
-          start_time: this.recorderEvents[0]?.timestamp,
-          end_time: this.recorderEvents[this.recorderEvents.length - 1]?.timestamp,
-          total_events: this.recorderEvents.length,
-          options: this.options
-        },
-        show_config: this.showConfig,
-        episode_data: this.episodeData,
-        events: this.recorderEvents
-      }, null, 2));
-      this.log(`Recorder events log (with full data) exported to: ${eventsPath}`);
+      if (this.showConfig || this.episodeData || this.recorderEvents.length > 0) {
+        fs.writeFileSync(finalJsonPath, JSON.stringify({
+          episode_id: this.episodeData?.id || this.episodeInfo?.episodeId || null,
+          show_id: this.showConfig?.id || null,
+          recording_session_options: this.options,
+          show_config: this.showConfig || null, 
+          episode_data: this.episodeData || null, 
+          event_timeline: this.recorderEvents,
+          // Add references to the video files for clarity in the JSON
+          original_video_file: this.outputFile?.path ? path.basename(this.outputFile.path) : null,
+          processed_mp4_file: this.outputFile?.path ? path.basename(this.outputFile.path).replace(/(\.\w+)$/, `_fps${this.options.frameRate}.mp4`) : null
+        }, null, 2));
+        this.log(`Comprehensive session log exported to: ${finalJsonPath}`);
+      } else {
+        this.log('No data to export for session log.', 'info');
+      }
 
     } catch (error) {
       this.log(`Error exporting data: ${error.message}`, 'error');
@@ -1013,7 +1030,7 @@ class ShmotimeRecorder {
     }
 
     this.log('All resources cleaned up');
-  }
+  } 
 }
 
 // Command line interface - simplified but keeping all functionality
