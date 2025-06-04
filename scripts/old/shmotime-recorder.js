@@ -4,14 +4,12 @@ const fs = require('fs');
 const os = require('os');
 
 /**
- * Enhanced class to automate playback of Shmotime episodes with video and audio recording
+ * Improved class to automate playback of Shmotime episodes with video and audio recording
  * using puppeteer-stream for native browser audio/video capture
- * 
- * Now includes support for new recorder events and data schema export
  */
-class ShmotimePlayerV2 {
+class ShmotimePlayer {
   /**
-   * Create a new ShmotimePlayerV2 instance
+   * Create a new ShmotimePlayer instance
    * @param {Object} options Configuration options
    */
   constructor(options = {}) {
@@ -23,13 +21,10 @@ class ShmotimePlayerV2 {
       waitTimeout: 60000, // 60 seconds
       navigationTimeout: 5000, // 5 seconds to wait for navigation after episode end
       outputFormat: 'mp4', // MP4 or WebM format (puppeteer-stream supports both natively)
-      exportData: true, // Export processed show/episode data
-      stopRecordingAt: 'end_credits', // Event at which to stop recording (end_credits, end_ep, end_postcredits)
-      fixFrameRate: true, // Post-process with ffmpeg to fix frame rate
       // Video resolution settings
       videoWidth: 1920,
       videoHeight: 1080,
-      frameRate: 30, // Target frame rate for ffmpeg post-processing
+      frameRate: 30,
       ...options
     };
 
@@ -40,380 +35,6 @@ class ShmotimePlayerV2 {
     this.episodeInfo = null;
     this.navigationMonitor = null;
     this.endDetected = false;
-    this.recordingStopped = false;
-
-    // New data storage for schema v2
-    this.showConfig = null;
-    this.episodeData = null;
-    this.recorderEvents = [];
-    this.currentPhase = 'waiting'; // waiting, intro, episode, credits, postcredits, ended
-  }
-
-  /**
-   * Get the Chrome executable path based on platform
-   * @returns {string} Path to Chrome executable
-   */
-  getChromePath() {
-    const platform = os.platform();
-    const log = this.log.bind(this); // Ensure log context
-
-    if (platform === 'win32') {
-      return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-    } else if (platform === 'darwin') {
-      return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-    } else if (platform === 'linux') {
-      const possiblePaths = [
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/chromium',
-        '/usr/bin/chromium-browser'
-      ];
-      for (const chromePath of possiblePaths) {
-        if (fs.existsSync(chromePath)) {
-          return chromePath;
-        }
-      }
-      log('Could not find Chrome. Please specify the path manually.', 'warn');
-      return '/usr/bin/google-chrome-stable';
-    }
-    return '';
-  }
-
-  /**
-   * Fix video frame rate using ffmpeg post-processing
-   */
-  async fixVideoFrameRateWithFfmpeg() {
-    const log = this.log.bind(this); // Ensure log context
-    if (!this.outputFile || !this.outputFile.path) {
-      log('No output file to process for ffmpeg.', 'warn');
-      return null;
-    }
-    const inputFile = this.outputFile.path;
-    const targetFrameRate = this.options.frameRate;
-
-    try {
-      const { exec } = require('child_process'); // Keep require inside for lazy loading
-      const util = require('util');
-      const execAsync = util.promisify(exec);
-      
-      const outputPath = inputFile.replace(/(\.\w+)$/, `_fps${targetFrameRate}$1`);
-      
-      log(`Post-processing video with ffmpeg to ${targetFrameRate}fps...`);
-      log(`Input: ${inputFile}, Output: ${outputPath}`);
-      
-      const ffmpegCmd = `ffmpeg -i "${inputFile}" -c copy -r ${targetFrameRate} -y "${outputPath}"`;
-      
-      const { stdout, stderr } = await execAsync(ffmpegCmd);
-      if (stderr) {
-          log(`FFmpeg stderr: ${stderr}`, 'debug');
-      }
-      
-      log(`Frame rate corrected: ${outputPath}`);
-      log(`Original file: ${inputFile}`);
-      return outputPath;
-      
-    } catch (error) {
-      log(`Error fixing frame rate with ffmpeg: ${error.message}`, 'error');
-      log('You can manually fix the frame rate with:', 'info');
-      log(`ffmpeg -i "${inputFile}" -c copy -r ${targetFrameRate} "${inputFile.replace(/(\.\w+)$/, `_fps${targetFrameRate}$1`)}"`, 'info');
-      return null;
-    }
-  }
-
-  /**
-   * Process and store show config data
-   * @param {Object} showConfig Raw show config from recorder:load_show
-   */
-  processShowConfig(showConfig) {
-    this.log('Processing show config data...');
-    
-    // Store the processed show config according to new schema
-    this.showConfig = {
-      description: showConfig.description || '',
-      id: showConfig.id || '',
-      creator: showConfig.creator || '',
-      image: showConfig.image || false,
-      image_thumb: showConfig.image_thumb || false,
-      actors: {},
-      locations: {}
-    };
-
-    // Process actors
-    if (showConfig.actors) {
-      Object.keys(showConfig.actors).forEach(actorId => {
-        const actor = showConfig.actors[actorId];
-        this.showConfig.actors[actorId] = {
-          description: actor.description || '',
-          elevenlabs_voice_id: actor.elevenlabs_voice_id || '',
-          image: actor.image || '',
-          image_thumb: actor.image_thumb || '',
-          title: actor.title || ''
-        };
-      });
-    }
-
-    // Process locations
-    if (showConfig.locations) {
-      Object.keys(showConfig.locations).forEach(locationId => {
-        const location = showConfig.locations[locationId];
-        this.showConfig.locations[locationId] = {
-          description: location.description || '',
-          image: location.image || '',
-          image_thumb: location.image_thumb || '',
-          title: location.title || '',
-          slots: {
-            north_pod: location.slots?.north_pod || '',
-            south_pod: location.slots?.south_pod || '',
-            east_pod: location.slots?.east_pod || '',
-            west_pod: location.slots?.west_pod || '',
-            center_pod: location.slots?.center_pod || ''
-          }
-        };
-      });
-    }
-
-    this.log(`Processed show config: ${Object.keys(this.showConfig.actors).length} actors, ${Object.keys(this.showConfig.locations).length} locations`);
-  }
-
-  /**
-   * Process and store episode data
-   * @param {Object} episodeData Raw episode data from recorder:load_episode
-   */
-  processEpisodeData(episodeData) {
-    this.log('Processing episode data...');
-    
-    // Store the processed episode data according to new schema
-    this.episodeData = {
-      id: episodeData.id || '',
-      image: episodeData.image || false,
-      image_thumb: episodeData.image_thumb || false,
-      premise: episodeData.premise || '',
-      scenes: []
-    };
-
-    // Process scenes
-    if (episodeData.scenes && Array.isArray(episodeData.scenes)) {
-      this.episodeData.scenes = episodeData.scenes.map(scene => ({
-        description: scene.description || '',
-        totalInScenes: scene.totalInScenes || 0,
-        transitionIn: scene.transitionIn || '',
-        transitionOut: scene.transitionOut || '',
-        
-        // Cast references - convert to actor ID strings
-        cast: {
-          center_pod: scene.cast?.center_pod || undefined,
-          east_pod: scene.cast?.east_pod || undefined,
-          north_pod: scene.cast?.north_pod || undefined,
-          south_pod: scene.cast?.south_pod || undefined,
-          west_pod: scene.cast?.west_pod || undefined
-        },
-        
-        // Location reference - just the location ID string
-        location: scene.location || '',
-        
-        // Dialogues array
-        dialogues: (scene.dialogues || []).map(dialogue => ({
-          number: dialogue.number || 0,
-          totalInScenes: dialogue.totalInScenes || 0,
-          action: dialogue.action || '',
-          line: dialogue.line || '',
-          actor: dialogue.actor || '' // Actor ID string reference
-        })),
-        
-        // Scene statistics
-        length: scene.length || 0,
-        number: scene.number || 0,
-        totalInEpisode: scene.totalInEpisode || 0,
-        total_dialogues: scene.total_dialogues || 0
-      }));
-    }
-
-    this.log(`Processed episode data: ${this.episodeData.scenes.length} scenes`);
-  }
-
-  /**
-   * Stop recording if it's currently active
-   */
-  async stopRecording() {
-    if (this.stream && !this.recordingStopped) {
-      try {
-        this.log('Stopping recording immediately...');
-        this.recordingStopped = true;
-        
-        // Stop immediately without delay for precision
-        await this.stream.destroy();
-        
-        this.log('Recording stopped');
-        this.log(`Video saved to: ${this.outputFile?.path || "unknown path"}`);
-        
-        // Close the output file
-        if (this.outputFile) {
-          this.outputFile.end();
-        }
-
-        // Post-process with ffmpeg to fix frame rate
-        if (this.options.fixFrameRate && this.outputFile?.path) {
-          // Intentionally not awaiting this promise - let it run in background
-          this.fixVideoFrameRateWithFfmpeg()
-            .then(processedPath => {
-              if (processedPath) {
-                this.log(`FFmpeg post-processing completed for: ${processedPath}`);
-                // Optionally, update this.outputFile.path or handle the new file path
-              }
-            })
-            .catch(err => {
-              this.log(`FFmpeg post-processing failed in background: ${err.message}`, 'warn');
-            });
-        }
-
-        // Close browser to stop audio playback after a brief delay to ensure recording is finalized
-        setTimeout(async () => {
-          if (this.browser && !this.browser.process()?.killed) {
-            try {
-              this.log('Closing browser to stop audio playback...');
-              await this.browser.close();
-              this.log('Browser closed after recording stop');
-            } catch (error) {
-              this.log(`Error closing browser after recording: ${error.message}`, 'warn');
-            }
-          }
-        }, 500);
-        
-      } catch (error) {
-        this.log(`Error stopping recording: ${error.message}`, 'error');
-      }
-    }
-  }
-
-  /**
-   * Handle recorder events from console messages
-   * @param {string} eventType The event type (e.g., 'start_intro', 'load_show')
-   * @param {Object|null} eventData Optional data payload for events like load_show/load_episode
-   */
-  handleRecorderEvent(eventType, eventData = null) {
-    const timestamp = new Date().toISOString();
-    
-    this.log(`Recorder event: ${eventType}`);
-    
-    // Store the event
-    this.recorderEvents.push({
-      type: eventType,
-      timestamp,
-      data: eventData
-    });
-
-    switch (eventType) {
-      case 'load_show':
-        if (eventData) {
-          this.processShowConfig(eventData);
-        }
-        break;
-        
-      case 'load_episode':
-        if (eventData) {
-          this.processEpisodeData(eventData);
-        }
-        break;
-        
-      case 'start_intro':
-        this.currentPhase = 'intro';
-        break;
-        
-      case 'end_intro':
-        this.currentPhase = 'waiting';
-        break;
-        
-      case 'start_ep':
-        this.currentPhase = 'episode';
-        break;
-        
-      case 'end_ep':
-        this.currentPhase = 'waiting';
-        // Check if we should stop recording here with minimal delay for precision
-        if (this.options.stopRecordingAt === 'end_ep') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
-        break;
-        
-      case 'start_credits':
-        this.currentPhase = 'credits';
-        break;
-        
-      case 'end_credits':
-        this.currentPhase = 'waiting';
-        // Check if we should stop recording here (default behavior) with minimal delay for precision
-        if (this.options.stopRecordingAt === 'end_credits') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
-        break;
-        
-      case 'start_postcredits':
-        this.currentPhase = 'postcredits';
-        break;
-        
-      case 'end_postcredits':
-        this.currentPhase = 'ended';
-        this.endDetected = true;
-        this.log('*** Episode end detected: end_postcredits event ***');
-        
-        // Check if we should stop recording here with minimal delay for precision
-        if (this.options.stopRecordingAt === 'end_postcredits') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
-        
-        // Stop navigation monitoring since we have definitive end
-        if (this.navigationMonitor) {
-          clearInterval(this.navigationMonitor);
-          this.navigationMonitor = null;
-        }
-        break;
-    }
-  }
-
-  /**
-   * Export processed data to JSON files
-   */
-  async exportProcessedData() {
-    if (!this.options.exportData) return;
-
-    try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const baseFilename = this.episodeInfo?.episodeId || this.episodeData?.id || 'episode';
-      
-      // Export show config (still useful as a separate file for some use cases)
-      if (this.showConfig) {
-        const showConfigPath = path.join(this.options.outputDir, `${baseFilename}-show-config-${timestamp}.json`);
-        fs.writeFileSync(showConfigPath, JSON.stringify(this.showConfig, null, 2));
-        this.log(`Show config exported to: ${showConfigPath}`);
-      }
-
-      // Export episode data (still useful as a separate file)
-      if (this.episodeData) {
-        const episodeDataPath = path.join(this.options.outputDir, `${baseFilename}-episode-data-${timestamp}.json`);
-        fs.writeFileSync(episodeDataPath, JSON.stringify(this.episodeData, null, 2));
-        this.log(`Episode data exported to: ${episodeDataPath}`);
-      }
-
-      // Export recorder events log with embedded show and episode data
-      const eventsPath = path.join(this.options.outputDir, `${baseFilename}-events-${timestamp}.json`);
-      fs.writeFileSync(eventsPath, JSON.stringify({
-        episode_id: this.episodeData?.id || '',
-        show_id: this.showConfig?.id || '',
-        recording_session: {
-          start_time: this.recorderEvents[0]?.timestamp,
-          end_time: this.recorderEvents[this.recorderEvents.length - 1]?.timestamp,
-          total_events: this.recorderEvents.length,
-          options: this.options // Include recorder options used for this session
-        },
-        show_config: this.showConfig, // Embed full show config
-        episode_data: this.episodeData, // Embed full episode data
-        events: this.recorderEvents
-      }, null, 2));
-      this.log(`Recorder events log (with full data) exported to: ${eventsPath}`);
-
-    } catch (error) {
-      this.log(`Error exporting data: ${error.message}`, 'error');
-    }
   }
 
    /**
@@ -426,7 +47,6 @@ class ShmotimePlayerV2 {
     try {
       // Monitor page for navigations to detect episode end
       this.startNavigationMonitoring(url);
-      await this.page.setCacheEnabled(false);
 
       // Navigate to the episode page
       await this.page.goto(url, {
@@ -556,10 +176,46 @@ class ShmotimePlayerV2 {
    */
   async preInitialize() {
     // Create output directory if it doesn't exist
-    if (this.options.record || this.options.exportData) {
+    if (this.options.record) {
       fs.mkdirSync(this.options.outputDir, { recursive: true });
     }
     return this;
+  }
+
+  /**
+   * Get the Chrome executable path based on platform
+   */
+  getChromePath() {
+    const platform = os.platform();
+
+    if (platform === 'win32') {
+      // Windows
+      return 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+    } else if (platform === 'darwin') {
+      // macOS
+      return '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+    } else if (platform === 'linux') {
+      // Linux - try multiple possible locations
+      const possiblePaths = [
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser'
+      ];
+
+      for (const chromePath of possiblePaths) {
+        if (fs.existsSync(chromePath)) {
+          return chromePath;
+        }
+      }
+
+      // If none found, return a default and let the user know
+      this.log('Could not find Chrome. Please specify the path manually.', 'warn');
+      return '/usr/bin/google-chrome-stable'; // Common default location
+    }
+
+    // Fallback
+    return '';
   }
 
   /**
@@ -606,12 +262,6 @@ class ShmotimePlayerV2 {
       
       // Audio improvements
       '--disable-features=AudioServiceOutOfProcess',
-      
-      // Frame rate and video recording improvements
-      '--force-video-overlays',
-      '--enable-features=VaapiVideoDecoder',
-      '--disable-features=VizDisplayCompositor',
-      `--force-device-scale-factor=1`,
     ];
     
     // Add headless specific args if needed
@@ -740,95 +390,45 @@ class ShmotimePlayerV2 {
    * Set up error handling for the page
    */
   setupErrorHandling() {
-    this.page.on('console', async msg => { // Make the handler async
-      const msgArgs = msg.args();
-      if (msgArgs.length === 0) {
-        // If no arguments, try to log the raw message text for debugging if verbose
-        if (this.options.verbose) this.log(`Browser (empty console args): ${msg.text()}`, 'debug');
-        return;
-      }
-
-      let eventText = '';
-      try {
-        // Attempt to get the first argument as a string, assuming it's the event type or main message
-        eventText = await msgArgs[0].jsonValue(); 
-      } catch (e) {
-        // Fallback for complex objects or if jsonValue fails for the first arg
-        eventText = msg.text(); 
-      }
-      
-      // Ensure eventText is a string before proceeding
-      if (typeof eventText !== 'string') {
-        if (this.options.verbose) this.log(`Browser (non-string eventText after processing arg[0]): ${msg.text()}`, 'debug');
-        eventText = msg.text(); // Final fallback to raw message text if conversion failed
-        if (typeof eventText !== 'string') { // If still not a string, we cannot parse it as an event
-             if (this.options.verbose) this.log(`Browser (eventText still not a string, cannot parse event): ${msg.text()}`, 'debug');
-             return;
-        }
-      }
-
-      if (eventText.startsWith('recorder:')) {
-        try {
-          const eventTypeMatch = eventText.match(/^recorder:(\w+)/);
-          if (eventTypeMatch) {
-            const eventType = eventTypeMatch[1];
-            let eventData = null;
-
-            // Check if there's a second argument for data
-            if (msgArgs.length > 1) {
-              try {
-                eventData = await msgArgs[1].jsonValue();
-              } catch (jsonError) {
-                this.log(`Failed to get JSON value for recorder event data (${eventType}): ${jsonError.message}`, 'warn');
-                try {
-                    // Attempt to get a string representation of the second argument if jsonValue fails
-                    const rawDataText = await msgArgs[1].evaluate(arg => {
-                        if (arg instanceof Error) return arg.message;
-                        if (arg instanceof Object) return JSON.stringify(arg);
-                        return String(arg);
-                    });
-                    this.log(`Raw event data for ${eventType} (fallback): ${rawDataText}`, 'debug');
-                    // Optionally, try to parse if it looks like a stringified JSON by chance
-                    if (typeof rawDataText === 'string' && (rawDataText.startsWith('{') || rawDataText.startsWith('['))) {
-                        try { eventData = JSON.parse(rawDataText); } catch (e) { /* ignore parse error */ }
-                    }
-                } catch (rawDataError) {
-                    this.log(`Could not get raw string/JSON for event data ${eventType}: ${rawDataError.message}`, 'debug');
-                }
-              }
-            }
-            this.handleRecorderEvent(eventType, eventData);
-            return; // Processed as a recorder event, stop further processing
-          }
-        } catch (error) {
-          this.log(`Error processing recorder event (${eventText}): ${error.message}`, 'error');
-        }
-      }
-
-      // Fallback to legacy navigation detection and regular console message handling
-      if (eventText.includes('Navigating to next episode:')) {
+    // Monitor important console messages
+    this.page.on('console', msg => {
+      const text = msg.text();
+  
+      // Add this specific check for the navigation message
+      if (text.includes('Navigating to next episode:')) {
         this.log('*** Episode end detected: "Navigating to next episode" message found ***');
         this.endDetected = true;
+        
+        // Optionally, if you want to stop checking for other end conditions:
         if (this.navigationMonitor) {
           clearInterval(this.navigationMonitor);
           this.navigationMonitor = null;
         }
       }
-
+  
+      // Rest of your existing console message handling...
       if (msg.type() === 'error') {
-        this.log(`Browser: ${eventText}`, 'error');
+        this.log(`Browser: ${text}`, 'error');
       } else if (msg.type() === 'warning') {
-        this.log(`Browser: ${eventText}`, 'warn');
+        this.log(`Browser: ${text}`, 'warn');
       } else if (this.options.verbose) {
-        this.log(`Browser: ${eventText}`, 'debug');
+        // Log all messages in verbose mode
+        this.log(`Browser: ${text}`, 'debug');
       } else if (
-        eventText.includes('scene:') ||
-        eventText.includes('showrunner:') ||
-        eventText.includes('Stage3D:') ||
-        eventText.includes('dialogue:') ||
-        eventText.includes('playback')
+        // Always log important messages
+        text.includes('scene:') ||
+        text.includes('showrunner:') ||
+        text.includes('Stage3D:') ||
+        text.includes('dialogue:') ||
+        text.includes('playback')
       ) {
-        this.log(`Browser: ${eventText}`);
+        this.log(`Browser: ${text}`);
+      }
+  
+      // Your existing detection code can remain as a fallback
+      if (text.includes('Navigating to next episode:')) {
+        this.log('Detected episode completion through navigation message');
+        this.endDetected = true;
       }
     });
 
@@ -933,13 +533,23 @@ class ShmotimePlayerV2 {
         this.log(`Using codec: ${mimeType}`, 'debug');
   
         try {
-          // Chrome tabCapture API requires boolean for video, frame rate controlled by frameSize
+          // Use the Chrome tabCapture compatible format for video constraints
           this.stream = await getStream(this.page, {
             audio: true,
-            video: true, // Must be boolean for tabCapture API
-            frameSize: 1000, // Data chunk interval in ms (1 second chunks)
+            video: true,
+            frameSize: 20, // Controls buffer size, not frame rate
             bitsPerSecond: 8000000, // Higher bitrate for better quality (8 Mbps)
-            mimeType: mimeType
+            mimeType: mimeType,
+            videoConstraints: {
+              mandatory: {
+                minWidth: this.options.videoWidth,
+                maxWidth: this.options.videoWidth,
+                minHeight: this.options.videoHeight,
+                maxHeight: this.options.videoHeight,
+                minFrameRate: this.options.frameRate,
+                maxFrameRate: this.options.frameRate
+              }
+            }
           });
           
           videoFile = filename;
@@ -958,13 +568,22 @@ class ShmotimePlayerV2 {
             this.log(`Switching to WebM recording: ${webmFilename}`);
             this.outputFile = fs.createWriteStream(webmFilename);
         
-            // Try again with WebM - Chrome tabCapture API format
+            // Try again with WebM - using Chrome tabCapture compatible format
             this.stream = await getStream(this.page, {
               audio: true,
-              video: true, // Must be boolean for tabCapture API
-              frameSize: 1000, // Data chunk interval in ms (1 second chunks)
+              video: true,
+              frameSize: 20,
               bitsPerSecond: 6000000, // Slightly lower bitrate for WebM
-              mimeType: "video/webm;codecs=vp8,opus"
+              mimeType: "video/webm;codecs=vp8,opus",
+              videoConstraints: {
+                mandatory: {
+                  minWidth: this.options.videoWidth,
+                  maxWidth: this.options.videoWidth,
+                  minHeight: this.options.videoHeight,
+                  maxHeight: this.options.videoHeight,
+                  maxFrameRate: this.options.frameRate
+                }
+              }
             });
         
             videoFile = webmFilename;
@@ -978,10 +597,8 @@ class ShmotimePlayerV2 {
         // Pipe the stream to the file
         this.stream.pipe(this.outputFile);
         
-        // Log successful recording start with detailed info
-        this.log(`Recording started with dimensions ${this.options.videoWidth}x${this.options.videoHeight} @ ${this.options.frameRate}fps`);
-        this.log(`Stream settings: frameSize=1000ms, codec=${mimeType}`, 'debug');
-        this.log(`FFmpeg will set final frame rate to ${this.options.frameRate}fps during post-processing.`, 'debug');
+        // Log successful recording start
+        this.log(`Recording started with dimensions ${this.options.videoWidth}x${this.options.videoHeight}`);
       }
 
       // Click the "Touch to Begin" button
@@ -994,6 +611,8 @@ class ShmotimePlayerV2 {
             document.querySelector('.slate-ready'),
             document.querySelector('.start-button'),
             document.querySelector('[data-action="start"]'),
+            document.querySelector('button:contains("Begin")'),
+            document.querySelector('button:contains("Start")'),
             ...Array.from(document.querySelectorAll('button')).filter(el => 
               el.textContent.toLowerCase().includes('start') || 
               el.textContent.toLowerCase().includes('begin')
@@ -1124,11 +743,11 @@ class ShmotimePlayerV2 {
   }
 
   /**
-   * Wait for the episode to finish using new recorder events
+   * Wait for the episode to finish
    * @param {number} timeout Maximum time to wait in milliseconds
    */
   async waitForEpisodeToFinish(timeout = 3600000) {
-    this.log(`Waiting for episode to finish using recorder events (timeout: ${timeout}ms)...`);
+    this.log(`Waiting for episode to finish (timeout: ${timeout}ms)...`);
   
     const startTime = Date.now();
     let statusInterval;
@@ -1137,39 +756,188 @@ class ShmotimePlayerV2 {
       // Reset end detection flag
       this.endDetected = false;
       
-      // Set up a status log interval
+      // Add a one-time console message listener specifically for episode end
+      const navigationDetected = new Promise(resolve => {
+        const onConsoleMessage = (msg) => {
+          const text = msg.text();
+          if (text.includes('Navigating to next episode:')) {
+            this.log('Episode end detected: "Navigating to next episode" message found');
+            this.endDetected = true;
+            // Use .off() instead of .removeListener() - this is the Puppeteer way
+            this.page.off('console', onConsoleMessage);
+            resolve(true);
+          }
+        };
+        
+        this.page.on('console', onConsoleMessage);
+      });
+      
+      // Set up a status log interval (keep this for visibility)
       statusInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        this.log(`Still waiting... (${Math.floor(elapsed / 60)}m ${elapsed % 60}s elapsed) - Current phase: ${this.currentPhase}`);
-        
-        // Log recent events for debugging
-        const recentEvents = this.recorderEvents.slice(-3).map(e => e.type).join(', ');
-        if (recentEvents) {
-          this.log(`Recent events: ${recentEvents}`);
-        }
-      }, 1000);
+        this.log(`Still waiting... (${Math.floor(elapsed / 60)}m ${elapsed % 60}s elapsed)`);
+      }, 30000); // Log status every 30 seconds
   
-      // Wait for the episode to finish
-      await new Promise(resolve => {
-        const finishTimeout = setTimeout(() => {
-          clearInterval(statusInterval);
-          resolve();
+      // Wait for either the navigation event or timeout
+      const timeoutPromise = new Promise(resolve => {
+        setTimeout(() => {
+          this.log('Episode wait timeout reached', 'warn');
+          resolve(false);
         }, timeout);
-  
-        // Wait for end detection
-        const endTimeout = setTimeout(() => {
-          if (this.endDetected) {
-            clearInterval(statusInterval);
-            resolve();
-          }
-        }, 1000);
       });
   
-      this.log('Episode finished');
+      // Wait for either the navigation event or timeout
+      await Promise.race([navigationDetected, timeoutPromise]);
+  
+      // Clean up interval
+      if (statusInterval) {
+        clearInterval(statusInterval);
+        statusInterval = null;
+      }
+  
+      // Short delay to ensure complete capture
+      //await new Promise(r => setTimeout(r, 1000));
+  
+      return this.endDetected;
     } catch (error) {
       this.log(`Error waiting for episode to finish: ${error.message}`, 'error');
+      if (statusInterval) {
+        clearInterval(statusInterval);
+      }
+      return false;
+    } finally {
+      // Stop navigation monitoring
+      if (this.navigationMonitor) {
+        clearInterval(this.navigationMonitor);
+        this.navigationMonitor = null;
+      }
     }
+  }
+
+  /**
+   * Stop recording and clean up resources
+   */
+  async close() {
+    this.log('Cleaning up resources...');
+
+    // Stop navigation monitoring if active
+    if (this.navigationMonitor) {
+      clearInterval(this.navigationMonitor);
+      this.navigationMonitor = null;
+    }
+
+    // Stop recording if active
+    if (this.stream) {
+      try {
+        this.log('Stopping recording...');
+        // Wait briefly to ensure all data is written
+        await new Promise(r => setTimeout(r, 1000));
+        await this.stream.destroy();
+        this.log('Recording stopped');
+        this.log(`Video saved to: ${this.outputFile?.path || "unknown path"}`);
+      } catch (error) {
+        this.log(`Error stopping recording: ${error.message}`, 'error');
+      }
+    }
+
+    // Close the browser
+    if (this.browser) {
+      try {
+        await this.browser.close();
+        this.log('Browser closed');
+      } catch (error) {
+        this.log(`Error closing browser: ${error.message}`, 'error');
+      }
+    }
+
+    // Close WebSocket server
+    try {
+      if (wss) (await wss).close();
+      this.log('WebSocket server closed');
+    } catch (error) {
+      this.log(`Error closing WebSocket server: ${error.message}`, 'error');
+    }
+
+    this.log('All resources cleaned up');
   }
 }
 
-module.exports = ShmotimePlayerV2;
+/**
+ * Run the player with command line arguments
+ */
+async function main() {
+  const args = process.argv.slice(2);
+
+  // Extract options
+  const headless = args.includes('--headless');
+  const noRecord = args.includes('--no-record');
+  const verbose = !args.includes('--quiet');
+  const url = args.find(arg => !arg.startsWith('--')) || 'https://shmotime.com/shmotime_episode/the-security-sentinel/';
+  const waitTime = parseInt(args.find(arg => arg.startsWith('--wait='))?.split('=')[1] || '3600000', 10);
+  const outputDir = args.find(arg => arg.startsWith('--output='))?.split('=')[1] || './recordings';
+  const chromePath = args.find(arg => arg.startsWith('--chrome-path='))?.split('=')[1] || '';
+  const outputFormat = args.find(arg => arg.startsWith('--format='))?.split('=')[1] || 'mp4';
+  const viewportHeight = parseInt(args.find(arg => arg.startsWith('--height='))?.split('=')[1] || '1080', 10);
+  const viewportWidth = parseInt(args.find(arg => arg.startsWith('--width='))?.split('=')[1] || '1920', 10);
+  const frameRate = parseInt(args.find(arg => arg.startsWith('--fps='))?.split('=')[1] || '30', 10);
+
+  console.log('Shmotime Player starting...');
+  console.log(`URL: ${url}`);
+  console.log(`Settings: headless=${headless}, record=${!noRecord}, format=${outputFormat}, verbose=${verbose}`);
+  console.log(`Video: ${viewportWidth}x${viewportHeight}@${frameRate}fps`);
+
+  // Create and run the player
+  const player = new ShmotimePlayer({
+    headless,
+    record: !noRecord,
+    verbose,
+    outputDir,
+    waitTimeout: 60000,
+    executablePath: chromePath,
+    outputFormat,
+    videoWidth: viewportWidth,
+    videoHeight: viewportHeight,
+    frameRate
+  });
+
+  try {
+    // Initialize browser
+    await player.initialize();
+
+    // Load episode
+    const episodeInfo = await player.loadEpisodeUrl(url);
+    if (!episodeInfo) {
+      throw new Error('Failed to load episode');
+    }
+
+    // Start episode and recording
+    const { videoFile } = await player.startEpisode();
+    if (!videoFile && !noRecord) {
+      throw new Error('Failed to start episode recording');
+    }
+
+    // Wait for episode to finish
+    await player.waitForEpisodeToFinish(waitTime);
+
+    console.log('Episode processing complete');
+    if (videoFile) console.log(`Video will be saved to: ${videoFile}`);
+
+  } catch (error) {
+    console.error(`Main process error: ${error.message}`);
+  } finally {
+    // Always clean up resources
+    await player.close();
+    console.log('Process complete');
+    process.exit(0); // Ensure process exits
+  }
+}
+
+// Run if called directly
+if (require.main === module) {
+  main().catch(error => {
+    console.error(`Fatal error: ${error.message}`);
+    process.exit(1);
+  });
+}
+
+module.exports = ShmotimePlayer;
