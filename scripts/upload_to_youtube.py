@@ -26,7 +26,7 @@ DEFAULT_CLIENT_SECRETS_FILE = "client_secrets.json"
 # Default path for storing OAuth2 credentials. Can be overridden by --credentials-storage or YOUTUBE_CREDENTIALS_PATH env var
 DEFAULT_CREDENTIALS_FILE = "youtube_credentials.json"
 
-YOUTUBE_UPLOAD_SCOPE = "https://www.googleapis.com/auth/youtube.upload"
+YOUTUBE_UPLOAD_SCOPE = "https://www.googleapis.com/auth/youtube"
 YOUTUBE_API_SERVICE_NAME = "youtube"
 YOUTUBE_API_VERSION = "v3"
 
@@ -146,6 +146,88 @@ def update_thumbnail(youtube, video_id, thumbnail_path):
         print(f"Unexpected error during thumbnail update: {e}")
 
 
+def validate_playlist_id(playlist_id):
+    """
+    Validates YouTube playlist ID format.
+    """
+    if not playlist_id:
+        return False
+    
+    # YouTube playlist IDs typically start with PL and are 34 characters total
+    # Format: PLxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    if not playlist_id.startswith('PL'):
+        print(f"⚠️  Warning: Playlist ID '{playlist_id}' doesn't start with 'PL'")
+        return False
+    
+    if len(playlist_id) < 24:  # Minimum reasonable length
+        print(f"⚠️  Warning: Playlist ID '{playlist_id}' seems too short")
+        return False
+    
+    # Remove any URL parameters that might have been accidentally included
+    clean_id = playlist_id.split('&')[0].split('?')[0]
+    if clean_id != playlist_id:
+        print(f"⚠️  Warning: Cleaned playlist ID from '{playlist_id}' to '{clean_id}'")
+        return clean_id
+    
+    return True
+
+
+def add_video_to_playlist(youtube, video_id, playlist_id):
+    """
+    Adds a video to a specified playlist.
+    """
+    # Validate playlist ID
+    validation_result = validate_playlist_id(playlist_id)
+    if validation_result is False:
+        print(f"❌ Invalid playlist ID format: {playlist_id}")
+        return None
+    elif isinstance(validation_result, str):
+        playlist_id = validation_result  # Use cleaned ID
+    
+    print(f"📋 Adding video {video_id} to playlist {playlist_id}")
+    
+    try:
+        request_body = {
+            'snippet': {
+                'playlistId': playlist_id,
+                'resourceId': {
+                    'kind': 'youtube#video',
+                    'videoId': video_id
+                }
+            }
+        }
+        
+        response = youtube.playlistItems().insert(
+            part='snippet',
+            body=request_body
+        ).execute()
+        
+        playlist_item_id = response.get('id')
+        print(f"✅ Video successfully added to playlist! Playlist item ID: {playlist_item_id}")
+        return playlist_item_id
+        
+    except HttpError as e:
+        error_content = e.content.decode('utf-8') if hasattr(e.content, 'decode') else str(e.content)
+        print(f"❌ HTTP error {e.resp.status} while adding video to playlist:")
+        print(f"   Content: {error_content}")
+        
+        # Provide specific help for common errors
+        if e.resp.status == 403:
+            print("💡 This might be a permission issue:")
+            print("   • Make sure you own the playlist or have permission to add videos")
+            print("   • Verify your OAuth scope includes playlist management permissions")
+            print("   • Re-run: python scripts/setup_youtube_auth.py")
+        elif e.resp.status == 404:
+            print("💡 This might be a playlist ID issue:")
+            print(f"   • Double-check playlist ID: {playlist_id}")
+            print("   • Make sure the playlist exists and is accessible")
+        
+        return None
+    except Exception as e:
+        print(f"❌ Unexpected error while adding video to playlist: {e}")
+        return None
+
+
 def initialize_upload(youtube, args):
     """
     Initializes and performs the video upload process.
@@ -207,6 +289,17 @@ def initialize_upload(youtube, args):
             print(f"\nWARNING: Thumbnail file specified but not found at {args.thumbnail_file}. Skipping thumbnail upload.")
     elif video_id and not args.thumbnail_file:
         print("\nNo thumbnail file specified. Skipping thumbnail upload.")
+    
+    # Add video to playlist if specified
+    if video_id and args.playlist_id:
+        print(f"\n--- Adding to Playlist ---")
+        playlist_item_id = add_video_to_playlist(youtube, video_id, args.playlist_id)
+        if playlist_item_id:
+            print(f"Video successfully added to playlist: {args.playlist_id}")
+        else:
+            print(f"Failed to add video to playlist: {args.playlist_id}")
+    elif video_id and not args.playlist_id:
+        print("\nNo playlist specified. Video uploaded but not added to any playlist.")
     
     return video_id
 
@@ -289,6 +382,8 @@ def main():
     parser.add_argument("--privacy-status", choices=["public", "private", "unlisted"],
                         default=os.environ.get('YOUTUBE_PRIVACY_STATUS', "private"))
     parser.add_argument("--thumbnail-file", default=os.environ.get('YOUTUBE_THUMBNAIL_FILE'))
+    parser.add_argument("--playlist-id", default=os.environ.get('YOUTUBE_PLAYLIST_ID'),
+                        help="YouTube playlist ID to add the video to after upload. Extract from playlist URL: youtube.com/playlist?list=PLAYLIST_ID")
     parser.add_argument("--update-thumbnail-for",
                         help="If specified, updates the thumbnail for the given video ID instead of uploading a new video.")                        
     parser.add_argument("--client-secrets",
@@ -319,6 +414,21 @@ def main():
             args.privacy_status = metadata['privacy_status']
         if 'thumbnail_file' in metadata and not args.thumbnail_file:
             args.thumbnail_file = metadata['thumbnail_file']
+        if 'playlist_id' in metadata and not args.playlist_id:
+            args.playlist_id = metadata['playlist_id']
+
+    # Validate playlist ID if provided
+    if args.playlist_id:
+        validation_result = validate_playlist_id(args.playlist_id)
+        if validation_result is False:
+            print(f"ERROR: Invalid playlist ID format: {args.playlist_id}")
+            print("💡 Playlist ID should be extracted from URL like:")
+            print("   https://www.youtube.com/playlist?list=PLxxxxxxxxxxxxxxxxxxxxxx")
+            print("   Correct format: PLxxxxxxxxxxxxxxxxxxxxxx")
+            sys.exit(1)
+        elif isinstance(validation_result, str):
+            args.playlist_id = validation_result  # Use cleaned ID
+            print(f"🔧 Using cleaned playlist ID: {args.playlist_id}")
 
     # Validate arguments based on operation mode
     if args.update_thumbnail_for:

@@ -120,3 +120,48 @@ node scripts/shmotime-recorder.js --help
 ---
 
 *Clank Tank is an entertainment platform and does not provide financial advice. All judge decisions are simulated and do not constitute real investment offers.*
+
+## GitHub Actions Automation
+
+### Daily Episode Recording Workflow
+
+The repository includes a GitHub Actions workflow (`.github/workflows/daily-episode-recording.yml`) that automatically:
+
+1. **Fetches** the latest JedAI Council episode from Shmotime API
+2. **Records** the episode using the enhanced recorder with clean filenames
+3. **Uploads** to YouTube with professional metadata and thumbnails
+
+**Schedule:** Daily at 04:15 UTC
+
+### Required GitHub Secrets
+
+Set these secrets in your repository: **Settings → Secrets and variables → Actions**
+
+```
+YOUTUBE_CLIENT_ID=your_google_oauth_client_id
+YOUTUBE_CLIENT_SECRET=your_google_oauth_client_secret  
+YOUTUBE_REFRESH_TOKEN=your_youtube_refresh_token
+```
+
+**To get YouTube API credentials:**
+
+1. **Google Cloud Console:** Create a project at [console.cloud.google.com](https://console.cloud.google.com)
+2. **Enable YouTube Data API v3:** In APIs & Services → Library
+3. **Create OAuth 2.0 Credentials:** In APIs & Services → Credentials
+4. **Configure OAuth consent screen:** Add your email as test user
+5. **Generate refresh token:** Use `scripts/setup_youtube_auth.py` (if available) or Google OAuth Playground
+
+### Testing the Workflow
+
+- **Manual trigger:** Go to Actions tab → "Daily JedAI Council Episode Recording" → "Run workflow"
+- **View logs:** Check the Actions tab for detailed execution logs
+- **Artifacts:** Session logs and thumbnails are archived for 30 days
+
+### Workflow Features
+
+- ✅ **Smart episode detection** with API validation
+- ✅ **Clean filename generation** (e.g., `S1E12_JedAI-Council_the-stealth-strategy.mp4`)
+- ✅ **Professional YouTube uploads** with titles, descriptions, tags, and thumbnails
+- ✅ **Error handling** and detailed logging
+- ✅ **Artifact archival** for debugging and record-keeping
+- ✅ **Automatic cleanup** to manage storage usage

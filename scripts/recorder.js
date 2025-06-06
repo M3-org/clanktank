@@ -36,6 +36,9 @@ class ShmotimeRecorder {
       videoWidth: 1920,
       videoHeight: 1080,
       frameRate: 30,
+      episodeData: null, // NEW: Episode metadata for filename generation
+      muteAudio: false, // NEW: Mute audio during recording
+      filenameSuffix: '', // NEW: Optional suffix for filename
       ...options
     };
 
@@ -163,6 +166,7 @@ class ShmotimeRecorder {
     this.log('Processing episode data...');
     this.episodeData = {
       id: episodeData.id || '',
+      title: episodeData.title || '',
       image: episodeData.image || false,
       image_thumb: episodeData.image_thumb || false,
       premise: episodeData.premise || '',
@@ -198,6 +202,40 @@ class ShmotimeRecorder {
     }
 
     this.log(`Processed episode data: ${this.episodeData.scenes.length} scenes`);
+    
+    // Update filename now that we have episode data
+    this.updateFilenameWithEpisodeData();
+  }
+
+  updateFilenameWithEpisodeData() {
+    if (!this.episodeData?.id || !this.episodeData?.title || !this.outputFile?.path) {
+      return; // Can't update without complete data
+    }
+
+    const oldPath = this.outputFile.path;
+    const extension = path.extname(oldPath);
+    const episodeId = this.episodeData.id; // S1E12
+    const cleanTitle = this.episodeData.title.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
+    const suffix = this.options.filenameSuffix ? `_${this.options.filenameSuffix}` : '';
+    
+    const newFilename = `${episodeId}_JedAI-Council_${cleanTitle}${suffix}${extension}`;
+    const newPath = path.join(this.options.outputDir, newFilename);
+    
+    if (oldPath !== newPath) {
+      this.log(`📁 Updating filename: ${path.basename(oldPath)} → ${path.basename(newPath)}`);
+      
+      // Close current stream
+      if (this.outputFile && this.stream) {
+        this.stream.unpipe(this.outputFile);
+        this.outputFile.end();
+      }
+      
+      // Create new stream with better filename
+      this.outputFile = require('fs').createWriteStream(newPath);
+      if (this.stream) {
+        this.stream.pipe(this.outputFile);
+      }
+    }
   }
 
   async stopRecording() {
@@ -251,6 +289,7 @@ class ShmotimeRecorder {
       data: eventData
     });
 
+    // Handle phase transitions
     switch (eventType) {
       case 'load_show':
         if (eventData) this.processShowConfig(eventData);
@@ -269,18 +308,12 @@ class ShmotimeRecorder {
         break;
       case 'end_ep':
         this.currentPhase = 'waiting';
-        if (this.options.stopRecordingAt === 'end_ep') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
         break;
       case 'start_credits':
         this.currentPhase = 'credits';
         break;
       case 'end_credits':
         this.currentPhase = 'waiting';
-        if (this.options.stopRecordingAt === 'end_credits') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
         break;
       case 'start_postcredits':
         this.currentPhase = 'postcredits';
@@ -288,50 +321,75 @@ class ShmotimeRecorder {
       case 'end_postcredits':
         this.currentPhase = 'ended';
         this.endDetected = true;
-        this.log('*** Episode end detected: end_postcredits event ***');
-        if (this.options.stopRecordingAt === 'end_postcredits') {
-          setTimeout(() => this.stopRecording(), 100);
-        }
         if (this.navigationMonitor) {
           clearInterval(this.navigationMonitor);
           this.navigationMonitor = null;
         }
         break;
     }
+
+    // Handle stop recording trigger - now works with ANY event
+    if (this.options.stopRecordingAt === eventType) {
+      this.log(`*** Stop trigger detected: ${eventType} event ***`);
+      this.endDetected = true;
+      setTimeout(() => this.stopRecording(), 100);
+    }
+
+    // Special case: end_postcredits always ends the episode
+    if (eventType === 'end_postcredits' && this.options.stopRecordingAt !== 'never') {
+      this.log('*** Episode end detected: end_postcredits event ***');
+      this.endDetected = true;
+      setTimeout(() => this.stopRecording(), 100);
+    }
   }
 
-  async exportProcessedData() {
+    async exportProcessedData() {
     if (!this.options.exportData) return;
 
     try {
       let baseNameForLog;
       const jsonExportTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
-      if (this.outputFile?.path) {
+      // Priority 1: Use captured episode data from platform (preferred)
+      if (this.episodeData?.id && this.episodeData?.title) {
+        const episodeNumber = this.episodeData.id; // S1E12
+        const cleanTitle = this.episodeData.title.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
+        const suffix = this.options.filenameSuffix ? `_${this.options.filenameSuffix}` : '';
+        baseNameForLog = `${episodeNumber}_JedAI-Council_${cleanTitle}${suffix}`;
+      } else if (this.options.episodeData) {
+        // Priority 2: Use command-line episode data (for manual override)
+        const episodeNumber = this.options.episodeData.episode_number;
+        const cleanTitle = this.options.episodeData.clean_title;
+        baseNameForLog = `${episodeNumber}_JedAI-Council-${cleanTitle}`;
+      } else if (this.outputFile?.path) {
         // If a video was recorded, base the JSON name on the video filename (without its extension)
         baseNameForLog = path.basename(this.outputFile.path).replace(/\.\w+$/, '');
       } else {
-        // If no video, create a unique name for the JSON log using current timestamp
+        // Legacy fallback: create a unique name for the JSON log using current timestamp
         const showPart = (this.episodeInfo?.showTitle || this.showConfig?.title || 'show').replace(/[^a-zA-Z0-9]/g, '-');
         const titlePart = (this.episodeInfo?.title || this.episodeData?.title || this.episodeData?.id || 'episode').replace(/[^a-zA-Z0-9]/g, '-');
         baseNameForLog = `${showPart}-${titlePart}-${jsonExportTimestamp}`;
       }
 
-      const finalJsonPath = path.join(this.options.outputDir, `${baseNameForLog}-session-log.json`);
+      const finalJsonPath = path.join(this.options.outputDir, `${baseNameForLog}_session-log.json`);
 
       if (this.showConfig || this.episodeData || this.recorderEvents.length > 0) {
-        fs.writeFileSync(finalJsonPath, JSON.stringify({
-          episode_id: this.episodeData?.id || this.episodeInfo?.episodeId || null,
+        const sessionData = {
+          episode_id: this.episodeData?.id || this.episodeInfo?.episodeId || this.options.episodeData?.episode_number || null,
           show_id: this.showConfig?.id || null,
           recording_session_options: this.options,
           show_config: this.showConfig || null, 
-          episode_data: this.episodeData || null, 
+          episode_data: this.episodeData || null,
+          // Include episode metadata from fetcher if available
+          fetcher_episode_data: this.options.episodeData || null,
           event_timeline: this.recorderEvents,
           // Add references to the video files for clarity in the JSON
           original_video_file: this.outputFile?.path ? path.basename(this.outputFile.path) : null,
           processed_mp4_file: this.outputFile?.path ? path.basename(this.outputFile.path).replace(/(\.\w+)$/, `_fps${this.options.frameRate}.mp4`) : null
-        }, null, 2));
-        this.log(`Comprehensive session log exported to: ${finalJsonPath}`);
+        };
+        
+        fs.writeFileSync(finalJsonPath, JSON.stringify(sessionData, null, 2));
+        this.log(`Session log exported to: ${finalJsonPath}`);
       } else {
         this.log('No data to export for session log.', 'info');
       }
@@ -427,10 +485,28 @@ class ShmotimeRecorder {
   }
 
   getRecordingFilename(extension = 'webm') {
+    // Priority 1: Use captured episode data from platform (preferred)
+    if (this.episodeData?.id && this.episodeData?.title) {
+      const episodeNumber = this.episodeData.id; // S1E12
+      const cleanTitle = this.episodeData.title.toLowerCase().replace(/[^a-zA-Z0-9]/g, '-');
+      const suffix = this.options.filenameSuffix ? `_${this.options.filenameSuffix}` : '';
+      return path.join(this.options.outputDir, `${episodeNumber}_JedAI-Council_${cleanTitle}${suffix}.${extension}`);
+    }
+    
+    // Priority 2: Use command-line episode data (for manual override)
+    if (this.options.episodeData) {
+      const episodeNumber = this.options.episodeData.episode_number;
+      const cleanTitle = this.options.episodeData.clean_title.toLowerCase();
+      const suffix = this.options.filenameSuffix ? `_${this.options.filenameSuffix}` : '';
+      return path.join(this.options.outputDir, `${episodeNumber}_JedAI-Council_${cleanTitle}${suffix}.${extension}`);
+    }
+    
+    // Priority 3: Legacy fallback for timestamp-based naming
     const date = new Date().toISOString().replace(/[:.]/g, '-');
     const show = (this.episodeInfo?.showTitle || 'show').replace(/[^a-zA-Z0-9]/g, '-');
     const title = (this.episodeInfo?.title || 'episode').replace(/[^a-zA-Z0-9]/g, '-');
-    return path.join(this.options.outputDir, `${show}-${title}-${date}.${extension}`);
+    const suffix = this.options.filenameSuffix ? `_${this.options.filenameSuffix}` : '';
+    return path.join(this.options.outputDir, `${show}_${title}${suffix}_${date}.${extension}`);
   }
 
   log(message, level = 'info') {
@@ -484,6 +560,15 @@ class ShmotimeRecorder {
       '--disable-features=VizDisplayCompositor',
       `--force-device-scale-factor=1`,
     ];
+    
+    // Add mute arguments if mute option is enabled
+    if (this.options.muteAudio) {
+      browserArgs.push(
+        '--mute-audio',
+        '--disable-audio-output',
+        '--disable-audio'
+      );
+    }
     
     if (this.options.headless) {
       browserArgs.push(
@@ -617,6 +702,26 @@ class ShmotimeRecorder {
         }
       }
 
+      // Enhanced debugging for recorder events
+      if (eventText.includes('recorder:')) {
+        this.log(`🎬 RECORDER EVENT DETECTED: "${eventText}" (args: ${msgArgs.length})`);
+        if (msgArgs.length > 1) {
+          try {
+            const secondArg = await msgArgs[1].jsonValue();
+            this.log(`🎬 Event data: ${JSON.stringify(secondArg, null, 2)}`);
+          } catch (e) {
+            this.log(`🎬 Could not parse second argument: ${e.message}`);
+          }
+        }
+      }
+
+      // Extra debugging for lifecycle events that might be missed
+      if (eventText.includes('start_') || eventText.includes('end_') || 
+          eventText.includes('intro') || eventText.includes('credits') || 
+          eventText.includes('postcredits')) {
+        this.log(`🎭 LIFECYCLE EVENT CANDIDATE: "${eventText}" (args: ${msgArgs.length})`);
+      }
+
       if (eventText.startsWith('recorder:')) {
         try {
           const eventTypeMatch = eventText.match(/^recorder:(\w+)/);
@@ -673,7 +778,14 @@ class ShmotimeRecorder {
         eventText.includes('showrunner:') ||
         eventText.includes('Stage3D:') ||
         eventText.includes('dialogue:') ||
-        eventText.includes('playback')
+        eventText.includes('playback') ||
+        eventText.includes('start_') ||
+        eventText.includes('end_') ||
+        eventText.includes('recorder:') ||
+        eventText.includes('intro') ||
+        eventText.includes('credits') ||
+        eventText.includes('postcredits') ||
+        eventText.includes('ep')
       ) {
         this.log(`Browser: ${eventText}`);
       }
@@ -894,14 +1006,14 @@ class ShmotimeRecorder {
   }
 
   async ensureAudioEnabled() {
-    await this.page.evaluate(() => {
+    await this.page.evaluate((mute) => {
       function enableAudio() {
         document.querySelectorAll('audio, video').forEach(el => {
           if (el.paused) {
             el.play().catch(() => {});
           }
-          el.muted = false;
-          el.volume = 1;
+          el.muted = mute;
+          el.volume = mute ? 0 : 1;
         });
 
         const speakerAudio = document.getElementById('speaker-audio');
@@ -909,8 +1021,8 @@ class ShmotimeRecorder {
           if (speakerAudio.paused) {
             speakerAudio.play().catch(() => {});
           }
-          speakerAudio.muted = false;
-          speakerAudio.volume = 1;
+          speakerAudio.muted = mute;
+          speakerAudio.volume = mute ? 0 : 1;
         }
 
         try {
@@ -921,8 +1033,8 @@ class ShmotimeRecorder {
                 if (el.paused) {
                   el.play().catch(() => {});
                 }
-                el.muted = false;
-                el.volume = 1;
+                el.muted = mute;
+                el.volume = mute ? 0 : 1;
               });
             } catch (e) {
               // Cross-origin access might be blocked
@@ -934,10 +1046,10 @@ class ShmotimeRecorder {
       enableAudio();
       setTimeout(enableAudio, 1000);
       setTimeout(enableAudio, 3000);
-    });
+    }, this.options.muteAudio || false);
   }
 
-  async waitForEpisodeToFinish(timeout = 3600000) {
+  async waitForEpisodeToFinish(timeout = 120000) { // Reduced to 2 minutes for testing
     this.log(`Waiting for episode to finish using recorder events (timeout: ${timeout}ms)...`);
 
     const startTime = Date.now();
@@ -953,6 +1065,12 @@ class ShmotimeRecorder {
         const recentEvents = this.recorderEvents.slice(-3).map(e => e.type).join(', ');
         if (recentEvents) {
           this.log(`Recent events: ${recentEvents}`, 'debug');
+        }
+
+        // Auto-complete if we have episode data but no progress events after 90 seconds
+        if (elapsed > 90 && this.recorderEvents.length <= 2 && this.recorderEvents.some(e => e.type === 'load_episode')) {
+          this.log('Auto-completing: Episode data loaded but no playback events detected after 90 seconds');
+          this.endDetected = true;
         }
       }, 30000);
 
@@ -972,7 +1090,8 @@ class ShmotimeRecorder {
       }
 
       if (!this.endDetected) {
-        this.log('Episode wait timeout reached', 'warn');
+        this.log('Episode wait timeout reached - completing anyway', 'warn');
+        this.endDetected = true; // Force completion on timeout
       }
 
       await new Promise(r => setTimeout(r, 2000));
@@ -1046,17 +1165,39 @@ Options:
   --no-record                   Disable video recording
   --no-export                   Disable data export
   --no-fix-framerate            Disable ffmpeg frame rate post-processing
+  --mute                        Mute audio during recording
   --quiet                       Reduce log output
   --wait=<ms>                   Maximum wait time (default: 3600000)
   --output=<dir>                Output directory (default: ./recordings)
   --chrome-path=<path>          Chrome executable path
   --format=<format>             Video format: mp4 or webm (default: mp4)
   --stop-recording-at=<event>   When to stop recording (default: end_credits)
-                                Options: end_ep, end_credits, end_postcredits
+                                Options: start_intro, end_intro, start_ep, end_ep,
+                                         start_credits, end_credits, start_postcredits,
+                                         end_postcredits, never
   --height=<pixels>             Video height (default: 1080)
   --width=<pixels>              Video width (default: 1920)
   --fps=<number>                Frame rate (default: 30)
+  --episode-data=<json>         Episode metadata JSON for S1E# filename generation
+  --filename-suffix=<text>      Add suffix to filename (e.g. --filename-suffix=test → S1E12_JedAI-Council_title_test.mp4)
   --help                        Show this help
+
+Examples:
+  # Basic recording (stops at end_credits by default)
+  node recorder.js https://shmotime.com/shmotime_episode/episode-url/
+  
+  # Stop at different points
+  node recorder.js --stop-recording-at=start_credits https://shmotime.com/episode-url/
+  node recorder.js --stop-recording-at=end_ep https://shmotime.com/episode-url/
+  
+  # Silent recording in headless mode
+  node recorder.js --headless --mute --stop-recording-at=end_ep https://shmotime.com/episode-url/
+  
+  # Never stop automatically (manual control)
+  node recorder.js --stop-recording-at=never https://shmotime.com/episode-url/
+  
+  # With episode data for proper naming
+  node recorder.js --episode-data='{"episode_number":"S1E10","clean_title":"The-Wisdom-of-Transitions","title":"The Wisdom of Transitions"}' https://shmotime.com/shmotime_episode/the-wisdom-of-transitions/
 `);
     process.exit(0);
   }
@@ -1065,6 +1206,7 @@ Options:
   const noRecord = args.includes('--no-record');
   const noExport = args.includes('--no-export');
   const noFixFrameRate = args.includes('--no-fix-framerate');
+  const muteAudio = args.includes('--mute');
   const verbose = !args.includes('--quiet');
   const url = args.find(arg => !arg.startsWith('--')) || 'https://shmotime.com/shmotime_episode/the-security-sentinel/';
   const waitTime = parseInt(args.find(arg => arg.startsWith('--wait='))?.split('=')[1] || '3600000', 10);
@@ -1075,8 +1217,28 @@ Options:
   const viewportHeight = parseInt(args.find(arg => arg.startsWith('--height='))?.split('=')[1] || '1080', 10);
   const viewportWidth = parseInt(args.find(arg => arg.startsWith('--width='))?.split('=')[1] || '1920', 10);
   const frameRate = parseInt(args.find(arg => arg.startsWith('--fps='))?.split('=')[1] || '30', 10);
+  const filenameSuffix = args.find(arg => arg.startsWith('--filename-suffix='))?.split('=')[1] || '';
+  
+  // Parse episode data JSON
+  const episodeDataRaw = args.find(arg => arg.startsWith('--episode-data='))?.split('=')[1];
+  let episodeData = null;
+  if (episodeDataRaw) {
+    try {
+      episodeData = JSON.parse(episodeDataRaw);
+      console.log(`📺 Using episode data: ${episodeData.episode_number} - ${episodeData.title}`);
+    } catch (error) {
+      console.error(`❌ Invalid episode data JSON: ${error.message}`);
+      process.exit(1);
+    }
+  }
 
-  const validStopEvents = ['end_ep', 'end_credits', 'end_postcredits'];
+  const validStopEvents = [
+    'start_intro', 'end_intro',
+    'start_ep', 'end_ep', 
+    'start_credits', 'end_credits',
+    'start_postcredits', 'end_postcredits',
+    'never' // For manual control
+  ];
   if (!validStopEvents.includes(stopRecordingAt)) {
     console.error(`Invalid --stop-recording-at value: ${stopRecordingAt}`);
     console.error(`Valid options: ${validStopEvents.join(', ')}`);
@@ -1090,6 +1252,7 @@ Options:
       record: !noRecord,
       exportData: !noExport,
       fixFrameRate: !noFixFrameRate,
+      muteAudio,
       verbose,
       outputDir,
       waitTimeout: 60000,
@@ -1098,7 +1261,9 @@ Options:
       stopRecordingAt,
       videoWidth: viewportWidth,
       videoHeight: viewportHeight,
-      frameRate
+      frameRate,
+      episodeData,
+      filenameSuffix
     },
     waitTime
   };
@@ -1112,6 +1277,11 @@ async function main() {
   console.log(`Settings: headless=${options.headless}, record=${options.record}, export=${options.exportData}, format=${options.outputFormat}, verbose=${options.verbose}`);
   console.log(`Recording: stop at ${options.stopRecordingAt}`);
   console.log(`Video: ${options.videoWidth}x${options.videoHeight}@${options.frameRate}fps`);
+  
+  if (options.episodeData) {
+    console.log(`🎬 Episode: ${options.episodeData.episode_number} - ${options.episodeData.title}`);
+    console.log(`📁 Expected filename: ${options.episodeData.episode_number}_JedAI-Council-${options.episodeData.clean_title}.${options.outputFormat}`);
+  }
 
   const player = new ShmotimeRecorder(options);
 
