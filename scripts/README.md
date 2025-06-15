@@ -1,12 +1,291 @@
 # Clanktank Scripts
 
-A collection of scripts for recording, processing, and uploading Shmotime episodes and other video content.
+A collection of scripts for managing pitch submissions, recording episodes, and uploading video content.
 
 ## Scripts Overview
 
-1. **[Shmotime Recorder v2](#shmotime-recorder-v2)** - Advanced episode recording with improved frame rate control
-2. **[YouTube Workflow](#youtube-workflow)** - Batch metadata generation and uploading to YouTube  
-3. **[Crossfade Video Script](#crossfade-video-script)** - Video concatenation with transitions
+1. **[Pitch Management System](#pitch-management-system)** - Process and manage pitch submissions from Tally/Typeform
+2. **[Shmotime Recorder v2](#shmotime-recorder-v2)** - Advanced episode recording with improved frame rate control
+3. **[YouTube Workflow](#youtube-workflow)** - Batch metadata generation and uploading to YouTube  
+4. **[Crossfade Video Script](#crossfade-video-script)** - Video concatenation with transitions
+
+---
+
+## Pitch Management System
+
+A comprehensive system for processing pitch submissions from Tally/Typeform through Google Sheets, managing research workflows, and creating character data for episode generation.
+
+### Architecture Overview
+
+```
+Tally/Typeform → Google Sheets → sheet_processor.py → SQLite DB + JSON → pitch_manager.py
+                                                              ↓
+                                                     Research & Character Creation
+```
+
+### Core Scripts
+
+#### 1. sheet_processor.py
+
+Enhanced version of the original `sheet_to_markdown.py` that processes Google Sheets data into multiple formats.
+
+**Features:**
+- SQLite database population with comprehensive schema
+- JSON export for dashboard compatibility  
+- Markdown file generation with bullet-point formatting
+- Status tracking (submitted, researched, in_progress, done)
+- Preserves all typeform fields including 3D model options
+
+**Requirements:**
+```bash
+pip install gspread sqlite3
+```
+
+**Usage:**
+```bash
+# Process Google Sheets to database and JSON
+python sheet_processor.py -s "Block Tank Pitch Submission" -o ./data -j --db-file pitches.db
+
+# Process only to database (skip markdown)
+python sheet_processor.py -s "Block Tank Pitch Submission" -o ./data --no-markdown --db-file pitches.db
+
+# Custom credentials path
+python sheet_processor.py -s "Sheet Name" -c /path/to/credentials.json -o ./output
+```
+
+**Output Files:**
+- `pitches.db` - SQLite database with all submission data
+- `submissions.json` - JSON export for dashboard use
+- `{submission_id}.md` - Individual markdown files (optional)
+
+#### 2. pitch_manager.py
+
+Management tool for pitch operations including research, status updates, and character creation.
+
+**Features:**
+- List and filter pitches by status
+- Update pitch statuses manually
+- Run research workflows (integrates with deepsearch.py)
+- Create character folder structures
+- Batch operations with "all" option
+- Export database to JSON
+
+**Usage:**
+
+**List pitches:**
+```bash
+# List all pitches
+python pitch_manager.py --db-file pitches.db --list
+
+# Filter by status
+python pitch_manager.py --db-file pitches.db --list --filter-status submitted
+python pitch_manager.py --db-file pitches.db --list --filter-status researched
+```
+
+**Research workflow:**
+```bash
+# Research specific pitch
+python pitch_manager.py --db-file pitches.db --research 4Z5rGo
+
+# Pitch status automatically updates to 'researched'
+```
+
+**Status management:**
+```bash
+# Update status manually
+python pitch_manager.py --db-file pitches.db --status 4Z5rGo in_progress
+python pitch_manager.py --db-file pitches.db --status 4Z5rGo done
+```
+
+**Character creation:**
+```bash
+# Create character folder for specific pitch
+python pitch_manager.py --db-file pitches.db --create-character 4Z5rGo
+
+# Create character folders for ALL researched pitches
+python pitch_manager.py --db-file pitches.db --create-character all
+```
+
+**Export data:**
+```bash
+# Export database to JSON for dashboard
+python pitch_manager.py --db-file pitches.db --export-json submissions.json
+```
+
+#### 3. deepsearch.py
+
+AI-powered research tool using OpenRouter + Perplexity for pitch analysis (existing script).
+
+**Integration:** Called automatically by `pitch_manager.py --research` command.
+
+#### 4. test_csv_processor.py
+
+Test utility for processing CSV exports directly (useful for development and testing).
+
+**Usage:**
+```bash
+# Process blocktank.csv directly to test database functionality
+python test_csv_processor.py
+```
+
+**Note:** This script simulates the Google Sheets workflow using the CSV export file.
+
+### Database Schema
+
+The SQLite database captures all typeform fields:
+
+```sql
+CREATE TABLE pitches (
+    -- Identifiers
+    submission_id TEXT PRIMARY KEY,
+    respondent_id TEXT,
+    
+    -- Submission metadata  
+    submitted_at TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Contact information
+    name TEXT,
+    contact_info TEXT,
+    discord_telegram_username TEXT,
+    
+    -- Project details
+    project_title TEXT,
+    character_name TEXT,
+    character_info TEXT,
+    pitch_info TEXT,
+    
+    -- 3D Model & customization
+    has_3d_model TEXT,
+    model_file_upload TEXT,
+    wants_commission TEXT,
+    custom_voice TEXT,
+    voice_file_upload TEXT,
+    
+    -- Workflow tracking
+    status TEXT DEFAULT 'submitted',
+    research_completed_at TEXT,
+    research_findings TEXT,
+    research_sources TEXT,
+    character_folder_created BOOLEAN DEFAULT FALSE,
+    character_folder_path TEXT,
+    episode_url TEXT,
+    youtube_url TEXT
+);
+```
+
+### Status Workflow
+
+Pitches progress through four main states:
+
+1. **🟡 submitted** - Fresh from Google Sheets
+2. **🔵 researched** - AI research completed via deepsearch.py
+3. **🟠 in_progress** - Character folder created, episode development started  
+4. **🟢 done** - Episode published on YouTube
+
+### Complete Workflow Example
+
+#### 1. Initial Setup
+```bash
+# Set up Google Sheets API credentials (one-time)
+# Place service_account.json in ~/.config/gspread/
+
+# Create data directory
+mkdir -p data
+
+# For testing: process sample CSV data
+python test_csv_processor.py  # Creates ../test_pitches.db
+```
+
+#### 2. Process New Submissions
+```bash
+# Pull latest submissions from Google Sheets
+python sheet_processor.py -s "Block Tank Pitch Submission" -o ./data -j --db-file pitches.db
+
+# Review new submissions
+python pitch_manager.py --db-file data/pitches.db --list --filter-status submitted
+```
+
+#### 3. Research Workflow
+```bash
+# Research specific pitches
+python pitch_manager.py --db-file data/pitches.db --research 4Z5rGo
+python pitch_manager.py --db-file data/pitches.db --research J7RBzr
+
+# Review researched pitches
+python pitch_manager.py --db-file data/pitches.db --list --filter-status researched
+```
+
+#### 4. Character Creation
+```bash
+# Create character folders for all researched pitches
+python pitch_manager.py --db-file data/pitches.db --create-character all
+
+# Or create for specific pitch
+python pitch_manager.py --db-file data/pitches.db --create-character 4Z5rGo
+
+# Check character folders created
+ls -la ../characters/
+```
+
+#### 5. Episode Production
+```bash
+# Update status as episodes are produced
+python pitch_manager.py --db-file data/pitches.db --status 4Z5rGo done
+
+# Export latest data for dashboard
+python pitch_manager.py --db-file data/pitches.db --export-json ../submissions.json
+```
+
+### Daily Operations
+
+**Automated processing (via cron):**
+```bash
+# Update database daily at 9 AM
+0 9 * * * cd /path/to/clanktank/scripts && python sheet_processor.py -s "Block Tank Pitch Submission" -o ../data -j --db-file pitches.db
+```
+
+**Quick status check:**
+```bash
+# See pipeline overview
+python pitch_manager.py --db-file data/pitches.db --list | head -20
+```
+
+### Integration Points
+
+- **Character data** → `characters/{character_name}/` folders with `raw_data.json` and `README.md`
+- **Episode generation** → Status updates to track production progress
+- **Dashboard** → JSON exports provide real-time data for web interface
+- **Research** → Automated AI analysis via existing deepsearch.py workflow
+
+### Troubleshooting
+
+**Google Sheets connection issues:**
+- Verify service account credentials in `~/.config/gspread/service_account.json`
+- Ensure spreadsheet is shared with service account email
+- Check sheet name exactly matches `-s` parameter
+
+**Database issues:**
+- Database file is created automatically if it doesn't exist
+- Use absolute paths for `--db-file` to avoid confusion
+- Check file permissions in output directory
+
+**Character creation fails:**
+- Verify `../characters/` directory exists and is writable
+- Check for special characters in character names (auto-sanitized)
+- Ensure pitch has been researched first (status = 'researched')
+
+### Helper Scripts
+
+**test_markdown.py** - Test markdown formatting output:
+```bash
+python test_markdown.py  # Shows formatted output for first CSV entry
+```
+
+**Directory structure:**
+- `old/` - Contains previous versions of scripts for reference
+- `__pycache__/` - Python cache files (ignored)
 
 ---
 
