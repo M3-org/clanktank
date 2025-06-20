@@ -1,4 +1,4 @@
-site_name: My Project Docs
+site_name: Clank Tank Documentation
 repo_url: https://github.com/m3-org/clanktank
 site_url: https://m3-org.github.io/clanktank/
 
@@ -18,3 +18,16 @@ markdown_extensions:
   - toc
   - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.details
+  - admonition
+
+nav:
+  - Home: index.md
+  - Hackathon Edition:
+    - Overview: hackathon-edition/index.md
+    - Show Configuration: hackathon-edition/hackathon-show-config.md
+    - Development Milestones: hackathon-edition/milestones.md
+    - Technical Implementation:
+      - Existing Infrastructure: hackathon-edition/hackathon-technical-notes-existing.md
+      - WordPress Approach: hackathon-edition/hackathon-technical-notes-wordpress.md
+    - Creative Notes: hackathon-edition/hackathon-creative-notes.md
