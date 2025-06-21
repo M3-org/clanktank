@@ -2,38 +2,134 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://m3-org.github.io/clanktank/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/pitch-pipeline/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/hackathon-creative-notes/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/hackathon-show-config/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/hackathon-technical-notes-existing/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/hackathon-technical-notes-wordpress/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/milestones/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/show-config/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/summary-for-team/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/001-setup-hackathon-database/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/002-adapt-sheet-processor/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/003-hackathon-research-integration/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/004-judge-scoring-system/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/005-discord-bot-integration/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/006-round2-synthesis/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/007-episode-generation/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/008-recording-pipeline/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/009-youtube-upload/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/010-admin-dashboard/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/hackathon-edition/github-issues/011-public-leaderboard/</loc>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Block%20Tank%20Pitch%20Submission%20Instructions/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Block%20Tank%20Thread%20Notes/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/BlockTank-Concept-Prototype/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Clank%20Tank%20Feedback/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Clank%20Tank%20Ops/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Clank%20Tank%20S1E1/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/Shmotime%20-%20Nonsense%20AI%20Show%20Generator/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
     </url>
     <url>
          <loc>https://m3-org.github.io/clanktank/notes/ai16z%20Infinite%20Show/</loc>
-         <lastmod>2025-03-22</lastmod>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/notes/pitch-pipeline-TODO/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/notes/tasks-pitch/</loc>
+         <lastmod>2025-06-21</lastmod>
+    </url>
+    <url>
+         <loc>https://m3-org.github.io/clanktank/notes/tasks/</loc>
+         <lastmod>2025-06-21</lastmod>
     </url>
 </urlset>

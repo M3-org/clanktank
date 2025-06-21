@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://m3-org.github.io/clanktank/notes/Block%20Tank%20Thread%20Notes/">
+        <link rel="canonical" href="https://m3-org.github.io/clanktank/notes/pitch-pipeline-TODO/">
       
       
       
@@ -18,7 +18,7 @@
     
     
       
-        <title>Block Tank Thread Notes - Clank Tank Documentation</title>
+        <title>Clank Tank Pitch Management Implementation TODO - Clank Tank Documentation</title>
       
     
     
@@ -68,7 +68,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#block-tank-thread-notes" class="md-skip">
+        <a href="#clank-tank-pitch-management-implementation-todo" class="md-skip">
           Skip to content
         </a>
       
@@ -104,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Block Tank Thread Notes
+              Clank Tank Pitch Management Implementation TODO
             
           </span>
         </div>
@@ -465,6 +465,215 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      Context
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Flow
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Status Values
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Implementation Tasks
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation Tasks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-core-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: Core Infrastructure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Core Infrastructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-1-rename-and-enhance-sheet-processor" class="md-nav__link">
+    <span class="md-ellipsis">
+      [ ] Task 1: Rename and enhance sheet processor
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-2-create-pitch-manager" class="md-nav__link">
+    <span class="md-ellipsis">
+      [ ] Task 2: Create pitch manager
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-2-integration-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 2: Integration &amp; Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: Integration & Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-3-test-with-sample-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      [ ] Task 3: Test with sample data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#task-4-documentation-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      [ ] Task 4: Documentation updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-future-enhancements-later" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Future Enhancements (Later)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Future Enhancements (Later)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#task-5-static-html-dashboard-hold-for-later-discussion" class="md-nav__link">
+    <span class="md-ellipsis">
+      [ ] Task 5: Static HTML dashboard (hold for later discussion)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-structure-after-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Structure (After Implementation)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commands-reference-post-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Commands Reference (Post-Implementation)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Commands Reference (Post-Implementation)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Daily Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Research Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -481,60 +690,167 @@
   
 
 
-<h1 id="block-tank-thread-notes">Block Tank Thread Notes</h1>
-<p>1/ Time to share more info about the crypto shark tank show my team has been working on, including how you can pitch your project to the AI judges 🧵</p>
-<p>2/ How's it work?</p>
-<p>Users submit a pitch with details about their idea AND themselves. We make an AI character + voice for the pitcher who then interact with the AI judges</p>
-<p>The system generates a complete episode simulation in 15-20 seconds, playable in-browser for fast iteration</p>
-<p>3/ Under the Hood</p>
-<p>Here's a data flow of how episodes are created. It's a modular and interoperable system, giving us the ability to easily swap assets and generate using different rendering pipelines</p>
-<p>Current demo runs on @playcanvas, we're open to exploring Unity / Unreal also</p>
-<p>4/ We can add our goals and resources into the writer's room and use the show as a way to scale partnerships, treasury management, grants, governance, etc</p>
-<p>DAO can get access to deal flow, and projects can get exposure, useful feedback, and connections to capital</p>
-<p>5/ If you want to pitch your idea to the AIs, fill-out this form and we'll reach out: https://tally.so/r/3X8EKO</p>
-<p>https://x.com/dankvr/status/1882956781179322529</p>
-<p>Also seeking to replace "What Did You Get Done This Week?" spaces with one you can pitch your ideas in and a few become new episodes. Open to collab on this, DMs open!</p>
+<h1 id="clank-tank-pitch-management-implementation-todo">Clank Tank Pitch Management Implementation TODO</h1>
+<h2 id="context">Context</h2>
+<p>We're implementing a simplified pitch management system that builds on existing infrastructure:</p>
+<ul>
+<li><strong>Current</strong>: Tally/Typeform → Google Sheets → CSV export (blocktank.csv)</li>
+<li><strong>Goal</strong>: Add status tracking, research integration, and management tools</li>
+<li><strong>Approach</strong>: Enhance existing <code>sheet_to_markdown.py</code>, create <code>pitch_manager.py</code>, use SQLite for operations</li>
+</ul>
+<h2 id="data-flow">Data Flow</h2>
+<div class="highlight"><pre><span></span><code>Google Sheets → sheet_processor.py → submissions.json + pitches.db → pitch_manager.py
+                                            ↓
+                                    deepsearch.py integration
+</code></pre></div>
+<h2 id="database-schema">Database Schema</h2>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">pitches</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="c1">-- Primary identifiers</span>
+<span class="w">    </span><span class="n">submission_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="n">respondent_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Submission metadata</span>
+<span class="w">    </span><span class="n">submitted_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="k">TIMESTAMP</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Contact information</span>
+<span class="w">    </span><span class="n">name</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">contact_info</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">discord_telegram_username</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Project details</span>
+<span class="w">    </span><span class="n">project_title</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">character_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">character_info</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">pitch_info</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- 3D Model &amp; customization options</span>
+<span class="w">    </span><span class="n">has_3d_model</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">model_file_upload</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">wants_commission</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">custom_voice</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">voice_file_upload</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Status tracking</span>
+<span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;submitted&#39;</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Research data</span>
+<span class="w">    </span><span class="n">research_completed_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">research_findings</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">research_sources</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Character creation tracking  </span>
+<span class="w">    </span><span class="n">character_folder_created</span><span class="w"> </span><span class="nb">BOOLEAN</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">FALSE</span><span class="p">,</span>
+<span class="w">    </span><span class="n">character_folder_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+
+<span class="w">    </span><span class="c1">-- Episode tracking</span>
+<span class="w">    </span><span class="n">episode_url</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">youtube_url</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+</code></pre></div>
+<h2 id="status-values">Status Values</h2>
+<ul>
+<li><code>submitted</code> - Fresh from Google Sheets</li>
+<li><code>researched</code> - deepsearch.py completed</li>
+<li><code>in_progress</code> - Character folder created, episode development started</li>
+<li><code>done</code> - Episode published on YouTube</li>
+</ul>
 <hr />
+<h2 id="implementation-tasks">Implementation Tasks</h2>
+<h3 id="phase-1-core-infrastructure">Phase 1: Core Infrastructure</h3>
+<h4 id="task-1-rename-and-enhance-sheet-processor">[ ] Task 1: Rename and enhance sheet processor</h4>
+<ul>
+<li><strong>File</strong>: <code>scripts/sheet_to_markdown.py</code> → <code>scripts/sheet_processor.py</code></li>
+<li><strong>Changes</strong>:</li>
+<li>Add SQLite database creation and population</li>
+<li>Add <code>status: "submitted"</code> to JSON output</li>
+<li>Maintain all existing functionality</li>
+<li>Add comprehensive field mapping from CSV to database</li>
+<li><strong>Dependencies</strong>: sqlite3 (built-in Python)</li>
+</ul>
+<h4 id="task-2-create-pitch-manager">[ ] Task 2: Create pitch manager</h4>
+<ul>
+<li><strong>File</strong>: <code>scripts/pitch_manager.py</code></li>
+<li><strong>Features</strong>:</li>
+<li><code>--list [--status &lt;status&gt;]</code> - Show pitches with optional filtering</li>
+<li><code>--research &lt;submission_id&gt;</code> - Run deepsearch and update database</li>
+<li><code>--status &lt;submission_id&gt; &lt;new_status&gt;</code> - Update pitch status</li>
+<li><code>--create-character &lt;submission_id&gt;</code> - Create character folder structure</li>
+<li><code>--export-json</code> - Update submissions.json from database</li>
+<li><strong>Dependencies</strong>: sqlite3, integration with existing deepsearch.py</li>
+</ul>
+<h3 id="phase-2-integration-testing">Phase 2: Integration &amp; Testing</h3>
+<h4 id="task-3-test-with-sample-data">[ ] Task 3: Test with sample data</h4>
+<ul>
+<li>Use blocktank.csv for testing</li>
+<li>Verify database operations</li>
+<li>Test research workflow</li>
+<li>Validate character folder creation</li>
+</ul>
+<h4 id="task-4-documentation-updates">[ ] Task 4: Documentation updates</h4>
+<ul>
+<li>Update CLAUDE.md with new workflow</li>
+<li>Add usage examples</li>
+<li>Document database schema</li>
+</ul>
+<h3 id="phase-3-future-enhancements-later">Phase 3: Future Enhancements (Later)</h3>
+<h4 id="task-5-static-html-dashboard-hold-for-later-discussion">[ ] Task 5: Static HTML dashboard (hold for later discussion)</h4>
+<ul>
+<li>Read from submissions.json</li>
+<li>Status filtering and search</li>
+<li>Manual management interface</li>
+</ul>
 <hr />
-<p>Block Tank uses an AI "writers' room" to script the show's flow and dialogue. The current version has a single AI thinking like a Hollywood writer. </p>
-<p>Future plans include a multi-agent writers' room with AI judges drawing from unique personality profiles for nuanced interactions.</p>
-<p>After the lightning-fast simulation, episodes can be reviewed and published. The system's event-based approach allows the same episode data to generate 2D, 3D or even VR visualizations! </p>
-<p>Human moderation is used to prevent spam &amp; prompt engineering while enabling community voting.</p>
-<p>Block Tank opens exciting possibilities for tokenomics &amp; community engagement.</p>
-<p>Imagine pitch submission fees to incentivize quality &amp; cover AI costs. Or viewers voting on pitches to greenlight &amp; even influencing judges' decisions!</p>
-<p>Under the hood, Block Tank uses an interoperable JSON format. The demo ran real-time 3D in a browser using PlayCanvas, with a Unity version showcasing VR.</p>
-<p>The modular system can swap components like the writers' room or visualizers, and add new scenes, characters &amp; elements.</p>
-<p>Block Tank points to a future where communities rapidly generate unique, dynamic shows with AI &amp; audience input. The "submit, simulate, share" flow has potential across genres - from game shows to dramas. </p>
+<h2 id="file-structure-after-implementation">File Structure (After Implementation)</h2>
+<div class="highlight"><pre><span></span><code>scripts/
+├── sheet_processor.py          # Enhanced from sheet_to_markdown.py
+├── pitch_manager.py           # New management tool
+├── deepsearch.py             # Existing (unchanged)
+└── ...
+
+data/
+├── pitches.db                # SQLite database
+├── submissions.json          # JSON export for dashboard
+└── ...
+
+characters/                   # Existing structure
+└── [character_folders]/
+</code></pre></div>
 <hr />
-<p>Here's a technical Twitter thread on Block Tank, the AI-powered show generator that parodies Shark Tank in the Web3 space:</p>
-<p>1/ Block Tank allows users to submit pitches which get transformed into AI-generated episodes. The system creates an AI agent to represent the pitcher, who interacts with AI judges in a simulated show. </p>
-<p>The user provides details about their pitch idea and themselves. This forms the basis for the AI pitcher and the episode's content.</p>
-<p>2/ Under the hood, Block Tank uses an "AI Writers Room" to script the show's flow and dialogue. This could be a single AI acting as a Hollywood writer, or a multi-agent system where each judge's AI draws from unique personality profiles.</p>
-<p>The multi-agent approach enables nuanced character interactions based on their defined traits and expertise.</p>
-<p>3/ Once the lightning-fast simulation is complete, the episode can be reviewed and published. Block Tank's modular design means the same episode data can generate 2D, 3D or VR visualizations.</p>
-<p>The system uses an interoperable JSON format at its core. The demo showcased real-time 3D rendering in-browser using PlayCanvas.</p>
-<p>4/ Block Tank opens exciting opportunities for tokenomics and community engagement. Imagine pitch submission fees to incentivize quality and cover AI costs. Users could even vote on pitches and influence the judges' decisions.</p>
-<p>5/ The future of Block Tank involves higher-quality art assets, advanced multi-agent writers rooms, and deeper audience interaction. The platform's flexibility means it could expand to other show formats beyond its current Shark Tank inspiration.</p>
-<p>6/ Block Tank points to a new era of community-driven, AI-powered interactive entertainment. Its rapid "submit, simulate, share" cycle has potential across genres. </p>
-<p>Excited to see how this technology evolves and the experiences it enables! Let me know if you have any other questions.</p>
+<h2 id="commands-reference-post-implementation">Commands Reference (Post-Implementation)</h2>
+<h3 id="daily-processing">Daily Processing</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Update from Google Sheets</span>
+python<span class="w"> </span>scripts/sheet_processor.py<span class="w"> </span>-s<span class="w"> </span><span class="s2">&quot;Block Tank Pitch Submission&quot;</span><span class="w"> </span>-o<span class="w"> </span>./data<span class="w"> </span>-j
+
+<span class="c1"># List new submissions</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--list<span class="w"> </span>--status<span class="w"> </span>submitted
+</code></pre></div>
+<h3 id="research-workflow">Research Workflow</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Research specific pitch</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--research<span class="w"> </span>4Z5rGo
+
+<span class="c1"># Update status manually</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--status<span class="w"> </span>4Z5rGo<span class="w"> </span>in_progress
+
+<span class="c1"># Create character folder</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--create-character<span class="w"> </span>4Z5rGo
+</code></pre></div>
+<h3 id="maintenance">Maintenance</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Export updated JSON for dashboard</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--export-json
+
+<span class="c1"># List all pitches by status</span>
+python<span class="w"> </span>scripts/pitch_manager.py<span class="w"> </span>--list<span class="w"> </span>--status<span class="w"> </span>researched
+</code></pre></div>
 <hr />
-<p>Here's a new Twitter thread explaining Block Tank, the AI-powered show generator:
-1/ Introducing Block Tank - a platform that transforms user-submitted pitches into AI-generated shows. It's like Shark Tank, but with virtual judges, contestants, and an infinite variety of topics.
-Here's how it works under the hood:
-2/ When a user submits a pitch, they provide details about their idea and background. Block Tank uses this to create an AI agent that represents the pitcher during the show.
-This AI agent can interact with the virtual judges, responding to questions and comments in real-time based on the user's input.
-3/ At the heart of Block Tank is the "AI Writers Room". This system takes the user's pitch, the AI pitcher, and the profiles of the virtual judges, and generates a complete show script.
-The AI Writers Room can be a single entity, like a virtual Hollywood screenwriter, or a multi-agent system where judge AIs collaborate and bounce ideas off each other.
-4/ Once the AI Writers Room finishes the script, Block Tank runs a detailed simulation of the show. This includes dialogue, interactions, and the final judgment from the AI panel.
-The whole process, from pitch submission to simulated episode, only takes 15-20 seconds. The system can then render this simulation in various formats - text, 2D animation, 3D scenes, or even VR experiences.
-5/ One of the most exciting aspects of Block Tank is the potential for audience interaction and community-driven content.
-For example, users could vote on which pitches they want to see turned into full episodes. They could even participate as virtual judges, influencing the direction and outcome of the show.
-6/ Block Tank also opens up interesting possibilities for tokenomics. Imagine a system where users spend tokens to submit high-quality pitches or to influence the judges' decisions.
-This could create a vibrant ecosystem around the platform, encouraging participation and innovation.
-7/ As Block Tank evolves, we can expect to see even more sophisticated AI writing systems, higher quality visuals, and deeper audience engagement.
-The platform's modular design means it can be extended to all sorts of show formats beyond the initial Shark Tank concept. The possibilities are endless.
-8/ Ultimately, Block Tank represents a glimpse into the future of entertainment - one where AI and human creativity work together to generate compelling, interactive content at scale.
-It's an exciting frontier, and we can't wait to see what kinds of new experiences and stories emerge from this innovative platform.</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Maintain backward compatibility with existing sheet_to_markdown.py functionality</li>
+<li>SQLite provides reliable operations, JSON provides dashboard compatibility</li>
+<li>Research integration should preserve existing deepsearch.py behavior</li>
+<li>Character folder creation should follow existing patterns in characters/ directory</li>
+</ul>
 
 
 

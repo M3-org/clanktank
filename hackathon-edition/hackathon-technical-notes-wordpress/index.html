@@ -1,0 +1,1943 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://m3-org.github.io/clanktank/hackathon-edition/hackathon-technical-notes-wordpress/">
+      
+      
+        <link rel="prev" href="../hackathon-technical-notes-existing/">
+      
+      
+        <link rel="next" href="../hackathon-creative-notes/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+    
+    
+      
+        <title>WordPress Approach - Clank Tank Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.a40c8224.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hackathon-technical-implementation-wordpress-with-elementor" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Clank Tank Documentation" class="md-header__button md-logo" aria-label="Clank Tank Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Clank Tank Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              WordPress Approach
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/m3-org/clanktank" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Clank Tank Documentation" class="md-nav__button md-logo" aria-label="Clank Tank Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Clank Tank Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/m3-org/clanktank" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hackathon Edition
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Hackathon Edition
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hackathon-show-config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Show Configuration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../milestones/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Development Milestones
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Technical Implementation
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Implementation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hackathon-technical-notes-existing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Existing Infrastructure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    WordPress Approach
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    WordPress Approach
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-wordpress-plugin-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. WordPress Plugin Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. WordPress Plugin Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plugin-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plugin Header
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-elementor-form-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Elementor Form Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-custom-post-type-meta-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Custom Post Type &amp; Meta Fields
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Custom Post Type & Meta Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta-field-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Meta Field Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternative-using-acf-advanced-custom-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative: Using ACF (Advanced Custom Fields)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-ai-research-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. AI Research Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-judge-scoring-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Judge Scoring System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-elementor-leaderboard-widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Elementor Leaderboard Widget
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-discord-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Discord Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Discord Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#discord-webhook-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discord Webhook Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-admin-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Admin Dashboard
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-automated-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Automated Processing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-elementor-page-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Elementor Page Templates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-episode-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Episode Generation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-rest-api-endpoints-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. REST API Endpoints &amp; Schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. REST API Endpoints & Schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rest-api-response-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST API Response Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#form-submission-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Form Submission Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benefits-of-wordpress-elementor-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits of WordPress + Elementor Approach
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wordpress-environment-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      WordPress Environment Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hackathon-creative-notes/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Creative Notes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-wordpress-plugin-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. WordPress Plugin Structure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. WordPress Plugin Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#plugin-header" class="md-nav__link">
+    <span class="md-ellipsis">
+      Plugin Header
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-elementor-form-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Elementor Form Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-custom-post-type-meta-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Custom Post Type &amp; Meta Fields
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Custom Post Type & Meta Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meta-field-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Meta Field Schema
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alternative-using-acf-advanced-custom-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Alternative: Using ACF (Advanced Custom Fields)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-ai-research-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. AI Research Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-judge-scoring-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Judge Scoring System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-elementor-leaderboard-widget" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Elementor Leaderboard Widget
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-discord-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Discord Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Discord Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#discord-webhook-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Discord Webhook Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-admin-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Admin Dashboard
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-automated-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. Automated Processing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-elementor-page-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. Elementor Page Templates
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-episode-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. Episode Generation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-rest-api-endpoints-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. REST API Endpoints &amp; Schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. REST API Endpoints & Schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rest-api-response-schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      REST API Response Schemas
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#form-submission-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Form Submission Schema
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benefits-of-wordpress-elementor-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      Benefits of WordPress + Elementor Approach
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wordpress-environment-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      WordPress Environment Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="hackathon-technical-implementation-wordpress-with-elementor">Hackathon Technical Implementation - WordPress with Elementor</h1>
+<p>This document covers implementing the entire hackathon judging system within WordPress using Elementor.</p>
+<h2 id="architecture-overview">Architecture Overview</h2>
+<div class="highlight"><pre><span></span><code>Elementor Form → Custom Post Type → WP REST API → AI Processing → Judge Scoring
+                                          ↓               ↓
+                                  Discord Webhook    Admin Dashboard
+</code></pre></div>
+<h2 id="1-wordpress-plugin-structure">1. WordPress Plugin Structure</h2>
+<div class="highlight"><pre><span></span><code>clank-tank-hackathon/
+├── clank-tank-hackathon.php      # Main plugin file
+├── includes/
+│   ├── post-types.php            # Custom post type registration
+│   ├── api-endpoints.php         # REST API routes
+│   ├── ai-integration.php        # OpenRouter/AI calls
+│   ├── discord-integration.php   # Discord webhook handler
+│   ├── scoring-system.php        # Judge scoring logic
+│   ├── admin-panel.php           # Admin UI components
+│   ├── elementor-widgets.php     # Custom Elementor widgets
+│   └── acf-fields.php            # ACF field definitions (if using ACF)
+├── assets/
+│   ├── css/
+│   └── js/
+└── templates/
+    └── elementor/
+        ├── submission-form.php
+        └── leaderboard-widget.php
+</code></pre></div>
+<h3 id="plugin-header">Plugin Header</h3>
+<div class="highlight"><pre><span></span><code><span class="cp">&lt;?php</span>
+<span class="sd">/**</span>
+<span class="sd"> * Plugin Name: Clank Tank Hackathon</span>
+<span class="sd"> * Description: AI-powered hackathon judging system for WordPress</span>
+<span class="sd"> * Version: 1.0.0</span>
+<span class="sd"> * Author: Clank Tank Team</span>
+<span class="sd"> * Text Domain: clank-tank-hackathon</span>
+<span class="sd"> * Requires at least: 6.0</span>
+<span class="sd"> * Requires PHP: 7.4</span>
+<span class="sd"> * Elementor tested up to: 3.20.0</span>
+<span class="sd"> * Elementor Pro tested up to: 3.20.0</span>
+<span class="sd"> */</span>
+
+<span class="c1">// Check for required plugins</span>
+<span class="nx">add_action</span><span class="p">(</span><span class="s1">&#39;admin_notices&#39;</span><span class="p">,</span> <span class="k">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nb">class_exists</span><span class="p">(</span><span class="s1">&#39;Elementor\Plugin&#39;</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">echo</span> <span class="s1">&#39;&lt;div class=&quot;notice notice-error&quot;&gt;&lt;p&gt;Clank Tank Hackathon requires Elementor to be installed and activated.&lt;/p&gt;&lt;/div&gt;&#39;</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">});</span>
+</code></pre></div>
+<h2 id="2-elementor-form-integration">2. Elementor Form Integration</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/elementor-widgets.php</span>
+<span class="x">use Elementor\Widget_Base;</span>
+<span class="x">use Elementor\Controls_Manager;</span>
+
+<span class="x">class Hackathon_Submission_Form extends Widget_Base {</span>
+<span class="x">    public function get_name() {</span>
+<span class="x">        return &#39;hackathon_submission&#39;;</span>
+<span class="x">    }</span>
+
+<span class="x">    public function get_title() {</span>
+<span class="x">        return &#39;Hackathon Submission Form&#39;;</span>
+<span class="x">    }</span>
+
+<span class="x">    protected function register_controls() {</span>
+<span class="x">        // Form field controls for Elementor editor</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+
+<span class="x">// Hook into Elementor form submission</span>
+<span class="x">add_action(&#39;elementor_pro/forms/new_record&#39;, function($record, $handler) {</span>
+<span class="x">    $form_name = $record-&gt;get_form_settings(&#39;form_name&#39;);</span>
+
+<span class="x">    if (&#39;Hackathon Submission&#39; !== $form_name) {</span>
+<span class="x">        return;</span>
+<span class="x">    }</span>
+
+<span class="x">    $raw_fields = $record-&gt;get(&#39;fields&#39;);</span>
+<span class="x">    $fields = [];</span>
+<span class="x">    foreach ($raw_fields as $id =&gt; $field) {</span>
+<span class="x">        $fields[$id] = $field[&#39;value&#39;];</span>
+<span class="x">    }</span>
+
+<span class="x">    // Create custom post</span>
+<span class="x">    $post_data = [</span>
+<span class="x">        &#39;post_title&#39; =&gt; $fields[&#39;project_name&#39;],</span>
+<span class="x">        &#39;post_content&#39; =&gt; $fields[&#39;description&#39;],</span>
+<span class="x">        &#39;post_type&#39; =&gt; &#39;hackathon_project&#39;,</span>
+<span class="x">        &#39;post_status&#39; =&gt; &#39;pending&#39;</span>
+<span class="x">    ];</span>
+
+<span class="x">    $post_id = wp_insert_post($post_data);</span>
+
+<span class="x">    // Save all meta fields</span>
+<span class="x">    update_post_meta($post_id, &#39;_team_info&#39;, [</span>
+<span class="x">        &#39;name&#39; =&gt; $fields[&#39;team_name&#39;],</span>
+<span class="x">        &#39;email&#39; =&gt; $fields[&#39;email&#39;],</span>
+<span class="x">        &#39;discord&#39; =&gt; $fields[&#39;discord&#39;],</span>
+<span class="x">        &#39;twitter&#39; =&gt; $fields[&#39;twitter&#39;]</span>
+<span class="x">    ]);</span>
+
+<span class="x">    update_post_meta($post_id, &#39;_project_urls&#39;, [</span>
+<span class="x">        &#39;github&#39; =&gt; $fields[&#39;github_url&#39;],</span>
+<span class="x">        &#39;demo_video&#39; =&gt; $fields[&#39;demo_video_url&#39;],</span>
+<span class="x">        &#39;live_demo&#39; =&gt; $fields[&#39;live_demo_url&#39;]</span>
+<span class="x">    ]);</span>
+
+<span class="x">    update_post_meta($post_id, &#39;_category&#39;, $fields[&#39;category&#39;]);</span>
+<span class="x">    update_post_meta($post_id, &#39;_status&#39;, &#39;submitted&#39;);</span>
+
+<span class="x">}, 10, 2);</span>
+</code></pre></div>
+<h2 id="3-custom-post-type-meta-fields">3. Custom Post Type &amp; Meta Fields</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/post-types.php</span>
+<span class="x">function register_hackathon_submission() {</span>
+<span class="x">    register_post_type(&#39;hackathon_project&#39;, [</span>
+<span class="x">        &#39;labels&#39; =&gt; [</span>
+<span class="x">            &#39;name&#39; =&gt; &#39;Hackathon Projects&#39;,</span>
+<span class="x">            &#39;singular_name&#39; =&gt; &#39;Project&#39;</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;public&#39; =&gt; true,</span>
+<span class="x">        &#39;has_archive&#39; =&gt; true,</span>
+<span class="x">        &#39;supports&#39; =&gt; [&#39;title&#39;, &#39;editor&#39;, &#39;custom-fields&#39;, &#39;elementor&#39;],</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; true,</span>
+<span class="x">        &#39;menu_icon&#39; =&gt; &#39;dashicons-awards&#39;,</span>
+<span class="x">        &#39;rest_base&#39; =&gt; &#39;hackathon-projects&#39;,</span>
+<span class="x">        &#39;rest_controller_class&#39; =&gt; &#39;WP_REST_Posts_Controller&#39;</span>
+<span class="x">    ]);</span>
+<span class="x">}</span>
+
+<span class="x">// Store all judge scores for same criteria</span>
+<span class="x">function save_judge_scores($post_id, $judge_name, $round, $scores) {</span>
+<span class="x">    $all_scores = get_post_meta($post_id, &#39;_judge_scores&#39;, true) ?: [];</span>
+
+<span class="x">    // All judges score the same criteria</span>
+<span class="x">    $criteria = [&#39;innovation&#39;, &#39;technical_execution&#39;, &#39;market_potential&#39;, &#39;user_experience&#39;];</span>
+
+<span class="x">    $all_scores[$round][$judge_name] = array_combine($criteria, $scores);</span>
+
+<span class="x">    update_post_meta($post_id, &#39;_judge_scores&#39;, $all_scores);</span>
+<span class="x">}</span>
+</code></pre></div>
+<h3 id="database-schema">Database Schema</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">-- WordPress custom tables for hackathon data (optional, can use post meta instead)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="k">prefix</span><span class="err">}</span><span class="n">hackathon_scores</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="n">UNSIGNED</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">post_id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="n">UNSIGNED</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">judge_name</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">round</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">innovation</span><span class="w"> </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+<span class="w">    </span><span class="n">technical_execution</span><span class="w"> </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+<span class="w">    </span><span class="n">market_potential</span><span class="w"> </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+<span class="w">    </span><span class="n">user_experience</span><span class="w"> </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+<span class="w">    </span><span class="n">weighted_total</span><span class="w"> </span><span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="n">DATETIME</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">KEY</span><span class="w"> </span><span class="n">post_id</span><span class="w"> </span><span class="p">(</span><span class="n">post_id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">KEY</span><span class="w"> </span><span class="n">judge_round</span><span class="w"> </span><span class="p">(</span><span class="n">judge_name</span><span class="p">,</span><span class="w"> </span><span class="n">round</span><span class="p">),</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">post_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="k">prefix</span><span class="err">}</span><span class="n">posts</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span>
+<span class="p">)</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="n">get_charset_collate</span><span class="p">()</span><span class="err">}</span><span class="p">;</span>
+
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="k">prefix</span><span class="err">}</span><span class="n">hackathon_community_votes</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="n">UNSIGNED</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">post_id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="w"> </span><span class="n">UNSIGNED</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">discord_user_id</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span>
+<span class="w">    </span><span class="n">reaction_type</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">20</span><span class="p">),</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="n">DATETIME</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span>
+<span class="w">    </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">KEY</span><span class="w"> </span><span class="n">post_reaction</span><span class="w"> </span><span class="p">(</span><span class="n">post_id</span><span class="p">,</span><span class="w"> </span><span class="n">reaction_type</span><span class="p">),</span>
+<span class="w">    </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">unique_vote</span><span class="w"> </span><span class="p">(</span><span class="n">post_id</span><span class="p">,</span><span class="w"> </span><span class="n">discord_user_id</span><span class="p">,</span><span class="w"> </span><span class="n">reaction_type</span><span class="p">),</span>
+<span class="w">    </span><span class="k">FOREIGN</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">post_id</span><span class="p">)</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="k">prefix</span><span class="err">}</span><span class="n">posts</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DELETE</span><span class="w"> </span><span class="k">CASCADE</span>
+<span class="p">)</span><span class="w"> </span><span class="err">{$</span><span class="n">wpdb</span><span class="o">-&gt;</span><span class="n">get_charset_collate</span><span class="p">()</span><span class="err">}</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="meta-field-schema">Meta Field Schema</h3>
+<div class="highlight"><pre><span></span><code><span class="x">// Register meta fields for REST API</span>
+<span class="x">function register_hackathon_meta_fields() {</span>
+<span class="x">    $meta_args = [</span>
+<span class="x">        &#39;type&#39; =&gt; &#39;object&#39;,</span>
+<span class="x">        &#39;single&#39; =&gt; true,</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; [</span>
+<span class="x">            &#39;schema&#39; =&gt; [</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;object&#39;,</span>
+<span class="x">                &#39;properties&#39; =&gt; [</span>
+<span class="x">                    &#39;name&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;],</span>
+<span class="x">                    &#39;email&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;, &#39;format&#39; =&gt; &#39;email&#39;],</span>
+<span class="x">                    &#39;discord&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;],</span>
+<span class="x">                    &#39;twitter&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;]</span>
+<span class="x">                ]</span>
+<span class="x">            ]</span>
+<span class="x">        ]</span>
+<span class="x">    ];</span>
+
+<span class="x">    register_post_meta(&#39;hackathon_project&#39;, &#39;_team_info&#39;, $meta_args);</span>
+
+<span class="x">    register_post_meta(&#39;hackathon_project&#39;, &#39;_project_urls&#39;, [</span>
+<span class="x">        &#39;type&#39; =&gt; &#39;object&#39;,</span>
+<span class="x">        &#39;single&#39; =&gt; true,</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; [</span>
+<span class="x">            &#39;schema&#39; =&gt; [</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;object&#39;,</span>
+<span class="x">                &#39;properties&#39; =&gt; [</span>
+<span class="x">                    &#39;github&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;, &#39;format&#39; =&gt; &#39;uri&#39;],</span>
+<span class="x">                    &#39;demo_video&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;, &#39;format&#39; =&gt; &#39;uri&#39;],</span>
+<span class="x">                    &#39;live_demo&#39; =&gt; [&#39;type&#39; =&gt; &#39;string&#39;, &#39;format&#39; =&gt; &#39;uri&#39;]</span>
+<span class="x">                ]</span>
+<span class="x">            ]</span>
+<span class="x">        ]</span>
+<span class="x">    ]);</span>
+
+<span class="x">    register_post_meta(&#39;hackathon_project&#39;, &#39;_category&#39;, [</span>
+<span class="x">        &#39;type&#39; =&gt; &#39;string&#39;,</span>
+<span class="x">        &#39;single&#39; =&gt; true,</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; true</span>
+<span class="x">    ]);</span>
+
+<span class="x">    register_post_meta(&#39;hackathon_project&#39;, &#39;_status&#39;, [</span>
+<span class="x">        &#39;type&#39; =&gt; &#39;string&#39;,</span>
+<span class="x">        &#39;single&#39; =&gt; true,</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; true</span>
+<span class="x">    ]);</span>
+<span class="x">}</span>
+<span class="x">add_action(&#39;init&#39;, &#39;register_hackathon_meta_fields&#39;);</span>
+</code></pre></div>
+<h3 id="alternative-using-acf-advanced-custom-fields">Alternative: Using ACF (Advanced Custom Fields)</h3>
+<p>Since your site has ACF installed, you might prefer using it for field management:</p>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/acf-fields.php</span>
+<span class="x">if (function_exists(&#39;acf_add_local_field_group&#39;)) {</span>
+<span class="x">    acf_add_local_field_group([</span>
+<span class="x">        &#39;key&#39; =&gt; &#39;group_hackathon_project&#39;,</span>
+<span class="x">        &#39;title&#39; =&gt; &#39;Hackathon Project Details&#39;,</span>
+<span class="x">        &#39;fields&#39; =&gt; [</span>
+<span class="x">            [</span>
+<span class="x">                &#39;key&#39; =&gt; &#39;field_team_info&#39;,</span>
+<span class="x">                &#39;label&#39; =&gt; &#39;Team Information&#39;,</span>
+<span class="x">                &#39;name&#39; =&gt; &#39;team_info&#39;,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;group&#39;,</span>
+<span class="x">                &#39;sub_fields&#39; =&gt; [</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_team_name&#39;, &#39;label&#39; =&gt; &#39;Team Name&#39;, &#39;name&#39; =&gt; &#39;name&#39;, &#39;type&#39; =&gt; &#39;text&#39;],</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_team_email&#39;, &#39;label&#39; =&gt; &#39;Email&#39;, &#39;name&#39; =&gt; &#39;email&#39;, &#39;type&#39; =&gt; &#39;email&#39;],</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_team_discord&#39;, &#39;label&#39; =&gt; &#39;Discord&#39;, &#39;name&#39; =&gt; &#39;discord&#39;, &#39;type&#39; =&gt; &#39;text&#39;],</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_team_twitter&#39;, &#39;label&#39; =&gt; &#39;Twitter&#39;, &#39;name&#39; =&gt; &#39;twitter&#39;, &#39;type&#39; =&gt; &#39;text&#39;]</span>
+<span class="x">                ]</span>
+<span class="x">            ],</span>
+<span class="x">            [</span>
+<span class="x">                &#39;key&#39; =&gt; &#39;field_project_urls&#39;,</span>
+<span class="x">                &#39;label&#39; =&gt; &#39;Project URLs&#39;,</span>
+<span class="x">                &#39;name&#39; =&gt; &#39;project_urls&#39;,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;group&#39;,</span>
+<span class="x">                &#39;sub_fields&#39; =&gt; [</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_github_url&#39;, &#39;label&#39; =&gt; &#39;GitHub URL&#39;, &#39;name&#39; =&gt; &#39;github&#39;, &#39;type&#39; =&gt; &#39;url&#39;],</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_demo_video&#39;, &#39;label&#39; =&gt; &#39;Demo Video&#39;, &#39;name&#39; =&gt; &#39;demo_video&#39;, &#39;type&#39; =&gt; &#39;url&#39;],</span>
+<span class="x">                    [&#39;key&#39; =&gt; &#39;field_live_demo&#39;, &#39;label&#39; =&gt; &#39;Live Demo&#39;, &#39;name&#39; =&gt; &#39;live_demo&#39;, &#39;type&#39; =&gt; &#39;url&#39;]</span>
+<span class="x">                ]</span>
+<span class="x">            ],</span>
+<span class="x">            [</span>
+<span class="x">                &#39;key&#39; =&gt; &#39;field_category&#39;,</span>
+<span class="x">                &#39;label&#39; =&gt; &#39;Category&#39;,</span>
+<span class="x">                &#39;name&#39; =&gt; &#39;category&#39;,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;select&#39;,</span>
+<span class="x">                &#39;choices&#39; =&gt; [</span>
+<span class="x">                    &#39;defi&#39; =&gt; &#39;DeFi&#39;,</span>
+<span class="x">                    &#39;gaming&#39; =&gt; &#39;Gaming&#39;,</span>
+<span class="x">                    &#39;ai_agents&#39; =&gt; &#39;AI/Agents&#39;,</span>
+<span class="x">                    &#39;infrastructure&#39; =&gt; &#39;Infrastructure&#39;,</span>
+<span class="x">                    &#39;social&#39; =&gt; &#39;Social&#39;,</span>
+<span class="x">                    &#39;other&#39; =&gt; &#39;Other&#39;</span>
+<span class="x">                ]</span>
+<span class="x">            ]</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;location&#39; =&gt; [</span>
+<span class="x">            [</span>
+<span class="x">                [</span>
+<span class="x">                    &#39;param&#39; =&gt; &#39;post_type&#39;,</span>
+<span class="x">                    &#39;operator&#39; =&gt; &#39;==&#39;,</span>
+<span class="x">                    &#39;value&#39; =&gt; &#39;hackathon_project&#39;</span>
+<span class="x">                ]</span>
+<span class="x">            ]</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;show_in_rest&#39; =&gt; true</span>
+<span class="x">    ]);</span>
+<span class="x">}</span>
+</code></pre></div>
+<h2 id="4-ai-research-integration">4. AI Research Integration</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/ai-integration.php</span>
+<span class="x">class HackathonAIResearch {</span>
+<span class="x">    private $api_key;</span>
+<span class="x">    private $endpoint = &#39;https://openrouter.ai/api/v1/chat/completions&#39;;</span>
+
+<span class="x">    public function research_project($post_id) {</span>
+<span class="x">        $project = get_post($post_id);</span>
+<span class="x">        $meta = get_post_meta($post_id);</span>
+
+<span class="x">        $prompt = $this-&gt;build_research_prompt($project, $meta);</span>
+
+<span class="x">        $response = wp_remote_post($this-&gt;endpoint, [</span>
+<span class="x">            &#39;headers&#39; =&gt; [</span>
+<span class="x">                &#39;Authorization&#39; =&gt; &#39;Bearer &#39; . $this-&gt;api_key,</span>
+<span class="x">                &#39;Content-Type&#39; =&gt; &#39;application/json&#39;</span>
+<span class="x">            ],</span>
+<span class="x">            &#39;body&#39; =&gt; json_encode([</span>
+<span class="x">                &#39;model&#39; =&gt; &#39;perplexity/sonar-small-online&#39;,</span>
+<span class="x">                &#39;messages&#39; =&gt; [[&#39;role&#39; =&gt; &#39;user&#39;, &#39;content&#39; =&gt; $prompt]]</span>
+<span class="x">            ])</span>
+<span class="x">        ]);</span>
+
+<span class="x">        $research = json_decode(wp_remote_retrieve_body($response), true);</span>
+<span class="x">        update_post_meta($post_id, &#39;_ai_research&#39;, $research);</span>
+
+<span class="x">        return $research;</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</code></pre></div>
+<h2 id="5-judge-scoring-system">5. Judge Scoring System</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/scoring-system.php</span>
+<span class="x">class JudgeScoring {</span>
+<span class="x">    // All judges use same criteria but with different weights</span>
+<span class="x">    private $judge_weights = [</span>
+<span class="x">        &#39;aimarc&#39; =&gt; [</span>
+<span class="x">            &#39;innovation&#39; =&gt; 1.2,</span>
+<span class="x">            &#39;technical_execution&#39; =&gt; 0.8,</span>
+<span class="x">            &#39;market_potential&#39; =&gt; 1.5,</span>
+<span class="x">            &#39;user_experience&#39; =&gt; 1.0</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;aishaw&#39; =&gt; [</span>
+<span class="x">            &#39;innovation&#39; =&gt; 1.0,</span>
+<span class="x">            &#39;technical_execution&#39; =&gt; 1.5,</span>
+<span class="x">            &#39;market_potential&#39; =&gt; 0.8,</span>
+<span class="x">            &#39;user_experience&#39; =&gt; 1.2</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;spartan&#39; =&gt; [</span>
+<span class="x">            &#39;innovation&#39; =&gt; 0.7,</span>
+<span class="x">            &#39;technical_execution&#39; =&gt; 0.8,</span>
+<span class="x">            &#39;market_potential&#39; =&gt; 1.3,</span>
+<span class="x">            &#39;user_experience&#39; =&gt; 1.3</span>
+<span class="x">        ],</span>
+<span class="x">        &#39;peepo&#39; =&gt; [</span>
+<span class="x">            &#39;innovation&#39; =&gt; 1.3,</span>
+<span class="x">            &#39;technical_execution&#39; =&gt; 0.7,</span>
+<span class="x">            &#39;market_potential&#39; =&gt; 1.0,</span>
+<span class="x">            &#39;user_experience&#39; =&gt; 1.2</span>
+<span class="x">        ]</span>
+<span class="x">    ];</span>
+
+<span class="x">    public function calculate_weighted_score($post_id) {</span>
+<span class="x">        $scores = get_post_meta($post_id, &#39;_judge_scores&#39;, true);</span>
+<span class="x">        $weighted_totals = [];</span>
+
+<span class="x">        foreach ($scores as $round =&gt; $round_scores) {</span>
+<span class="x">            foreach ($round_scores as $judge =&gt; $criteria_scores) {</span>
+<span class="x">                $weights = $this-&gt;judge_weights[$judge];</span>
+<span class="x">                $weighted_total = 0;</span>
+
+<span class="x">                foreach ($criteria_scores as $criterion =&gt; $score) {</span>
+<span class="x">                    $weighted_total += $score * $weights[$criterion];</span>
+<span class="x">                }</span>
+
+<span class="x">                $weighted_totals[$round][$judge] = $weighted_total;</span>
+<span class="x">            }</span>
+<span class="x">        }</span>
+
+<span class="x">        return $weighted_totals;</span>
+<span class="x">    }</span>
+<span class="x">}</span>
+</code></pre></div>
+<h2 id="6-elementor-leaderboard-widget">6. Elementor Leaderboard Widget</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// Custom Elementor widget for displaying leaderboard</span>
+<span class="x">class Hackathon_Leaderboard_Widget extends Widget_Base {</span>
+
+<span class="x">    public function get_name() {</span>
+<span class="x">        return &#39;hackathon_leaderboard&#39;;</span>
+<span class="x">    }</span>
+
+<span class="x">    public function get_title() {</span>
+<span class="x">        return &#39;Hackathon Leaderboard&#39;;</span>
+<span class="x">    }</span>
+
+<span class="x">    protected function render() {</span>
+<span class="x">        $settings = $this-&gt;get_settings_for_display();</span>
+
+<span class="x">        $projects = get_posts([</span>
+<span class="x">            &#39;post_type&#39; =&gt; &#39;hackathon_project&#39;,</span>
+<span class="x">            &#39;posts_per_page&#39; =&gt; -1,</span>
+<span class="x">            &#39;meta_key&#39; =&gt; &#39;_total_score&#39;,</span>
+<span class="x">            &#39;orderby&#39; =&gt; &#39;meta_value_num&#39;,</span>
+<span class="x">            &#39;order&#39; =&gt; &#39;DESC&#39;</span>
+<span class="x">        ]);</span>
+<span class="x">        ?&gt;</span>
+<span class="x">        &lt;div class=&quot;hackathon-leaderboard-widget&quot;&gt;</span>
+<span class="x">            &lt;table class=&quot;elementor-table&quot;&gt;</span>
+<span class="x">                &lt;thead&gt;</span>
+<span class="x">                    &lt;tr&gt;</span>
+<span class="x">                        &lt;th&gt;Rank&lt;/th&gt;</span>
+<span class="x">                        &lt;th&gt;Project&lt;/th&gt;</span>
+<span class="x">                        &lt;th&gt;Team&lt;/th&gt;</span>
+<span class="x">                        &lt;th&gt;Category&lt;/th&gt;</span>
+<span class="x">                        &lt;th&gt;Score&lt;/th&gt;</span>
+<span class="x">                        &lt;th&gt;Actions&lt;/th&gt;</span>
+<span class="x">                    &lt;/tr&gt;</span>
+<span class="x">                &lt;/thead&gt;</span>
+<span class="x">                &lt;tbody&gt;</span>
+<span class="x">                    </span><span class="cp">&lt;?php</span> <span class="k">foreach</span> <span class="p">(</span><span class="nv">$projects</span> <span class="k">as</span> <span class="nv">$index</span> <span class="o">=&gt;</span> <span class="nv">$project</span><span class="p">)</span><span class="o">:</span> 
+                        <span class="nv">$team_info</span> <span class="o">=</span> <span class="nx">get_post_meta</span><span class="p">(</span><span class="nv">$project</span><span class="o">-&gt;</span><span class="na">ID</span><span class="p">,</span> <span class="s1">&#39;_team_info&#39;</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+                        <span class="nv">$urls</span> <span class="o">=</span> <span class="nx">get_post_meta</span><span class="p">(</span><span class="nv">$project</span><span class="o">-&gt;</span><span class="na">ID</span><span class="p">,</span> <span class="s1">&#39;_project_urls&#39;</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span>
+                    <span class="cp">?&gt;</span>
+<span class="x">                    &lt;tr&gt;</span>
+<span class="x">                        &lt;td class=&quot;rank-</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="cp">?&gt;</span><span class="x">&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="cp">?&gt;</span><span class="x">&lt;/td&gt;</span>
+<span class="x">                        &lt;td&gt;</span>
+<span class="x">                            &lt;a href=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_permalink</span><span class="p">(</span><span class="nv">$project</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&quot;&gt;</span>
+<span class="x">                                </span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_the_title</span><span class="p">(</span><span class="nv">$project</span><span class="p">);</span> <span class="cp">?&gt;</span>
+<span class="x">                            &lt;/a&gt;</span>
+<span class="x">                        &lt;/td&gt;</span>
+<span class="x">                        &lt;td&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">esc_html</span><span class="p">(</span><span class="nv">$team_info</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]);</span> <span class="cp">?&gt;</span><span class="x">&lt;/td&gt;</span>
+<span class="x">                        &lt;td&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_post_meta</span><span class="p">(</span><span class="nv">$project</span><span class="o">-&gt;</span><span class="na">ID</span><span class="p">,</span> <span class="s1">&#39;_category&#39;</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&lt;/td&gt;</span>
+<span class="x">                        &lt;td&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">get_post_meta</span><span class="p">(</span><span class="nv">$project</span><span class="o">-&gt;</span><span class="na">ID</span><span class="p">,</span> <span class="s1">&#39;_total_score&#39;</span><span class="p">,</span> <span class="k">true</span><span class="p">);</span> <span class="cp">?&gt;</span><span class="x">&lt;/td&gt;</span>
+<span class="x">                        &lt;td&gt;</span>
+<span class="x">                            &lt;a href=&quot;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nx">esc_url</span><span class="p">(</span><span class="nv">$urls</span><span class="p">[</span><span class="s1">&#39;demo_video&#39;</span><span class="p">]);</span> <span class="cp">?&gt;</span><span class="x">&quot; class=&quot;elementor-button elementor-size-sm&quot;&gt;</span>
+<span class="x">                                Watch Demo</span>
+<span class="x">                            &lt;/a&gt;</span>
+<span class="x">                        &lt;/td&gt;</span>
+<span class="x">                    &lt;/tr&gt;</span>
+<span class="x">                    </span><span class="cp">&lt;?php</span> <span class="k">endforeach</span><span class="p">;</span> <span class="cp">?&gt;</span>
+<span class="x">                &lt;/tbody&gt;</span>
+<span class="x">            &lt;/table&gt;</span>
+<span class="x">        &lt;/div&gt;</span>
+<span class="x">        </span><span class="cp">&lt;?php</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="7-discord-integration">7. Discord Integration</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/discord-integration.php</span>
+<span class="x">add_action(&#39;rest_api_init&#39;, function() {</span>
+<span class="x">    register_rest_route(&#39;hackathon/v1&#39;, &#39;/discord-webhook&#39;, [</span>
+<span class="x">        &#39;methods&#39; =&gt; &#39;POST&#39;,</span>
+<span class="x">        &#39;callback&#39; =&gt; &#39;handle_discord_webhook&#39;,</span>
+<span class="x">        &#39;permission_callback&#39; =&gt; &#39;__return_true&#39;,</span>
+<span class="x">        &#39;args&#39; =&gt; [</span>
+<span class="x">            &#39;type&#39; =&gt; [</span>
+<span class="x">                &#39;required&#39; =&gt; true,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;string&#39;,</span>
+<span class="x">                &#39;enum&#39; =&gt; [&#39;reaction&#39;, &#39;comment&#39;, &#39;vote&#39;]</span>
+<span class="x">            ],</span>
+<span class="x">            &#39;project_id&#39; =&gt; [</span>
+<span class="x">                &#39;required&#39; =&gt; true,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;integer&#39;,</span>
+<span class="x">                &#39;validate_callback&#39; =&gt; function($param) {</span>
+<span class="x">                    return get_post($param) !== null;</span>
+<span class="x">                }</span>
+<span class="x">            ],</span>
+<span class="x">            &#39;reaction&#39; =&gt; [</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;string&#39;,</span>
+<span class="x">                &#39;enum&#39; =&gt; [&#39;check&#39;, &#39;hundred&#39;, &#39;moneybag&#39;, &#39;fire&#39;]</span>
+<span class="x">            ],</span>
+<span class="x">            &#39;user_id&#39; =&gt; [</span>
+<span class="x">                &#39;required&#39; =&gt; true,</span>
+<span class="x">                &#39;type&#39; =&gt; &#39;string&#39;</span>
+<span class="x">            ]</span>
+<span class="x">        ]</span>
+<span class="x">    ]);</span>
+<span class="x">});</span>
+
+<span class="x">function handle_discord_webhook($request) {</span>
+<span class="x">    $data = $request-&gt;get_json_params();</span>
+
+<span class="x">    // Process Discord reactions/votes</span>
+<span class="x">    if ($data[&#39;type&#39;] === &#39;reaction&#39;) {</span>
+<span class="x">        $project_id = $data[&#39;project_id&#39;];</span>
+<span class="x">        $reaction = $data[&#39;reaction&#39;];</span>
+<span class="x">        $user_id = $data[&#39;user_id&#39;];</span>
+
+<span class="x">        // Update community feedback</span>
+<span class="x">        $feedback = get_post_meta($project_id, &#39;_community_feedback&#39;, true) ?: [];</span>
+<span class="x">        $feedback[&#39;reactions&#39;][$reaction][] = $user_id;</span>
+
+<span class="x">        update_post_meta($project_id, &#39;_community_feedback&#39;, $feedback);</span>
+<span class="x">    }</span>
+
+<span class="x">    return new WP_REST_Response([&#39;status&#39; =&gt; &#39;success&#39;], 200);</span>
+<span class="x">}</span>
+</code></pre></div>
+<h3 id="discord-webhook-schema">Discord Webhook Schema</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// Expected webhook payload from Discord bot</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;reaction&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;reaction&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fire&quot;</span><span class="p">,</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">&quot;user_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;discord_user_123456&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hackathon_participant&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-01T12:00:00Z&quot;</span>
+<span class="p">}</span>
+
+<span class="c1">// Community feedback meta structure</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;reactions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;check&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;user_id_1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;user_id_2&quot;</span><span class="p">],</span><span class="w">        </span><span class="c1">// ✅ General approval</span>
+<span class="w">        </span><span class="nt">&quot;hundred&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;user_id_3&quot;</span><span class="p">],</span><span class="w">                   </span><span class="c1">// 💯 Technical excellence</span>
+<span class="w">        </span><span class="nt">&quot;moneybag&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;user_id_4&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;user_id_5&quot;</span><span class="p">],</span><span class="w">    </span><span class="c1">// 🤑 Economic potential</span>
+<span class="w">        </span><span class="nt">&quot;fire&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;user_id_6&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;user_id_7&quot;</span><span class="p">]</span><span class="w">         </span><span class="c1">// 🔥 Community vibes</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;total_reactions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;sentiment_score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.75</span><span class="w">  </span><span class="c1">// Max 2.0 bonus points</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="8-admin-dashboard">8. Admin Dashboard</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// includes/admin-panel.php</span>
+<span class="x">class HackathonAdminPanel {</span>
+<span class="x">    public function __construct() {</span>
+<span class="x">        add_action(&#39;admin_menu&#39;, [$this, &#39;add_menu_pages&#39;]);</span>
+<span class="x">    }</span>
+
+<span class="x">    public function add_menu_pages() {</span>
+<span class="x">        add_menu_page(</span>
+<span class="x">            &#39;Hackathon Dashboard&#39;,</span>
+<span class="x">            &#39;Hackathon&#39;,</span>
+<span class="x">            &#39;manage_options&#39;,</span>
+<span class="x">            &#39;hackathon-dashboard&#39;,</span>
+<span class="x">            [$this, &#39;render_dashboard&#39;],</span>
+<span class="x">            &#39;dashicons-awards&#39;,</span>
+<span class="x">            30</span>
+<span class="x">        );</span>
+
+<span class="x">        add_submenu_page(</span>
+<span class="x">            &#39;hackathon-dashboard&#39;,</span>
+<span class="x">            &#39;Judge Scoring&#39;,</span>
+<span class="x">            &#39;Scoring&#39;,</span>
+<span class="x">            &#39;manage_options&#39;,</span>
+<span class="x">            &#39;hackathon-scoring&#39;,</span>
+<span class="x">            [$this, &#39;render_scoring_page&#39;]</span>
+<span class="x">        );</span>
+<span class="x">    }</span>
+
+<span class="x">    public function render_dashboard() {</span>
+<span class="x">        // Dashboard with project stats, status overview</span>
+<span class="x">        ?&gt;</span>
+<span class="x">        &lt;div class=&quot;wrap&quot;&gt;</span>
+<span class="x">            &lt;h1&gt;Hackathon Dashboard&lt;/h1&gt;</span>
+
+<span class="x">            &lt;!-- Status Cards --&gt;</span>
+<span class="x">            &lt;div class=&quot;hackathon-stats&quot; style=&quot;display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 20px 0;&quot;&gt;</span>
+<span class="x">                &lt;div class=&quot;stat-card&quot; style=&quot;background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);&quot;&gt;</span>
+<span class="x">                    &lt;h3&gt;Total Submissions&lt;/h3&gt;</span>
+<span class="x">                    &lt;p style=&quot;font-size: 2em; margin: 0;&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">get_submission_count</span><span class="p">();</span> <span class="cp">?&gt;</span><span class="x">&lt;/p&gt;</span>
+<span class="x">                &lt;/div&gt;</span>
+<span class="x">                &lt;div class=&quot;stat-card&quot; style=&quot;background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);&quot;&gt;</span>
+<span class="x">                    &lt;h3&gt;Pending Review&lt;/h3&gt;</span>
+<span class="x">                    &lt;p style=&quot;font-size: 2em; margin: 0;&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">get_pending_count</span><span class="p">();</span> <span class="cp">?&gt;</span><span class="x">&lt;/p&gt;</span>
+<span class="x">                &lt;/div&gt;</span>
+<span class="x">                &lt;div class=&quot;stat-card&quot; style=&quot;background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);&quot;&gt;</span>
+<span class="x">                    &lt;h3&gt;Round 1 Complete&lt;/h3&gt;</span>
+<span class="x">                    &lt;p style=&quot;font-size: 2em; margin: 0;&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">get_round1_count</span><span class="p">();</span> <span class="cp">?&gt;</span><span class="x">&lt;/p&gt;</span>
+<span class="x">                &lt;/div&gt;</span>
+<span class="x">                &lt;div class=&quot;stat-card&quot; style=&quot;background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);&quot;&gt;</span>
+<span class="x">                    &lt;h3&gt;Final Scores&lt;/h3&gt;</span>
+<span class="x">                    &lt;p style=&quot;font-size: 2em; margin: 0;&quot;&gt;</span><span class="cp">&lt;?php</span> <span class="k">echo</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">get_completed_count</span><span class="p">();</span> <span class="cp">?&gt;</span><span class="x">&lt;/p&gt;</span>
+<span class="x">                &lt;/div&gt;</span>
+<span class="x">            &lt;/div&gt;</span>
+
+<span class="x">            &lt;div class=&quot;recent-submissions&quot;&gt;</span>
+<span class="x">                </span><span class="cp">&lt;?php</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="na">display_recent_submissions</span><span class="p">();</span> <span class="cp">?&gt;</span>
+<span class="x">            &lt;/div&gt;</span>
+<span class="x">        &lt;/div&gt;</span>
+<span class="x">        </span><span class="cp">&lt;?php</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="9-automated-processing">9. Automated Processing</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// WP-Cron for automated judging</span>
+<span class="x">add_action(&#39;init&#39;, function() {</span>
+<span class="x">    if (!wp_next_scheduled(&#39;process_hackathon_submissions&#39;)) {</span>
+<span class="x">        wp_schedule_event(time(), &#39;hourly&#39;, &#39;process_hackathon_submissions&#39;);</span>
+<span class="x">    }</span>
+<span class="x">});</span>
+
+<span class="x">add_action(&#39;process_hackathon_submissions&#39;, function() {</span>
+<span class="x">    // Get pending submissions</span>
+<span class="x">    $args = [</span>
+<span class="x">        &#39;post_type&#39; =&gt; &#39;hackathon_project&#39;,</span>
+<span class="x">        &#39;meta_key&#39; =&gt; &#39;_status&#39;,</span>
+<span class="x">        &#39;meta_value&#39; =&gt; &#39;submitted&#39;,</span>
+<span class="x">        &#39;posts_per_page&#39; =&gt; 5 // Process 5 at a time</span>
+<span class="x">    ];</span>
+
+<span class="x">    $query = new WP_Query($args);</span>
+
+<span class="x">    while ($query-&gt;have_posts()) {</span>
+<span class="x">        $query-&gt;the_post();</span>
+<span class="x">        $post_id = get_the_ID();</span>
+
+<span class="x">        // Run AI research</span>
+<span class="x">        $ai = new HackathonAIResearch();</span>
+<span class="x">        $ai-&gt;research_project($post_id);</span>
+
+<span class="x">        // Update status</span>
+<span class="x">        update_post_meta($post_id, &#39;_status&#39;, &#39;researched&#39;);</span>
+<span class="x">    }</span>
+
+<span class="x">    wp_reset_postdata();</span>
+<span class="x">});</span>
+</code></pre></div>
+<h2 id="10-elementor-page-templates">10. Elementor Page Templates</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// Create Elementor template for project display</span>
+<span class="x">add_filter(&#39;single_template&#39;, function($template) {</span>
+<span class="x">    global $post;</span>
+
+<span class="x">    if ($post-&gt;post_type === &#39;hackathon_project&#39;) {</span>
+<span class="x">        // Check if Elementor template exists</span>
+<span class="x">        $elementor_template = locate_template(&#39;single-hackathon_project.php&#39;);</span>
+<span class="x">        if ($elementor_template) {</span>
+<span class="x">            return $elementor_template;</span>
+<span class="x">        }</span>
+<span class="x">    }</span>
+
+<span class="x">    return $template;</span>
+<span class="x">});</span>
+
+<span class="x">// Dynamic tags for Elementor</span>
+<span class="x">add_action(&#39;elementor/dynamic_tags/register&#39;, function($dynamic_tags_manager) {</span>
+<span class="x">    $dynamic_tags_manager-&gt;register(new \Hackathon_Score_Tag());</span>
+<span class="x">    $dynamic_tags_manager-&gt;register(new \Hackathon_Judge_Comments_Tag());</span>
+<span class="x">    $dynamic_tags_manager-&gt;register(new \Hackathon_Community_Reactions_Tag());</span>
+<span class="x">});</span>
+</code></pre></div>
+<h2 id="11-episode-generation">11. Episode Generation</h2>
+<div class="highlight"><pre><span></span><code><span class="x">// Generate episode data for recording</span>
+<span class="x">function generate_episode_data($post_id, $round) {</span>
+<span class="x">    $project = get_post($post_id);</span>
+<span class="x">    $scores = get_post_meta($post_id, &#39;_judge_scores&#39;, true);</span>
+<span class="x">    $research = get_post_meta($post_id, &#39;_ai_research&#39;, true);</span>
+<span class="x">    $community = get_post_meta($post_id, &#39;_community_feedback&#39;, true);</span>
+
+<span class="x">    $episode = [</span>
+<span class="x">        &#39;show_id&#39; =&gt; &#39;clank_tank_hackathon&#39;,</span>
+<span class="x">        &#39;episode_id&#39; =&gt; &#39;HTH_R&#39; . $round . &#39;_&#39; . $post_id,</span>
+<span class="x">        &#39;title&#39; =&gt; get_the_title($post_id),</span>
+<span class="x">        &#39;scenes&#39; =&gt; generate_judging_scenes($project, $scores, $research, $community, $round)</span>
+<span class="x">    ];</span>
+
+<span class="x">    // Save for external recording system</span>
+<span class="x">    update_post_meta($post_id, &#39;_episode_data_round_&#39; . $round, $episode);</span>
+
+<span class="x">    // Or export to JSON file</span>
+<span class="x">    $upload_dir = wp_upload_dir();</span>
+<span class="x">    $file_path = $upload_dir[&#39;basedir&#39;] . &#39;/hackathon-episodes/round&#39; . $round . &#39;/&#39; . $post_id . &#39;.json&#39;;</span>
+<span class="x">    wp_mkdir_p(dirname($file_path));</span>
+<span class="x">    file_put_contents($file_path, json_encode($episode, JSON_PRETTY_PRINT));</span>
+
+<span class="x">    return $episode;</span>
+<span class="x">}</span>
+</code></pre></div>
+<h2 id="12-rest-api-endpoints-schemas">12. REST API Endpoints &amp; Schemas</h2>
+<h3 id="available-endpoints">Available Endpoints</h3>
+<div class="highlight"><pre><span></span><code>GET  /wp-json/wp/v2/hackathon-projects         - List all projects
+GET  /wp-json/wp/v2/hackathon-projects/{id}    - Get single project
+POST /wp-json/hackathon/v1/submit              - Submit new project
+POST /wp-json/hackathon/v1/discord-webhook     - Discord reactions
+GET  /wp-json/hackathon/v1/scores/{id}         - Get project scores
+POST /wp-json/hackathon/v1/judge/{id}          - Trigger AI judging
+GET  /wp-json/hackathon/v1/leaderboard         - Get ranked projects
+</code></pre></div>
+<h3 id="rest-api-response-schemas">REST API Response Schemas</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// GET /wp-json/wp/v2/hackathon-projects/{id}</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;date&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T12:00:00&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;date_gmt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-15T12:00:00&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;guid&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;rendered&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/?post_type=hackathon_project&amp;p=123&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;modified&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-16T14:30:00&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;modified_gmt&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-16T14:30:00&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;slug&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;defi-lending-protocol&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;publish&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;hackathon_project&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;link&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/hackathon/defi-lending-protocol/&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;rendered&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi Lending Protocol&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;content&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;rendered&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;p&gt;Project description...&lt;/p&gt;&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;protected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;excerpt&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;rendered&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;p&gt;A decentralized lending platform...&lt;/p&gt;&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;protected&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;author&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;featured_media&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">456</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;_team_info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Team Alpha&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;team@example.com&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;discord&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TeamAlpha#1234&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;twitter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;@teamalpha&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;_project_urls&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;github&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/team/project&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;demo_video&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://youtube.com/watch?v=...&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;live_demo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://demo.example.com&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;_category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;round1_complete&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;_total_score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">38.5</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;acf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;team_info&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Team Alpha&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;team@example.com&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;discord&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TeamAlpha#1234&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;twitter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;@teamalpha&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;project_urls&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;github&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/team/project&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;demo_video&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://youtube.com/watch?v=...&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;live_demo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://demo.example.com&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;defi&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;_links&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;self&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/hackathon-projects/123&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;targetHints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;allow&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;POST&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PUT&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;PATCH&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;DELETE&quot;</span><span class="p">]</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;collection&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/hackathon-projects&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;about&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/types/hackathon_project&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;author&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;embeddable&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/users/1&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;wp:featuredmedia&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;embeddable&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/media/456&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;wp:attachment&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://m3org.com/tv/wp-json/wp/v2/media?parent=123&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;curies&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;wp&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;href&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://api.w.org/{rel}&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;templated&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// GET /wp-json/hackathon/v1/scores/{id}</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;project_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;project_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi Lending Protocol&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;rounds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;judges&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;aimarc&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;raw_scores&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;innovation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;technical_execution&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;market_potential&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;user_experience&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span>
+<span class="w">                    </span><span class="p">},</span>
+<span class="w">                    </span><span class="nt">&quot;weighted_total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">33.5</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">                </span><span class="nt">&quot;aishaw&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;raw_scores&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;innovation&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;technical_execution&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;market_potential&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span>
+<span class="w">                        </span><span class="nt">&quot;user_experience&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span>
+<span class="w">                    </span><span class="p">},</span>
+<span class="w">                    </span><span class="nt">&quot;weighted_total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">34.2</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">                </span><span class="c1">// ... other judges</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;round_total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">135.7</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="nt">&quot;2&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Round 2 scores with community feedback incorporated</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;community_bonus&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;final_score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">38.5</span>
+<span class="p">}</span>
+
+<span class="c1">// GET /wp-json/hackathon/v1/leaderboard</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;projects&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;rank&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">123</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi Lending Protocol&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;team&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Team Alpha&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">38.5</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;rounds_complete&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="c1">// ... more projects</span>
+<span class="w">    </span><span class="p">],</span>
+<span class="w">    </span><span class="nt">&quot;total_projects&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">25</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;last_updated&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-01T12:00:00Z&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="form-submission-schema">Form Submission Schema</h3>
+<div class="highlight"><pre><span></span><code><span class="c1">// POST /wp-json/hackathon/v1/submit</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;project_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi Lending Protocol&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;A decentralized lending platform...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DeFi&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;team_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Team Alpha&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;email&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;team@example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;discord&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TeamAlpha#1234&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;twitter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;@teamalpha&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;github_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://github.com/team/project&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;demo_video_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://youtube.com/watch?v=...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;live_demo_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://demo.example.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;how_it_works&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Our platform uses smart contracts...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;problem_solved&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Traditional lending is slow and expensive...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;technical_highlights&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;We implemented a novel liquidation mechanism...&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;whats_next&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;We plan to add cross-chain support...&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="benefits-of-wordpress-elementor-approach">Benefits of WordPress + Elementor Approach</h2>
+<ol>
+<li><strong>Visual Form Builder</strong>: Use Elementor's form widget with custom actions</li>
+<li><strong>Drag-and-Drop Pages</strong>: Create submission pages and leaderboards visually</li>
+<li><strong>Dynamic Content</strong>: Use Elementor's dynamic tags for project data</li>
+<li><strong>Responsive Design</strong>: Built-in mobile optimization</li>
+<li><strong>User-Friendly</strong>: Non-developers can modify layouts and content</li>
+<li><strong>Template System</strong>: Create reusable templates for project displays</li>
+<li><strong>Popup Integration</strong>: Use Elementor popups for voting/feedback</li>
+<li><strong>Performance</strong>: Elementor's optimization features for fast loading</li>
+</ol>
+<h2 id="wordpress-environment-notes">WordPress Environment Notes</h2>
+<p>Based on your m3org.com/tv setup:</p>
+<ol>
+<li><strong>Existing Infrastructure</strong>:</li>
+<li>WordPress with standard REST API structure</li>
+<li>Elementor Pro installed (confirmed by <code>elementor_library</code> post type)</li>
+<li>ACF (Advanced Custom Fields) available for field management</li>
+<li>
+<p>Standard post types only (no custom hackathon types yet)</p>
+</li>
+<li>
+<p><strong>Implementation Recommendations</strong>:</p>
+</li>
+<li>Use ACF for managing hackathon fields (cleaner UI than raw meta)</li>
+<li>Leverage Elementor Pro's form actions for submission handling</li>
+<li>Build on existing REST API patterns from your site</li>
+<li>
+<p>Consider using existing post categories vs custom post type for simpler setup</p>
+</li>
+<li>
+<p><strong>Quick Start Path</strong>:</p>
+</li>
+<li>Create ACF field group for hackathon submissions</li>
+<li>Use Elementor form with custom webhook action</li>
+<li>Store in regular posts with specific category</li>
+<li>Add custom REST endpoints only where needed</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/m3-org" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.60a45f97.min.js"></script>
+      
+    
+  </body>
+</html>
