@@ -81,14 +81,20 @@ Execute the following steps in order. For each issue, review the specified exist
     2.  **Verify Logic:** Confirm that the judge personas, expertise weights, and prompt templates are implemented exactly as planned.
     3.  **Align & Move:** After verification, move both `judge_scoring.py` and its test file `test_judge_scoring.py` into the `scripts/hackathon/` directory.
 
-**[✓] Issue `005-discord-bot-integration.md`**
+**[✓] Issue `005-discord-bot-integration.md`** - COMPLETE ✅
 - **Goal:** Create a Discord bot for community voting.
 - **Plan Spec:** `discord_bot.py`.
-- **Existing Scripts to Review:** None.
-- **Action:**
-    1.  **Create New Script:** This script must be created from scratch.
-    2.  **Implement Spec:** Implement all features as defined in `005-discord-bot-integration.md`, especially the hybrid emoji voting system (`💡`,`💻`,`📈`,`😍` + `🔥`).
-    3.  **Save:** Place the new script at `scripts/hackathon/discord_bot.py`.
+- **Status:** Fully implemented, tested, and verified with live data.
+- **Final Implementation:**
+    1.  **✓ Created:** `scripts/hackathon/discord_bot.py` with full functionality
+    2.  **✓ Voting System:** Emoji reactions (🔥 hype first, then 💡💻📈😍)
+    3.  **✓ CLI Commands:** `--post`, `--post-all`, `--run-bot`
+    4.  **✓ Anti-Spam:** 5-second delay between posts in `--post-all`
+    5.  **✓ Database Integration:** Records Discord username + server nickname
+    6.  **✓ Status Updates:** Changes submissions to 'community-voting'
+    7.  **✓ Session Independence:** Works across bot restarts via embed parsing
+    8.  **✓ Live Testing:** Verified with actual Discord reactions and database storage
+    9.  **✓ Documentation:** Test suite, README, and requirements.txt created
 
 **[✓] Issue `006-round2-synthesis.md`**
 - **Goal:** Implement the Round 2 logic that combines judge scores and community feedback.
@@ -129,8 +135,9 @@ Execute the following steps in order. For each issue, review the specified exist
 
 **Phase 2: Core Logic - COMPLETE**
 - `hackathon_research.py`, `github_analyzer.py`, and `hackathon_manager.py` (scoring) were reviewed and moved to `scripts/hackathon/`.
-- Issues #6 and #7 closed.
-- **Outstanding:** Issues #005 (Discord Bot) and #006 (Round 2 Synthesis) are still pending implementation. *Correction: The user's progress indicates these are also considered complete for now.*
+- Issues #3 and #4 closed.
+- **Issue #005 (Discord Bot):** COMPLETE - Full implementation with anti-spam protection
+- **Outstanding:** Issue #006 (Round 2 Synthesis) pending implementation.
 
 **Phase 3: Content Pipeline - DRAFT COMPLETE**
 - `generate_episode.py`, `record_episodes.sh`, and `upload_youtube.py` have been created as a first draft.
@@ -146,3 +153,45 @@ Execute the following steps in order. For each issue, review the specified exist
 **Mission Status: All planned implementation is complete.**
 
 Good luck. 
+
+---
+## Next Steps: Completing the Full Vision
+
+The core pipeline for processing, researching, scoring, and generating draft episodes is complete. The next mission is to implement the community feedback loop, which is essential for the final judging round and creating the most compelling content.
+
+### 1. ✅ COMPLETED: Discord Integration (Issue #005)
+
+The Discord bot for community voting has been fully implemented and tested.
+
+-   **Status**: COMPLETE ✅ **VERIFIED WITH LIVE DATA**
+-   **Implementation**: `scripts/hackathon/discord_bot.py`
+-   **Features Delivered**:
+    1.  ✅ Bot posts submissions individually (`--post`) or batch (`--post-all`)
+    2.  ✅ Implemented '🔥' emoji-first voting system (🔥💡💻📈😍)
+    3.  ✅ Records Discord username **and server nickname** in database
+    4.  ✅ Updates project status to `community-voting` after posting
+    5.  ✅ Anti-spam: 5-second delay between posts in batch mode
+    6.  ✅ Session-independent tracking: Works across bot restarts
+    7.  ✅ Live tested: Successfully recording votes in `community_feedback` table
+    8.  ✅ Comprehensive documentation and test suite included
+
+### 2. Next Priority: Round 2 Synthesis (Issue #006)
+
+Once the Discord bot is collecting data, the Round 2 synthesis logic can be built.
+
+-   **Objective**: Extend `scripts/hackathon/hackathon_manager.py` with the Round 2 logic defined in `docs/hackathon-edition/github-issues/006-round2-synthesis.md`.
+-   **Key Tasks**:
+    1.  Implement the community bonus calculation based on total reaction counts.
+    2.  Create the final narrative prompts that force judges to reconcile their R1 scores with community feedback.
+    3.  Get the final text verdicts from the judges.
+    4.  Update the database with the final verdicts and change the project status to `completed`.
+
+### 3. Final Task: Refine Episode Generation (Issue #007)
+
+Completing Round 2 unblocks the final and most creative part of the content pipeline.
+
+-   **Objective**: Revisit `scripts/hackathon/generate_episode.py` to use the now-available final data.
+-   **Key Tasks**:
+    1.  Update the script to pull the final narrative verdicts from the database.
+    2.  Incorporate the sophisticated, context-aware dialogue prompts we designed to create the most engaging and dramatic judge interactions.
+    3.  Ensure the final JSON includes all data needed for the definitive episode render. 
