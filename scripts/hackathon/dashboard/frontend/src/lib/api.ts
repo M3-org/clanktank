@@ -1,0 +1,67 @@
+import axios from 'axios'
+import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats } from '../types'
+
+const API_BASE = import.meta.env.PROD ? '/data' : '/api'
+
+// For static deployment, we'll check if we should use JSON files
+const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
+
+const api = axios.create({
+  baseURL: API_BASE,
+})
+
+export const hackathonApi = {
+  // Get all submissions
+  getSubmissions: async (filters?: { status?: string; category?: string }) => {
+    if (USE_STATIC) {
+      const response = await api.get<SubmissionSummary[]>('/submissions.json')
+      let data = response.data
+      
+      // Apply client-side filtering for static data
+      if (filters?.status) {
+        data = data.filter(s => s.status === filters.status)
+      }
+      if (filters?.category) {
+        data = data.filter(s => s.category === filters.category)
+      }
+      
+      return data
+    }
+    
+    const response = await api.get<SubmissionSummary[]>('/submissions', { params: filters })
+    return response.data
+  },
+
+  // Get submission details
+  getSubmission: async (id: string) => {
+    if (USE_STATIC) {
+      const response = await api.get<SubmissionDetail>(`/submission/${id}.json`)
+      return response.data
+    }
+    
+    const response = await api.get<SubmissionDetail>(`/submission/${id}`)
+    return response.data
+  },
+
+  // Get leaderboard
+  getLeaderboard: async () => {
+    if (USE_STATIC) {
+      const response = await api.get<LeaderboardEntry[]>('/leaderboard.json')
+      return response.data
+    }
+    
+    const response = await api.get<LeaderboardEntry[]>('/leaderboard')
+    return response.data
+  },
+
+  // Get stats
+  getStats: async () => {
+    if (USE_STATIC) {
+      const response = await api.get<Stats>('/stats.json')
+      return response.data
+    }
+    
+    const response = await api.get<Stats>('/stats')
+    return response.data
+  },
+}
