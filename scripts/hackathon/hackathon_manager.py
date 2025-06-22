@@ -406,6 +406,111 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         
         conn.close()
         return leaderboard
+    
+    def run_round2_synthesis(self, project_id: str = None):
+        """Run Round 2 synthesis combining judge scores with community feedback."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Get projects ready for Round 2
+        if project_id:
+            cursor.execute("SELECT submission_id FROM hackathon_submissions WHERE submission_id = ? AND status = 'community-voting'", (project_id,))
+        else:
+            cursor.execute("SELECT submission_id FROM hackathon_submissions WHERE status = 'community-voting'")
+        
+        project_ids = [row[0] for row in cursor.fetchall()]
+        
+        if not project_ids:
+            print("No projects ready for Round 2 synthesis")
+            conn.close()
+            return
+        
+        # Calculate community bonuses
+        community_data = self._calculate_community_bonuses(cursor, project_ids)
+        
+        for project_id in project_ids:
+            print(f"\nProcessing Round 2 for {project_id}...")
+            
+            # Get Round 1 scores
+            cursor.execute("SELECT judge_name, weighted_total, notes FROM hackathon_scores WHERE submission_id = ? AND round = 1", (project_id,))
+            r1_scores = {row[0]: {'score': row[1], 'notes': json.loads(row[2] or '{}')} for row in cursor.fetchall()}
+            
+            # Generate final verdicts
+            for judge in ['aimarc', 'aishaw', 'peepo', 'spartan']:
+                if judge not in r1_scores:
+                    continue
+                
+                verdict = self._generate_final_verdict(project_id, judge, r1_scores[judge], community_data[project_id])
+                final_score = r1_scores[judge]['score'] + community_data[project_id]['bonus']
+                
+                # Store Round 2 data
+                cursor.execute("""
+                    INSERT INTO hackathon_scores 
+                    (submission_id, judge_name, round, weighted_total, notes)
+                    VALUES (?, ?, 2, ?, ?)
+                """, (project_id, judge, final_score, json.dumps({'final_verdict': verdict})))
+            
+            # Update submission status
+            cursor.execute("UPDATE hackathon_submissions SET status = 'completed' WHERE submission_id = ?", (project_id,))
+            print(f"✓ Round 2 completed for {project_id}")
+        
+        conn.commit()
+        conn.close()
+    
+    def _calculate_community_bonuses(self, cursor, project_ids):
+        """Calculate community bonus for each project."""
+        community_data = {}
+        
+        # Get reaction counts per project
+        for project_id in project_ids:
+            cursor.execute("SELECT COUNT(*) FROM community_feedback WHERE submission_id = ?", (project_id,))
+            total_reactions = cursor.fetchone()[0]
+            community_data[project_id] = {'reactions': total_reactions}
+        
+        # Calculate bonuses (max gets 2.0, others proportional)
+        max_reactions = max((data['reactions'] for data in community_data.values()), default=1)
+        
+        for project_id, data in community_data.items():
+            if max_reactions == 0:
+                data['bonus'] = 0
+            else:
+                data['bonus'] = 2.0 * (data['reactions'] / max_reactions)
+        
+        return community_data
+    
+    def _generate_final_verdict(self, project_id, judge, r1_data, community_data):
+        """Generate final verdict text for a judge."""
+        # Get project details
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT project_name, description FROM hackathon_submissions WHERE submission_id = ?", (project_id,))
+        project_name, description = cursor.fetchone()
+        conn.close()
+        
+        prompt = f"""You are {judge.upper()}, reviewing {project_name} for final judgment.
+
+Your Round 1 score: {r1_data['score']:.1f}/40
+Community reactions: {community_data['reactions']} total votes
+Community bonus: +{community_data['bonus']:.1f} points
+
+Project: {description}
+
+Give your final verdict in 2-3 sentences, considering both your technical analysis and community response."""
+        
+        try:
+            response = requests.post("https://openrouter.ai/api/v1/chat/completions", 
+                json={
+                    "model": self.model_name,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 150
+                }, headers=self.headers)
+            
+            if response.ok:
+                return response.json()['choices'][0]['message']['content'].strip()
+        except:
+            pass
+        
+        return f"Final score: {r1_data['score'] + community_data['bonus']:.1f}/42 considering community feedback."
 
 
 def main():

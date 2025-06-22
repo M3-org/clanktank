@@ -66,6 +66,7 @@ def create_hackathon_database(db_path):
             id INTEGER PRIMARY KEY,
             submission_id TEXT,
             discord_user_id TEXT,
+            discord_user_nickname TEXT,
             reaction_type TEXT,
             score_adjustment REAL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
