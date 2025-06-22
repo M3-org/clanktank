@@ -337,6 +337,11 @@ def main():
         action="store_true",
         help="Check current status of test submissions"
     )
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="Reset and insert test data"
+    )
     
     args = parser.parse_args()
     
@@ -351,6 +356,10 @@ def main():
         check_submission_status()
         check_research_results()
         check_scoring_results()
+    elif args.setup:
+        reset_test_environment()
+        insert_test_submissions()
+        check_submission_status()
     else:
         run_test_pipeline()
 

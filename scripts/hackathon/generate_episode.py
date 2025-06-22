@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Hackathon Episode Generator.
-Transforms scored hackathon submissions into structured JSON episodes for rendering.
+Hackathon Episode Generator - Unified Format.
+Generates backwards-compatible episodes that work with both original and hackathon renderers.
 """
 
 import os
@@ -10,8 +10,9 @@ import sqlite3
 import logging
 import argparse
 import requests
+import hashlib
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 
 # Import dialogue prompts
@@ -44,7 +45,9 @@ AI_MODEL_NAME = os.getenv('AI_MODEL_NAME', 'anthropic/claude-3-opus')
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-class EpisodeGenerator:
+class UnifiedEpisodeGenerator:
+    """Generate backwards-compatible episodes with hackathon enhancements"""
+    
     def __init__(self):
         """Initialize the episode generator."""
         if not OPENROUTER_API_KEY:
@@ -57,15 +60,39 @@ class EpisodeGenerator:
             "HTTP-Referer": "https://github.com/m3-org/clanktank",
             "X-Title": "Clank Tank Episode Generator"
         }
+        
+        # Standard character mappings for backwards compatibility
+        self.character_map = {
+            "Eliza": "elizahost",
+            "AI Aimarc": "aimarc", 
+            "AI Aishaw": "aishaw",
+            "Peepo": "peepo",
+            "AI Spartan": "spartan"
+        }
+        
+        # Default cast positions
+        self.default_cast = {
+            "judge_seat_1": "aimarc",
+            "judge_seat_2": "aishaw",
+            "judge_seat_3": "peepo",
+            "judge_seat_4": "spartan",
+            "announcer_position": "elizahost"
+        }
     
-    def generate_ai_dialogue(self, prompt: str) -> str:
-        """Generate dialogue using AI."""
+    def generate_ai_dialogue(self, prompt: str, judge_name: str = None) -> str:
+        """Generate dialogue using AI with judge personas."""
+        system_prompt = "You are a writer for an AI game show. Generate natural, engaging dialogue."
+        
+        # If generating for a specific judge, use their persona
+        if judge_name and judge_name in JUDGE_PERSONAS:
+            system_prompt = JUDGE_PERSONAS[judge_name]
+        
         payload = {
             "model": AI_MODEL_NAME,
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are a writer for an AI game show. Generate natural, engaging dialogue."
+                    "content": system_prompt
                 },
                 {
                     "role": "user",
@@ -135,183 +162,456 @@ class EpisodeGenerator:
             'scores': scores
         }
     
-    def generate_project_segment(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Generate a complete segment for one project."""
+    def _generate_episode_id(self, submission_id: str) -> str:
+        """Generate episode ID from submission ID"""
+        # Use submission ID directly as episode ID
+        return submission_id.lower()
+    
+    def _generate_summary(self, submissions: List[Dict]) -> str:
+        """Generate episode summary"""
+        categories = list(set(s['submission']['category'] for s in submissions))
+        return (f"In this special hackathon edition, our AI judges evaluate {len(submissions)} "
+                f"cutting-edge projects across {', '.join(categories)}. Watch as innovative "
+                f"developers pitch their solutions and receive expert feedback from our panel.")
+    
+    def _infer_action(self, actor: str, line: str) -> str:
+        """Infer appropriate action based on actor and dialogue"""
+        line_lower = line.lower()
+        
+        # Check for specific action keywords
+        if any(word in line_lower for word in ["welcome", "!"]):
+            return "excited"
+        if any(word in line_lower for word in ["score", "rating", "out of"]):
+            return "scoring"
+        if any(word in line_lower for word in ["weak", "poor", "questionable"]):
+            return "critical"
+        if "?" in line:
+            return "questioning"
+        
+        # Character defaults
+        defaults = {
+            "elizahost": "hosting",
+            "aimarc": "analytical",
+            "aishaw": "skeptical",
+            "peepo": "casual",
+            "spartan": "intense"
+        }
+        
+        return defaults.get(actor, "neutral")
+    
+    def _generate_project_scenes(self, project_data: Dict[str, Any]) -> List[Dict]:
+        """Generate scenes for a single project review following original Clank Tank format"""
+        submission = project_data['submission']
+        scores = project_data['scores']
+        scenes = []
+        
+        # Scene 1: Introduction and main pitch (main_stage)
+        intro_prompt = create_host_intro_prompt(submission)
+        intro_dialogue = self.generate_ai_dialogue(intro_prompt)
+        
+        # Create a virtual presenter (Jin as surrogate)
+        presenter_cast = self.default_cast.copy()
+        presenter_cast["presenter_area_1"] = "jin"
+        
+        scene1 = {
+            "location": "main_stage",
+            "description": f"Introduction and pitch of {submission['project_name']}",
+            "in": "cut",
+            "out": "cut",
+            "cast": presenter_cast,
+            "dialogue": [
+                {
+                    "actor": "elizahost",
+                    "line": intro_dialogue,
+                    "action": "hosting"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"Thanks Eliza! {submission['project_name']} is {submission['description']} We're solving {submission.get('problem_solved', 'a critical problem in the space')}.",
+                    "action": "pitching"
+                },
+                {
+                    "actor": "aimarc",
+                    "line": f"Interesting. But how does this differ from existing solutions? What's your moat?",
+                    "action": "questioning"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"Great question! {submission.get('coolest_tech', 'Our unique approach')} sets us apart. We're not just another clone.",
+                    "action": "explaining"
+                }
+            ],
+            "hackathon_metadata": {
+                "segment_type": "pitch_intro",
+                "submission_id": submission['submission_id'],
+                "project_name": submission['project_name'],
+                "team_name": submission['team_name']
+            }
+        }
+        scenes.append(scene1)
+        
+        # Scene 2: Interview between pitcher and host (interview_room)
+        scene2 = {
+            "location": "interview_room_solo",
+            "description": f"Eliza interviews the team about {submission['project_name']}",
+            "in": "cut",
+            "out": "cut",
+            "cast": {
+                "interviewer_seat": "elizahost",
+                "contestant_seat": "jin"
+            },
+            "dialogue": [
+                {
+                    "actor": "elizahost",
+                    "line": f"So tell me, what inspired you to build {submission['project_name']}?",
+                    "action": "curious"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"We saw that {submission.get('problem_solved', 'there was a real gap in the market')}. Our team has the perfect background to tackle this.",
+                    "action": "passionate"
+                },
+                {
+                    "actor": "elizahost",
+                    "line": "What's been the biggest challenge so far?",
+                    "action": "probing"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"Honestly? {submission.get('next_steps', 'Getting everything production-ready in time')}. But we're committed to making this work.",
+                    "action": "honest"
+                }
+            ],
+            "hackathon_metadata": {
+                "segment_type": "interview"
+            }
+        }
+        scenes.append(scene2)
+        
+        # Scene 3: Conclusion of pitch (main_stage)
+        scene3 = {
+            "location": "main_stage",
+            "description": f"Final questions about {submission['project_name']}",
+            "in": "cut",
+            "out": "cut",
+            "cast": presenter_cast,
+            "dialogue": [
+                {
+                    "actor": "peepo",
+                    "line": f"Yo, but like, why would normies actually use this? Break it down for me.",
+                    "action": "skeptical"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"Great point! {submission.get('how_it_works', 'Its super simple - users just connect and go')}. We've focused heavily on UX.",
+                    "action": "enthusiastic"
+                },
+                {
+                    "actor": "spartan",
+                    "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
+                    "action": "challenging"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"We're in this for the long haul! Our tech stack includes {submission.get('tech_stack', 'battle-tested technologies')} and we're ready to scale!",
+                    "action": "determined"
+                },
+                {
+                    "actor": "aishaw",
+                    "line": f"show me the github. i want to see commit history, not promises.",
+                    "action": "demanding"
+                },
+                {
+                    "actor": "jin",
+                    "line": f"Absolutely! Check out {submission.get('github_url', 'our repository')} - we've been shipping consistently.",
+                    "action": "confident"
+                }
+            ],
+            "hackathon_metadata": {
+                "segment_type": "pitch_conclusion"
+            }
+        }
+        scenes.append(scene3)
+        
+        # Scene 4: Judges deliberate (deliberation_room)
+        scene4 = {
+            "location": "deliberation_room",
+            "description": f"Judges discuss {submission['project_name']}",
+            "in": "cut",
+            "out": "cut",
+            "cast": {
+                "judge_seat_1": "aimarc",
+                "judge_seat_2": "aishaw",
+                "judge_seat_3": "peepo",
+                "judge_seat_4": "spartan"
+            },
+            "dialogue": self._generate_deliberation_dialogue(submission, scores),
+            "hackathon_metadata": {
+                "segment_type": "deliberation"
+            }
+        }
+        scenes.append(scene4)
+        
+        # Scene 5: Final verdicts - PUMP/DUMP/YAWN (main_stage)
+        scene5 = {
+            "location": "main_stage",
+            "description": f"Final verdicts for {submission['project_name']}",
+            "in": "cut",
+            "out": "cut",
+            "cast": presenter_cast,
+            "dialogue": self._generate_verdict_dialogue(submission, scores),
+            "hackathon_metadata": {
+                "segment_type": "verdict",
+                "submission_id": submission['submission_id'],
+                "project_name": submission['project_name'],
+                "scores": {score['judge_name']: score['weighted_total'] for score in scores},
+                "average_score": sum(s['weighted_total'] for s in scores) / len(scores) if scores else 0
+            }
+        }
+        scenes.append(scene5)
+        
+        return scenes
+    
+    def _generate_deliberation_dialogue(self, submission: Dict, scores: List[Dict]) -> List[Dict]:
+        """Generate judge deliberation dialogue"""
+        dialogue = []
+        
+        # Judges discuss among themselves
+        dialogue.append({
+            "actor": "aimarc",
+            "line": f"Alright, let's talk about {submission['project_name']}. The business model is {self._assess_business_model(scores)}.",
+            "action": "analytical"
+        })
+        
+        dialogue.append({
+            "actor": "aishaw",
+            "line": f"the github activity is {self._assess_technical(scores)}. i've seen better commit messages from bootcamp grads.",
+            "action": "critical"
+        })
+        
+        dialogue.append({
+            "actor": "peepo",
+            "line": f"Real talk though - would I use this? {self._assess_user_experience(scores)}",
+            "action": "thoughtful"
+        })
+        
+        dialogue.append({
+            "actor": "spartan",
+            "line": f"THIS PROJECT {self._assess_warrior_spirit(scores)}! THE MARKET DEMANDS STRENGTH!",
+            "action": "intense"
+        })
+        
+        return dialogue
+    
+    def _generate_verdict_dialogue(self, submission: Dict, scores: List[Dict]) -> List[Dict]:
+        """Generate final verdict dialogue with PUMP/DUMP/YAWN votes"""
+        dialogue = []
+        
+        dialogue.append({
+            "actor": "elizahost",
+            "line": f"Time for our judges to decide! Will {submission['project_name']} get the funding they need? Judges, what say you?",
+            "action": "hosting"
+        })
+        
+        # Each judge gives their verdict based on their score
+        judge_order = ['aimarc', 'aishaw', 'peepo', 'spartan']
+        for judge in judge_order:
+            score_data = next((s for s in scores if s['judge_name'] == judge), None)
+            if not score_data:
+                continue
+            weighted_score = score_data['weighted_total']
+            verdict = self._score_to_verdict(weighted_score)
+            
+            if judge == 'aimarc':
+                if verdict == "PUMP":
+                    line = f"The fundamentals are strong and the market opportunity is real. This gets a PUMP from me!"
+                elif verdict == "DUMP":
+                    line = f"Too many red flags in the business model. I have to DUMP this one."
+                else:
+                    line = f"It's not terrible but it's not exciting either. YAWN."
+            elif judge == 'aishaw':
+                if verdict == "PUMP":
+                    line = f"the code is actually solid. color me impressed. PUMP."
+                elif verdict == "DUMP":
+                    line = f"this codebase is held together with prayers and duct tape. DUMP."
+                else:
+                    line = f"it's... fine. nothing special. YAWN."
+            elif judge == 'peepo':
+                if verdict == "PUMP":
+                    line = f"Yo this actually slaps! The vibes are immaculate! PUMP!"
+                elif verdict == "DUMP":
+                    line = f"Nah fam, this ain't it. Big DUMP energy."
+                else:
+                    line = f"It's mid, no cap. YAWN from me."
+            elif judge == 'spartan':
+                if verdict == "PUMP":
+                    line = f"THESE WARRIORS HAVE PROVEN THEIR WORTH! PUMP! THIS! IS! VICTORY!"
+                elif verdict == "DUMP":
+                    line = f"WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!"
+                else:
+                    line = f"MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!"
+            
+            dialogue.append({
+                "actor": judge,
+                "line": line,
+                "action": verdict
+            })
+        
+        # Final summary
+        verdicts = [self._score_to_verdict(s['weighted_total']) for s in scores]
+        pump_count = verdicts.count("PUMP")
+        dump_count = verdicts.count("DUMP")
+        yawn_count = verdicts.count("YAWN")
+        
+        if pump_count >= 3:
+            final_line = f"Incredible! {pump_count} PUMPs! {submission['project_name']} is heading to the moon!"
+        elif dump_count >= 3:
+            final_line = f"Ouch! {dump_count} DUMPs! {submission['project_name']} needs to go back to the drawing board!"
+        else:
+            final_line = f"A mixed verdict! {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs. {submission['project_name']} has work to do!"
+        
+        dialogue.append({
+            "actor": "elizahost",
+            "line": final_line,
+            "action": "dramatic"
+        })
+        
+        return dialogue
+    
+    def _score_to_verdict(self, score: float) -> str:
+        """Convert numerical score to PUMP/DUMP/YAWN verdict
+        Note: Scores are weighted totals out of 40 (4 categories x 10 points each)
+        """
+        # Weighted scores go from 0-40, so adjust thresholds
+        if score >= 25:  # 62.5% or higher
+            return "PUMP"
+        elif score <= 15:  # 37.5% or lower
+            return "DUMP"
+        else:
+            return "YAWN"
+    
+    def _assess_business_model(self, scores: List[Dict]) -> str:
+        """Generate business model assessment for deliberation"""
+        avg = sum(s['market_potential'] for s in scores) / len(scores) if scores else 0
+        if avg >= 7:
+            return "actually solid, they might be onto something"
+        elif avg <= 4:
+            return "questionable at best, I don't see the path to revenue"
+        else:
+            return "decent but nothing groundbreaking"
+    
+    def _assess_technical(self, scores: List[Dict]) -> str:
+        """Generate technical assessment for deliberation"""
+        avg = sum(s['technical_execution'] for s in scores) / len(scores) if scores else 0
+        if avg >= 7:
+            return "surprisingly clean"
+        elif avg <= 4:
+            return "a complete disaster"
+        else:
+            return "mediocre"
+    
+    def _assess_user_experience(self, scores: List[Dict]) -> str:
+        """Generate UX assessment for deliberation"""
+        avg = sum(s['user_experience'] for s in scores) / len(scores) if scores else 0
+        if avg >= 7:
+            return "Actually yeah, the UX is pretty fire!"
+        elif avg <= 4:
+            return "Hell no, this UI is giving 2010 energy."
+        else:
+            return "Maybe? It's not terrible but not great either."
+    
+    def _assess_warrior_spirit(self, scores: List[Dict]) -> str:
+        """Generate warrior assessment for deliberation"""
+        avg = sum(s['innovation'] for s in scores) / len(scores) if scores else 0
+        if avg >= 7:
+            return "HAS THE HEART OF A TRUE WARRIOR"
+        elif avg <= 4:
+            return "IS WEAK AND SHALL PERISH"
+        else:
+            return "SHOWS POTENTIAL BUT LACKS TRUE FIRE"
+    
+    def _get_judge_action(self, actor: str, score: float) -> str:
+        """Get appropriate action based on judge and score"""
+        if score >= 8:
+            return "impressed"
+        elif score >= 6:
+            return "neutral"
+        else:
+            return "critical"
+    
+    def generate_episode(self, submission_id: str, episode_title: str = None) -> Dict[str, Any]:
+        """Generate a hackathon pitch episode in unified format
+        
+        Args:
+            submission_id: Submission ID from database
+            episode_title: Optional custom title
+        """
+        # Fetch project data
+        try:
+            project_data = self.fetch_project_data(submission_id)
+        except Exception as e:
+            logger.error(f"Failed to fetch {submission_id}: {e}")
+            raise ValueError(f"Could not load submission {submission_id}")
+        
+        submission = project_data['submission']
+        
+        # Generate episode ID from submission ID
+        episode_id = self._generate_episode_id(submission_id)
+        
+        if not episode_title:
+            episode_title = f"Clank Tank: {submission['project_name']}"
+        
+        episode = {
+            # Original required fields for backwards compatibility
+            "id": episode_id,
+            "name": episode_title,
+            "premise": f"{submission['team_name']} presents {submission['project_name']}, {submission['description'][:100]}...",
+            "summary": self._generate_episode_summary(project_data),
+            "scenes": [],
+            
+            # Hackathon metadata (ignored by original renderer)
+            "hackathon_metadata": {
+                "format_version": "unified_v1",
+                "generated_at": datetime.now().isoformat(),
+                "submission_id": submission_id,
+                "project_name": submission['project_name'],
+                "team_name": submission['team_name'],
+                "category": submission['category']
+            }
+        }
+        
+        # Generate all 5 scenes following original format
+        scenes = self._generate_project_scenes(project_data)
+        
+        # Add hackathon context to opening
+        scenes[0]["dialogue"].insert(0, {
+            "actor": "elizahost",
+            "line": f"Welcome to Clank Tank! Today we're evaluating {submission['project_name']}, a {submission['category']} project from the hackathon!",
+            "action": "excited"
+        })
+        
+        episode["scenes"] = scenes
+        
+        return episode
+    
+    def _generate_episode_summary(self, project_data: Dict) -> str:
+        """Generate episode-specific summary"""
         submission = project_data['submission']
         scores = project_data['scores']
         
-        events = []
+        # Calculate verdict counts
+        if scores:
+            verdicts = [self._score_to_verdict(s['weighted_total']) for s in scores]
+            pump_count = verdicts.count("PUMP")
+            dump_count = verdicts.count("DUMP")
+            yawn_count = verdicts.count("YAWN")
+            verdict_summary = f"The judges deliver {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs."
+        else:
+            verdict_summary = "The judges evaluate this ambitious project."
         
-        # Host introduction
-        intro_prompt = create_host_intro_prompt(submission)
-        intro_dialogue = self.generate_ai_dialogue(intro_prompt)
-        events.append({
-            "type": "dialogue",
-            "character": "Eliza",
-            "line": intro_dialogue
-        })
-        
-        # Show project card
-        events.append({
-            "type": "show_graphic",
-            "graphic_type": "project_card",
-            "data": {
-                "name": submission['project_name'],
-                "team": submission['team_name'],
-                "category": submission['category'],
-                "description": submission['description']
-            }
-        })
-        
-        # Present initial scores
-        events.append({
-            "type": "dialogue",
-            "character": "Eliza",
-            "line": "Let's see how our expert AI judges scored this project!"
-        })
-        
-        # Show Round 1 scores
-        r1_scores = {s['judge_name']: s['weighted_total'] for s in scores}
-        events.append({
-            "type": "show_graphic",
-            "graphic_type": "r1_scores",
-            "data": r1_scores
-        })
-        
-        # Judge reactions - get dialogue from each judge
-        judge_order = ['aimarc', 'aishaw', 'spartan', 'peepo']
-        for judge_name in judge_order:
-            judge_score = next((s for s in scores if s['judge_name'] == judge_name), None)
-            if judge_score:
-                # Generate judge dialogue
-                judge_prompt = create_judge_dialogue_prompt(
-                    judge_name,
-                    JUDGE_PERSONAS[judge_name],
-                    judge_score,
-                    judge_score['notes'].get('overall_comment', '')
-                )
-                judge_line = self.generate_ai_dialogue(judge_prompt)
-                
-                events.append({
-                    "type": "dialogue",
-                    "character": f"AI {judge_name.capitalize()}" if judge_name != 'peepo' else "Peepo",
-                    "line": judge_line
-                })
-        
-        # Score reveal
-        score_prompt = create_score_reveal_prompt(submission['project_name'], scores)
-        score_reveal = self.generate_ai_dialogue(score_prompt)
-        events.append({
-            "type": "dialogue",
-            "character": "Eliza",
-            "line": score_reveal
-        })
-        
-        # Show final score
-        avg_score = sum(s['weighted_total'] for s in scores) / len(scores) if scores else 0
-        events.append({
-            "type": "show_graphic",
-            "graphic_type": "final_score",
-            "data": {
-                "project_name": submission['project_name'],
-                "average_score": round(avg_score, 2),
-                "max_possible": 40.0
-            }
-        })
-        
-        return {
-            "segment_type": "project_review",
-            "submission_id": submission['submission_id'],
-            "project_name": submission['project_name'],
-            "events": events
-        }
-    
-    def generate_episode(self, submission_ids: List[str], episode_title: str = None) -> Dict[str, Any]:
-        """Generate a complete episode with multiple projects."""
-        if not episode_title:
-            episode_title = f"Clank Tank Hackathon Episode - {datetime.now().strftime('%Y-%m-%d')}"
-        
-        segments = []
-        
-        # Episode intro
-        intro_events = [{
-            "type": "dialogue",
-            "character": "Eliza",
-            "line": "Welcome to Clank Tank! I'm your host Eliza, and today we're judging the most innovative hackathon projects. Our AI judges are ready to evaluate!"
-        }]
-        
-        segments.append({
-            "segment_type": "intro",
-            "events": intro_events
-        })
-        
-        # Process each project
-        project_data_list = []
-        for i, submission_id in enumerate(submission_ids):
-            try:
-                project_data = self.fetch_project_data(submission_id)
-                project_data_list.append(project_data)
-                
-                # Add transition if not first project
-                if i > 0:
-                    prev_submission = project_data_list[i-1]['submission']
-                    curr_submission = project_data['submission']
-                    
-                    transition_prompt = create_transition_prompt(prev_submission, curr_submission)
-                    transition = self.generate_ai_dialogue(transition_prompt)
-                    
-                    segments.append({
-                        "segment_type": "transition",
-                        "events": [{
-                            "type": "dialogue",
-                            "character": "Eliza",
-                            "line": transition
-                        }]
-                    })
-                
-                # Generate project segment
-                project_segment = self.generate_project_segment(project_data)
-                segments.append(project_segment)
-                
-            except Exception as e:
-                logger.error(f"Failed to process {submission_id}: {e}")
-                continue
-        
-        # Episode outro
-        if project_data_list:
-            top_projects = [
-                {'name': pd['submission']['project_name']} 
-                for pd in sorted(
-                    project_data_list, 
-                    key=lambda x: sum(s['weighted_total'] for s in x['scores']) / len(x['scores']),
-                    reverse=True
-                )
-            ]
-            
-            outro_prompt = create_episode_outro_prompt(top_projects)
-            outro = self.generate_ai_dialogue(outro_prompt)
-            
-            segments.append({
-                "segment_type": "outro",
-                "events": [{
-                    "type": "dialogue",
-                    "character": "Eliza",
-                    "line": outro
-                }]
-            })
-        
-        # Compile final episode
-        episode = {
-            "episode_metadata": {
-                "title": episode_title,
-                "generated_at": datetime.now().isoformat(),
-                "total_projects": len(project_data_list),
-                "submission_ids": submission_ids
-            },
-            "segments": segments
-        }
-        
-        return episode
+        return (f"{submission['team_name']} pitches {submission['project_name']}, "
+                f"a {submission['category']} project that {submission.get('problem_solved', 'aims to revolutionize the space')}. "
+                f"{verdict_summary}")
     
     def get_scored_submissions(self, limit: int = None) -> List[str]:
         """Get all submissions with status 'scored'."""
@@ -344,67 +644,67 @@ def main():
     parser = argparse.ArgumentParser(description="Generate hackathon episode JSON files")
     
     parser.add_argument(
-        "--submission-ids",
-        nargs='+',
-        help="Generate episode for specific submission IDs"
+        "--submission-id",
+        help="Generate episode for a specific submission ID"
     )
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Generate episode for all scored submissions"
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        help="Limit number of projects in episode"
+        help="Generate episodes for all scored submissions"
     )
     parser.add_argument(
         "--title",
-        help="Episode title"
+        help="Episode title (default: 'Clank Tank: [Project Name]')"
     )
     parser.add_argument(
-        "--output",
-        default="episode.json",
-        help="Output filename (default: episode.json)"
+        "--output-dir",
+        default="episodes/hackathon",
+        help="Output directory (default: episodes/hackathon)"
     )
     
     args = parser.parse_args()
     
-    if not args.submission_ids and not args.all:
+    if not args.submission_id and not args.all:
         parser.print_help()
         return
     
     # Initialize generator
     try:
-        generator = EpisodeGenerator()
+        generator = UnifiedEpisodeGenerator()
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         return
     
-    # Determine which submissions to include
-    if args.submission_ids:
-        submission_ids = args.submission_ids
+    # Create output directory
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Determine which submissions to process
+    if args.submission_id:
+        submission_ids = [args.submission_id]
     else:
-        submission_ids = generator.get_scored_submissions(limit=args.limit)
+        submission_ids = generator.get_scored_submissions()
         if not submission_ids:
             logger.info("No scored submissions found")
             return
     
-    logger.info(f"Generating episode for {len(submission_ids)} projects...")
-    
-    # Generate episode
-    try:
-        episode = generator.generate_episode(submission_ids, episode_title=args.title)
+    # Generate episodes
+    for submission_id in submission_ids:
+        logger.info(f"Generating episode for submission {submission_id}...")
         
-        # Save to file
-        with open(args.output, 'w') as f:
-            json.dump(episode, f, indent=2)
-        
-        logger.info(f"Episode saved to {args.output}")
-        logger.info(f"Total segments: {len(episode['segments'])}")
-        
-    except Exception as e:
-        logger.error(f"Episode generation failed: {e}")
+        try:
+            episode = generator.generate_episode(submission_id, episode_title=args.title)
+            
+            # Save to file using submission ID as filename
+            output_path = os.path.join(args.output_dir, f"{submission_id}.json")
+            with open(output_path, 'w') as f:
+                json.dump(episode, f, indent=2)
+            
+            logger.info(f"Episode saved to {output_path}")
+            logger.info(f"Episode ID: {episode['id']}")
+            logger.info(f"Project: {episode['hackathon_metadata']['project_name']}")
+            
+        except Exception as e:
+            logger.error(f"Episode generation failed for {submission_id}: {e}")
 
 
 if __name__ == "__main__":
