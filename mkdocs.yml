@@ -24,10 +24,12 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Hackathon Edition:
-    - Overview: hackathon-edition/index.md
+    - Overview: hackathon-edition/README.md
     - Show Configuration: hackathon-edition/hackathon-show-config.md
-    - Development Milestones: hackathon-edition/milestones.md
+    - Roadmap: hackathon-edition/roadmap.md
+    - Pipeline Updates: hackathon-edition/pipeline-updates.md
+    - Episode Format: hackathon-edition/episode-format.md
     - Technical Implementation:
       - Existing Infrastructure: hackathon-edition/hackathon-technical-notes-existing.md
-      - WordPress Approach: hackathon-edition/hackathon-technical-notes-wordpress.md
+      - WordPress Approach: hackathon-edition/wordpress/implementation-notes.md
     - Creative Notes: hackathon-edition/hackathon-creative-notes.md
