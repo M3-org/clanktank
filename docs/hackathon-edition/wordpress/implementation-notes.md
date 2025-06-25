@@ -1,5 +1,8 @@
 # Hackathon Technical Implementation - WordPress with Elementor
 
+> **Security Note:**
+> If submission data or endpoints are public/non-authenticated, do not collect sensitive personal information (such as email addresses). Use Discord and X (Twitter) usernames for contact, and optionally allow a Solana wallet address for prize distribution or verification.
+
 > **Dashboard-Inspired API & Data Model (NEW)**
 >
 > The WordPress hackathon judging system should follow the same API-driven, modular approach as the canonical dashboard implementation. See the new [API Reference](./api-reference.md) and [Data Model](./data-model.md) pages for recommended endpoints, field definitions, and data structures. These are designed for drop-in compatibility with the React/static frontend and are kept in sync with the canonical system.
@@ -122,9 +125,9 @@ add_action('elementor_pro/forms/new_record', function($record, $handler) {
     // Save all meta fields (update to match canonical fields)
     update_post_meta($post_id, '_team_info', [
         'name' => $fields['team_name'],
-        'email' => $fields['email'],
-        'discord' => $fields['discord'],
-        'twitter' => $fields['twitter']
+        'discord_username' => $fields['discord_username'],
+        'x_username' => $fields['x_username'],
+        'solana_wallet' => $fields['solana_wallet']
     ]);
     update_post_meta($post_id, '_project_urls', [
         'github' => $fields['github_url'],
@@ -571,9 +574,8 @@ GET  /wp-json/hackathon/v1/leaderboard         - Get ranked projects
     "meta": {
         "_team_info": {
             "name": "Team Alpha",
-            "email": "team@example.com",
-            "discord": "TeamAlpha#1234",
-            "twitter": "@teamalpha"
+            "discord_username": "TeamAlpha#1234",
+            "x_username": "@teamalpha"
         },
         "_project_urls": {
             "github": "https://github.com/team/project",
@@ -587,9 +589,8 @@ GET  /wp-json/hackathon/v1/leaderboard         - Get ranked projects
     "acf": {
         "team_info": {
             "name": "Team Alpha",
-            "email": "team@example.com",
-            "discord": "TeamAlpha#1234",
-            "twitter": "@teamalpha"
+            "discord_username": "TeamAlpha#1234",
+            "x_username": "@teamalpha"
         },
         "project_urls": {
             "github": "https://github.com/team/project",
@@ -709,9 +710,9 @@ GET  /wp-json/hackathon/v1/leaderboard         - Get ranked projects
     "description": "A decentralized lending platform...",
     "category": "DeFi",
     "team_name": "Team Alpha",
-    "email": "team@example.com",
-    "discord": "TeamAlpha#1234",
-    "twitter": "@teamalpha",
+    "discord_username": "TeamAlpha#1234",
+    "x_username": "@teamalpha",
+    "solana_wallet": "...",
     "github_url": "https://github.com/team/project",
     "demo_video_url": "https://youtube.com/watch?v=...",
     "live_demo_url": "https://demo.example.com",

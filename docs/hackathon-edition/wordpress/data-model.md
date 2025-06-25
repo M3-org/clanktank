@@ -2,6 +2,9 @@
 
 This page documents the recommended data model for the WordPress-based hackathon judging system, aligned with the canonical Python/React implementation and dashboard frontend.
 
+> **Security Note:**
+> If submission data is exposed via non-authenticated endpoints, do not collect sensitive personal information (such as email addresses). Use Discord and X (Twitter) usernames for contact, and optionally allow a Solana wallet address for prize distribution or verification.
+
 ## Submission Fields
 
 | Field                | Type     | Description                                 | Canonical Mapping           |
@@ -22,6 +25,9 @@ This page documents the recommended data model for the WordPress-based hackathon
 | problem_solved       | string   | Problem the project solves                  | problem_solved              |
 | coolest_tech         | string   | Coolest technical part                      | coolest_tech                |
 | next_steps           | string   | What the team is building next              | next_steps                  |
+| discord_username     | string   | Discord username for contact                | discord_username            |
+| x_username           | string   | X (Twitter) username for contact (optional) | x_username                  |
+| solana_wallet        | string   | Solana wallet address (optional)            | solana_wallet               |
 
 ## Judge Scores
 

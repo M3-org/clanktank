@@ -1,5 +1,8 @@
 # WordPress Hackathon REST API Reference
 
+> **Security Note:**
+> If endpoints are public/non-authenticated, do not collect sensitive personal information (such as email addresses). Use Discord and X (Twitter) usernames for contact, and optionally allow a Solana wallet address for prize distribution or verification.
+
 This page documents the recommended REST API endpoints for the WordPress-based hackathon judging system, inspired by the canonical dashboard implementation and designed for compatibility with a React or static frontend.
 
 ## Overview
@@ -24,7 +27,10 @@ This page documents the recommended REST API endpoints for the WordPress-based h
     "status": "...",
     "created_at": "...",
     "avg_score": 37.5,
-    "judge_count": 4
+    "judge_count": 4,
+    "discord_username": "peepo#1234",
+    "x_username": "@peepoai",
+    "solana_wallet": "So1anaWALLETaddress..."
   },
   ...
 ]
@@ -51,6 +57,9 @@ This page documents the recommended REST API endpoints for the WordPress-based h
   "problem_solved": "...",
   "coolest_tech": "...",
   "next_steps": "...",
+  "discord_username": "peepo#1234",
+  "x_username": "@peepoai",
+  "solana_wallet": "So1anaWALLETaddress...",
   "scores": [
     {
       "judge_name": "Marc",

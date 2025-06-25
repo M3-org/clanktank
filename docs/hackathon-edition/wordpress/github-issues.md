@@ -12,6 +12,7 @@ Review this `github-issues.md` file, which lists all proposed GitHub issues for 
 - This file is intended as a planning checkpoint for the WordPress integration team.
 - Once approved, each issue can be created in GitHub for tracking and assignment.
 - See canonical references in each issue for further detail.
+- **Security Note:** Do not collect sensitive personal information (such as email addresses) if endpoints are public or unauthenticated. Use Discord username (required), X (Twitter) username (optional), and Solana wallet (optional) for contact. See [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md) for details.
 
 ---
 
@@ -24,7 +25,8 @@ Implement a REST API endpoint that returns a list of all hackathon project submi
 **Operational Context:**
 - Canonical API shape and field list: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
 - Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
-- Must be compatible with the React dashboard frontend, which expects fields like `submission_id`, `project_name`, `team_name`, `category`, `status`, `created_at`, `avg_score`, and `judge_count`.
+- Must be compatible with the React dashboard frontend, which expects fields like `submission_id`, `project_name`, `team_name`, `category`, `status`, `created_at`, `avg_score`, `judge_count`, `discord_username`, `x_username`, and `solana_wallet`.
+- **Security Note:** Do not include email or other sensitive info.
 
 ---
 
@@ -37,7 +39,8 @@ Create a REST API endpoint to return detailed information for a single submissio
 **Operational Context:**
 - Canonical API and field list: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
 - Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
-- Example fields: `project_name`, `team_name`, `category`, `description`, `status`, `created_at`, `github_url`, `scores`, `research`, etc.
+- Example fields: `project_name`, `team_name`, `category`, `description`, `status`, `created_at`, `github_url`, `scores`, `research`, `discord_username`, `x_username`, `solana_wallet`.
+- **Security Note:** Do not include email or other sensitive info.
 
 ---
 
@@ -83,12 +86,13 @@ Add an endpoint to return overall statistics for the dashboard. Should return to
 **Labels:** hackathon, wordpress
 
 **Description:**
-Design and implement the hackathon project submission form using Elementor and/or ACF. Ensure all canonical fields are present ([Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)). Validation, user feedback, and confirmation email are optional enhancements, not strictly required, but recommended for better UX.
+Design and implement the hackathon project submission form using Elementor and/or ACF. Ensure all canonical fields are present ([Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)). Only collect Discord username (required), X (Twitter) username (optional), and Solana wallet (optional) for contact. Validation, user feedback, and confirmation email are optional enhancements, not strictly required, but recommended for better UX.
 
 **Operational Context:**
 - Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 - Implementation notes: [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
 - Test end-to-end submission and data storage.
+- **Security Note:** Do not include email or other sensitive info.
 
 ---
 
@@ -96,11 +100,12 @@ Design and implement the hackathon project submission form using Elementor and/o
 **Labels:** hackathon, wordpress
 
 **Description:**
-Set up an ACF field group for all hackathon project fields (team info, project URLs, category, status, research, scores, feedback, etc.). Ensure all fields are exposed in the REST API (`show_in_rest: true`).
+Set up an ACF field group for all hackathon project fields (team info, project URLs, category, status, research, scores, feedback, etc.). Ensure all fields are exposed in the REST API (`show_in_rest: true`). Only collect Discord username (required), X (Twitter) username (optional), and Solana wallet (optional) for contact.
 
 **Operational Context:**
 - Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 - Test with REST API and dashboard frontend.
+- **Security Note:** Do not include email or other sensitive info.
 
 ---
 
@@ -143,11 +148,12 @@ Test the WordPress API endpoints with the React dashboard frontend. Document any
 **Labels:** hackathon, wordpress
 
 **Description:**
-Audit and update the WordPress data model to ensure all required fields are present and exposed in the REST API. Use ACF or `register_post_meta` with `show_in_rest: true`. Fields must match the canonical data model.
+Audit and update the WordPress data model to ensure all required fields are present and exposed in the REST API. Use ACF or `register_post_meta` with `show_in_rest: true`. Fields must match the canonical data model. Only collect Discord username (required), X (Twitter) username (optional), and Solana wallet (optional) for contact.
 
 **Operational Context:**
 - Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 - Test with the dashboard frontend for compatibility.
+- **Security Note:** Do not include email or other sensitive info.
 
 ---
 
