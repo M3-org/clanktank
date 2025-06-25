@@ -614,14 +614,14 @@ class UnifiedEpisodeGenerator:
                 f"{verdict_summary}")
     
     def get_scored_submissions(self, limit: int = None) -> List[str]:
-        """Get all submissions with status 'scored'."""
+        """Get all submissions with status 'scored' or 'completed'."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
         query = """
             SELECT s.submission_id 
             FROM hackathon_submissions s
-            WHERE s.status = 'scored'
+            WHERE s.status IN ('scored', 'completed')
             AND EXISTS (
                 SELECT 1 FROM hackathon_scores sc 
                 WHERE sc.submission_id = s.submission_id

@@ -59,7 +59,7 @@ def setup_argparse():
     parser.add_argument(
         "-s", "--sheet", 
         type=str, 
-        required=True,
+        required=False,
         help="Google Sheet name"
     )
     parser.add_argument(
@@ -91,7 +91,19 @@ def setup_argparse():
         default="data/hackathon.db",
         help="Path to the hackathon SQLite database file"
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--from-json",
+        type=str,
+        default=None,
+        help="Path to a local JSON file containing test submissions (for testing only). If provided, skips Google Sheets."
+    )
+    args = parser.parse_args()
+    # Require at least one of --sheet or --from-json
+    if not args.sheet and not args.from_json:
+        parser.error("You must provide either --sheet (for Google Sheets) or --from-json (for local test data).")
+    if args.sheet and args.from_json:
+        parser.error("Please provide only one of --sheet or --from-json, not both.")
+    return args
 
 def connect_to_sheet(sheet_name, credentials_path):
     """Connect to Google Sheet using gspread."""
@@ -382,46 +394,89 @@ def main():
     # Ensure output directory exists
     os.makedirs(args.output, exist_ok=True)
     
-    # Connect to sheet
-    sheet = connect_to_sheet(args.sheet, args.credentials)
-    data = get_sheet_data(sheet)
-    
-    if len(data) < 2:
-        logger.error("Sheet has no data or only headers")
-        return
-    
-    headers = data[0]
-    logger.info(f"Found {len(data) - 1} rows to process")
-    
     all_submissions = []
     successful_imports = 0
     failed_imports = 0
-    
-    for i, row in enumerate(data[1:], 1):
-        if not any(row):  # Skip empty rows
-            continue
-        
-        # Convert row to submission data
-        submission_data = row_to_hackathon_data(row, headers)
-        
-        # Validate submission
-        errors = validate_hackathon_submission(submission_data)
-        if errors:
-            logger.warning(f"Row {i} validation errors: {'; '.join(errors)}")
-            submission_data['validation_errors'] = errors
-            failed_imports += 1
-        else:
-            # Insert to database
-            if insert_hackathon_submission(args.db_file, submission_data):
-                successful_imports += 1
-                
-                # Create markdown file
-                create_submission_markdown(submission_data, args.output)
+
+    if args.from_json:
+        # Load test submissions from local JSON file
+        with open(args.from_json, 'r') as f:
+            test_data = json.load(f)
+        # Expecting a list of submissions under 'submissions'
+        submissions = test_data.get('submissions', [])
+        logger.info(f"Loaded {len(submissions)} submissions from {args.from_json}")
+        for i, submission in enumerate(submissions, 1):
+            # Map test data keys to DB fields if needed
+            # Try to match Google Sheet field names to DB fields
+            data = {}
+            # Accept both 'project_title' or 'project_name' for compatibility
+            data['project_name'] = submission.get('project_name') or submission.get('project_title', '')
+            data['description'] = submission.get('description', '')
+            data['category'] = submission.get('category', '')
+            data['team_name'] = submission.get('team_name', '')
+            data['contact_email'] = submission.get('contact_email', '')
+            data['discord_handle'] = submission.get('discord_handle', '')
+            data['twitter_handle'] = submission.get('twitter_handle', '')
+            data['demo_video_url'] = submission.get('demo_video_url', '')
+            data['github_url'] = submission.get('github_url', '')
+            data['live_demo_url'] = submission.get('live_demo_url', '')
+            data['how_it_works'] = submission.get('how_it_works', '')
+            data['problem_solved'] = submission.get('problem_solved', '')
+            data['coolest_tech'] = submission.get('coolest_tech', '')
+            data['next_steps'] = submission.get('next_steps', '')
+            data['tech_stack'] = submission.get('tech_stack', '')
+            data['logo_url'] = submission.get('logo_url', '')
+            # Generate submission ID
+            if data['project_name'] and data['team_name']:
+                data['submission_id'] = generate_submission_id(data['project_name'], data['team_name'])
             else:
+                data['submission_id'] = f"UNKNOWN_{datetime.now().strftime('%Y%m%d%H%M%S')}_{i}"
+            data['created_at'] = datetime.now().isoformat()
+            data['updated_at'] = datetime.now().isoformat()
+            data['status'] = 'submitted'
+
+            # Validate submission
+            errors = validate_hackathon_submission(data)
+            if errors:
+                logger.warning(f"Test submission {i} validation errors: {'; '.join(errors)}")
+                data['validation_errors'] = errors
                 failed_imports += 1
-        
-        all_submissions.append(submission_data)
-    
+            else:
+                if insert_hackathon_submission(args.db_file, data):
+                    successful_imports += 1
+                    create_submission_markdown(data, args.output)
+                else:
+                    failed_imports += 1
+            all_submissions.append(data)
+    else:
+        # Connect to sheet
+        sheet = connect_to_sheet(args.sheet, args.credentials)
+        data = get_sheet_data(sheet)
+
+        if len(data) < 2:
+            logger.error("Sheet has no data or only headers")
+            return
+
+        headers = data[0]
+        logger.info(f"Found {len(data) - 1} rows to process")
+
+        for i, row in enumerate(data[1:], 1):
+            if not any(row):  # Skip empty rows
+                continue
+            submission_data = row_to_hackathon_data(row, headers)
+            errors = validate_hackathon_submission(submission_data)
+            if errors:
+                logger.warning(f"Row {i} validation errors: {'; '.join(errors)}")
+                submission_data['validation_errors'] = errors
+                failed_imports += 1
+            else:
+                if insert_hackathon_submission(args.db_file, submission_data):
+                    successful_imports += 1
+                    create_submission_markdown(submission_data, args.output)
+                else:
+                    failed_imports += 1
+            all_submissions.append(submission_data)
+
     # Save consolidated JSON if requested
     if args.json:
         json_path = os.path.join(args.output, args.json_file)
@@ -435,7 +490,7 @@ def main():
                 "submissions": all_submissions
             }, f, indent=2)
         logger.info(f"Created consolidated JSON: {json_path}")
-    
+
     logger.info(f"Processing complete: {successful_imports} successful, {failed_imports} failed")
 
 if __name__ == "__main__":
