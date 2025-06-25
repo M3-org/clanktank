@@ -105,7 +105,8 @@ async def root():
         "endpoints": {
             "admin": {
                 "/api/submissions": "List all submissions",
-                "/api/submission/{id}": "Get submission details"
+                "/api/submission/{id}": "Get submission details",
+                "/api/submission/{id}/feedback": "Get community feedback"
             },
             "public": {
                 "/api/leaderboard": "Get public leaderboard"
@@ -258,6 +259,56 @@ async def get_submission(submission_id: str):
         )
         
         return submission
+
+@app.get("/api/submission/{submission_id}/feedback")
+async def get_submission_feedback(submission_id: str):
+    """Get community feedback for a specific submission."""
+    with get_db() as conn:
+        cursor = conn.cursor()
+        
+        # Get feedback summary
+        cursor.execute("""
+            SELECT 
+                reaction_type,
+                COUNT(*) as vote_count,
+                GROUP_CONCAT(discord_user_nickname) as voters
+            FROM community_feedback 
+            WHERE submission_id = ?
+            GROUP BY reaction_type
+            ORDER BY vote_count DESC
+        """, (submission_id,))
+        
+        feedback_summary = []
+        total_votes = 0
+        
+        for row in cursor.fetchall():
+            reaction_type, vote_count, voters = row
+            total_votes += vote_count
+            
+            # Map reaction types to display names and emojis
+            reaction_map = {
+                'hype': {'emoji': '🔥', 'name': 'General Hype'},
+                'innovation_creativity': {'emoji': '💡', 'name': 'Innovation & Creativity'},
+                'technical_execution': {'emoji': '💻', 'name': 'Technical Execution'},
+                'market_potential': {'emoji': '📈', 'name': 'Market Potential'},
+                'user_experience': {'emoji': '😍', 'name': 'User Experience'}
+            }
+            
+            reaction_info = reaction_map.get(reaction_type, {'emoji': '❓', 'name': reaction_type})
+            
+            feedback_summary.append({
+                'reaction_type': reaction_type,
+                'emoji': reaction_info['emoji'],
+                'name': reaction_info['name'],
+                'vote_count': vote_count,
+                'voters': voters.split(',') if voters else []
+            })
+        
+        return {
+            'submission_id': submission_id,
+            'total_votes': total_votes,
+            'feedback': feedback_summary
+        }
 
 @app.get("/api/leaderboard", response_model=List[LeaderboardEntry])
 async def get_leaderboard():

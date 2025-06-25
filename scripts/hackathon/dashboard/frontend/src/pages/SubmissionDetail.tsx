@@ -20,17 +20,20 @@ import {
   Calendar,
   Hash,
   RefreshCcw,
-  Trophy
+  Trophy,
+  Heart
 } from 'lucide-react'
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
   const [submission, setSubmission] = useState<SubmissionDetailType | null>(null)
+  const [feedback, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (id) {
       loadSubmission()
+      loadFeedback()
     }
   }, [id])
 
@@ -44,6 +47,20 @@ export default function SubmissionDetail() {
       console.error('Failed to load submission:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadFeedback = async () => {
+    if (!id) return
+    
+    try {
+      const response = await fetch(`/api/submission/${id}/feedback`)
+      if (response.ok) {
+        const data = await response.json()
+        setFeedback(data)
+      }
+    } catch (error) {
+      console.error('Failed to load feedback:', error)
     }
   }
 
@@ -370,6 +387,66 @@ export default function SubmissionDetail() {
                 <p className="text-xs text-gray-500 italic">
                   Detailed research data available in database
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Community Feedback */}
+          {feedback && feedback.total_votes > 0 && (
+            <Card>
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Heart className="h-5 w-5 mr-2 text-red-500" />
+                  Community Feedback
+                </h3>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-3">
+                    <span className="font-medium">{feedback.total_votes}</span> total votes from the community
+                  </p>
+                  
+                  <div className="space-y-3">
+                    {feedback.feedback.map((item: any) => (
+                      <div key={item.reaction_type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xl">{item.emoji}</span>
+                          <div>
+                            <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                            <p className="text-xs text-gray-500">{item.vote_count} votes</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="secondary">
+                            {item.vote_count}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {feedback.feedback.length > 0 && (
+                    <div className="mt-4 pt-3 border-t border-gray-200">
+                      <details className="group">
+                        <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                          View voters ({feedback.feedback.reduce((acc: number, item: any) => acc + item.voters.length, 0)} total)
+                        </summary>
+                        <div className="mt-2 space-y-2">
+                          {feedback.feedback.map((item: any) => (
+                            item.voters.length > 0 && (
+                              <div key={item.reaction_type} className="text-xs">
+                                <span className="font-medium">{item.emoji} {item.name}:</span>
+                                <span className="text-gray-600 ml-1">
+                                  {item.voters.join(', ')}
+                                </span>
+                              </div>
+                            )
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}

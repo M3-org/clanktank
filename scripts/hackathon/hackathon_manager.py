@@ -480,35 +480,71 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
     
     def _generate_final_verdict(self, project_id, judge, r1_data, community_data):
         """Generate final verdict text for a judge."""
-        # Get project details
+        # Get project details and community feedback breakdown
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT project_name, description FROM hackathon_submissions WHERE submission_id = ?", (project_id,))
         project_name, description = cursor.fetchone()
+        
+        # Get detailed community feedback breakdown
+        cursor.execute("""
+            SELECT reaction_type, COUNT(*) as count 
+            FROM community_feedback 
+            WHERE submission_id = ? 
+            GROUP BY reaction_type
+        """, (project_id,))
+        
+        feedback_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
         conn.close()
         
-        prompt = f"""You are {judge.upper()}, reviewing {project_name} for final judgment.
+        # Get judge persona for context
+        persona = get_judge_persona(judge)
+        
+        # Format feedback breakdown
+        feedback_summary = "\n".join([
+            f"- {reaction_type.replace('_', ' ').title()}: {count} votes"
+            for reaction_type, count in feedback_breakdown.items()
+        ])
+        
+        prompt = f"""You are {judge.upper()}, one of the Clank Tank hackathon judges. In Round 1, you provided the following analysis:
 
-Your Round 1 score: {r1_data['score']:.1f}/40
-Community reactions: {community_data['reactions']} total votes
+ROUND 1 NOTES:
+{r1_data.get('notes', {}).get('overall_comment', 'No specific notes available')}
+
+Your Round 1 weighted score: {r1_data['score']:.1f}/40
+
+Now consider the community's feedback on this project:
+
+COMMUNITY VOTE BREAKDOWN:
+{feedback_summary if feedback_summary else 'No community votes yet'}
+Total community reactions: {community_data['reactions']} votes
 Community bonus: +{community_data['bonus']:.1f} points
 
-Project: {description}
+PROJECT SUMMARY:
+{project_name}: {description}
 
-Give your final verdict in 2-3 sentences, considering both your technical analysis and community response."""
+YOUR TASK:
+Based on the community's reaction, provide your final synthesized verdict. Do you stand by your initial assessment, or does the community's feedback change your perspective? Address any disconnect between your technical analysis and the community's response.
+
+Respond in 2-3 sentences in your characteristic style as {judge.upper()}."""
         
         try:
-            response = requests.post("https://openrouter.ai/api/v1/chat/completions", 
+            logger.info(f"Getting final verdict from {judge} for {project_name}")
+            response = requests.post(BASE_URL, 
                 json={
-                    "model": self.model_name,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 150
+                    "model": AI_MODEL_NAME,
+                    "messages": [
+                        {"role": "system", "content": persona},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "max_tokens": 200,
+                    "temperature": 0.7
                 }, headers=self.headers)
             
             if response.ok:
                 return response.json()['choices'][0]['message']['content'].strip()
-        except:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to get final verdict from {judge}: {e}")
         
         return f"Final score: {r1_data['score'] + community_data['bonus']:.1f}/42 considering community feedback."
 
@@ -528,6 +564,11 @@ def main():
         "--leaderboard",
         action="store_true",
         help="Show current leaderboard"
+    )
+    score_group.add_argument(
+        "--synthesize",
+        action="store_true",
+        help="Run Round 2 synthesis combining judge scores with community feedback"
     )
     
     # Scoring options
@@ -553,7 +594,7 @@ def main():
     
     args = parser.parse_args()
     
-    if not any([args.score, args.leaderboard]):
+    if not any([args.score, args.leaderboard, args.synthesize]):
         parser.print_help()
         return
     
@@ -608,6 +649,14 @@ def main():
                 print(f"{entry['rank']:<6}{entry['project_name'][:28]:<30}{entry['team_name'][:18]:<20}{entry['avg_score']:<10}")
             
             print(f"{'='*60}\n")
+    
+    elif args.synthesize:
+        if args.submission_id:
+            manager.run_round2_synthesis(args.submission_id)
+        elif args.all:
+            manager.run_round2_synthesis()
+        else:
+            logger.error("Please specify --submission-id or --all for synthesis")
 
 
 if __name__ == "__main__":
