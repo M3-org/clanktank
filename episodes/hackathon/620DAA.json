@@ -1,0 +1,242 @@
+{
+  "id": "620daa",
+  "name": "Clank Tank: AI Code Assistant",
+  "premise": "SolBot Team presents AI Code Assistant, GPT-powered coding assistant for Solidity...",
+  "summary": "SolBot Team pitches AI Code Assistant, a AI/Agents project that . The judges deliver 0 PUMPs, 4 DUMPs, and 0 YAWNs.",
+  "scenes": [
+    {
+      "location": "main_stage",
+      "description": "Introduction and pitch of AI Code Assistant",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome to Clank Tank! Today we're evaluating AI Code Assistant, a AI/Agents project from the hackathon!",
+          "action": "excited"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Our next project comes from the SolBot Team, who've created an AI Code Assistant that's about to make Solidity development a whole lot smoother! This GPT-powered coding companion is ready to help developers write smarter contracts faster. Let's see it in action!",
+          "action": "hosting"
+        },
+        {
+          "actor": "jin",
+          "line": "Thanks Eliza! AI Code Assistant is GPT-powered coding assistant for Solidity We're solving .",
+          "action": "pitching"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
+          "action": "questioning"
+        },
+        {
+          "actor": "jin",
+          "line": "Great question!  sets us apart. We're not just another clone.",
+          "action": "explaining"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_intro",
+        "submission_id": "620DAA",
+        "project_name": "AI Code Assistant",
+        "team_name": "SolBot Team"
+      }
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews the team about AI Code Assistant",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "So tell me, what inspired you to build AI Code Assistant?",
+          "action": "curious"
+        },
+        {
+          "actor": "jin",
+          "line": "We saw that . Our team has the perfect background to tackle this.",
+          "action": "passionate"
+        },
+        {
+          "actor": "elizahost",
+          "line": "What's been the biggest challenge so far?",
+          "action": "probing"
+        },
+        {
+          "actor": "jin",
+          "line": "Honestly? . But we're committed to making this work.",
+          "action": "honest"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "interview"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final questions about AI Code Assistant",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "peepo",
+          "line": "Yo, but like, why would normies actually use this? Break it down for me.",
+          "action": "skeptical"
+        },
+        {
+          "actor": "jin",
+          "line": "Great point! . We've focused heavily on UX.",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "spartan",
+          "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
+          "action": "challenging"
+        },
+        {
+          "actor": "jin",
+          "line": "We're in this for the long haul! Our tech stack includes TypeScript, Python, OpenAI API and we're ready to scale!",
+          "action": "determined"
+        },
+        {
+          "actor": "aishaw",
+          "line": "show me the github. i want to see commit history, not promises.",
+          "action": "demanding"
+        },
+        {
+          "actor": "jin",
+          "line": "Absolutely! Check out https://github.com/solbot/assistant - we've been shipping consistently.",
+          "action": "confident"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_conclusion"
+      }
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss AI Code Assistant",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "Alright, let's talk about AI Code Assistant. The business model is questionable at best, I don't see the path to revenue.",
+          "action": "analytical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the github activity is a complete disaster. i've seen better commit messages from bootcamp grads.",
+          "action": "critical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Real talk though - would I use this? Hell no, this UI is giving 2010 energy.",
+          "action": "thoughtful"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS PROJECT IS WEAK AND SHALL PERISH! THE MARKET DEMANDS STRENGTH!",
+          "action": "intense"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "deliberation"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final verdicts for AI Code Assistant",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for our judges to decide! Will AI Code Assistant get the funding they need? Judges, what say you?",
+          "action": "hosting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Too many red flags in the business model. I have to DUMP this one.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "this codebase is held together with prayers and duct tape. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Nah fam, this ain't it. Big DUMP energy.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Ouch! 4 DUMPs! AI Code Assistant needs to go back to the drawing board!",
+          "action": "dramatic"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "verdict",
+        "submission_id": "620DAA",
+        "project_name": "AI Code Assistant",
+        "scores": {
+          "aimarc": 11.8,
+          "aishaw": 7.1,
+          "peepo": 9.9,
+          "spartan": 6.1
+        },
+        "average_score": 8.725
+      }
+    }
+  ],
+  "hackathon_metadata": {
+    "format_version": "unified_v1",
+    "generated_at": "2025-06-24T23:10:58.175104",
+    "submission_id": "620DAA",
+    "project_name": "AI Code Assistant",
+    "team_name": "SolBot Team",
+    "category": "AI/Agents"
+  }
+}
