@@ -1,3 +1,7 @@
+# COMPATIBILITY PLAN
+
+> **LEGACY/REFERENCE:** This file contains detailed mapping and migration notes. For the current summary, see [../episode-format.md](../episode-format.md).
+
 # Hackathon Episode Compatibility Plan
 
 ## Executive Summary

@@ -1,4 +1,6 @@
-# Unified Episode Format Specification
+# UNIFIED EPISODE FORMAT
+
+> **LEGACY/REFERENCE:** This file is the canonical full spec for the unified episode format. For the current summary and usage, see [../episode-format.md](../episode-format.md).
 
 ## Overview
 This specification defines a backwards-compatible episode format that supports both original Clank Tank rendering and new hackathon features. The original renderer will use standard fields while ignoring hackathon-specific additions.

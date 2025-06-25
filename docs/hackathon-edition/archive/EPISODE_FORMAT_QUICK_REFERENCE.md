@@ -1,4 +1,6 @@
-# Episode Format Quick Reference
+# EPISODE FORMAT QUICK REFERENCE
+
+> **LEGACY/REFERENCE:** This file contains detailed field mapping tables. For the current summary, see [../episode-format.md](../episode-format.md).
 
 ## Original Clank Tank Format
 ```json

@@ -33,3 +33,16 @@ nav:
       - Existing Infrastructure: hackathon-edition/hackathon-technical-notes-existing.md
       - WordPress Approach: hackathon-edition/wordpress/implementation-notes.md
     - Creative Notes: hackathon-edition/hackathon-creative-notes.md
+    - Archive & Reference:
+      - Unified Episode Format (Canonical Spec): hackathon-edition/archive/UNIFIED_EPISODE_FORMAT.md
+      - Compatibility Plan: hackathon-edition/archive/COMPATIBILITY_PLAN.md
+      - Episode Format Quick Reference: hackathon-edition/archive/EPISODE_FORMAT_QUICK_REFERENCE.md
+      - Episode Compatibility Summary: hackathon-edition/archive/EPISODE_COMPATIBILITY_SUMMARY.md
+      - Generator Update Notes: hackathon-edition/archive/EPISODE_GENERATOR_UPDATE_NOTES.md
+      - Concise Dialogue Update: hackathon-edition/archive/CONCISE_DIALOGUE_UPDATE.md
+      - Persona Dialogue Update: hackathon-edition/archive/PERSONA_DIALOGUE_UPDATE.md
+      - Unified Format Update Summary: hackathon-edition/archive/UNIFIED_FORMAT_UPDATE_SUMMARY.md
+      - Episode Format Analysis: hackathon-edition/archive/EPISODE_FORMAT_ANALYSIS.md
+      - Technical Notes (WordPress): hackathon-edition/archive/hackathon-technical-notes-wordpress.md
+      - Technical Notes (Existing): hackathon-edition/archive/hackathon-technical-notes-existing.md
+      - Team Summary: hackathon-edition/archive/summary-for-team.md

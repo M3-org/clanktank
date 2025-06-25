@@ -1,5 +1,9 @@
 # Clank Tank Hackathon Edition
 
+*For design decisions and format migration notes, see:*
+- [COMPATIBILITY_PLAN.md](archive/COMPATIBILITY_PLAN.md)
+- [EPISODE_COMPATIBILITY_SUMMARY.md](archive/EPISODE_COMPATIBILITY_SUMMARY.md)
+
 ## Show Overview
 
 A high-energy hackathon judging show where four AI judges evaluate projects through their unique perspectives. Each judge brings their original personality to the hackathon context, creating dynamic discussions about code, creativity, and innovation.

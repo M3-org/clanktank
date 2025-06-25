@@ -1,3 +1,7 @@
+# EPISODE COMPATIBILITY SUMMARY
+
+> **LEGACY/REFERENCE:** This file contains compatibility notes. For the current summary, see [../episode-format.md](../episode-format.md).
+
 # Episode Format Compatibility - Executive Summary
 
 ## The Challenge
