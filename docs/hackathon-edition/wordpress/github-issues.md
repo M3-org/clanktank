@@ -1,6 +1,17 @@
 # Potential GitHub Issues for WordPress Hackathon Integration
 
-This file lists actionable GitHub issues to guide the implementation and improvement of the WordPress-based hackathon judging system. Each issue includes a title, description, operational context, and suggested labels (`hackathon`, `wordpress`).
+---
+
+## 0. [Meta] Review and Approve WordPress Hackathon Issues Plan
+**Labels:** hackathon, wordpress
+
+**Description:**
+Review this `github-issues.md` file, which lists all proposed GitHub issues for the WordPress-based hackathon judging system. Confirm that the scope, context, and operational details for each task are correct and sufficient before creating individual issues. Suggest edits, additions, or removals as needed.
+
+**Operational Context:**
+- This file is intended as a planning checkpoint for the WordPress integration team.
+- Once approved, each issue can be created in GitHub for tracking and assignment.
+- See canonical references in each issue for further detail.
 
 ---
 
@@ -11,8 +22,9 @@ This file lists actionable GitHub issues to guide the implementation and improve
 Implement a REST API endpoint that returns a list of all hackathon project submissions, supporting optional query params (`status`, `category`). Response must match the canonical dashboard API shape. Use WP_Query/meta queries and expose all required fields via ACF or `register_post_meta` with `show_in_rest: true`.
 
 **Operational Context:**
-- Reference: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md), [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
-- Must be compatible with the React dashboard frontend.
+- Canonical API shape and field list: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Must be compatible with the React dashboard frontend, which expects fields like `submission_id`, `project_name`, `team_name`, `category`, `status`, `created_at`, `avg_score`, and `judge_count`.
 
 ---
 
@@ -23,8 +35,9 @@ Implement a REST API endpoint that returns a list of all hackathon project submi
 Create a REST API endpoint to return detailed information for a single submission by ID. Response must include all fields as per the canonical data model (project info, team, scores, research, etc.).
 
 **Operational Context:**
-- Reference: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
-- Test with a real project and ensure all fields are present.
+- Canonical API and field list: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Example fields: `project_name`, `team_name`, `category`, `description`, `status`, `created_at`, `github_url`, `scores`, `research`, etc.
 
 ---
 
@@ -35,8 +48,9 @@ Create a REST API endpoint to return detailed information for a single submissio
 Add an endpoint to return community feedback for a submission. Should aggregate reactions, vote counts, and voter lists. Store feedback in post meta or a custom table for performance.
 
 **Operational Context:**
-- Reference: [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py)
-- Ensure emoji/reaction mapping matches frontend expectations.
+- Canonical feedback structure: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Example: feedback is an array of objects with `reaction_type`, `emoji`, `name`, `vote_count`, and `voters`.
+- See [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py) for aggregation logic and emoji mapping.
 
 ---
 
@@ -47,8 +61,9 @@ Add an endpoint to return community feedback for a submission. Should aggregate 
 Create a leaderboard endpoint that returns ranked projects by final score. Use WP_Query/meta queries for aggregation and sorting.
 
 **Operational Context:**
-- Reference: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
-- Test with published projects and ensure correct ranking.
+- Canonical leaderboard shape: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Example fields: `rank`, `project_name`, `team_name`, `category`, `final_score`, `youtube_url`.
 
 ---
 
@@ -59,8 +74,8 @@ Create a leaderboard endpoint that returns ranked projects by final score. Use W
 Add an endpoint to return overall statistics for the dashboard. Should return total submissions, counts by status and category, and last update timestamp.
 
 **Operational Context:**
-- Reference: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
-- Ensure data matches what the dashboard expects.
+- Canonical stats shape: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Example: `{ "total_submissions": 100, "by_status": {"submitted": 20}, "by_category": {"DeFi": 30}, "updated_at": "..." }`
 
 ---
 
@@ -68,10 +83,11 @@ Add an endpoint to return overall statistics for the dashboard. Should return to
 **Labels:** hackathon, wordpress
 
 **Description:**
-Design and implement the hackathon project submission form using Elementor and/or ACF. Ensure all canonical fields are present (see [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)). Add validation, user feedback, and confirmation email as needed.
+Design and implement the hackathon project submission form using Elementor and/or ACF. Ensure all canonical fields are present ([Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)). Validation, user feedback, and confirmation email are optional enhancements, not strictly required, but recommended for better UX.
 
 **Operational Context:**
-- Reference: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md), [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
+- Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Implementation notes: [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
 - Test end-to-end submission and data storage.
 
 ---
@@ -83,7 +99,7 @@ Design and implement the hackathon project submission form using Elementor and/o
 Set up an ACF field group for all hackathon project fields (team info, project URLs, category, status, research, scores, feedback, etc.). Ensure all fields are exposed in the REST API (`show_in_rest: true`).
 
 **Operational Context:**
-- Reference: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 - Test with REST API and dashboard frontend.
 
 ---
@@ -95,8 +111,8 @@ Set up an ACF field group for all hackathon project fields (team info, project U
 Create an admin UI for reviewing submissions, entering judge scores, and updating project status. Should display all project data, scores, and feedback. Optionally, add bulk actions and filters.
 
 **Operational Context:**
-- Reference: [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py), [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
-- Ensure workflow matches canonical judging process.
+- Canonical judging workflow: [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py)
+- Implementation notes: [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
 
 ---
 
@@ -107,7 +123,7 @@ Create an admin UI for reviewing submissions, entering judge scores, and updatin
 Add a static data export option (e.g., via WP-CLI or a custom endpoint) to generate JSON files for submissions, leaderboard, and stats. Output must match the dashboard API shape for static hosting.
 
 **Operational Context:**
-- Reference: [dashboard README](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/README.md)
+- Canonical static export: [dashboard README](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/README.md)
 - Useful for GitHub Pages or other static hosting.
 
 ---
@@ -119,8 +135,7 @@ Add a static data export option (e.g., via WP-CLI or a custom endpoint) to gener
 Test the WordPress API endpoints with the React dashboard frontend. Document any issues, required tweaks, or WP-specific logic. Update documentation and code as needed for full compatibility.
 
 **Operational Context:**
-- Reference: [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py), [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
-- Ensure all endpoints and fields are present and correctly shaped.
+- Canonical API and frontend: [dashboard/app.py](https://github.com/m3-org/clanktank/blob/main/scripts/hackathon/dashboard/app.py), [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
 
 ---
 
@@ -131,7 +146,7 @@ Test the WordPress API endpoints with the React dashboard frontend. Document any
 Audit and update the WordPress data model to ensure all required fields are present and exposed in the REST API. Use ACF or `register_post_meta` with `show_in_rest: true`. Fields must match the canonical data model.
 
 **Operational Context:**
-- Reference: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
+- Canonical field list: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 - Test with the dashboard frontend for compatibility.
 
 ---
@@ -143,7 +158,8 @@ Audit and update the WordPress data model to ensure all required fields are pres
 Update all documentation to reflect the latest implementation, cross-linking between API reference, data model, and implementation notes. Ensure new contributors can easily find canonical sources and operational context.
 
 **Operational Context:**
-- Reference: [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md), [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md), [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
-- Review for clarity and completeness.
+- Implementation notes: [Implementation Notes](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/implementation-notes.md)
+- API reference: [API Reference](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/api-reference.md)
+- Data model: [Data Model](https://github.com/m3-org/clanktank/blob/main/docs/hackathon-edition/wordpress/data-model.md)
 
 --- 
