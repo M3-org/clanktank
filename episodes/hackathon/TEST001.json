@@ -1,0 +1,242 @@
+{
+  "id": "test001",
+  "name": "Clank Tank: DeFi Yield Aggregator",
+  "premise": "Yield Hunters presents DeFi Yield Aggregator, Smart contract system that automatically finds and compounds the best DeFi yields across multiple pr...",
+  "summary": "Yield Hunters pitches DeFi Yield Aggregator, a DeFi project that DeFi users lose money to suboptimal yields and high gas costs from manual rebalancing. We solve this with automated, gas-efficient yield optimization.. The judges deliver 0 PUMPs, 1 DUMPs, and 3 YAWNs.",
+  "scenes": [
+    {
+      "location": "main_stage",
+      "description": "Introduction and pitch of DeFi Yield Aggregator",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome to Clank Tank! Today we're evaluating DeFi Yield Aggregator, a DeFi project from the hackathon!",
+          "action": "excited"
+        },
+        {
+          "actor": "elizahost",
+          "line": "\"Coming up, we have the Yield Hunters with their DeFi Yield Aggregator! These smart contract wizards have built an automatic treasure hunter that scours the entire DeFi landscape, finding and compounding the juiciest yields across multiple protocols. Let's see how they're maximizing those returns!\"",
+          "action": "hosting"
+        },
+        {
+          "actor": "jin",
+          "line": "Thanks Eliza! DeFi Yield Aggregator is Smart contract system that automatically finds and compounds the best DeFi yields across multiple protocols We're solving DeFi users lose money to suboptimal yields and high gas costs from manual rebalancing. We solve this with automated, gas-efficient yield optimization..",
+          "action": "pitching"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
+          "action": "questioning"
+        },
+        {
+          "actor": "jin",
+          "line": "Great question! Custom yield prediction algorithm using on-chain data analysis and a novel gas optimization technique that batches transactions across users. sets us apart. We're not just another clone.",
+          "action": "explaining"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_intro",
+        "submission_id": "TEST001",
+        "project_name": "DeFi Yield Aggregator",
+        "team_name": "Yield Hunters"
+      }
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews the team about DeFi Yield Aggregator",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "So tell me, what inspired you to build DeFi Yield Aggregator?",
+          "action": "curious"
+        },
+        {
+          "actor": "jin",
+          "line": "We saw that DeFi users lose money to suboptimal yields and high gas costs from manual rebalancing. We solve this with automated, gas-efficient yield optimization.. Our team has the perfect background to tackle this.",
+          "action": "passionate"
+        },
+        {
+          "actor": "elizahost",
+          "line": "What's been the biggest challenge so far?",
+          "action": "probing"
+        },
+        {
+          "actor": "jin",
+          "line": "Honestly? Launch on mainnet, add more protocol integrations, build mobile app for monitoring yields.. But we're committed to making this work.",
+          "action": "honest"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "interview"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final questions about DeFi Yield Aggregator",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "peepo",
+          "line": "Yo, but like, why would normies actually use this? Break it down for me.",
+          "action": "skeptical"
+        },
+        {
+          "actor": "jin",
+          "line": "Great point! Our smart contracts scan multiple DeFi protocols in real-time, calculate optimal yield strategies including gas costs, and automatically rebalance user funds. Uses Chainlink oracles for price feeds and implements MEV protection.. We've focused heavily on UX.",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "spartan",
+          "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
+          "action": "challenging"
+        },
+        {
+          "actor": "jin",
+          "line": "We're in this for the long haul! Our tech stack includes Solidity, Hardhat, ethers.js, Next.js, Chainlink and we're ready to scale!",
+          "action": "determined"
+        },
+        {
+          "actor": "aishaw",
+          "line": "show me the github. i want to see commit history, not promises.",
+          "action": "demanding"
+        },
+        {
+          "actor": "jin",
+          "line": "Absolutely! Check out https://github.com/vbuterin/pyethereum - we've been shipping consistently.",
+          "action": "confident"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_conclusion"
+      }
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss DeFi Yield Aggregator",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "Alright, let's talk about DeFi Yield Aggregator. The business model is decent but nothing groundbreaking.",
+          "action": "analytical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the github activity is a complete disaster. i've seen better commit messages from bootcamp grads.",
+          "action": "critical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Real talk though - would I use this? Maybe? It's not terrible but not great either.",
+          "action": "thoughtful"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS PROJECT IS WEAK AND SHALL PERISH! THE MARKET DEMANDS STRENGTH!",
+          "action": "intense"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "deliberation"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final verdicts for DeFi Yield Aggregator",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for our judges to decide! Will DeFi Yield Aggregator get the funding they need? Judges, what say you?",
+          "action": "hosting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Too many red flags in the business model. I have to DUMP this one.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "it's... fine. nothing special. YAWN.",
+          "action": "YAWN"
+        },
+        {
+          "actor": "peepo",
+          "line": "It's mid, no cap. YAWN from me.",
+          "action": "YAWN"
+        },
+        {
+          "actor": "spartan",
+          "line": "MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!",
+          "action": "YAWN"
+        },
+        {
+          "actor": "elizahost",
+          "line": "A mixed verdict! 0 PUMPs, 1 DUMPs, and 3 YAWNs. DeFi Yield Aggregator has work to do!",
+          "action": "dramatic"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "verdict",
+        "submission_id": "TEST001",
+        "project_name": "DeFi Yield Aggregator",
+        "scores": {
+          "aimarc": 12.8,
+          "aishaw": 20.2,
+          "peepo": 18.3,
+          "spartan": 23.2
+        },
+        "average_score": 18.625
+      }
+    }
+  ],
+  "hackathon_metadata": {
+    "format_version": "unified_v1",
+    "generated_at": "2025-06-22T02:35:17.472772",
+    "submission_id": "TEST001",
+    "project_name": "DeFi Yield Aggregator",
+    "team_name": "Yield Hunters",
+    "category": "DeFi"
+  }
+}

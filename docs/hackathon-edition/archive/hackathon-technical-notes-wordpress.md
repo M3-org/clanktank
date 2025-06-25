@@ -929,3 +929,33 @@ Based on your m3org.com/tv setup:
    - Use Elementor form with custom webhook action
    - Store in regular posts with specific category
    - Add custom REST endpoints only where needed
+
+## Developer Notes on Existing M3 TV WordPress Integration
+
+*The following are developer notes and reflections on the existing WordPress setup and how it might inform the hackathon project's design philosophy.*
+
+### Existing JedAI Council Workflow in WordPress
+
+- **Content Structure**: Episodes are standard WordPress `POSTS`. The show title (e.g., "JedAI Council") is the post `CATEGORY`.
+- **Data Storage**:
+    - The full episode JSON is stored in the post's main `CONTENT` field.
+    - The post's built-in `EXCERPT` field is used for the episode description.
+    - The `FEATURED IMAGE` is used for the episode thumbnail.
+- **Metadata**: Show-specific metadata (like YouTube URL, character summaries) is managed via the **Advanced Custom Fields (ACF)** plugin. These fields are visible at the bottom of the post edit screen.
+- **API and Automation**:
+    - Posts and ACF metadata can be edited via the standard WordPress REST API.
+    - A custom endpoint exists for episode submission, which intelligently extracts specific data from the main episode JSON and populates the corresponding ACF fields for easier filtering and indexing.
+
+### Critical Reflection on Hackathon Episode Generation
+
+A key insight from reviewing the existing system is a potential flaw in our current hackathon pipeline design:
+
+> **"Your judging system shouldn't generate shmotime JSON. You should just judge it in a legit hive mind. Then give the write-up of their judgement to the episode generator."**
+
+This suggests our current plan for `scripts/hackathon/generate_episode.py` might be overly complex and could violate the "separate system" principle at the presentation layer.
+
+**Proposed Philosophical Shift:**
+
+1.  The hackathon scripts (`hackathon_research.py`, `hackathon_manager.py`, `discord_bot.py`, etc.) should have **one final output**: a structured block of text or simple JSON object representing the **"Final Judgement"**. This would contain the scores, the community feedback summary, and the judges' final verdict paragraphs.
+2.  This "Final Judgement" artifact would then be passed to a **completely separate episode generation system** (like the existing Clank Tank one).
+3.  This creates a cleaner handoff. The hackathon system is responsible only for **judging**, not for **show production**. This strengthens our core architectural goal of separation.

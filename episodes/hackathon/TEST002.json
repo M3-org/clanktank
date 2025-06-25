@@ -1,0 +1,242 @@
+{
+  "id": "test002",
+  "name": "Clank Tank: AI Code Review Bot",
+  "premise": "CodeGuardians presents AI Code Review Bot, GitHub bot that uses LLMs to provide intelligent code reviews with security analysis...",
+  "summary": "CodeGuardians pitches AI Code Review Bot, a AI/Agents project that Code reviews are time-consuming and often miss security issues. Our AI bot provides instant, comprehensive reviews that improve code quality and catch vulnerabilities.. The judges deliver 0 PUMPs, 2 DUMPs, and 2 YAWNs.",
+  "scenes": [
+    {
+      "location": "main_stage",
+      "description": "Introduction and pitch of AI Code Review Bot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome to Clank Tank! Today we're evaluating AI Code Review Bot, a AI/Agents project from the hackathon!",
+          "action": "excited"
+        },
+        {
+          "actor": "elizahost",
+          "line": "\"Coming up, we have the CodeGuardians with their AI Code Review Bot! This clever GitHub companion uses LLMs to catch bugs AND security vulnerabilities before they sneak into your codebase. It's like having a tireless senior developer watching over every pull request!\"",
+          "action": "hosting"
+        },
+        {
+          "actor": "jin",
+          "line": "Thanks Eliza! AI Code Review Bot is GitHub bot that uses LLMs to provide intelligent code reviews with security analysis We're solving Code reviews are time-consuming and often miss security issues. Our AI bot provides instant, comprehensive reviews that improve code quality and catch vulnerabilities..",
+          "action": "pitching"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
+          "action": "questioning"
+        },
+        {
+          "actor": "jin",
+          "line": "Great question! Custom fine-tuned model for vulnerability detection, RAG system for codebase-specific context, and innovative prompt chaining for deep code analysis. sets us apart. We're not just another clone.",
+          "action": "explaining"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_intro",
+        "submission_id": "TEST002",
+        "project_name": "AI Code Review Bot",
+        "team_name": "CodeGuardians"
+      }
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews the team about AI Code Review Bot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "So tell me, what inspired you to build AI Code Review Bot?",
+          "action": "curious"
+        },
+        {
+          "actor": "jin",
+          "line": "We saw that Code reviews are time-consuming and often miss security issues. Our AI bot provides instant, comprehensive reviews that improve code quality and catch vulnerabilities.. Our team has the perfect background to tackle this.",
+          "action": "passionate"
+        },
+        {
+          "actor": "elizahost",
+          "line": "What's been the biggest challenge so far?",
+          "action": "probing"
+        },
+        {
+          "actor": "jin",
+          "line": "Honestly? Add support for GitLab and Bitbucket, implement team-specific training, build IDE plugins.. But we're committed to making this work.",
+          "action": "honest"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "interview"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final questions about AI Code Review Bot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "peepo",
+          "line": "Yo, but like, why would normies actually use this? Break it down for me.",
+          "action": "skeptical"
+        },
+        {
+          "actor": "jin",
+          "line": "Great point! Integrates with GitHub webhooks to analyze PRs using GPT-4 and specialized security models. Provides contextual suggestions, detects vulnerabilities, and learns from your codebase patterns.. We've focused heavily on UX.",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "spartan",
+          "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
+          "action": "challenging"
+        },
+        {
+          "actor": "jin",
+          "line": "We're in this for the long haul! Our tech stack includes Python, LangChain, OpenAI API, FastAPI, PostgreSQL and we're ready to scale!",
+          "action": "determined"
+        },
+        {
+          "actor": "aishaw",
+          "line": "show me the github. i want to see commit history, not promises.",
+          "action": "demanding"
+        },
+        {
+          "actor": "jin",
+          "line": "Absolutely! Check out https://github.com/langchain-ai/langchain - we've been shipping consistently.",
+          "action": "confident"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_conclusion"
+      }
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss AI Code Review Bot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "Alright, let's talk about AI Code Review Bot. The business model is decent but nothing groundbreaking.",
+          "action": "analytical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the github activity is mediocre. i've seen better commit messages from bootcamp grads.",
+          "action": "critical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Real talk though - would I use this? Hell no, this UI is giving 2010 energy.",
+          "action": "thoughtful"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS PROJECT IS WEAK AND SHALL PERISH! THE MARKET DEMANDS STRENGTH!",
+          "action": "intense"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "deliberation"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final verdicts for AI Code Review Bot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for our judges to decide! Will AI Code Review Bot get the funding they need? Judges, what say you?",
+          "action": "hosting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "It's not terrible but it's not exciting either. YAWN.",
+          "action": "YAWN"
+        },
+        {
+          "actor": "aishaw",
+          "line": "it's... fine. nothing special. YAWN.",
+          "action": "YAWN"
+        },
+        {
+          "actor": "peepo",
+          "line": "Nah fam, this ain't it. Big DUMP energy.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "A mixed verdict! 0 PUMPs, 2 DUMPs, and 2 YAWNs. AI Code Review Bot has work to do!",
+          "action": "dramatic"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "verdict",
+        "submission_id": "TEST002",
+        "project_name": "AI Code Review Bot",
+        "scores": {
+          "aimarc": 22.1,
+          "aishaw": 20.9,
+          "peepo": 13.8,
+          "spartan": 9.8
+        },
+        "average_score": 16.65
+      }
+    }
+  ],
+  "hackathon_metadata": {
+    "format_version": "unified_v1",
+    "generated_at": "2025-06-24T23:10:49.485169",
+    "submission_id": "TEST002",
+    "project_name": "AI Code Review Bot",
+    "team_name": "CodeGuardians",
+    "category": "AI/Agents"
+  }
+}

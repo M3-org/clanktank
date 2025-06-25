@@ -1,1 +1,18 @@
 site/
+youtube_credentials.json
+client_secrets.json
+
+# Environment files
+.env
+!.example.env
+
+# Python
+__pycache__/
+venv/
+*.pyc
+
+# Node
+node_modules/
+
+# OS-specific
+.DS_Store
