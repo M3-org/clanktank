@@ -1,6 +1,23 @@
 # Hackathon Technical Implementation - WordPress with Elementor
 
-This document covers implementing the entire hackathon judging system within WordPress using Elementor.
+> **Dashboard-Inspired API & Data Model (NEW)**
+>
+> The WordPress hackathon judging system should follow the same API-driven, modular approach as the canonical dashboard implementation. See the new [API Reference](./api-reference.md) and [Data Model](./data-model.md) pages for recommended endpoints, field definitions, and data structures. These are designed for drop-in compatibility with the React/static frontend and are kept in sync with the canonical system.
+>
+> - All endpoints should be under `/wp-json/hackathon/v1/` and match the canonical API.
+> - All fields and data models should match [hackathon-show-config.md](../hackathon-show-config.md) and [dashboard/app.py](../../scripts/hackathon/dashboard/app.py).
+> - This section is a living document—update as the implementation evolves.
+
+> **Philosophy & Canonical Reference**
+>
+> This document describes an alternative WordPress-based implementation for the Clank Tank Hackathon judging system. The canonical, production-ready system is implemented in Python/SQLite/React (see [PROGRESS.md](../github-issues/PROGRESS.md), [PLAN.md](../github-issues/PLAN.md), and [hackathon-show-config.md](../hackathon-show-config.md)).
+>
+> - **This guide is for reference and experimental use.**
+> - For all schemas, field definitions, and judge logic, the above docs are the source of truth.
+> - The recommended handoff is a 'Final Judgement' object (scores, feedback, verdicts), not a full episode JSON.
+> - See [episode-format.md](../episode-format.md) for the unified episode format and handoff details.
+
+---
 
 ## Architecture Overview
 
@@ -102,208 +119,31 @@ add_action('elementor_pro/forms/new_record', function($record, $handler) {
     
     $post_id = wp_insert_post($post_data);
     
-    // Save all meta fields
+    // Save all meta fields (update to match canonical fields)
     update_post_meta($post_id, '_team_info', [
         'name' => $fields['team_name'],
         'email' => $fields['email'],
         'discord' => $fields['discord'],
         'twitter' => $fields['twitter']
     ]);
-    
     update_post_meta($post_id, '_project_urls', [
         'github' => $fields['github_url'],
         'demo_video' => $fields['demo_video_url'],
         'live_demo' => $fields['live_demo_url']
     ]);
-    
     update_post_meta($post_id, '_category', $fields['category']);
     update_post_meta($post_id, '_status', 'submitted');
+    update_post_meta($post_id, '_how_it_works', $fields['how_it_works']);
+    update_post_meta($post_id, '_problem_solved', $fields['problem_solved']);
+    update_post_meta($post_id, '_technical_highlights', $fields['technical_highlights']);
+    update_post_meta($post_id, '_whats_next', $fields['whats_next']);
     
 }, 10, 2);
 ```
 
-## 3. Custom Post Type & Meta Fields
+## 3. Custom Post Type vs. Category
 
-```php
-// includes/post-types.php
-function register_hackathon_submission() {
-    register_post_type('hackathon_project', [
-        'labels' => [
-            'name' => 'Hackathon Projects',
-            'singular_name' => 'Project'
-        ],
-        'public' => true,
-        'has_archive' => true,
-        'supports' => ['title', 'editor', 'custom-fields', 'elementor'],
-        'show_in_rest' => true,
-        'menu_icon' => 'dashicons-awards',
-        'rest_base' => 'hackathon-projects',
-        'rest_controller_class' => 'WP_REST_Posts_Controller'
-    ]);
-}
-
-// Store all judge scores for same criteria
-function save_judge_scores($post_id, $judge_name, $round, $scores) {
-    $all_scores = get_post_meta($post_id, '_judge_scores', true) ?: [];
-    
-    // All judges score the same criteria
-    $criteria = ['innovation', 'technical_execution', 'market_potential', 'user_experience'];
-    
-    $all_scores[$round][$judge_name] = array_combine($criteria, $scores);
-    
-    update_post_meta($post_id, '_judge_scores', $all_scores);
-}
-```
-
-### Database Schema
-
-```sql
--- WordPress custom tables for hackathon data (optional, can use post meta instead)
-CREATE TABLE IF NOT EXISTS {$wpdb->prefix}hackathon_scores (
-    id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    post_id BIGINT(20) UNSIGNED NOT NULL,
-    judge_name VARCHAR(50) NOT NULL,
-    round INT NOT NULL,
-    innovation DECIMAL(3,1),
-    technical_execution DECIMAL(3,1),
-    market_potential DECIMAL(3,1),
-    user_experience DECIMAL(3,1),
-    weighted_total DECIMAL(4,1),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY post_id (post_id),
-    KEY judge_round (judge_name, round),
-    FOREIGN KEY (post_id) REFERENCES {$wpdb->prefix}posts(ID) ON DELETE CASCADE
-) {$wpdb->get_charset_collate()};
-
-CREATE TABLE IF NOT EXISTS {$wpdb->prefix}hackathon_community_votes (
-    id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-    post_id BIGINT(20) UNSIGNED NOT NULL,
-    discord_user_id VARCHAR(100),
-    reaction_type VARCHAR(20),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    KEY post_reaction (post_id, reaction_type),
-    UNIQUE KEY unique_vote (post_id, discord_user_id, reaction_type),
-    FOREIGN KEY (post_id) REFERENCES {$wpdb->prefix}posts(ID) ON DELETE CASCADE
-) {$wpdb->get_charset_collate()};
-```
-
-### Meta Field Schema
-
-```php
-// Register meta fields for REST API
-function register_hackathon_meta_fields() {
-    $meta_args = [
-        'type' => 'object',
-        'single' => true,
-        'show_in_rest' => [
-            'schema' => [
-                'type' => 'object',
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'email' => ['type' => 'string', 'format' => 'email'],
-                    'discord' => ['type' => 'string'],
-                    'twitter' => ['type' => 'string']
-                ]
-            ]
-        ]
-    ];
-    
-    register_post_meta('hackathon_project', '_team_info', $meta_args);
-    
-    register_post_meta('hackathon_project', '_project_urls', [
-        'type' => 'object',
-        'single' => true,
-        'show_in_rest' => [
-            'schema' => [
-                'type' => 'object',
-                'properties' => [
-                    'github' => ['type' => 'string', 'format' => 'uri'],
-                    'demo_video' => ['type' => 'string', 'format' => 'uri'],
-                    'live_demo' => ['type' => 'string', 'format' => 'uri']
-                ]
-            ]
-        ]
-    ]);
-    
-    register_post_meta('hackathon_project', '_category', [
-        'type' => 'string',
-        'single' => true,
-        'show_in_rest' => true
-    ]);
-    
-    register_post_meta('hackathon_project', '_status', [
-        'type' => 'string',
-        'single' => true,
-        'show_in_rest' => true
-    ]);
-}
-add_action('init', 'register_hackathon_meta_fields');
-```
-
-### Alternative: Using ACF (Advanced Custom Fields)
-
-Since your site has ACF installed, you might prefer using it for field management:
-
-```php
-// includes/acf-fields.php
-if (function_exists('acf_add_local_field_group')) {
-    acf_add_local_field_group([
-        'key' => 'group_hackathon_project',
-        'title' => 'Hackathon Project Details',
-        'fields' => [
-            [
-                'key' => 'field_team_info',
-                'label' => 'Team Information',
-                'name' => 'team_info',
-                'type' => 'group',
-                'sub_fields' => [
-                    ['key' => 'field_team_name', 'label' => 'Team Name', 'name' => 'name', 'type' => 'text'],
-                    ['key' => 'field_team_email', 'label' => 'Email', 'name' => 'email', 'type' => 'email'],
-                    ['key' => 'field_team_discord', 'label' => 'Discord', 'name' => 'discord', 'type' => 'text'],
-                    ['key' => 'field_team_twitter', 'label' => 'Twitter', 'name' => 'twitter', 'type' => 'text']
-                ]
-            ],
-            [
-                'key' => 'field_project_urls',
-                'label' => 'Project URLs',
-                'name' => 'project_urls',
-                'type' => 'group',
-                'sub_fields' => [
-                    ['key' => 'field_github_url', 'label' => 'GitHub URL', 'name' => 'github', 'type' => 'url'],
-                    ['key' => 'field_demo_video', 'label' => 'Demo Video', 'name' => 'demo_video', 'type' => 'url'],
-                    ['key' => 'field_live_demo', 'label' => 'Live Demo', 'name' => 'live_demo', 'type' => 'url']
-                ]
-            ],
-            [
-                'key' => 'field_category',
-                'label' => 'Category',
-                'name' => 'category',
-                'type' => 'select',
-                'choices' => [
-                    'defi' => 'DeFi',
-                    'gaming' => 'Gaming',
-                    'ai_agents' => 'AI/Agents',
-                    'infrastructure' => 'Infrastructure',
-                    'social' => 'Social',
-                    'other' => 'Other'
-                ]
-            ]
-        ],
-        'location' => [
-            [
-                [
-                    'param' => 'post_type',
-                    'operator' => '==',
-                    'value' => 'hackathon_project'
-                ]
-            ]
-        ],
-        'show_in_rest' => true
-    ]);
-}
-```
+> **Note:** The canonical system uses a dedicated database. In WordPress, you may use a custom post type (`hackathon_project`) **or** a standard post with a special category. Using a custom post type is recommended for clarity and separation, but using a category may be simpler for some setups (see 'JedAI Council' workflow). Document your choice and keep field names consistent with the canonical system.
 
 ## 4. AI Research Integration
 
@@ -391,6 +231,9 @@ class JudgeScoring {
         return $weighted_totals;
     }
 }
+
+> **Judge weights and criteria must match the canonical source:**
+> See [hackathon-show-config.md](../hackathon-show-config.md) and [PROGRESS.md](../github-issues/PROGRESS.md) for the latest weights and scoring logic.
 ```
 
 ## 6. Elementor Leaderboard Widget
@@ -512,32 +355,9 @@ function handle_discord_webhook($request) {
     
     return new WP_REST_Response(['status' => 'success'], 200);
 }
-```
 
-### Discord Webhook Schema
-
-```json
-// Expected webhook payload from Discord bot
-{
-    "type": "reaction",
-    "project_id": 123,
-    "reaction": "fire", 
-    "user_id": "discord_user_123456",
-    "username": "hackathon_participant",
-    "timestamp": "2024-01-01T12:00:00Z"
-}
-
-// Community feedback meta structure
-{
-    "reactions": {
-        "check": ["user_id_1", "user_id_2"],        // ✅ General approval
-        "hundred": ["user_id_3"],                   // 💯 Technical excellence
-        "moneybag": ["user_id_4", "user_id_5"],    // 🤑 Economic potential
-        "fire": ["user_id_6", "user_id_7"]         // 🔥 Community vibes
-    },
-    "total_reactions": 7,
-    "sentiment_score": 1.75  // Max 2.0 bonus points
-}
+> **Community bonus calculation and Discord bot logic:**
+> For anti-spam, session independence, and bonus scoring, see [PROGRESS.md](../github-issues/PROGRESS.md) and the Discord bot implementation in the canonical system.
 ```
 
 ## 8. Admin Dashboard
@@ -668,7 +488,10 @@ add_action('elementor/dynamic_tags/register', function($dynamic_tags_manager) {
 });
 ```
 
-## 11. Episode Generation
+## 11. Episode Generation & Handoff
+
+> **Canonical Handoff:**
+> The recommended output is a 'Final Judgement' object (scores, feedback, verdicts), not a full episode JSON. Show production should be a separate step/system. See [episode-format.md](../episode-format.md) and [PROGRESS.md](../github-issues/PROGRESS.md) for details.
 
 ```php
 // Generate episode data for recording
@@ -699,6 +522,8 @@ function generate_episode_data($post_id, $round) {
 ```
 
 ## 12. REST API Endpoints & Schemas
+
+> **Reference:** Ensure all endpoints and payloads match the canonical system. Add any missing endpoints for 'final judgement' export as needed. See [PROGRESS.md](../github-issues/PROGRESS.md) for canonical API and schema.
 
 ### Available Endpoints
 
@@ -932,7 +757,7 @@ Based on your m3org.com/tv setup:
 
 ## Developer Notes on Existing M3 TV WordPress Integration
 
-*The following are developer notes and reflections on the existing WordPress setup and how it might inform the hackathon project's design philosophy.*
+> **Legacy/Experimental:** The following notes reflect the original WordPress integration and may not match the current canonical system. Use for reference only.
 
 ### Existing JedAI Council Workflow in WordPress
 
