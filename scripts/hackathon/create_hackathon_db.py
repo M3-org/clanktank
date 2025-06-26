@@ -5,6 +5,17 @@ import sqlite3
 import os
 import sys
 
+# Try to import SUBMISSION_FIELDS from scripts.hackathon.schema, fallback to importlib if needed
+try:
+    from scripts.hackathon.schema import SUBMISSION_FIELDS
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    SUBMISSION_FIELDS = schema.SUBMISSION_FIELDS
+
 def create_hackathon_database(db_path):
     """Create the hackathon database with all required tables."""
     
@@ -14,31 +25,20 @@ def create_hackathon_database(db_path):
     # Create database connection
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
-    # Main hackathon submissions table
-    cursor.execute("""
+     
+    # Dynamically generate columns from SUBMISSION_FIELDS
+    user_fields_sql = ",\n    ".join([f"{field} TEXT" for field in SUBMISSION_FIELDS])
+    static_fields_sql = """
+        id INTEGER PRIMARY KEY,
+        submission_id TEXT UNIQUE,
+        status TEXT DEFAULT 'submitted',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    """
+    columns_sql = f"{static_fields_sql},\n    {user_fields_sql}"
+    cursor.execute(f"""
         CREATE TABLE IF NOT EXISTS hackathon_submissions (
-            id INTEGER PRIMARY KEY,
-            submission_id TEXT UNIQUE,
-            project_name TEXT,
-            description TEXT,
-            category TEXT,
-            team_name TEXT,
-            contact_email TEXT,
-            discord_handle TEXT,
-            twitter_handle TEXT,
-            demo_video_url TEXT,
-            github_url TEXT,
-            live_demo_url TEXT,
-            how_it_works TEXT,
-            problem_solved TEXT,
-            coolest_tech TEXT,
-            next_steps TEXT,
-            tech_stack TEXT,
-            logo_url TEXT,
-            status TEXT DEFAULT 'submitted',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            {columns_sql}
         )
     """)
     

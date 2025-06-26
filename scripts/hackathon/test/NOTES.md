@@ -219,4 +219,40 @@ Absolutely! Here are several ideas to improve the flow, maintainability, and dev
 
 ---
 
-(Next steps and observations will be appended below as each phase is tested.) 
+(Next steps and observations will be appended below as each phase is tested.)
+
+# Robust Data Pipeline Implementation Notes
+
+## Step 1: Central Field Manifest
+- Created `scripts/hackathon/schema.py` containing the `SUBMISSION_FIELDS` list as the single source of truth for all user-submittable fields.
+- Fields match the specification in the plan and exclude contact_email as instructed.
+- This file will be imported by other scripts in subsequent steps.
+- Success Criteria: The file exists and contains the correct list. ✅ 
+
+## Step 2: Refactor DB & Pydantic Model to Use Manifest
+- Refactored `scripts/hackathon/create_hackathon_db.py` to dynamically generate the hackathon_submissions table columns from `SUBMISSION_FIELDS`.
+- Refactored `scripts/hackathon/dashboard/app.py` to dynamically generate the `SubmissionCreate` Pydantic model from `SUBMISSION_FIELDS` using `create_model`.
+- Both scripts now import the manifest from `schema.py`, ensuring a single source of truth for submission fields.
+- Success Criteria: The database can be created successfully, and the FastAPI server runs without errors. ✅ 
+
+## Step 3: Build Lightweight Migration Helper
+- Created `tools/field_migrate.py`, a CLI tool to add new fields to the database and append them to `SUBMISSION_FIELDS` in `schema.py`.
+- The script uses argparse for CLI parsing and supports `add <field_name>`.
+- Success Criteria: The command adds the column to the database and the field to the schema manifest. ✅
+
+## Step 4: Write a Minimal Smoke Test
+- Created `scripts/hackathon/test/test_smoke.py`, which runs the core pipeline scripts (DB creation, research, scoring, episode generation) on a test submission.
+- The script asserts that each stage completes with exit code 0 and prints output for debugging.
+- Success Criteria: The smoke test runs to completion without errors. ✅
+
+## Step 5: Add a Pre-commit Hook for Schema Drift
+- Created `scripts/check_schema.py` to compare the database schema with `SUBMISSION_FIELDS` in `schema.py`.
+- Added a pre-commit hook in `.pre-commit-config.yaml` to run this check before every commit.
+- The script exits with 0 if the schema is in sync and 1 if drift is detected, printing a descriptive error.
+- Success Criteria: The script prevents commits if schema drift is detected. ✅
+
+## Step 6: Run Full Pipeline Locally
+- Ran the full pipeline using the smoke test script on the new feature branch.
+- All stages (DB creation, research, scoring, episode generation) completed successfully with exit code 0.
+- Verified that the system works end-to-end and produces the expected outputs.
+- Success Criteria: The entire pipeline executes without any errors. ✅

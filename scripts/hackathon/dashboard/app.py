@@ -17,7 +17,7 @@ import logging
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 import uvicorn
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
@@ -28,6 +28,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from scripts.hackathon.schema import SUBMISSION_FIELDS
 
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -160,22 +161,12 @@ class SubmissionDetail(BaseModel):
     research: Optional[Dict[str, Any]] = None
     avg_score: Optional[float] = None
 
-class SubmissionCreate(BaseModel):
-    project_name: str
-    team_name: str
-    description: str
-    category: str
-    discord_handle: str
-    twitter_handle: Optional[str] = None
-    github_url: str
-    demo_video_url: str
-    live_demo_url: Optional[str] = None
-    logo_url: Optional[str] = None
-    tech_stack: Optional[str] = None
-    how_it_works: Optional[str] = None
-    problem_solved: Optional[str] = None
-    coolest_tech: Optional[str] = None
-    next_steps: Optional[str] = None
+# Dynamically create the SubmissionCreate model from SUBMISSION_FIELDS
+submission_fields_for_pydantic = {field: (Optional[str], None) for field in SUBMISSION_FIELDS}
+SubmissionCreate = create_model(
+    'SubmissionCreate',
+    **submission_fields_for_pydantic
+)
 
 class LeaderboardEntry(BaseModel):
     rank: int
