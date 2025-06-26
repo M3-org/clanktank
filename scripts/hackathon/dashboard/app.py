@@ -540,28 +540,29 @@ async def get_submission_feedback(submission_id: str):
             'feedback': feedback_summary
         }
 
-@app.get("/api/leaderboard", response_model=List[LeaderboardEntry])
-async def get_leaderboard():
-    """Get public leaderboard data for published projects."""
+@app.get("/api/{version}/leaderboard", response_model=List[LeaderboardEntry])
+async def get_leaderboard(version: str):
+    """Get public leaderboard data for published projects for a specific version (v1 or v2)."""
+    if version not in ("v1", "v2"):
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
+    table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
         # Get published projects with scores
-        result = conn.execute(text("""
+        result = conn.execute(text(f"""
             SELECT 
                 s.project_name,
                 s.team_name,
                 s.category,
                 s.demo_video_url as youtube_url,
                 AVG(sc.weighted_total) as avg_score
-            FROM hackathon_submissions s
+            FROM {table} s
             JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
             WHERE s.status = 'published' AND sc.round = 1
             GROUP BY s.submission_id
             ORDER BY avg_score DESC
         """))
-        
         entries = []
         rank = 1
-        
         for row in result.fetchall():
             row_dict = dict(row._mapping)
             entry = LeaderboardEntry(
@@ -574,35 +575,32 @@ async def get_leaderboard():
             )
             entries.append(entry)
             rank += 1
-        
         return entries
 
-@app.get("/api/stats")
-async def get_stats():
-    """Get overall statistics for the dashboard."""
+@app.get("/api/{version}/stats")
+async def get_stats(version: str):
+    """Get overall statistics for the dashboard for a specific version (v1 or v2)."""
+    if version not in ("v1", "v2"):
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
+    table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
         # Count by status
-        status_result = conn.execute(text("""
+        status_result = conn.execute(text(f"""
             SELECT status, COUNT(*) as count
-            FROM hackathon_submissions
+            FROM {table}
             GROUP BY status
         """))
-        
         status_counts = {row[0]: row[1] for row in status_result.fetchall()}
-        
         # Count by category
-        category_result = conn.execute(text("""
+        category_result = conn.execute(text(f"""
             SELECT category, COUNT(*) as count
-            FROM hackathon_submissions
+            FROM {table}
             GROUP BY category
         """))
-        
         category_counts = {row[0]: row[1] for row in category_result.fetchall()}
-        
         # Total submissions
-        total_result = conn.execute(text("SELECT COUNT(*) as total FROM hackathon_submissions"))
+        total_result = conn.execute(text(f"SELECT COUNT(*) as total FROM {table}"))
         total = total_result.scalar_one()
-        
         return {
             'total_submissions': total,
             'by_status': status_counts,

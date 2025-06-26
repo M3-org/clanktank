@@ -273,3 +273,65 @@ Absolutely! Here are several ideas to improve the flow, maintainability, and dev
 - Added a version query parameter (default v1).
 - The endpoint now uses the correct manifest and table for the requested version, and builds the SELECT statement dynamically.
 - Only fields present in the manifest for the requested version are returned for each submission.
+
+# API Endpoint Test Plan & Coverage
+
+## Overview
+To ensure robust, production-ready coverage, we are adding comprehensive tests for all API endpoints, including both v1 and v2 schemas, all GET/POST endpoints, and error/edge cases. This supplements the existing pipeline/system tests.
+
+## Test Plan
+
+### A. Submission Endpoints
+- **POST /api/v1/submissions**:  
+  - Valid v1 submission (all required fields)
+  - Missing/invalid fields (error cases)
+- **POST /api/v2/submissions**:  
+  - Valid v2 submission (all required fields)
+  - v2-only fields, missing/invalid fields
+
+### B. Listing & Detail Endpoints
+- **GET /api/v1/submissions**:  
+  - List all v1 submissions (after POST)
+- **GET /api/v2/submissions**:  
+  - List all v2 submissions (after POST)
+- **GET /api/v1/submissions/{submission_id}**:  
+  - Get detail for v1 submission
+- **GET /api/v2/submissions/{submission_id}**:  
+  - Get detail for v2 submission
+- **GET /api/submission/{submission_id}**:  
+  - Legacy detail endpoint (with version param)
+
+### C. Judging/Community Endpoints
+- **GET /api/submission/{submission_id}/feedback**:  
+  - Community feedback summary (with/without data)
+- **GET /api/{version}/submissions/{submission_id}?include=scores,research,community**:  
+  - Ensure aggregation logic works for all "include" options
+
+### D. Public Endpoints
+- **GET /api/leaderboard**:  
+  - Leaderboard data (with/without published projects)
+- **GET /api/stats**:  
+  - Stats endpoint
+
+### E. Error & Edge Cases
+- Invalid submission IDs
+- Invalid/missing required fields
+- Version mismatch or unsupported version
+- Empty DB
+
+## Implementation Approach
+- Use `pytest` and `httpx` (or `requests`) for HTTP-based tests.
+- Use a test DB (reset before each test run).
+- Start the FastAPI app in a subprocess for integration tests.
+- Use fixtures for setup/teardown.
+
+## Existing Test Scripts (Reference)
+- `test_full_pipeline.py`: End-to-end pipeline test (legacy v1 API)
+- `test_smoke.py`: Minimal pipeline smoke test
+- `test_hackathon_system.py`: System-level DB/pipeline test
+- `test_discord_bot.py`: Discord bot integration test
+
+## Next Steps
+- Implement new endpoint tests in `test_api_endpoints.py` using the above plan.
+- Ensure all endpoints, schemas, and error cases are covered for both v1 and v2.
+- Document results and update this section as coverage improves.
