@@ -256,3 +256,20 @@ Absolutely! Here are several ideas to improve the flow, maintainability, and dev
 - All stages (DB creation, research, scoring, episode generation) completed successfully with exit code 0.
 - Verified that the system works end-to-end and produces the expected outputs.
 - Success Criteria: The entire pipeline executes without any errors. ✅
+
+## Refactor Step 1: Dynamic Insert for v1 Endpoint
+- Refactored the /api/v1/submissions endpoint in app.py to use dynamic insert logic based on SUBMISSION_FIELDS_V1.
+- All hardcoded field names for v1 are removed; the insert statement and data dict are generated from the manifest.
+- This ensures the endpoint always matches the schema and is easy to maintain as fields change.
+
+## Refactor Step 2: Dynamic GET for Submission Detail
+- Refactored the GET /api/submission/{submission_id} endpoint to support both v1 and v2 tables dynamically.
+- Added a version query parameter (default v1).
+- The endpoint now uses the correct manifest and table for the requested version, and builds the SELECT statement dynamically.
+- Only fields present in the manifest for the requested version are returned.
+
+## Refactor Step 3: Dynamic GET for Submissions List
+- Refactored the GET /api/submissions endpoint to support both v1 and v2 tables dynamically.
+- Added a version query parameter (default v1).
+- The endpoint now uses the correct manifest and table for the requested version, and builds the SELECT statement dynamically.
+- Only fields present in the manifest for the requested version are returned for each submission.

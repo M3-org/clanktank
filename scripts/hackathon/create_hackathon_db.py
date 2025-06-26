@@ -5,16 +5,17 @@ import sqlite3
 import os
 import sys
 
-# Try to import SUBMISSION_FIELDS from scripts.hackathon.schema, fallback to importlib if needed
+# Try to import versioned field manifests
 try:
-    from scripts.hackathon.schema import SUBMISSION_FIELDS
+    from scripts.hackathon.schema import SUBMISSION_FIELDS_V1, SUBMISSION_FIELDS_V2
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
     spec = importlib.util.spec_from_file_location("schema", schema_path)
     schema = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(schema)
-    SUBMISSION_FIELDS = schema.SUBMISSION_FIELDS
+    SUBMISSION_FIELDS_V1 = schema.SUBMISSION_FIELDS_V1
+    SUBMISSION_FIELDS_V2 = schema.SUBMISSION_FIELDS_V2
 
 def create_hackathon_database(db_path):
     """Create the hackathon database with all required tables."""
@@ -26,8 +27,8 @@ def create_hackathon_database(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
      
-    # Dynamically generate columns from SUBMISSION_FIELDS
-    user_fields_sql = ",\n    ".join([f"{field} TEXT" for field in SUBMISSION_FIELDS])
+    # V1 table
+    user_fields_sql_v1 = ",\n    ".join([f"{field} TEXT" for field in SUBMISSION_FIELDS_V1])
     static_fields_sql = """
         id INTEGER PRIMARY KEY,
         submission_id TEXT UNIQUE,
@@ -35,10 +36,19 @@ def create_hackathon_database(db_path):
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     """
-    columns_sql = f"{static_fields_sql},\n    {user_fields_sql}"
+    columns_sql_v1 = f"{static_fields_sql},\n    {user_fields_sql_v1}"
     cursor.execute(f"""
-        CREATE TABLE IF NOT EXISTS hackathon_submissions (
-            {columns_sql}
+        CREATE TABLE IF NOT EXISTS hackathon_submissions_v1 (
+            {columns_sql_v1}
+        )
+    """)
+    
+    # V2 table
+    user_fields_sql_v2 = ",\n    ".join([f"{field} TEXT" for field in SUBMISSION_FIELDS_V2])
+    columns_sql_v2 = f"{static_fields_sql},\n    {user_fields_sql_v2}"
+    cursor.execute(f"""
+        CREATE TABLE IF NOT EXISTS hackathon_submissions_v2 (
+            {columns_sql_v2}
         )
     """)
     
@@ -56,7 +66,9 @@ def create_hackathon_database(db_path):
             weighted_total REAL,
             notes TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions(submission_id)
+            community_bonus REAL,
+            final_verdict TEXT,
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
         )
     """)
     
@@ -70,7 +82,7 @@ def create_hackathon_database(db_path):
             reaction_type TEXT,
             score_adjustment REAL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
         )
     """)
     
@@ -83,13 +95,13 @@ def create_hackathon_database(db_path):
             market_research TEXT,
             technical_assessment TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
         )
     """)
     
     # Create indexes for better performance
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_status ON hackathon_submissions(status)")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_category ON hackathon_submissions(category)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_status ON hackathon_submissions_v1(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_submissions_category ON hackathon_submissions_v1(category)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_scores_submission ON hackathon_scores(submission_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_feedback_submission ON community_feedback(submission_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)")
