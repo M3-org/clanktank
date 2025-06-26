@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
-import { getStatusColor, getCategoryColor, formatDate, cn } from '../lib/utils'
-import { Card, CardHeader, CardContent } from '../components/Card'
+import { formatDate } from '../lib/utils'
+import { Card, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { 
@@ -18,9 +18,7 @@ import {
   LayoutGrid,
   LayoutList,
   ArrowUp,
-  ArrowDown,
-  Github,
-  ExternalLink
+  ArrowDown
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -29,7 +27,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [categoryFilter, setCategoryFilter] = useState<string>('')
-  const [sortBy, setSortBy] = useState<'created' | 'score'>('created')
+  // const [sortBy, setSortBy] = useState<'created' | 'score'>('created')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at'>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
@@ -120,7 +118,7 @@ export default function Dashboard() {
                       Total Submissions
                     </dt>
                     <dd className="text-2xl font-bold text-gray-900">
-                      {stats.total_submissions}
+                      {stats.total_submissions || 0}
                     </dd>
                   </dl>
                 </div>
@@ -140,7 +138,7 @@ export default function Dashboard() {
                       Published
                     </dt>
                     <dd className="text-2xl font-bold text-gray-900">
-                      {stats.by_status.published || 0}
+                      {stats.by_status?.published || 0}
                     </dd>
                   </dl>
                 </div>
@@ -160,7 +158,7 @@ export default function Dashboard() {
                       Scored
                     </dt>
                     <dd className="text-2xl font-bold text-gray-900">
-                      {stats.by_status.scored || 0}
+                      {stats.by_status?.scored || 0}
                     </dd>
                   </dl>
                 </div>
@@ -180,7 +178,7 @@ export default function Dashboard() {
                       In Progress
                     </dt>
                     <dd className="text-2xl font-bold text-gray-900">
-                      {(stats.by_status.submitted || 0) + (stats.by_status.researched || 0)}
+                      {(stats.by_status?.submitted || 0) + (stats.by_status?.researched || 0)}
                     </dd>
                   </dl>
                 </div>

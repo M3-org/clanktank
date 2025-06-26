@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import Dashboard from './pages/Dashboard'
 import Leaderboard from './pages/Leaderboard'
 import SubmissionDetail from './pages/SubmissionDetail'
-import { Trophy, LayoutDashboard } from 'lucide-react'
+import SubmissionPage from './pages/SubmissionPage'
+import { Trophy, LayoutDashboard, Upload } from 'lucide-react'
 import { cn } from './lib/utils'
 
 function Navigation() {
@@ -42,6 +43,13 @@ function Navigation() {
                 <Trophy className="h-4 w-4 mr-2" />
                 Leaderboard
               </Link>
+              <Link
+                to="/submit"
+                className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 transition-all hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-50"
+              >
+                <Upload className="h-4 w-4" />
+                Submit Project
+              </Link>
             </div>
           </div>
         </div>
@@ -62,6 +70,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/submission/:id" element={<SubmissionDetail />} />
+            <Route path="/submit" element={<SubmissionPage />} />
           </Routes>
         </main>
       </div>

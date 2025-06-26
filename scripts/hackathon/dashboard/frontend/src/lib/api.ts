@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats } from '../types'
+import { SubmissionInputs } from '../types/submission'
 
 const API_BASE = import.meta.env.PROD ? '/data' : '/api'
 
@@ -9,6 +10,12 @@ const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
 const api = axios.create({
   baseURL: API_BASE,
 })
+
+// Post a new submission
+export const postSubmission = async (data: SubmissionInputs) => {
+  const response = await api.post('/submissions', data)
+  return response.data  // {status:"success", submission_id:"..."}
+}
 
 export const hackathonApi = {
   // Get all submissions
