@@ -17,6 +17,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 from dotenv import load_dotenv
+import sys
+
+# Import versioned schema helpers
+try:
+    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
 
 # Import judge personas and weights
 from prompts.judge_personas import (
@@ -47,12 +60,16 @@ AI_MODEL_NAME = os.getenv('AI_MODEL_NAME', 'anthropic/claude-3-opus')
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 class HackathonManager:
-    def __init__(self):
+    def __init__(self, db_path=None, version=None):
         """Initialize the hackathon manager."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
         
-        self.db_path = HACKATHON_DB_PATH
+        self.db_path = db_path or os.getenv('HACKATHON_DB_PATH', 'data/hackathon.db')
+        self.version = version or LATEST_SUBMISSION_VERSION
+        self.table = f"hackathon_submissions_{self.version}"
+        self.fields = get_fields(self.version)
+        
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
@@ -258,15 +275,14 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         cursor = conn.cursor()
         
         try:
-            # Fetch submission data
-            cursor.execute("""
-                SELECT * FROM hackathon_submissions 
+            cursor.execute(f"""
+                SELECT * FROM {self.table} 
                 WHERE submission_id = ?
             """, (submission_id,))
             
             row = cursor.fetchone()
             if not row:
-                raise ValueError(f"Submission {submission_id} not found")
+                raise ValueError(f"Submission {submission_id} not found in {self.table}")
             
             # Convert to dictionary
             columns = [desc[0] for desc in cursor.description]
@@ -318,8 +334,8 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 time.sleep(1)
             
             # Update submission status
-            cursor.execute("""
-                UPDATE hackathon_submissions 
+            cursor.execute(f"""
+                UPDATE {self.table} 
                 SET status = 'scored', updated_at = ?
                 WHERE submission_id = ?
             """, (datetime.now().isoformat(), submission_id))
@@ -341,9 +357,9 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT submission_id, project_name 
-            FROM hackathon_submissions 
+            FROM {self.table} 
             WHERE status = 'researched'
             ORDER BY created_at
         """)
@@ -377,7 +393,7 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT 
                 s.submission_id,
                 s.project_name,
@@ -385,7 +401,7 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 s.category,
                 AVG(sc.weighted_total) as avg_score,
                 COUNT(DISTINCT sc.judge_name) as judge_count
-            FROM hackathon_submissions s
+            FROM {self.table} s
             JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
             WHERE sc.round = ?
             GROUP BY s.submission_id
@@ -414,9 +430,9 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         
         # Get projects ready for Round 2
         if project_id:
-            cursor.execute("SELECT submission_id FROM hackathon_submissions WHERE submission_id = ? AND status = 'community-voting'", (project_id,))
+            cursor.execute(f"SELECT submission_id FROM {self.table} WHERE submission_id = ? AND status = 'community-voting'", (project_id,))
         else:
-            cursor.execute("SELECT submission_id FROM hackathon_submissions WHERE status = 'community-voting'")
+            cursor.execute(f"SELECT submission_id FROM {self.table} WHERE status = 'community-voting'")
         
         project_ids = [row[0] for row in cursor.fetchall()]
         
@@ -591,6 +607,19 @@ def main():
         "--output",
         help="Output file for results (JSON)"
     )
+    parser.add_argument(
+        "--version",
+        type=str,
+        default="latest",
+        choices=["latest", "v1", "v2"],
+        help="Submission schema version to use (default: latest)"
+    )
+    parser.add_argument(
+        "--db-file",
+        type=str,
+        default=None,
+        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)"
+    )
     
     args = parser.parse_args()
     
@@ -600,7 +629,7 @@ def main():
     
     # Initialize manager
     try:
-        manager = HackathonManager()
+        manager = HackathonManager(db_path=args.db_file, version=args.version)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")

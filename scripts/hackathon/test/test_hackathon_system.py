@@ -24,21 +24,21 @@ TEST_SUBMISSIONS = [
     {
         "submission_id": "TEST001",
         "project_name": "DeFi Yield Aggregator",
-        "description": "Smart contract system that automatically finds and compounds the best DeFi yields across multiple protocols",
+        "description": "A platform that aggregates DeFi yields across multiple protocols for optimal returns.",
         "category": "DeFi",
-        "team_name": "Yield Hunters",
-        "contact_email": "test@example.com",
-        "discord_handle": "@yieldhunter",
-        "twitter_handle": "@yieldhunters",
-        "demo_video_url": "https://youtube.com/watch?v=demo1",
-        "github_url": "https://github.com/vbuterin/pyethereum",  # Using a real repo for testing
-        "live_demo_url": "https://yieldhunter.demo.com",
-        "how_it_works": "Our smart contracts scan multiple DeFi protocols in real-time, calculate optimal yield strategies including gas costs, and automatically rebalance user funds. Uses Chainlink oracles for price feeds and implements MEV protection.",
-        "problem_solved": "DeFi users lose money to suboptimal yields and high gas costs from manual rebalancing. We solve this with automated, gas-efficient yield optimization.",
-        "coolest_tech": "Custom yield prediction algorithm using on-chain data analysis and a novel gas optimization technique that batches transactions across users.",
-        "next_steps": "Launch on mainnet, add more protocol integrations, build mobile app for monitoring yields.",
-        "tech_stack": "Solidity, Hardhat, ethers.js, Next.js, Chainlink",
-        "logo_url": "https://example.com/logo.png"
+        "team_name": "Yield Wizards",
+        "discord_handle": "yieldwizard#1234",
+        "twitter_handle": "@yieldwizards",
+        "demo_video_url": "https://youtu.be/defiyielddemo",
+        "github_url": "https://github.com/yieldwizards/defi-aggregator",
+        "live_demo_url": "https://yieldwizards.com/demo",
+        "how_it_works": "We use smart contracts to route funds to the highest-yielding protocols.",
+        "problem_solved": "Users struggle to find the best DeFi yields; we automate it.",
+        "tech_stack": "Solidity, React, Python",
+        "logo_url": "https://yieldwizards.com/logo.png",
+        "image_url": "https://yieldwizards.com/logo.png",
+        "favorite_part": "The auto-compounding engine.",
+        "test_field": "Test value for v2"
     },
     {
         "submission_id": "TEST002",
@@ -46,20 +46,23 @@ TEST_SUBMISSIONS = [
         "description": "GitHub bot that uses LLMs to provide intelligent code reviews with security analysis",
         "category": "AI/Agents",
         "team_name": "CodeGuardians",
-        "contact_email": "test2@example.com",
         "discord_handle": "@codeguard",
         "twitter_handle": "@codeguardai",
         "demo_video_url": "https://youtube.com/watch?v=demo2",
-        "github_url": "https://github.com/langchain-ai/langchain",  # Using a real repo
+        "github_url": "https://github.com/langchain-ai/langchain",
         "live_demo_url": "https://codeguard.ai/demo",
         "how_it_works": "Integrates with GitHub webhooks to analyze PRs using GPT-4 and specialized security models. Provides contextual suggestions, detects vulnerabilities, and learns from your codebase patterns.",
         "problem_solved": "Code reviews are time-consuming and often miss security issues. Our AI bot provides instant, comprehensive reviews that improve code quality and catch vulnerabilities.",
-        "coolest_tech": "Custom fine-tuned model for vulnerability detection, RAG system for codebase-specific context, and innovative prompt chaining for deep code analysis.",
-        "next_steps": "Add support for GitLab and Bitbucket, implement team-specific training, build IDE plugins.",
         "tech_stack": "Python, LangChain, OpenAI API, FastAPI, PostgreSQL",
-        "logo_url": "https://example.com/logo2.png"
+        "logo_url": "https://example.com/logo2.png",
+        "image_url": "https://example.com/logo2.png",
+        "favorite_part": "The RAG system.",
+        "test_field": "Test value for v2"
     }
 ]
+
+DEFAULT_VERSION = "v2"
+DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
 
 def reset_test_environment():
     """Reset the test environment - clear test data from database."""
@@ -77,10 +80,10 @@ def reset_test_environment():
         # Delete test submissions and related data
         for submission in TEST_SUBMISSIONS:
             submission_id = submission['submission_id']
-            cursor.execute("DELETE FROM hackathon_scores WHERE submission_id = ?", (submission_id,))
-            cursor.execute("DELETE FROM hackathon_research WHERE submission_id = ?", (submission_id,))
-            cursor.execute("DELETE FROM community_feedback WHERE submission_id = ?", (submission_id,))
-            cursor.execute("DELETE FROM hackathon_submissions WHERE submission_id = ?", (submission_id,))
+            cursor.execute(f"DELETE FROM hackathon_scores WHERE submission_id = ?", (submission_id,))
+            cursor.execute(f"DELETE FROM hackathon_research WHERE submission_id = ?", (submission_id,))
+            cursor.execute(f"DELETE FROM community_feedback WHERE submission_id = ?", (submission_id,))
+            cursor.execute(f"DELETE FROM {DEFAULT_TABLE} WHERE submission_id = ?", (submission_id,))
         
         conn.commit()
         logger.info("Test data cleared from database")
@@ -103,36 +106,17 @@ def insert_test_submissions():
     
     try:
         for submission in TEST_SUBMISSIONS:
-            cursor.execute("""
-                INSERT INTO hackathon_submissions 
-                (submission_id, project_name, description, category, team_name,
-                 contact_email, discord_handle, twitter_handle, demo_video_url,
-                 github_url, live_demo_url, how_it_works, problem_solved,
-                 coolest_tech, next_steps, tech_stack, logo_url, status,
-                 created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                submission['submission_id'],
-                submission['project_name'],
-                submission['description'],
-                submission['category'],
-                submission['team_name'],
-                submission['contact_email'],
-                submission['discord_handle'],
-                submission['twitter_handle'],
-                submission['demo_video_url'],
-                submission['github_url'],
-                submission['live_demo_url'],
-                submission['how_it_works'],
-                submission['problem_solved'],
-                submission['coolest_tech'],
-                submission['next_steps'],
-                submission['tech_stack'],
-                submission['logo_url'],
-                'submitted',
-                datetime.now().isoformat(),
-                datetime.now().isoformat()
-            ))
+            # Only include fields present in v2 schema
+            v2_fields = [
+                "submission_id", "project_name", "description", "category", "team_name",
+                "discord_handle", "twitter_handle", "demo_video_url", "github_url", "live_demo_url",
+                "how_it_works", "problem_solved", "tech_stack", "image_url",
+                "favorite_part", "test_field"
+            ]
+            insert_data = {k: submission.get(k, "") for k in v2_fields}
+            columns = ", ".join(insert_data.keys())
+            placeholders = ", ".join(["?" for _ in insert_data])
+            cursor.execute(f"INSERT INTO {DEFAULT_TABLE} ({columns}) VALUES ({placeholders})", tuple(insert_data.values()))
         
         conn.commit()
         logger.info(f"Inserted {len(TEST_SUBMISSIONS)} test submissions")
@@ -151,9 +135,9 @@ def check_submission_status():
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT submission_id, project_name, status, created_at
-        FROM hackathon_submissions
+        FROM {DEFAULT_TABLE}
         WHERE submission_id LIKE 'TEST%'
         ORDER BY created_at
     """)
@@ -175,10 +159,10 @@ def check_research_results():
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT r.submission_id, s.project_name, r.created_at
         FROM hackathon_research r
-        JOIN hackathon_submissions s ON r.submission_id = s.submission_id
+        JOIN {DEFAULT_TABLE} s ON r.submission_id = s.submission_id
         WHERE r.submission_id LIKE 'TEST%'
     """)
     
@@ -199,7 +183,7 @@ def check_scoring_results():
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT 
             sc.submission_id,
             s.project_name,
@@ -207,7 +191,7 @@ def check_scoring_results():
             sc.weighted_total,
             sc.created_at
         FROM hackathon_scores sc
-        JOIN hackathon_submissions s ON sc.submission_id = s.submission_id
+        JOIN {DEFAULT_TABLE} s ON sc.submission_id = s.submission_id
         WHERE sc.submission_id LIKE 'TEST%'
         ORDER BY sc.submission_id, sc.judge_name
     """)
@@ -225,13 +209,13 @@ def check_scoring_results():
     logger.info("-" * 80)
     
     # Calculate averages
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT 
             s.submission_id,
             s.project_name,
             AVG(sc.weighted_total) as avg_score,
             COUNT(DISTINCT sc.judge_name) as judge_count
-        FROM hackathon_submissions s
+        FROM {DEFAULT_TABLE} s
         JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
         WHERE s.submission_id LIKE 'TEST%'
         GROUP BY s.submission_id
@@ -294,8 +278,8 @@ def run_test_pipeline():
     
     # Test research
     logger.info("\n4. Testing research functionality...")
-    logger.info("Run: python scripts/hackathon/hackathon_research.py --submission-id TEST001")
-    logger.info("Or:  python scripts/hackathon/hackathon_research.py --all")
+    logger.info("Run: python scripts/hackathon/hackathon_research.py --submission-id TEST001 --version v2")
+    logger.info("Or:  python scripts/hackathon/hackathon_research.py --all --version v2")
     logger.info("\nPress Enter after running research...")
     input()
     
@@ -304,8 +288,8 @@ def run_test_pipeline():
     
     # Test scoring
     logger.info("\n5. Testing scoring functionality...")
-    logger.info("Run: python scripts/hackathon/hackathon_manager.py --score --submission-id TEST001")
-    logger.info("Or:  python scripts/hackathon/hackathon_manager.py --score --all")
+    logger.info("Run: python scripts/hackathon/hackathon_manager.py --score --submission-id TEST001 --version v2")
+    logger.info("Or:  python scripts/hackathon/hackathon_manager.py --score --all --version v2")
     logger.info("\nPress Enter after running scoring...")
     input()
     
@@ -314,7 +298,7 @@ def run_test_pipeline():
     
     # Test leaderboard
     logger.info("\n6. Testing leaderboard...")
-    logger.info("Run: python scripts/hackathon/hackathon_manager.py --leaderboard")
+    logger.info("Run: python scripts/hackathon/hackathon_manager.py --leaderboard --version v2")
     
     logger.info("\n" + "=" * 80)
     logger.info("TEST PIPELINE COMPLETE")

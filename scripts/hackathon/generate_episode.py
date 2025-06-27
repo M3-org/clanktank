@@ -14,6 +14,7 @@ import hashlib
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
+import sys
 
 # Import dialogue prompts
 from prompts.episode_dialogue import (
@@ -45,15 +46,30 @@ AI_MODEL_NAME = os.getenv('AI_MODEL_NAME', 'anthropic/claude-3-opus')
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# Import versioned schema helpers
+try:
+    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
+
 class UnifiedEpisodeGenerator:
     """Generate backwards-compatible episodes with hackathon enhancements"""
     
-    def __init__(self):
+    def __init__(self, db_path=None, version=None):
         """Initialize the episode generator."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
         
-        self.db_path = HACKATHON_DB_PATH
+        self.db_path = db_path or os.getenv('HACKATHON_DB_PATH', 'data/hackathon.db')
+        self.version = version or LATEST_SUBMISSION_VERSION
+        self.table = f"hackathon_submissions_{self.version}"
+        self.fields = get_fields(self.version)
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
@@ -120,15 +136,15 @@ class UnifiedEpisodeGenerator:
         cursor = conn.cursor()
         
         # Fetch submission data
-        cursor.execute("""
-            SELECT * FROM hackathon_submissions 
+        cursor.execute(f"""
+            SELECT * FROM {self.table} 
             WHERE submission_id = ?
         """, (submission_id,))
         
         submission_row = cursor.fetchone()
         if not submission_row:
             conn.close()
-            raise ValueError(f"Submission {submission_id} not found")
+            raise ValueError(f"Submission {submission_id} not found in {self.table}")
         
         columns = [desc[0] for desc in cursor.description]
         submission_data = dict(zip(columns, submission_row))
@@ -641,70 +657,40 @@ class UnifiedEpisodeGenerator:
 
 def main():
     """Main function with CLI interface."""
-    parser = argparse.ArgumentParser(description="Generate hackathon episode JSON files")
-    
-    parser.add_argument(
-        "--submission-id",
-        help="Generate episode for a specific submission ID"
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Generate episodes for all scored submissions"
-    )
-    parser.add_argument(
-        "--title",
-        help="Episode title (default: 'Clank Tank: [Project Name]')"
-    )
-    parser.add_argument(
-        "--output-dir",
-        default="episodes/hackathon",
-        help="Output directory (default: episodes/hackathon)"
-    )
-    
+    parser = argparse.ArgumentParser(description="Generate Clank Tank episode from hackathon submissions")
+    parser.add_argument("--submission-id", type=str, help="Generate episode for a specific submission ID")
+    parser.add_argument("--version", type=str, default="latest", choices=["latest", "v1", "v2"], help="Submission schema version to use (default: latest)")
+    parser.add_argument("--db-file", type=str, default=None, help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)")
     args = parser.parse_args()
     
-    if not args.submission_id and not args.all:
+    if not args.submission_id:
         parser.print_help()
         return
     
     # Initialize generator
     try:
-        generator = UnifiedEpisodeGenerator()
+        generator = UnifiedEpisodeGenerator(db_path=args.db_file, version=args.version)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         return
     
-    # Create output directory
-    os.makedirs(args.output_dir, exist_ok=True)
+    # Generate episode
+    logger.info(f"Generating episode for submission {args.submission_id}...")
     
-    # Determine which submissions to process
-    if args.submission_id:
-        submission_ids = [args.submission_id]
-    else:
-        submission_ids = generator.get_scored_submissions()
-        if not submission_ids:
-            logger.info("No scored submissions found")
-            return
-    
-    # Generate episodes
-    for submission_id in submission_ids:
-        logger.info(f"Generating episode for submission {submission_id}...")
+    try:
+        episode = generator.generate_episode(args.submission_id)
         
-        try:
-            episode = generator.generate_episode(submission_id, episode_title=args.title)
-            
-            # Save to file using submission ID as filename
-            output_path = os.path.join(args.output_dir, f"{submission_id}.json")
-            with open(output_path, 'w') as f:
-                json.dump(episode, f, indent=2)
-            
-            logger.info(f"Episode saved to {output_path}")
-            logger.info(f"Episode ID: {episode['id']}")
-            logger.info(f"Project: {episode['hackathon_metadata']['project_name']}")
-            
-        except Exception as e:
-            logger.error(f"Episode generation failed for {submission_id}: {e}")
+        # Save to file using submission ID as filename
+        output_path = os.path.join("episodes/hackathon", f"{args.submission_id}.json")
+        with open(output_path, 'w') as f:
+            json.dump(episode, f, indent=2)
+        
+        logger.info(f"Episode saved to {output_path}")
+        logger.info(f"Episode ID: {episode['id']}")
+        logger.info(f"Project: {episode['hackathon_metadata']['project_name']}")
+        
+    except Exception as e:
+        logger.error(f"Episode generation failed for {args.submission_id}: {e}")
 
 
 if __name__ == "__main__":

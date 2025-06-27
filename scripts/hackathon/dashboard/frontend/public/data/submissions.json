@@ -1,0 +1,22 @@
+[
+  {
+    "submission_id": "6785C7",
+    "project_name": "AI Code Assistant",
+    "team_name": "CodeGenies",
+    "category": "AI/Agents",
+    "status": "submitted",
+    "created_at": "2025-06-26T19:54:07.772201",
+    "avg_score": null,
+    "judge_count": 0
+  },
+  {
+    "submission_id": "8F4348",
+    "project_name": "DeFi Yield Aggregator",
+    "team_name": "Yield Wizards",
+    "category": "DeFi",
+    "status": "submitted",
+    "created_at": "2025-06-26T19:54:07.760959",
+    "avg_score": null,
+    "judge_count": 0
+  }
+]

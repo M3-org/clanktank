@@ -11,14 +11,14 @@ const api = axios.create({
   baseURL: API_BASE,
 })
 
-// Post a new submission
+// Post a new submission (latest)
 export const postSubmission = async (data: SubmissionInputs) => {
   const response = await api.post('/submissions', data)
   return response.data  // {status:"success", submission_id:"..."}
 }
 
 export const hackathonApi = {
-  // Get all submissions
+  // Get all submissions (latest)
   getSubmissions: async (filters?: { status?: string; category?: string }) => {
     if (USE_STATIC) {
       const response = await api.get<SubmissionSummary[]>('/submissions.json')
@@ -39,18 +39,18 @@ export const hackathonApi = {
     return response.data
   },
 
-  // Get submission details
+  // Get submission details (latest)
   getSubmission: async (id: string) => {
     if (USE_STATIC) {
       const response = await api.get<SubmissionDetail>(`/submission/${id}.json`)
       return response.data
     }
     
-    const response = await api.get<SubmissionDetail>(`/submission/${id}`)
+    const response = await api.get<SubmissionDetail>(`/submissions/${id}`)
     return response.data
   },
 
-  // Get leaderboard
+  // Get leaderboard (latest)
   getLeaderboard: async () => {
     if (USE_STATIC) {
       const response = await api.get<LeaderboardEntry[]>('/leaderboard.json')
@@ -61,7 +61,7 @@ export const hackathonApi = {
     return response.data
   },
 
-  // Get stats
+  // Get stats (latest)
   getStats: async () => {
     if (USE_STATIC) {
       const response = await api.get<Stats>('/stats.json')
@@ -70,5 +70,15 @@ export const hackathonApi = {
     
     const response = await api.get<Stats>('/stats')
     return response.data
+  },
+
+  // Fetch the latest submission schema from the backend
+  fetchSubmissionSchema: async () => {
+    try {
+      const response = await api.get('/submission-schema');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 }

@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dotenv import load_dotenv
+import sys
 
 # Import GitHub analyzer
 from github_analyzer import GitHubAnalyzer
@@ -41,16 +42,30 @@ RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv('RESEARCH_CACHE_EXPIRY_HOURS', '24')
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "perplexity/sonar-reasoning-pro:online"
 
+# Import versioned schema helpers
+try:
+    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
+
 class HackathonResearcher:
-    def __init__(self):
-        """Initialize researcher with API keys and cache directory."""
+    def __init__(self, db_path=None, version=None):
+        """Initialize researcher with API keys, cache directory, DB path, and version."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
-        
         self.github_analyzer = GitHubAnalyzer(GITHUB_TOKEN)
         self.cache_dir = Path(RESEARCH_CACHE_DIR)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
+        self.db_path = db_path or HACKATHON_DB_PATH
+        self.version = version or LATEST_SUBMISSION_VERSION
+        self.table = f"hackathon_submissions_{self.version}"
+        self.fields = get_fields(self.version)
         # API headers
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -204,30 +219,21 @@ Provide your response as a valid JSON object with clear sections for each assess
     
     def research_submission(self, submission_id: str) -> Dict[str, Any]:
         """Research a single hackathon submission."""
-        # Check cache first
         cached_research = self._load_from_cache(submission_id)
         if cached_research:
             return cached_research
-        
-        # Fetch submission from database
-        conn = sqlite3.connect(HACKATHON_DB_PATH)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
-        cursor.execute("""
-            SELECT * FROM hackathon_submissions 
+        cursor.execute(f"""
+            SELECT * FROM {self.table} 
             WHERE submission_id = ?
         """, (submission_id,))
-        
         row = cursor.fetchone()
         if not row:
             conn.close()
-            raise ValueError(f"Submission {submission_id} not found")
-        
-        # Convert to dictionary
+            raise ValueError(f"Submission {submission_id} not found in {self.table}")
         columns = [desc[0] for desc in cursor.description]
         project_data = dict(zip(columns, row))
-        
-        # Analyze GitHub repository
         github_url = project_data.get('github_url')
         if not github_url:
             logger.warning(f"No GitHub URL for submission {submission_id}")
@@ -235,21 +241,15 @@ Provide your response as a valid JSON object with clear sections for each assess
         else:
             logger.info(f"Analyzing GitHub repository: {github_url}")
             github_analysis = self.github_analyzer.analyze_repository(github_url)
-        
-        # Conduct AI research
         ai_research = self.conduct_ai_research(project_data, github_analysis)
-        
-        # Combine results
         research_results = {
             "submission_id": submission_id,
-            "project_name": project_data['project_name'],
+            "project_name": project_data.get('project_name', ''),
             "research_timestamp": datetime.now().isoformat(),
             "github_analysis": github_analysis,
             "ai_research": ai_research,
             "quality_score": github_analysis.get("quality_score", 0) if isinstance(github_analysis, dict) else 0
         }
-        
-        # Save to database
         try:
             cursor.execute("""
                 INSERT OR REPLACE INTO hackathon_research 
@@ -262,63 +262,47 @@ Provide your response as a valid JSON object with clear sections for each assess
                 json.dumps(ai_research.get("technical_assessment", {})),
                 datetime.now().isoformat()
             ))
-            
-            # Update submission status
-            cursor.execute("""
-                UPDATE hackathon_submissions 
+            cursor.execute(f"""
+                UPDATE {self.table} 
                 SET status = 'researched', updated_at = ?
                 WHERE submission_id = ?
             """, (datetime.now().isoformat(), submission_id))
-            
             conn.commit()
             logger.info(f"Research completed and saved for {submission_id}")
-            
         except Exception as e:
             logger.error(f"Failed to save research to database: {e}")
             conn.rollback()
         finally:
             conn.close()
-        
-        # Cache results
         self._save_to_cache(submission_id, research_results)
-        
         return research_results
     
     def research_all_pending(self) -> List[Dict[str, Any]]:
         """Research all submissions with status 'submitted'."""
-        conn = sqlite3.connect(HACKATHON_DB_PATH)
+        conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT submission_id, project_name 
-            FROM hackathon_submissions 
+            FROM {self.table} 
             WHERE status = 'submitted'
             ORDER BY created_at
         """)
-        
         pending_submissions = cursor.fetchall()
         conn.close()
-        
         if not pending_submissions:
             logger.info("No pending submissions to research")
             return []
-        
         logger.info(f"Found {len(pending_submissions)} submissions to research")
-        
         results = []
         for submission_id, project_name in pending_submissions:
             try:
                 logger.info(f"Researching: {project_name} ({submission_id})")
                 result = self.research_submission(submission_id)
                 results.append(result)
-                
-                # Rate limiting to avoid hitting API limits
                 time.sleep(2)
-                
             except Exception as e:
                 logger.error(f"Failed to research {submission_id}: {e}")
                 continue
-        
         return results
 
 
@@ -338,22 +322,29 @@ def main():
         "--output",
         help="Output file for research results (JSON)"
     )
-    
+    parser.add_argument(
+        "--version",
+        type=str,
+        default="latest",
+        choices=["latest", "v1", "v2"],
+        help="Submission schema version to use (default: latest)"
+    )
+    parser.add_argument(
+        "--db-file",
+        type=str,
+        default=None,
+        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)"
+    )
     args = parser.parse_args()
-    
     if not args.submission_id and not args.all:
         parser.print_help()
         return
-    
-    # Initialize researcher
     try:
-        researcher = HackathonResearcher()
+        researcher = HackathonResearcher(db_path=args.db_file, version=args.version)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")
         return
-    
-    # Conduct research
     if args.submission_id:
         try:
             results = researcher.research_submission(args.submission_id)
@@ -365,11 +356,9 @@ def main():
                 print(json.dumps(results, indent=2))
         except Exception as e:
             logger.error(f"Research failed: {e}")
-    
     elif args.all:
         results = researcher.research_all_pending()
         logger.info(f"Researched {len(results)} submissions")
-        
         if args.output:
             with open(args.output, 'w') as f:
                 json.dump(results, f, indent=2)

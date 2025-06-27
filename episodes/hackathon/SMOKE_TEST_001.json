@@ -25,7 +25,7 @@
         },
         {
           "actor": "elizahost",
-          "line": "\"Coming up, we have the Smoke Testers with their aptly named 'Smoke Test Project'! These brave pioneers are putting our systems through their paces with a crucial test submission. Let's see if their smoke testing strategy can light up the competition and keep our platform running smoothly!\"",
+          "line": "\"Coming up, we have the Smoke Testers with their aptly named Smoke Test Project! These brave pioneers are putting our systems through their paces with a crucial test submission. Let's see if their smoke testing can light a fire under our competition!\"",
           "action": "hosting"
         },
         {
@@ -40,7 +40,7 @@
         },
         {
           "actor": "jin",
-          "line": "Great question! None sets us apart. We're not just another clone.",
+          "line": "Great question! Our unique approach sets us apart. We're not just another clone.",
           "action": "explaining"
         }
       ],
@@ -78,7 +78,7 @@
         },
         {
           "actor": "jin",
-          "line": "Honestly? None. But we're committed to making this work.",
+          "line": "Honestly? Getting everything production-ready in time. But we're committed to making this work.",
           "action": "honest"
         }
       ],
@@ -233,7 +233,7 @@
   ],
   "hackathon_metadata": {
     "format_version": "unified_v1",
-    "generated_at": "2025-06-26T13:11:00.485752",
+    "generated_at": "2025-06-26T23:30:54.678915",
     "submission_id": "SMOKE_TEST_001",
     "project_name": "Smoke Test Project",
     "team_name": "Smoke Testers",

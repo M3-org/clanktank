@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+DEFAULT_VERSION = "v2"
+DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
+
 def test_environment():
     """Test environment variables."""
     print("Testing environment variables...")
@@ -36,7 +39,7 @@ def test_database():
         cursor = conn.cursor()
         
         # Check submissions table
-        cursor.execute("SELECT COUNT(*) FROM hackathon_submissions WHERE status = 'scored'")
+        cursor.execute(f"SELECT COUNT(*) FROM {DEFAULT_TABLE} WHERE status = 'scored'")
         scored_count = cursor.fetchone()[0]
         print(f"✓ Found {scored_count} scored submissions")
         

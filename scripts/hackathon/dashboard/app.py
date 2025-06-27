@@ -14,7 +14,7 @@ from typing import List, Dict, Any, Optional
 from contextlib import contextmanager
 import logging
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, create_model
@@ -28,7 +28,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from scripts.hackathon.schema import SUBMISSION_FIELDS_V1, SUBMISSION_FIELDS_V2
+from scripts.hackathon.schema import get_fields, get_schema
 
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -162,10 +162,10 @@ class SubmissionDetail(BaseModel):
     avg_score: Optional[float] = None
 
 # Dynamically create the SubmissionCreate models from versioned manifests
-submission_fields_v1 = {field: (Optional[str], None) for field in SUBMISSION_FIELDS_V1}
+submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
 SubmissionCreateV1 = create_model('SubmissionCreateV1', **submission_fields_v1)
 
-submission_fields_v2 = {field: (Optional[str], None) for field in SUBMISSION_FIELDS_V2}
+submission_fields_v2 = {field: (Optional[str], None) for field in get_fields("v2")}
 SubmissionCreateV2 = create_model('SubmissionCreateV2', **submission_fields_v2)
 
 class LeaderboardEntry(BaseModel):
@@ -188,6 +188,38 @@ def get_score_columns(conn: 'Connection', required_fields):
     columns = {row[1] for row in pragma_result.fetchall()}
     return [f for f in required_fields if f in columns]
 
+# Define a model for the submission schema field
+class SubmissionFieldSchema(BaseModel):
+    name: str
+    label: str
+    type: str
+    required: bool
+    placeholder: str = None
+    maxLength: int = None
+    options: List[str] = None
+    pattern: str = None
+    helperText: str = None
+
+# Define a model for stats
+class StatsModel(BaseModel):
+    total_submissions: int
+    by_status: dict
+    by_category: dict
+    updated_at: str
+
+# Feedback response models
+class FeedbackItem(BaseModel):
+    reaction_type: str
+    emoji: str
+    name: str
+    vote_count: int
+    voters: List[str]
+
+class FeedbackSummary(BaseModel):
+    submission_id: str
+    total_votes: int
+    feedback: List[FeedbackItem]
+
 # API Endpoints
 @app.get("/")
 async def root():
@@ -198,32 +230,82 @@ async def root():
         "docs_url": "/docs",
         "endpoints": {
             "submissions": {
-                "POST /api/v1/submissions": "Create a new submission (v1 schema)",
-                "POST /api/v2/submissions": "Create a new submission (v2 schema)",
-                "GET /api/{version}/submissions": "List all submissions (v1 or v2)",
-                "GET /api/{version}/submissions/{submission_id}": "Get submission details (v1 or v2)",
-                "GET /api/submission/{submission_id}": "Get submission details (legacy, with version param)",
+                "POST /api/submissions": "Create a new submission (latest schema)",
+                "GET /api/submissions": "List all submissions (latest)",
+                "GET /api/submissions/{submission_id}": "Get submission details (latest)",
+                "POST /api/v1/submissions": "Create a new submission (v1 schema, deprecated)",
+                "GET /api/{version}/submissions": "List all submissions (versioned)",
+                "GET /api/{version}/submissions/{submission_id}": "Get submission details (versioned)",
+                "GET /api/{version}/submission-schema": "Get submission schema (versioned)",
             },
             "judging": {
                 "GET /api/submission/{submission_id}/feedback": "Get community feedback for a submission"
             },
             "public": {
-                "GET /api/leaderboard": "Get public leaderboard",
-                "GET /api/stats": "Get overall hackathon stats"
+                "GET /api/leaderboard": "Get public leaderboard (latest)",
+                "GET /api/stats": "Get overall hackathon stats (latest)",
+                "GET /api/{version}/leaderboard": "Get public leaderboard (versioned)",
+                "GET /api/{version}/stats": "Get overall hackathon stats (versioned)",
             }
         }
     }
 
-@app.get("/api/{version}/submissions")
+@app.get("/api/submissions", tags=["latest"], response_model=List[SubmissionSummary])
+async def list_submissions_latest(include: str = "scores,research,community"):
+    return await list_submissions(version="v2", include=include)
+
+@app.get("/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail)
+async def get_submission_latest(submission_id: str, include: str = "scores,research,community"):
+    return await get_submission(submission_id=submission_id, version="v2", include=include)
+
+@app.post("/api/submissions", status_code=201, tags=["latest"], response_model=dict)
+@limiter.limit("5/minute")
+async def create_submission_latest(submission: SubmissionCreateV2, request: Request):
+    # Inline the logic for v2 submission creation
+    data = submission.dict()
+    submission_id = data.get("submission_id")
+    if not submission_id:
+        # Generate a new submission_id (e.g., based on project name and timestamp)
+        import time
+        base = data.get("project_name", "submission").replace(" ", "_").lower()
+        submission_id = f"{base}-{int(time.time())}"
+        data["submission_id"] = submission_id
+    data["status"] = "submitted"
+    now = datetime.now().isoformat()
+    data["created_at"] = now
+    data["updated_at"] = now
+    table = "hackathon_submissions_v2"
+    fields = list(data.keys())
+    placeholders = ", ".join([f":{f}" for f in fields])
+    columns = ", ".join(fields)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data)
+        except Exception as e:
+            return JSONResponse(status_code=400, content={"success": False, "error": str(e)})
+    return {"success": True, "submission_id": submission_id}
+
+@app.get("/api/submission-schema", tags=["latest"], response_model=List[SubmissionFieldSchema])
+async def get_submission_schema_latest():
+    return await get_submission_schema_versioned(version="v2")
+
+@app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
+async def get_leaderboard_latest():
+    return await get_leaderboard(version="v2")
+
+@app.get("/api/stats", tags=["latest"], response_model=StatsModel)
+async def get_stats_latest():
+    return await get_stats(version="v2")
+
+@app.get("/api/{version}/submissions", tags=["versioned"], response_model=List[SubmissionSummary])
 async def list_submissions(
     version: str = "v1",
     include: str = "scores,research,community"
 ):
-    """List all submissions for a given version, with optional scores, research, and community feedback."""
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
-    manifest = SUBMISSION_FIELDS_V1 if version == "v1" else SUBMISSION_FIELDS_V2
+    manifest = get_fields(version)
     fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
     select_stmt = text(f"SELECT {', '.join(fields)} FROM {table}")
     with engine.connect() as conn:
@@ -303,246 +385,23 @@ async def list_submissions(
             submissions.append(submission_dict)
     return submissions
 
-@app.get("/api/submission/{submission_id}")
-async def get_submission(
+@app.get("/api/{version}/submissions/{submission_id}", tags=["versioned"], response_model=SubmissionDetail)
+async def get_submission_versioned(
+    version: str,
     submission_id: str,
-    version: str = "v1",
     include: str = "scores,research,community"
 ):
-    """Get detailed information for a specific submission (supports v1 and v2, with optional scores, research, community)."""
-    if version not in ("v1", "v2"):
-        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
-    table = f"hackathon_submissions_{version}"
-    manifest = SUBMISSION_FIELDS_V1 if version == "v1" else SUBMISSION_FIELDS_V2
-    fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
-    select_stmt = text(f"SELECT {', '.join(fields)} FROM {table} WHERE submission_id = :submission_id")
-    with engine.connect() as conn:
-        result = conn.execute(select_stmt, {"submission_id": submission_id})
-        submission_row = result.fetchone()
-        if not submission_row:
-            raise HTTPException(status_code=404, detail="Submission not found")
-        submission_dict = dict(submission_row._mapping)
+    return await get_submission(submission_id=submission_id, version=version, include=include)
 
-        # Parse include parameter
-        include_parts = set(i.strip() for i in include.split(",") if i.strip())
+@app.get("/api/{version}/submission-schema", tags=["versioned"], response_model=List[SubmissionFieldSchema])
+async def get_submission_schema_versioned(version: str):
+    if version == "v2":
+        return JSONResponse(content=get_schema("v2"))
+    # Add more versions as needed
+    raise HTTPException(status_code=404, detail="Schema version not found")
 
-        # Add Round 1 judge scores
-        if "scores" in include_parts:
-            score_fields = [
-                "judge_name", "innovation", "technical_execution", "market_potential",
-                "user_experience", "weighted_total", "notes", "round",
-                "community_bonus", "final_verdict"
-            ]
-            actual_score_fields = get_score_columns(conn, score_fields)
-            if actual_score_fields:
-                scores_result = conn.execute(
-                    text(f"SELECT {', '.join(actual_score_fields)} FROM hackathon_scores WHERE submission_id = :submission_id ORDER BY judge_name, round"),
-                    {"submission_id": submission_id}
-                )
-                scores = []
-                for score_row in scores_result.fetchall():
-                    score_dict = dict(score_row._mapping)
-                    if "notes" in score_dict:
-                        score_dict["notes"] = json.loads(score_dict["notes"]) if score_dict["notes"] else {}
-                    scores.append(score_dict)
-                submission_dict["scores"] = scores
-            else:
-                submission_dict["scores"] = []
-
-        # Add research data
-        if "research" in include_parts:
-            research_result = conn.execute(text("""
-                SELECT github_analysis, market_research, technical_assessment
-                FROM hackathon_research
-                WHERE submission_id = :submission_id
-            """), {"submission_id": submission_id})
-            research_row = research_result.fetchone()
-            if research_row:
-                research_dict = dict(research_row._mapping)
-                research = {
-                    'github_analysis': json.loads(research_dict['github_analysis']) if research_dict['github_analysis'] else None,
-                    'market_research': json.loads(research_dict['market_research']) if research_dict['market_research'] else None,
-                    'technical_assessment': json.loads(research_dict['technical_assessment']) if research_dict['technical_assessment'] else None
-                }
-                submission_dict["research"] = research
-            else:
-                submission_dict["research"] = None
-
-        # Add community feedback summary
-        if "community" in include_parts:
-            feedback_result = conn.execute(text("""
-                SELECT 
-                    reaction_type,
-                    COUNT(*) as vote_count,
-                    GROUP_CONCAT(discord_user_nickname) as voters
-                FROM community_feedback 
-                WHERE submission_id = :submission_id
-                GROUP BY reaction_type
-                ORDER BY vote_count DESC
-            """), {"submission_id": submission_id})
-            feedback_summary = []
-            total_votes = 0
-            for row in feedback_result.fetchall():
-                row_dict = dict(row._mapping)
-                reaction_type, vote_count, voters = row_dict['reaction_type'], row_dict['vote_count'], row_dict['voters']
-                total_votes += vote_count
-                feedback_summary.append({
-                    'reaction_type': reaction_type,
-                    'vote_count': vote_count,
-                    'voters': voters.split(',') if voters else []
-                })
-            submission_dict["community_feedback"] = {
-                'total_votes': total_votes,
-                'feedback': feedback_summary
-            }
-    return submission_dict
-
-@app.post("/api/v1/submissions", status_code=201)
-@limiter.limit("5/minute")
-async def create_submission_v1(submission: SubmissionCreateV1, request: Request):
-    """Create a new hackathon submission (v1)."""
-    logging.info(f"--- CREATE SUBMISSION START ---")
-    logging.info(f"Received data: {submission.dict()}")
-    
-    submission_id = f"{submission.project_name.lower().replace(' ', '-')}-{int(datetime.now().timestamp())}"
-    logging.info(f"Generated submission_id: {submission_id}")
-
-    # Dynamically generate fields and placeholders from manifest
-    fields = ["submission_id"] + list(SUBMISSION_FIELDS_V1) + ["status", "created_at", "updated_at"]
-    placeholders = [f":{f}" for f in fields]
-    insert_stmt = text(f"""
-        INSERT INTO hackathon_submissions_v1 (
-            {', '.join(fields)}
-        ) VALUES (
-            {', '.join(placeholders)}
-        )
-    """)
-
-    submission_data = submission.dict()
-    submission_data.update({
-        "submission_id": submission_id,
-        "status": "submitted",
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
-    })
-    # Ensure all fields are present in submission_data (set to None if missing)
-    for f in fields:
-        if f not in submission_data:
-            submission_data[f] = None
-    logging.info(f"Prepared data for insert: {submission_data}")
-
-    with engine.begin() as conn:
-        try:
-            logging.info("Executing transaction...")
-            result = conn.execute(insert_stmt, submission_data)
-            logging.info(f"Transaction executed. Result: {result.rowcount} rows affected.")
-            logging.info(f"Successfully created submission {submission_id} for project {submission.project_name}")
-        except Exception as e:
-            logging.error(f"Database insert error for project {submission.project_name}: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Could not save submission due to a database error.")
-    
-    logging.info("--- CREATE SUBMISSION END ---")
-    return {"status": "success", "submission_id": submission_id}
-
-@app.post("/api/v2/submissions", status_code=201)
-@limiter.limit("5/minute")
-async def create_submission_v2(submission: SubmissionCreateV2, request: Request):
-    """Create a new hackathon submission (v2)."""
-    logging.info(f"--- CREATE SUBMISSION START ---")
-    logging.info(f"Received data: {submission.dict()}")
-    
-    submission_id = f"{submission.project_name.lower().replace(' ', '-')}-{int(datetime.now().timestamp())}"
-    logging.info(f"Generated submission_id: {submission_id}")
-
-    # Dynamically generate fields and placeholders from manifest
-    fields = ["submission_id"] + list(SUBMISSION_FIELDS_V2) + ["status", "created_at", "updated_at"]
-    placeholders = [f":{f}" for f in fields]
-    insert_stmt = text(f"""
-        INSERT INTO hackathon_submissions_v2 (
-            {', '.join(fields)}
-        ) VALUES (
-            {', '.join(placeholders)}
-        )
-    """)
-
-    submission_data = submission.dict()
-    submission_data.update({
-        "submission_id": submission_id,
-        "status": "submitted",
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
-    })
-    # Ensure all fields are present in submission_data (set to None if missing)
-    for f in fields:
-        if f not in submission_data:
-            submission_data[f] = None
-    logging.info(f"Prepared data for insert: {submission_data}")
-
-    with engine.begin() as conn:
-        try:
-            logging.info("Executing transaction...")
-            result = conn.execute(insert_stmt, submission_data)
-            logging.info(f"Transaction executed. Result: {result.rowcount} rows affected.")
-            logging.info(f"Successfully created submission {submission_id} for project {submission.project_name}")
-        except Exception as e:
-            logging.error(f"Database insert error for project {submission.project_name}: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Could not save submission due to a database error.")
-    
-    logging.info("--- CREATE SUBMISSION END ---")
-    return {"status": "success", "submission_id": submission_id}
-
-@app.get("/api/submission/{submission_id}/feedback")
-async def get_submission_feedback(submission_id: str):
-    """Get community feedback for a specific submission."""
-    with engine.connect() as conn:
-        # Get feedback summary
-        result = conn.execute(text("""
-            SELECT 
-                reaction_type,
-                COUNT(*) as vote_count,
-                GROUP_CONCAT(discord_user_nickname) as voters
-            FROM community_feedback 
-            WHERE submission_id = :submission_id
-            GROUP BY reaction_type
-            ORDER BY vote_count DESC
-        """), {"submission_id": submission_id})
-        
-        feedback_summary = []
-        total_votes = 0
-        
-        for row in result.fetchall():
-            row_dict = dict(row._mapping)
-            reaction_type, vote_count, voters = row_dict['reaction_type'], row_dict['vote_count'], row_dict['voters']
-            total_votes += vote_count
-            
-            # Map reaction types to display names and emojis
-            reaction_map = {
-                'hype': {'emoji': '🔥', 'name': 'General Hype'},
-                'innovation_creativity': {'emoji': '💡', 'name': 'Innovation & Creativity'},
-                'technical_execution': {'emoji': '💻', 'name': 'Technical Execution'},
-                'market_potential': {'emoji': '📈', 'name': 'Market Potential'},
-                'user_experience': {'emoji': '😍', 'name': 'User Experience'}
-            }
-            
-            reaction_info = reaction_map.get(reaction_type, {'emoji': '❓', 'name': reaction_type})
-            
-            feedback_summary.append({
-                'reaction_type': reaction_type,
-                'emoji': reaction_info['emoji'],
-                'name': reaction_info['name'],
-                'vote_count': vote_count,
-                'voters': voters.split(',') if voters else []
-            })
-        
-        return {
-            'submission_id': submission_id,
-            'total_votes': total_votes,
-            'feedback': feedback_summary
-        }
-
-@app.get("/api/{version}/leaderboard", response_model=List[LeaderboardEntry])
+@app.get("/api/{version}/leaderboard", tags=["versioned"], response_model=List[LeaderboardEntry])
 async def get_leaderboard(version: str):
-    """Get public leaderboard data for published projects for a specific version (v1 or v2)."""
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
@@ -577,9 +436,8 @@ async def get_leaderboard(version: str):
             rank += 1
         return entries
 
-@app.get("/api/{version}/stats")
+@app.get("/api/{version}/stats", tags=["versioned"], response_model=StatsModel)
 async def get_stats(version: str):
-    """Get overall statistics for the dashboard for a specific version (v1 or v2)."""
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
@@ -608,6 +466,58 @@ async def get_stats(version: str):
             'updated_at': datetime.now().isoformat()
         }
 
+@app.get("/api/feedback/{submission_id}", tags=["latest"], response_model=FeedbackSummary)
+async def get_feedback_latest(submission_id: str):
+    return await get_feedback_versioned(version="v2", submission_id=submission_id)
+
+@app.get("/api/{version}/feedback/{submission_id}", tags=["versioned"], response_model=FeedbackSummary)
+async def get_feedback_versioned(version: str, submission_id: str):
+    # Only v2 supported for now
+    if version not in ("v1", "v2"):
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
+    with engine.connect() as conn:
+        result = conn.execute(text("""
+            SELECT 
+                reaction_type,
+                COUNT(*) as vote_count,
+                GROUP_CONCAT(discord_user_nickname) as voters
+            FROM community_feedback 
+            WHERE submission_id = :submission_id
+            GROUP BY reaction_type
+            ORDER BY vote_count DESC
+        """), {"submission_id": submission_id})
+        feedback_summary = []
+        total_votes = 0
+        reaction_map = {
+            'hype': {'emoji': '🔥', 'name': 'General Hype'},
+            'innovation_creativity': {'emoji': '💡', 'name': 'Innovation & Creativity'},
+            'technical_execution': {'emoji': '💻', 'name': 'Technical Execution'},
+            'market_potential': {'emoji': '📈', 'name': 'Market Potential'},
+            'user_experience': {'emoji': '😍', 'name': 'User Experience'}
+        }
+        for row in result.fetchall():
+            row_dict = dict(row._mapping)
+            reaction_type, vote_count, voters = row_dict['reaction_type'], row_dict['vote_count'], row_dict['voters']
+            total_votes += vote_count
+            reaction_info = reaction_map.get(reaction_type, {'emoji': '❓', 'name': reaction_type})
+            feedback_summary.append(FeedbackItem(
+                reaction_type=reaction_type,
+                emoji=reaction_info['emoji'],
+                name=reaction_info['name'],
+                vote_count=vote_count,
+                voters=voters.split(',') if voters else []
+            ))
+        return FeedbackSummary(
+            submission_id=submission_id,
+            total_votes=total_votes,
+            feedback=feedback_summary
+        )
+
+# Hide the old feedback endpoint from docs
+@app.get("/api/submission/{submission_id}/feedback", include_in_schema=False)
+async def get_feedback_legacy(submission_id: str):
+    return await get_feedback_latest(submission_id=submission_id)
+
 def generate_static_data():
     """Generate static JSON files for static site deployment."""
     print("Generating static data files...")
@@ -628,7 +538,7 @@ def generate_static_data():
                 s.created_at,
                 AVG(sc.weighted_total) as avg_score,
                 COUNT(DISTINCT sc.judge_name) as judge_count
-            FROM hackathon_submissions s
+            FROM hackathon_submissions_v2 s
             LEFT JOIN hackathon_scores sc ON s.submission_id = sc.submission_id AND sc.round = 1
             GROUP BY s.submission_id
             ORDER BY s.created_at DESC
@@ -660,7 +570,7 @@ def generate_static_data():
         for submission in submissions:
             # Use the get_submission logic to generate detailed data
             # (This is a simplified version - in production, refactor to share code)
-            details_result = conn.execute(text("SELECT * FROM hackathon_submissions WHERE submission_id = :submission_id"), 
+            details_result = conn.execute(text("SELECT * FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"), 
                          {"submission_id": submission['submission_id']})
             details = details_result.fetchone()
             
@@ -675,7 +585,7 @@ def generate_static_data():
                 s.category,
                 s.demo_video_url as youtube_url,
                 AVG(sc.weighted_total) as avg_score
-            FROM hackathon_submissions s
+            FROM hackathon_submissions_v2 s
             JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
             WHERE s.status = 'published' AND sc.round = 1
             GROUP BY s.submission_id
@@ -722,14 +632,15 @@ def generate_static_data():
         
         print("Static data generation complete!")
 
-@app.get("/api/{version}/submissions/{submission_id}")
-async def get_submission_versioned(
-    version: str,
-    submission_id: str,
-    include: str = "scores,research,community"
-):
-    """Alias for detailed submission endpoint, versioned."""
-    return await get_submission(submission_id=submission_id, version=version, include=include)
+@app.post("/api/v1/submissions", status_code=410, include_in_schema=False)
+@limiter.limit("5/minute")
+async def deprecated_post_v1_submissions(request: Request, *args, **kwargs):
+    raise HTTPException(status_code=status.HTTP_410_GONE, detail="This endpoint is deprecated. Use /api/submissions.")
+
+@app.post("/api/v2/submissions", status_code=410, include_in_schema=False)
+@limiter.limit("5/minute")
+async def deprecated_post_v2_submissions(request: Request, *args, **kwargs):
+    raise HTTPException(status_code=status.HTTP_410_GONE, detail="This endpoint is deprecated. Use /api/submissions.")
 
 def main():
     """Main function to run the API server or generate static data."""
@@ -775,3 +686,114 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+async def get_submission(submission_id: str, version: str = "v1", include: str = "scores,research,community"):
+    if version not in ("v1", "v2"):
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
+    table = f"hackathon_submissions_{version}"
+    manifest = get_fields(version)
+    fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
+    select_stmt = text(f"SELECT {', '.join(fields)} FROM {table} WHERE submission_id = :submission_id")
+    with engine.connect() as conn:
+        result = conn.execute(select_stmt, {"submission_id": submission_id})
+        submission_row = result.fetchone()
+        if not submission_row:
+            raise HTTPException(status_code=404, detail="Submission not found")
+        submission_dict = dict(submission_row._mapping)
+        include_parts = set(i.strip() for i in include.split(",") if i.strip())
+        # Optionally add scores
+        if "scores" in include_parts:
+            score_fields = [
+                "judge_name", "innovation", "technical_execution", "market_potential",
+                "user_experience", "weighted_total", "notes", "round",
+                "community_bonus", "final_verdict"
+            ]
+            actual_score_fields = get_score_columns(conn, score_fields)
+            if actual_score_fields:
+                scores_result = conn.execute(
+                    text(f"SELECT {', '.join(actual_score_fields)} FROM hackathon_scores WHERE submission_id = :submission_id ORDER BY judge_name, round"),
+                    {"submission_id": submission_id}
+                )
+                scores = []
+                for score_row in scores_result.fetchall():
+                    score_dict = dict(score_row._mapping)
+                    if "notes" in score_dict:
+                        score_dict["notes"] = json.loads(score_dict["notes"]) if score_dict["notes"] else {}
+                    scores.append(score_dict)
+                submission_dict["scores"] = scores
+            else:
+                submission_dict["scores"] = []
+        # Optionally add research
+        if "research" in include_parts:
+            research_result = conn.execute(text("""
+                SELECT github_analysis, market_research, technical_assessment
+                FROM hackathon_research
+                WHERE submission_id = :submission_id
+            """), {"submission_id": submission_id})
+            research_row = research_result.fetchone()
+            if research_row:
+                research_dict = dict(research_row._mapping)
+                research = {
+                    'github_analysis': json.loads(research_dict['github_analysis']) if research_dict['github_analysis'] else None,
+                    'market_research': json.loads(research_dict['market_research']) if research_dict['market_research'] else None,
+                    'technical_assessment': json.loads(research_dict['technical_assessment']) if research_dict['technical_assessment'] else None
+                }
+                submission_dict["research"] = research
+            else:
+                submission_dict["research"] = None
+        # Optionally add community feedback
+        if "community" in include_parts:
+            feedback_result = conn.execute(text("""
+                SELECT 
+                    reaction_type,
+                    COUNT(*) as vote_count,
+                    GROUP_CONCAT(discord_user_nickname) as voters
+                FROM community_feedback 
+                WHERE submission_id = :submission_id
+                GROUP BY reaction_type
+                ORDER BY vote_count DESC
+            """), {"submission_id": submission_id})
+            feedback_summary = []
+            total_votes = 0
+            for row in feedback_result.fetchall():
+                row_dict = dict(row._mapping)
+                reaction_type, vote_count, voters = row_dict['reaction_type'], row_dict['vote_count'], row_dict['voters']
+                total_votes += vote_count
+                feedback_summary.append({
+                    'reaction_type': reaction_type,
+                    'vote_count': vote_count,
+                    'voters': voters.split(',') if voters else []
+                })
+            submission_dict["community_feedback"] = {
+                'total_votes': total_votes,
+                'feedback': feedback_summary
+            }
+        # Map fields to match SubmissionDetail model, ensuring required fields are non-None strings
+        def safe_str(val):
+            return str(val) if val is not None else ''
+        detail = {
+            'submission_id': safe_str(submission_dict.get('submission_id')),
+            'project_name': safe_str(submission_dict.get('project_name')),
+            'team_name': safe_str(submission_dict.get('team_name')),
+            'category': safe_str(submission_dict.get('category')),
+            'description': safe_str(submission_dict.get('description') or submission_dict.get('summary')),
+            'status': safe_str(submission_dict.get('status')),
+            'created_at': safe_str(submission_dict.get('created_at')),
+            'updated_at': safe_str(submission_dict.get('updated_at')),
+            'github_url': submission_dict.get('github_url'),
+            'demo_video_url': submission_dict.get('demo_video_url'),
+            'live_demo_url': submission_dict.get('live_demo_url'),
+            'tech_stack': submission_dict.get('tech_stack'),
+            'how_it_works': submission_dict.get('how_it_works'),
+            'problem_solved': submission_dict.get('problem_solved'),
+            'coolest_tech': submission_dict.get('coolest_tech') or submission_dict.get('favorite_part'),
+            'next_steps': submission_dict.get('next_steps'),
+            'scores': submission_dict.get('scores'),
+            'research': submission_dict.get('research'),
+            'avg_score': submission_dict.get('avg_score'),
+        }
+        # Fill missing optional fields with None
+        for k in ['github_url','demo_video_url','live_demo_url','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score']:
+            if k not in detail:
+                detail[k] = None
+        return detail

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Process hackathon submissions from Google Sheets into the hackathon database.
-This is a standalone script for the hackathon system - completely separate from Clank Tank.
+Process hackathon submissions from Google Sheets or JSON into the hackathon database (versioned, future-proof).
 """
 
 import os
@@ -13,6 +12,20 @@ import sqlite3
 from datetime import datetime
 import re
 import hashlib
+import sys
+
+# Import versioned schema helpers
+try:
+    from scripts.hackathon.schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    SUBMISSION_VERSIONS = schema.SUBMISSION_VERSIONS
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
 
 # Set up logging
 logging.basicConfig(
@@ -33,7 +46,7 @@ CHAR_LIMITS = {
     'next_steps': 500
 }
 
-# Column mappings from Google Sheet to database fields
+# Column mappings from Google Sheet to database fields (legacy)
 HACKATHON_COLUMN_MAPPING = {
     'Project Name': 'project_name',
     'One-line Description': 'description',
@@ -54,59 +67,28 @@ HACKATHON_COLUMN_MAPPING = {
 }
 
 def setup_argparse():
-    """Set up command line arguments."""
-    parser = argparse.ArgumentParser(description="Process hackathon submissions from Google Sheets.")
-    parser.add_argument(
-        "-s", "--sheet", 
-        type=str, 
-        required=False,
-        help="Google Sheet name"
-    )
-    parser.add_argument(
-        "-o", "--output", 
-        type=str, 
-        default="./data/hackathon",
-        help="Output folder for files (default: ./data/hackathon)"
-    )
-    parser.add_argument(
-        "-c", "--credentials", 
-        type=str, 
-        default="~/.config/gspread/service_account.json",
-        help="Path to service account credentials"
-    )
-    parser.add_argument(
-        "-j", "--json",
-        action="store_true",
-        help="Export a single consolidated JSON file of all submissions"
-    )
-    parser.add_argument(
-        "--json-file",
-        type=str,
-        default="hackathon_submissions.json",
-        help="Name of the consolidated JSON file"
-    )
-    parser.add_argument(
-        "--db-file",
-        type=str,
-        default="data/hackathon.db",
-        help="Path to the hackathon SQLite database file"
-    )
-    parser.add_argument(
-        "--from-json",
-        type=str,
-        default=None,
-        help="Path to a local JSON file containing test submissions (for testing only). If provided, skips Google Sheets."
-    )
+    parser = argparse.ArgumentParser(description="Process hackathon submissions from Google Sheets or JSON.")
+    parser.add_argument("-s", "--sheet", type=str, required=False, help="Google Sheet name")
+    parser.add_argument("-o", "--output", type=str, default="./data/hackathon", help="Output folder for files (default: ./data/hackathon)")
+    parser.add_argument("-c", "--credentials", type=str, default="~/.config/gspread/service_account.json", help="Path to service account credentials")
+    parser.add_argument("-j", "--json", action="store_true", help="Export a single consolidated JSON file of all submissions")
+    parser.add_argument("--json-file", type=str, default="hackathon_submissions.json", help="Name of the consolidated JSON file")
+    parser.add_argument("--db-file", type=str, default="data/hackathon.db", help="Path to the hackathon SQLite database file")
+    parser.add_argument("--from-json", type=str, default=None, help="Path to a local JSON file containing test submissions (for testing only). If provided, skips Google Sheets.")
+    parser.add_argument("--version", type=str, choices=SUBMISSION_VERSIONS + ["latest"], default="latest", help="Submission schema version to use (default: latest)")
     args = parser.parse_args()
-    # Require at least one of --sheet or --from-json
     if not args.sheet and not args.from_json:
         parser.error("You must provide either --sheet (for Google Sheets) or --from-json (for local test data).")
     if args.sheet and args.from_json:
         parser.error("Please provide only one of --sheet or --from-json, not both.")
     return args
 
+def resolve_version(version):
+    if version == "latest":
+        return LATEST_SUBMISSION_VERSION
+    return version
+
 def connect_to_sheet(sheet_name, credentials_path):
-    """Connect to Google Sheet using gspread."""
     try:
         credentials_path = os.path.expanduser(credentials_path)
         gc = gspread.service_account(filename=credentials_path)
@@ -118,22 +100,17 @@ def connect_to_sheet(sheet_name, credentials_path):
         raise
 
 def get_sheet_data(sheet):
-    """Get all data from the first worksheet of the Google Sheet."""
     worksheet = sheet.sheet1
     data = worksheet.get_all_values()
     return data
 
 def generate_submission_id(project_name, team_name):
-    """Generate a unique submission ID from project and team name."""
-    # Combine project and team name for uniqueness
     combined = f"{project_name}_{team_name}".lower()
-    # Create a short hash
     hash_object = hashlib.md5(combined.encode())
     short_hash = hash_object.hexdigest()[:6].upper()
     return short_hash
 
 def validate_url(url):
-    """Basic URL validation."""
     if not url:
         return False
     url_pattern = re.compile(
@@ -146,7 +123,6 @@ def validate_url(url):
     return url_pattern.match(url) is not None
 
 def validate_github_url(url):
-    """Validate GitHub repository URL."""
     if not url:
         return False
     github_pattern = re.compile(
@@ -155,163 +131,78 @@ def validate_github_url(url):
     )
     return github_pattern.match(url) is not None
 
-def validate_hackathon_submission(data):
-    """Validate hackathon submission data."""
+def validate_hackathon_submission(data, required_fields):
     errors = []
-    
-    # Check required fields
-    required_fields = ['project_name', 'category', 'github_url', 'demo_video_url', 'team_name']
     for field in required_fields:
         if field not in data or not data[field]:
             errors.append(f"Missing required field: {field}")
-    
-    # Validate category
     if 'category' in data and data['category']:
         if data['category'] not in VALID_CATEGORIES:
             errors.append(f"Invalid category: {data['category']}. Must be one of: {', '.join(VALID_CATEGORIES)}")
-    
-    # Validate URLs
     if 'github_url' in data and data['github_url']:
         if not validate_github_url(data['github_url']):
             errors.append(f"Invalid GitHub URL: {data['github_url']}")
-    
     if 'demo_video_url' in data and data['demo_video_url']:
         if not validate_url(data['demo_video_url']):
             errors.append(f"Invalid demo video URL: {data['demo_video_url']}")
-    
     if 'live_demo_url' in data and data['live_demo_url']:
         if not validate_url(data['live_demo_url']):
             errors.append(f"Invalid live demo URL: {data['live_demo_url']}")
-    
-    # Check character limits
     for field, limit in CHAR_LIMITS.items():
         if field in data and data[field] and len(data[field]) > limit:
             errors.append(f"{field} exceeds {limit} character limit ({len(data[field])} chars)")
-    
     return errors
 
+def map_fields_for_version(data, version):
+    # Example: v2 uses 'summary' instead of 'description'
+    mapped = data.copy()
+    return mapped
+
 def row_to_hackathon_data(row, headers):
-    """Convert a row from Google Sheets to hackathon data dictionary."""
     data = {}
-    
-    # Map the data using column mappings
     for sheet_col, db_field in HACKATHON_COLUMN_MAPPING.items():
         if sheet_col in headers:
             idx = headers.index(sheet_col)
             if idx < len(row):
                 value = row[idx].strip()
-                # Enforce character limits
                 if db_field in CHAR_LIMITS and value and len(value) > CHAR_LIMITS[db_field]:
                     value = value[:CHAR_LIMITS[db_field]]
                     logger.warning(f"Truncated {db_field} to {CHAR_LIMITS[db_field]} characters")
                 data[db_field] = value
-    
-    # Generate submission ID
     if data.get('project_name') and data.get('team_name'):
         data['submission_id'] = generate_submission_id(data['project_name'], data['team_name'])
     else:
         data['submission_id'] = f"UNKNOWN_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    
-    # Add metadata
     data['created_at'] = datetime.now().isoformat()
     data['updated_at'] = datetime.now().isoformat()
     data['status'] = 'submitted'
-    
     return data
 
-def insert_hackathon_submission(db_path, data):
-    """Insert or update hackathon submission in database."""
+def insert_hackathon_submission(db_path, data, version):
+    table = f"hackathon_submissions_{version}"
+    fields = get_fields(version)
+    static_fields = ["submission_id", "status", "created_at", "updated_at"]
+    all_fields = static_fields + fields
+    # Only keep fields that are in the manifest
+    insert_data = {k: data.get(k, "") for k in all_fields}
+    placeholders = ", ".join(["?" for _ in all_fields])
+    columns = ", ".join(all_fields)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
     try:
         # Check if submission already exists
-        cursor.execute(
-            "SELECT id FROM hackathon_submissions WHERE submission_id = ?",
-            (data['submission_id'],)
-        )
+        cursor.execute(f"SELECT id FROM {table} WHERE submission_id = ?", (data['submission_id'],))
         exists = cursor.fetchone()
-        
         if exists:
-            # Update existing submission
-            cursor.execute("""
-                UPDATE hackathon_submissions SET
-                    project_name = ?,
-                    description = ?,
-                    category = ?,
-                    team_name = ?,
-                    contact_email = ?,
-                    discord_handle = ?,
-                    twitter_handle = ?,
-                    demo_video_url = ?,
-                    github_url = ?,
-                    live_demo_url = ?,
-                    how_it_works = ?,
-                    problem_solved = ?,
-                    coolest_tech = ?,
-                    next_steps = ?,
-                    tech_stack = ?,
-                    logo_url = ?,
-                    updated_at = ?
-                WHERE submission_id = ?
-            """, (
-                data.get('project_name', ''),
-                data.get('description', ''),
-                data.get('category', ''),
-                data.get('team_name', ''),
-                data.get('contact_email', ''),
-                data.get('discord_handle', ''),
-                data.get('twitter_handle', ''),
-                data.get('demo_video_url', ''),
-                data.get('github_url', ''),
-                data.get('live_demo_url', ''),
-                data.get('how_it_works', ''),
-                data.get('problem_solved', ''),
-                data.get('coolest_tech', ''),
-                data.get('next_steps', ''),
-                data.get('tech_stack', ''),
-                data.get('logo_url', ''),
-                data.get('updated_at'),
-                data['submission_id']
-            ))
+            set_clause = ", ".join([f"{k} = ?" for k in all_fields if k != "submission_id"])
+            update_values = [insert_data[k] for k in all_fields if k != "submission_id"] + [data['submission_id']]
+            cursor.execute(f"UPDATE {table} SET {set_clause} WHERE submission_id = ?", update_values)
             logger.info(f"Updated submission: {data['submission_id']}")
         else:
-            # Insert new submission
-            cursor.execute("""
-                INSERT INTO hackathon_submissions (
-                    submission_id, project_name, description, category,
-                    team_name, contact_email, discord_handle, twitter_handle,
-                    demo_video_url, github_url, live_demo_url,
-                    how_it_works, problem_solved, coolest_tech, next_steps,
-                    tech_stack, logo_url, status, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                data['submission_id'],
-                data.get('project_name', ''),
-                data.get('description', ''),
-                data.get('category', ''),
-                data.get('team_name', ''),
-                data.get('contact_email', ''),
-                data.get('discord_handle', ''),
-                data.get('twitter_handle', ''),
-                data.get('demo_video_url', ''),
-                data.get('github_url', ''),
-                data.get('live_demo_url', ''),
-                data.get('how_it_works', ''),
-                data.get('problem_solved', ''),
-                data.get('coolest_tech', ''),
-                data.get('next_steps', ''),
-                data.get('tech_stack', ''),
-                data.get('logo_url', ''),
-                data.get('status', 'submitted'),
-                data.get('created_at'),
-                data.get('updated_at')
-            ))
+            cursor.execute(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})", [insert_data[k] for k in all_fields])
             logger.info(f"Inserted new submission: {data['submission_id']}")
-        
         conn.commit()
         return True
-        
     except Exception as e:
         logger.error(f"Failed to insert/update submission: {e}")
         return False
@@ -319,7 +210,6 @@ def insert_hackathon_submission(db_path, data):
         conn.close()
 
 def create_submission_markdown(data, output_dir):
-    """Create a markdown file for the submission."""
     md_content = []
     md_content.append(f"# {data.get('project_name', 'Untitled Project')}")
     md_content.append("")
@@ -327,13 +217,10 @@ def create_submission_markdown(data, output_dir):
     md_content.append(f"**Category:** {data.get('category', 'Other')}")
     md_content.append(f"**Submission ID:** {data.get('submission_id', 'Unknown')}")
     md_content.append("")
-    
     if data.get('description'):
         md_content.append("## Description")
         md_content.append(data['description'])
         md_content.append("")
-    
-    # Links section
     md_content.append("## Links")
     if data.get('github_url'):
         md_content.append(f"- **GitHub:** [{data['github_url']}]({data['github_url']})")
@@ -342,144 +229,103 @@ def create_submission_markdown(data, output_dir):
     if data.get('live_demo_url'):
         md_content.append(f"- **Live Demo:** [{data['live_demo_url']}]({data['live_demo_url']})")
     md_content.append("")
-    
-    # Project details
     if data.get('how_it_works'):
         md_content.append("## How It Works")
         md_content.append(data['how_it_works'])
         md_content.append("")
-    
     if data.get('problem_solved'):
         md_content.append("## Problem Solved")
         md_content.append(data['problem_solved'])
         md_content.append("")
-    
     if data.get('coolest_tech'):
         md_content.append("## Technical Highlights")
         md_content.append(data['coolest_tech'])
         md_content.append("")
-    
     if data.get('next_steps'):
         md_content.append("## What's Next")
         md_content.append(data['next_steps'])
         md_content.append("")
-    
-    # Tech stack
     if data.get('tech_stack'):
         md_content.append("## Tech Stack")
         md_content.append(data['tech_stack'])
         md_content.append("")
-    
-    # Contact (public info only)
     md_content.append("## Contact")
     if data.get('discord_handle'):
         md_content.append(f"- Discord: {data['discord_handle']}")
     if data.get('twitter_handle'):
         md_content.append(f"- Twitter: {data['twitter_handle']}")
-    
-    # Write markdown file
     md_filename = f"{data['submission_id']}.md"
     md_path = os.path.join(output_dir, md_filename)
-    
     with open(md_path, 'w') as f:
         f.write("\n".join(md_content))
-    
     logger.info(f"Created markdown file: {md_path}")
     return md_filename
 
 def main():
-    """Main function."""
     args = setup_argparse()
-    
-    # Ensure output directory exists
-    os.makedirs(args.output, exist_ok=True)
-    
+    version = resolve_version(args.version)
+    output_dir = args.output
+    os.makedirs(output_dir, exist_ok=True)
     all_submissions = []
     successful_imports = 0
     failed_imports = 0
-
     if args.from_json:
-        # Load test submissions from local JSON file
         with open(args.from_json, 'r') as f:
             test_data = json.load(f)
-        # Expecting a list of submissions under 'submissions'
         submissions = test_data.get('submissions', [])
         logger.info(f"Loaded {len(submissions)} submissions from {args.from_json}")
         for i, submission in enumerate(submissions, 1):
-            # Map test data keys to DB fields if needed
-            # Try to match Google Sheet field names to DB fields
-            data = {}
-            # Accept both 'project_title' or 'project_name' for compatibility
-            data['project_name'] = submission.get('project_name') or submission.get('project_title', '')
-            data['description'] = submission.get('description', '')
-            data['category'] = submission.get('category', '')
-            data['team_name'] = submission.get('team_name', '')
-            data['contact_email'] = submission.get('contact_email', '')
-            data['discord_handle'] = submission.get('discord_handle', '')
-            data['twitter_handle'] = submission.get('twitter_handle', '')
-            data['demo_video_url'] = submission.get('demo_video_url', '')
-            data['github_url'] = submission.get('github_url', '')
-            data['live_demo_url'] = submission.get('live_demo_url', '')
-            data['how_it_works'] = submission.get('how_it_works', '')
-            data['problem_solved'] = submission.get('problem_solved', '')
-            data['coolest_tech'] = submission.get('coolest_tech', '')
-            data['next_steps'] = submission.get('next_steps', '')
-            data['tech_stack'] = submission.get('tech_stack', '')
-            data['logo_url'] = submission.get('logo_url', '')
-            # Generate submission ID
-            if data['project_name'] and data['team_name']:
+            data = submission.copy()
+            # Map legacy fields for the selected version
+            data = map_fields_for_version(data, version)
+            if data.get('project_name') and data.get('team_name'):
                 data['submission_id'] = generate_submission_id(data['project_name'], data['team_name'])
             else:
                 data['submission_id'] = f"UNKNOWN_{datetime.now().strftime('%Y%m%d%H%M%S')}_{i}"
             data['created_at'] = datetime.now().isoformat()
             data['updated_at'] = datetime.now().isoformat()
             data['status'] = 'submitted'
-
-            # Validate submission
-            errors = validate_hackathon_submission(data)
+            required_fields = get_fields(version)
+            errors = validate_hackathon_submission(data, required_fields)
             if errors:
                 logger.warning(f"Test submission {i} validation errors: {'; '.join(errors)}")
                 data['validation_errors'] = errors
                 failed_imports += 1
             else:
-                if insert_hackathon_submission(args.db_file, data):
+                if insert_hackathon_submission(args.db_file, data, version):
                     successful_imports += 1
-                    create_submission_markdown(data, args.output)
+                    create_submission_markdown(data, output_dir)
                 else:
                     failed_imports += 1
             all_submissions.append(data)
     else:
-        # Connect to sheet
         sheet = connect_to_sheet(args.sheet, args.credentials)
         data = get_sheet_data(sheet)
-
         if len(data) < 2:
             logger.error("Sheet has no data or only headers")
             return
-
         headers = data[0]
         logger.info(f"Found {len(data) - 1} rows to process")
-
         for i, row in enumerate(data[1:], 1):
-            if not any(row):  # Skip empty rows
+            if not any(row):
                 continue
             submission_data = row_to_hackathon_data(row, headers)
-            errors = validate_hackathon_submission(submission_data)
+            submission_data = map_fields_for_version(submission_data, version)
+            required_fields = get_fields(version)
+            errors = validate_hackathon_submission(submission_data, required_fields)
             if errors:
                 logger.warning(f"Row {i} validation errors: {'; '.join(errors)}")
                 submission_data['validation_errors'] = errors
                 failed_imports += 1
             else:
-                if insert_hackathon_submission(args.db_file, submission_data):
+                if insert_hackathon_submission(args.db_file, submission_data, version):
                     successful_imports += 1
-                    create_submission_markdown(submission_data, args.output)
+                    create_submission_markdown(submission_data, output_dir)
                 else:
                     failed_imports += 1
             all_submissions.append(submission_data)
-
-    # Save consolidated JSON if requested
     if args.json:
-        json_path = os.path.join(args.output, args.json_file)
+        json_path = os.path.join(output_dir, args.json_file)
         with open(json_path, 'w') as f:
             json.dump({
                 "type": "hackathon_submissions",
@@ -490,7 +336,6 @@ def main():
                 "submissions": all_submissions
             }, f, indent=2)
         logger.info(f"Created consolidated JSON: {json_path}")
-
     logger.info(f"Processing complete: {successful_imports} successful, {failed_imports} failed")
 
 if __name__ == "__main__":

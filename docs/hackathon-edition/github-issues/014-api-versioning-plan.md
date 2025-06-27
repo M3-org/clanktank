@@ -1,7 +1,92 @@
-# 014. API Versioning & Migration Plan
+# 014. API Versioning & Schema Management Plan (Updated)
 
 ## Overview
-This document outlines the plan for introducing API versioning and versioned database tables to the Clank Tank hackathon system. The goal is to enable safe evolution of the submission schema (add, remove, rename fields) while maintaining backwards compatibility and a clear migration path.
+
+To ensure robust, future-proof, and DRY versioning across the hackathon stack, all version and schema management will be **centralized in `schema.py`**. All scripts (DB creation, migration, ingestion, etc.) will dynamically resolve available versions, the "latest" version, and field manifests from this single source of truth.
+
+---
+
+## New Approach
+
+### 1. Centralized Version Management in `schema.py`
+- Define a list of supported versions:
+  ```python
+  SUBMISSION_VERSIONS = ["v1", "v2"]
+  LATEST_SUBMISSION_VERSION = "v2"
+  ```
+- Store all field manifests and schemas in dicts:
+  ```python
+  SUBMISSION_FIELDS = {
+      "v1": [...],
+      "v2": [...],
+      # future: "v3": [...]
+  }
+  SUBMISSION_SCHEMA = {
+      "v1": [...],
+      "v2": [...],
+      # ...
+  }
+  ```
+- Provide helper functions:
+  ```python
+  def get_latest_version():
+      return LATEST_SUBMISSION_VERSION
+  def get_fields(version):
+      if version == "latest":
+          version = get_latest_version()
+      return SUBMISSION_FIELDS[version]
+  ```
+
+### 2. Update All Scripts to Use Dynamic Versioning
+- **DB Creation:** Loop over `SUBMISSION_VERSIONS` to create all versioned tables.
+- **Migration:** Loop over `SUBMISSION_VERSIONS` for migration/checks. Support `--version latest`.
+- **Ingestion:** Add a `--version` flag (default: `latest`). Dynamically resolve table and fields.
+- **All Other Scripts:** Always resolve table/fields from `schema.py`.
+
+### 3. Benefits
+- **Adding a new version** is as simple as updating `schema.py`.
+- All scripts automatically support new versions and "latest" without code changes.
+- No more hardcoded version logic scattered across scripts.
+- Consistent, DRY, and robust.
+
+---
+
+## Migration Steps & Checklist
+
+- [ ] Refactor `schema.py` to use `SUBMISSION_VERSIONS`, `LATEST_SUBMISSION_VERSION`, and dicts for fields/schemas.
+- [ ] Update `create_hackathon_db.py` to loop over all versions from `schema.py`.
+- [ ] Update `migrate_schema.py` to loop over all versions and support `--version latest`.
+- [ ] Update `process_submissions.py` to add a `--version` flag (default: latest), resolve table/fields dynamically, and validate against the manifest.
+- [ ] Update all other scripts to use dynamic version/table/field resolution.
+- [ ] Update `README.md` and all usage docs to reflect the new versioning policy and CLI options.
+- [ ] Add/expand tests for multi-version ingestion and migration.
+
+---
+
+## Example Usage
+
+```bash
+# Create DB with all versions
+python -m scripts.hackathon.create_hackathon_db
+
+# Migrate/check schema for all versions
+python -m scripts.hackathon.migrate_schema --dry-run
+python -m scripts.hackathon.migrate_schema --version latest
+
+# Ingest submissions for latest version
+python scripts/hackathon/process_submissions.py --from-json data/test.json --version latest
+```
+
+---
+
+## Notes
+- All scripts should fail gracefully if an unknown version is specified.
+- "latest" is always resolved via `schema.py`.
+- This approach supports robust schema evolution and minimizes code duplication.
+
+---
+
+**Update this plan as new versions or requirements are added.**
 
 ## Rationale
 - **Field evolution**: Support adding, renaming, and removing fields without breaking existing integrations.
@@ -99,4 +184,24 @@ This document outlines the plan for introducing API versioning and versioned dat
 
 ---
 
-**Next:** Implement the migration/check script for hybrid config-driven workflow. 
+**Next:** Implement the migration/check script for hybrid config-driven workflow.
+
+## API Versioning Policy (Updated)
+- The root `/api/*` endpoints always point to the latest version of the API (currently v2).
+- Older versions remain available at `/api/v1/*`, `/api/v2/*`, etc., for legacy/compatibility.
+- When a new version is released, update the root endpoints to point to the new version, and keep previous versions at their versioned paths.
+- All new frontend and integrations should use the root `/api/*` endpoints.
+- Aliased endpoints include: `/api/submissions`, `/api/submissions/{id}`, `/api/leaderboard`, `/api/stats`, `/api/submission-schema`, etc.
+
+---
+
+**Next:** Implement the migration/check script for hybrid config-driven workflow.
+
+## Next Steps (Post-API E2E Success)
+
+1. **Integrate and test the frontend dashboard** with the new versioned API and static data.
+2. **Refactor and test research/scoring scripts** to use versioned tables and dynamic schema resolution.
+3. **Write automated regression tests** for all API endpoints (GET, POST, etc.).
+4. **Continue documenting and testing** as new features or versions are added.
+
+Proceed to the first step: frontend dashboard integration and testing. 

@@ -61,12 +61,46 @@ npm run dev
 
 The frontend will be available at `http://localhost:5173`
 
-## API Endpoints
+### Dynamic Submission Form Schema
 
-- `GET /api/submissions` - List all submissions with filtering
-- `GET /api/submission/{id}` - Get detailed submission data
-- `GET /api/leaderboard` - Get public leaderboard data
-- `GET /api/stats` - Get dashboard statistics
+The submission form fields are defined by a versioned schema:
+- On form load, the frontend fetches the latest schema from the backend endpoint `/api/v2/submission-schema`.
+- If the backend is unavailable, the frontend falls back to a static manifest in `src/types/submission_manifest.ts`.
+- The last successful schema is cached in `localStorage` for resilience.
+- The form renders fields, validation, and defaults based on the loaded schema.
+
+#### Updating the Schema
+- **Backend is the source of truth:** Update the schema in `scripts/hackathon/schema.py` (`SUBMISSION_SCHEMA_V2`).
+- The frontend manifest (`src/types/submission_manifest.ts`) should be kept in sync for fallback.
+- After updating the backend schema, restart the backend server to serve the new schema.
+- The frontend will automatically use the new schema on next load.
+
+#### Robustness
+- If the backend schema fetch fails, users will see a warning and the form will use the static fallback.
+- This ensures the submission process is robust to backend downtime or schema changes.
+
+## API Versioning Policy
+
+- The root `/api/*` endpoints always point to the latest version of the API (currently v2).
+- Older versions remain available at `/api/v1/*`, `/api/v2/*`, etc., for legacy/compatibility.
+- When a new version is released, the root endpoints are updated to point to the new version, and previous versions remain accessible at their versioned paths.
+
+## API Endpoints (Latest)
+
+- `GET /api/submissions` - List all submissions with filtering (latest schema)
+- `GET /api/submissions/{id}` - Get detailed submission data (latest schema)
+- `POST /api/submissions` - Create a new submission (latest schema)
+- `GET /api/leaderboard` - Get public leaderboard data (latest)
+- `GET /api/stats` - Get dashboard statistics (latest)
+- `GET /api/submission-schema` - Get the current submission schema (latest)
+
+## API Endpoints (Legacy)
+
+- `GET /api/v1/submissions`, `GET /api/v2/submissions`, etc. - Version-specific endpoints for legacy clients
+- `POST /api/v1/submissions`, `POST /api/v2/submissions`, etc. - Version-specific submission creation
+- `GET /api/v1/leaderboard`, `GET /api/v2/leaderboard`, etc.
+- `GET /api/v1/stats`, `GET /api/v2/stats`, etc.
+- `GET /api/v2/submission-schema` (for v2 schema)
 
 ## Static Deployment
 
@@ -82,6 +116,9 @@ python app.py --generate-static-data
 cd frontend
 VITE_USE_STATIC=true npm run build
 ```
+
+- The static manifest (`src/types/submission_manifest.ts`) will be used for the submission form schema if the backend is unavailable.
+- To update the static schema, edit `src/types/submission_manifest.ts` and rebuild the frontend.
 
 3. Deploy the `dist` folder to your static host
 

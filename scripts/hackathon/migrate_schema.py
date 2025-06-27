@@ -3,15 +3,26 @@
 Migration/check script for hackathon DB schema.
 - Adds missing columns to versioned submission tables and hackathon_scores.
 - Warns about extra columns.
-- Can add a new field to manifest and DB: python -m scripts.hackathon.migrate_schema add-field <field_name> --version v1|v2|all [--db ...]
-- Usage: python migrate_schema.py [--dry-run] [--version v1|v2|all] [--db data/hackathon.db]
+- Can add a new field to manifest and DB: python -m scripts.hackathon.migrate_schema add-field <field_name> --version v1|v2|all|latest [--db ...]
+- Usage: python -m scripts.hackathon.migrate_schema [--dry-run] [--version v1|v2|all|latest] [--db data/hackathon.db]
 """
 import sqlite3
 import argparse
 import sys
 import os
 import re
-from scripts.hackathon.schema import SUBMISSION_FIELDS_V1, SUBMISSION_FIELDS_V2
+
+try:
+    from scripts.hackathon.schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    SUBMISSION_VERSIONS = schema.SUBMISSION_VERSIONS
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
 
 REQUIRED_SCORE_FIELDS = [
     "submission_id",
@@ -26,6 +37,11 @@ STATIC_FIELDS = [
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.py")
 
+def resolve_version(version):
+    if version == "latest":
+        return LATEST_SUBMISSION_VERSION
+    return version
+
 def get_table_columns(cursor, table):
     cursor.execute(f"PRAGMA table_info({table})")
     return [row[1] for row in cursor.fetchall()]
@@ -37,7 +53,6 @@ def add_column(cursor, table, col, coltype):
 def check_and_migrate_submissions(cursor, table, manifest, dry_run):
     print(f"Checking table: {table}")
     cols = get_table_columns(cursor, table)
-    # Manifest fields are all TEXT
     expected = STATIC_FIELDS + manifest
     missing = [f for f in expected if f not in cols]
     extra = [f for f in cols if f not in expected]
@@ -54,7 +69,6 @@ def check_and_migrate_submissions(cursor, table, manifest, dry_run):
 def check_and_migrate_scores(cursor, dry_run):
     print("Checking table: hackathon_scores")
     cols = get_table_columns(cursor, "hackathon_scores")
-    # All REAL except notes (TEXT), judge_name (TEXT), final_verdict (TEXT), submission_id (TEXT)
     col_types = {
         "judge_name": "TEXT", "notes": "TEXT", "final_verdict": "TEXT", "submission_id": "TEXT"
     }
@@ -71,16 +85,15 @@ def check_and_migrate_scores(cursor, dry_run):
     print("  hackathon_scores check complete.")
 
 def add_field_to_manifest(field_name, version):
-    # Edit schema.py to add the field to the correct manifest
     with open(SCHEMA_PATH, "r") as f:
         lines = f.readlines()
-    manifest_name = f"SUBMISSION_FIELDS_{version.upper()}"
+    manifest_name = f"SUBMISSION_FIELDS[\"{version}\"]"
     in_manifest = False
     for i, line in enumerate(lines):
         if line.strip().startswith(manifest_name):
             in_manifest = True
         if in_manifest and re.match(r"\s*]\s*", line):
-            lines.insert(i, f'    "{field_name}",\n')
+            lines.insert(i, f'        "{field_name}",\n')
             break
     else:
         print(f"Could not find {manifest_name} in schema.py.")
@@ -92,15 +105,14 @@ def add_field_to_manifest(field_name, version):
 def add_field(args):
     db_path = args.db
     field_name = args.field_name
-    versions = []
     if args.version == "all":
-        versions = ["v1", "v2"]
+        versions = SUBMISSION_VERSIONS
+    elif args.version == "latest":
+        versions = [LATEST_SUBMISSION_VERSION]
     else:
         versions = [args.version]
-    # Update manifest(s)
     for v in versions:
         add_field_to_manifest(field_name, v)
-    # Add column(s) to DB
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     for v in versions:
@@ -114,15 +126,13 @@ def main():
     parser = argparse.ArgumentParser(description="Migrate/check hackathon DB schema.")
     subparsers = parser.add_subparsers(dest="command")
 
-    # Default check/migrate
     parser.add_argument("--dry-run", action="store_true", help="Only print actions, do not modify DB.")
-    parser.add_argument("--version", choices=["v1", "v2", "all"], default="all", help="Which submission table(s) to check.")
+    parser.add_argument("--version", choices=SUBMISSION_VERSIONS + ["all", "latest"], default="all", help="Which submission table(s) to check.")
     parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
-    # Add-field subcommand
     add_parser = subparsers.add_parser("add-field", help="Add a new field to manifest and DB.")
     add_parser.add_argument("field_name", type=str, help="Name of the new field to add.")
-    add_parser.add_argument("--version", choices=["v1", "v2", "all"], default="all", help="Which manifest/table to add to.")
+    add_parser.add_argument("--version", choices=SUBMISSION_VERSIONS + ["all", "latest"], default="all", help="Which manifest/table to add to.")
     add_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
     args = parser.parse_args()
@@ -134,10 +144,18 @@ def main():
     conn = sqlite3.connect(args.db)
     cursor = conn.cursor()
 
-    if args.version in ("v1", "all"):
-        check_and_migrate_submissions(cursor, "hackathon_submissions_v1", SUBMISSION_FIELDS_V1, args.dry_run)
-    if args.version in ("v2", "all"):
-        check_and_migrate_submissions(cursor, "hackathon_submissions_v2", SUBMISSION_FIELDS_V2, args.dry_run)
+    versions_to_check = []
+    if args.version == "all":
+        versions_to_check = SUBMISSION_VERSIONS
+    elif args.version == "latest":
+        versions_to_check = [LATEST_SUBMISSION_VERSION]
+    else:
+        versions_to_check = [args.version]
+
+    for v in versions_to_check:
+        table = f"hackathon_submissions_{v}"
+        manifest = get_fields(v)
+        check_and_migrate_submissions(cursor, table, manifest, args.dry_run)
     check_and_migrate_scores(cursor, args.dry_run)
 
     if not args.dry_run:

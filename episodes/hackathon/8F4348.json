@@ -1,8 +1,8 @@
 {
-  "id": "test001",
+  "id": "8f4348",
   "name": "Clank Tank: DeFi Yield Aggregator",
   "premise": "Yield Wizards presents DeFi Yield Aggregator, A platform that aggregates DeFi yields across multiple protocols for optimal returns....",
-  "summary": "Yield Wizards pitches DeFi Yield Aggregator, a DeFi project that Users struggle to find the best DeFi yields; we automate it.. The judges deliver 0 PUMPs, 4 DUMPs, and 0 YAWNs.",
+  "summary": "Yield Wizards pitches DeFi Yield Aggregator, a DeFi project that Users struggle to find the best DeFi yields; we automate it.. The judges deliver 0 PUMPs, 3 DUMPs, and 1 YAWNs.",
   "scenes": [
     {
       "location": "main_stage",
@@ -25,7 +25,7 @@
         },
         {
           "actor": "elizahost",
-          "line": "\"Coming up, we have the Yield Wizards with their DeFi Yield Aggregator! These folks are tackling the chaos of scattered DeFi returns by building a platform that hunts down the best yields across multiple protocols. One dashboard, maximum gains\u2014let's see how they're making DeFi simple!\"",
+          "line": "\"Coming up, we have the Yield Wizards with their DeFi Yield Aggregator! These financial alchemists are tackling the chaos of scattered yields by building a platform that hunts down the best returns across multiple DeFi protocols. One dashboard, maximum gains\u2014let's see the magic!\"",
           "action": "hosting"
         },
         {
@@ -46,7 +46,7 @@
       ],
       "hackathon_metadata": {
         "segment_type": "pitch_intro",
-        "submission_id": "TEST001",
+        "submission_id": "8F4348",
         "project_name": "DeFi Yield Aggregator",
         "team_name": "Yield Wizards"
       }
@@ -208,33 +208,33 @@
         },
         {
           "actor": "spartan",
-          "line": "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!",
-          "action": "DUMP"
+          "line": "MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!",
+          "action": "YAWN"
         },
         {
           "actor": "elizahost",
-          "line": "Ouch! 4 DUMPs! DeFi Yield Aggregator needs to go back to the drawing board!",
+          "line": "Ouch! 3 DUMPs! DeFi Yield Aggregator needs to go back to the drawing board!",
           "action": "dramatic"
         }
       ],
       "hackathon_metadata": {
         "segment_type": "verdict",
-        "submission_id": "TEST001",
+        "submission_id": "8F4348",
         "project_name": "DeFi Yield Aggregator",
         "scores": {
-          "aimarc": 9.7,
-          "aishaw": 10.4,
-          "peepo": 12.7,
-          "spartan": 14.1
+          "aimarc": 7.7,
+          "aishaw": 8.3,
+          "peepo": 10.9,
+          "spartan": 16.5
         },
-        "average_score": 11.725
+        "average_score": 10.85
       }
     }
   ],
   "hackathon_metadata": {
     "format_version": "unified_v1",
-    "generated_at": "2025-06-26T23:29:57.690152",
-    "submission_id": "TEST001",
+    "generated_at": "2025-06-26T22:12:23.773464",
+    "submission_id": "8F4348",
     "project_name": "DeFi Yield Aggregator",
     "team_name": "Yield Wizards",
     "category": "DeFi"

@@ -67,8 +67,8 @@ v1_submission = {
 v2_submission = {
     "project_name": "Test V2 Project",
     "team_name": "Team V2",
-    "summary": "Testing v2 schema",
-    "category": "ai",
+    "description": "Testing v2 schema",
+    "category": "AI/Agents",
     "discord_handle": "test#0002",
     "twitter_handle": "@testv2",
     "github_url": "https://github.com/test/v2",
@@ -78,7 +78,8 @@ v2_submission = {
     "tech_stack": "Python, FastAPI",
     "how_it_works": "It just works.",
     "problem_solved": "Testing migration.",
-    "favorite_part": "The hybrid workflow!"
+    "favorite_part": "The hybrid workflow!",
+    "test_field": "Test value for v2"
 }
 
 def test_post_v1_submission(client):
@@ -224,4 +225,121 @@ def test_feedback_all_categories(client):
     voters = set()
     for f in data["feedback"]:
         voters.update(f["voters"])
-    assert voters == {"Alice", "Bob", "Charlie", "Dana", "Eve"} 
+    assert voters == {"Alice", "Bob", "Charlie", "Dana", "Eve"}
+
+def test_get_v2_submission_schema(client):
+    resp = client.get("/api/v2/submission-schema")
+    assert resp.status_code == 200
+    schema = resp.json()
+    assert isinstance(schema, list)
+    assert any(f["name"] == "project_name" for f in schema)
+    assert any(f["name"] == "team_name" for f in schema)
+    # Check for required field metadata
+    for field in schema:
+        assert "name" in field
+        assert "label" in field
+        assert "type" in field
+        assert "required" in field
+
+def test_post_latest_submission(client):
+    # Use v2_submission but with v2 field names mapped to v2 schema
+    latest_submission = v2_submission.copy()
+    latest_submission["project_name"] = "Test Latest Project"
+    latest_submission["team_name"] = "Team Latest"
+    latest_submission["description"] = "Testing latest schema"
+    latest_submission["category"] = "AI/Agents"
+    latest_submission["discord_handle"] = "test#0003"
+    latest_submission["twitter_handle"] = "@testlatest"
+    latest_submission["github_url"] = "https://github.com/test/latest"
+    latest_submission["demo_video_url"] = "https://youtu.be/testlatest"
+    latest_submission["live_demo_url"] = "https://testlatest.live"
+    latest_submission["image_url"] = "https://testlatest.live/image.png"
+    latest_submission["tech_stack"] = "Python, FastAPI"
+    latest_submission["how_it_works"] = "It just works."
+    latest_submission["problem_solved"] = "Testing migration."
+    latest_submission["favorite_part"] = "The hybrid workflow!"
+    latest_submission["test_field"] = "Test value for v2"
+    resp = client.post("/api/submissions", json=latest_submission)
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["status"] == "success"
+    assert "submission_id" in data
+
+def test_get_latest_submissions(client):
+    resp = client.get("/api/submissions")
+    assert resp.status_code == 200
+    submissions = resp.json()
+    assert isinstance(submissions, list)
+    assert any(s["project_name"] == "Test Latest Project" for s in submissions)
+
+def test_get_latest_submission_detail(client):
+    resp = client.get("/api/submissions")
+    sub_id = resp.json()[0]["submission_id"]
+    detail = client.get(f"/api/submissions/{sub_id}")
+    assert detail.status_code == 200
+    data = detail.json()
+    assert data["submission_id"] == sub_id
+
+def test_get_latest_leaderboard(client):
+    resp = client.get("/api/leaderboard")
+    assert resp.status_code == 200
+    leaderboard = resp.json()
+    assert isinstance(leaderboard, list)
+
+def test_get_latest_stats(client):
+    resp = client.get("/api/stats")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "total_submissions" in data
+    assert "by_status" in data
+    assert "by_category" in data
+    assert data["total_submissions"] >= 0
+
+def test_get_latest_submission_schema(client):
+    resp = client.get("/api/submission-schema")
+    assert resp.status_code == 200
+    schema = resp.json()
+    assert isinstance(schema, list)
+    assert any(f["name"] == "project_name" for f in schema)
+    assert any(f["name"] == "team_name" for f in schema)
+    for field in schema:
+        assert "name" in field
+        assert "label" in field
+        assert "type" in field
+        assert "required" in field
+
+def test_get_feedback_latest(client):
+    # Use a known submission_id with feedback in the test DB
+    submission_id = "test-feedback-001"
+    resp = client.get(f"/api/feedback/{submission_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "submission_id" in data
+    assert "total_votes" in data
+    assert "feedback" in data
+    assert isinstance(data["feedback"], list)
+    if data["feedback"]:
+        item = data["feedback"][0]
+        assert "reaction_type" in item
+        assert "emoji" in item
+        assert "name" in item
+        assert "vote_count" in item
+        assert "voters" in item
+
+def test_get_feedback_versioned(client):
+    submission_id = "test-feedback-001"
+    resp = client.get(f"/api/v2/feedback/{submission_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["submission_id"] == submission_id
+
+def test_get_feedback_legacy(client):
+    submission_id = "test-feedback-001"
+    resp = client.get(f"/api/submission/{submission_id}/feedback")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["submission_id"] == submission_id
+
+def test_feedback_not_found(client):
+    resp = client.get("/api/feedback/doesnotexist123")
+    assert resp.status_code == 200  # Returns empty feedback, not 404 

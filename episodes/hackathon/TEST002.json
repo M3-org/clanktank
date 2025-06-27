@@ -25,7 +25,7 @@
         },
         {
           "actor": "elizahost",
-          "line": "\"Coming up, we have the CodeGuardians with their AI Code Review Bot! This clever GitHub companion uses LLMs to catch bugs AND security vulnerabilities before they sneak into your codebase. It's like having a tireless senior developer watching over every pull request!\"",
+          "line": "Coming up, we have the CodeGuardians with their AI Code Review Bot! This clever GitHub companion uses LLMs to catch bugs AND security vulnerabilities before they sneak into your codebase. It's like having a tireless expert reviewer on your team 24/7!",
           "action": "hosting"
         },
         {
@@ -40,7 +40,7 @@
         },
         {
           "actor": "jin",
-          "line": "Great question! Custom fine-tuned model for vulnerability detection, RAG system for codebase-specific context, and innovative prompt chaining for deep code analysis. sets us apart. We're not just another clone.",
+          "line": "Great question! Our unique approach sets us apart. We're not just another clone.",
           "action": "explaining"
         }
       ],
@@ -78,7 +78,7 @@
         },
         {
           "actor": "jin",
-          "line": "Honestly? Add support for GitLab and Bitbucket, implement team-specific training, build IDE plugins.. But we're committed to making this work.",
+          "line": "Honestly? Getting everything production-ready in time. But we're committed to making this work.",
           "action": "honest"
         }
       ],
@@ -149,7 +149,7 @@
       "dialogue": [
         {
           "actor": "aimarc",
-          "line": "Alright, let's talk about AI Code Review Bot. The business model is decent but nothing groundbreaking.",
+          "line": "Alright, let's talk about AI Code Review Bot. The business model is questionable at best, I don't see the path to revenue.",
           "action": "analytical"
         },
         {
@@ -222,18 +222,18 @@
         "submission_id": "TEST002",
         "project_name": "AI Code Review Bot",
         "scores": {
-          "aimarc": 22.1,
-          "aishaw": 20.9,
-          "peepo": 13.8,
+          "aimarc": 16.7,
+          "aishaw": 16.7,
+          "peepo": 14.6,
           "spartan": 9.8
         },
-        "average_score": 16.65
+        "average_score": 14.45
       }
     }
   ],
   "hackathon_metadata": {
     "format_version": "unified_v1",
-    "generated_at": "2025-06-24T23:10:49.485169",
+    "generated_at": "2025-06-26T23:30:03.397430",
     "submission_id": "TEST002",
     "project_name": "AI Code Review Bot",
     "team_name": "CodeGuardians",

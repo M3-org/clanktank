@@ -9,6 +9,8 @@ import os
 
 DB_PATH = os.path.join("data", "hackathon.db")
 TEST_ID = "SMOKE_TEST_001"
+DEFAULT_VERSION = "v2"
+DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
 
 
 def run(script_path, *args, check=True):
@@ -31,7 +33,7 @@ def setup_db():
     # Insert a test record
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO hackathon_submissions (submission_id, project_name, team_name, description, category, status) VALUES (?, ?, ?, ?, ?, ?)",
+    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, team_name, description, category, status) VALUES (?, ?, ?, ?, ?, ?)",
                    (TEST_ID, "Smoke Test Project", "Smoke Testers", "A test submission for smoke testing.", "test", "submitted"))
     conn.commit()
     conn.close()
@@ -41,11 +43,11 @@ def setup_db():
 def main():
     setup_db()
     # Run research script
-    run("scripts/hackathon/hackathon_research.py", "--submission-id", TEST_ID)
+    run("scripts/hackathon/hackathon_research.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     # Run scoring script
-    run("scripts/hackathon/hackathon_manager.py", "--score", "--submission-id", TEST_ID)
+    run("scripts/hackathon/hackathon_manager.py", "--score", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     # Run episode generation
-    run("scripts/hackathon/generate_episode.py", "--submission-id", TEST_ID)
+    run("scripts/hackathon/generate_episode.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     print("Smoke test completed successfully.")
 
 if __name__ == "__main__":

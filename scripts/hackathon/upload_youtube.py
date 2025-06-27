@@ -48,11 +48,26 @@ CLIENT_SECRETS_PATH = os.getenv('YOUTUBE_CLIENT_SECRETS_PATH', 'client_secrets.j
 # YouTube API scopes
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
+# Import versioned schema helpers
+try:
+    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+except ModuleNotFoundError:
+    import importlib.util
+    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
+    spec = importlib.util.spec_from_file_location("schema", schema_path)
+    schema = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(schema)
+    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
+    get_fields = schema.get_fields
+
 class YouTubeUploader:
-    def __init__(self):
+    def __init__(self, db_path=None, version=None):
         """Initialize YouTube uploader."""
+        self.db_path = db_path or os.getenv('HACKATHON_DB_PATH', 'data/hackathon.db')
+        self.version = version or LATEST_SUBMISSION_VERSION
+        self.table = f"hackathon_submissions_{self.version}"
+        self.fields = get_fields(self.version)
         self.youtube = self._authenticate()
-        self.db_path = HACKATHON_DB_PATH
         
     def _authenticate(self):
         """Authenticate with YouTube API."""
@@ -89,15 +104,15 @@ class YouTubeUploader:
         cursor = conn.cursor()
         
         # Get submission details
-        cursor.execute("""
-            SELECT * FROM hackathon_submissions 
+        cursor.execute(f"""
+            SELECT * FROM {self.table} 
             WHERE submission_id = ?
         """, (submission_id,))
         
         row = cursor.fetchone()
         if not row:
             conn.close()
-            raise ValueError(f"Submission {submission_id} not found")
+            raise ValueError(f"Submission {submission_id} not found in {self.table}")
         
         columns = [desc[0] for desc in cursor.description]
         submission = dict(zip(columns, row))
@@ -266,8 +281,8 @@ class YouTubeUploader:
         
         try:
             # Store YouTube URL in a new column or in existing field
-            cursor.execute("""
-                UPDATE hackathon_submissions 
+            cursor.execute(f"""
+                UPDATE {self.table} 
                 SET status = 'published', 
                     demo_video_url = ?,
                     updated_at = ?
@@ -334,13 +349,13 @@ class YouTubeUploader:
         cursor = conn.cursor()
         
         # Find scored submissions that aren't published yet
-        cursor.execute("""
+        cursor.execute(f"""
             SELECT submission_id 
-            FROM hackathon_submissions 
+            FROM {self.table} 
             WHERE status IN ('scored', 'completed')
             AND submission_id NOT IN (
                 SELECT submission_id 
-                FROM hackathon_submissions 
+                FROM {self.table} 
                 WHERE status = 'published'
             )
             ORDER BY created_at
@@ -375,6 +390,19 @@ def main():
         type=int,
         help="Limit number of uploads"
     )
+    parser.add_argument(
+        "--version",
+        type=str,
+        default="latest",
+        choices=["latest", "v1", "v2"],
+        help="Submission schema version to use (default: latest)"
+    )
+    parser.add_argument(
+        "--db-file",
+        type=str,
+        default=None,
+        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)"
+    )
     
     args = parser.parse_args()
     
@@ -384,7 +412,7 @@ def main():
     
     # Initialize uploader
     try:
-        uploader = YouTubeUploader()
+        uploader = YouTubeUploader(db_path=args.db_file, version=args.version)
     except Exception as e:
         logger.error(f"Failed to initialize uploader: {e}")
         return
