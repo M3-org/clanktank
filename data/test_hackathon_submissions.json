@@ -1,0 +1,40 @@
+{
+  "type": "hackathon_submissions",
+  "generated_at": "2024-06-10T12:00:00Z",
+  "submissions": [
+    {
+      "project_name": "DeFi Yield Aggregator",
+      "description": "A platform that aggregates DeFi yields across multiple protocols for optimal returns.",
+      "category": "DeFi",
+      "team_name": "Yield Wizards",
+      "discord_handle": "yieldwizard#1234",
+      "twitter_handle": "@yieldwizards",
+      "demo_video_url": "https://youtu.be/defiyielddemo",
+      "github_url": "https://github.com/yieldwizards/defi-aggregator",
+      "live_demo_url": "https://yieldwizards.com/demo",
+      "how_it_works": "We use smart contracts to route funds to the highest-yielding protocols.",
+      "problem_solved": "Users struggle to find the best DeFi yields; we automate it.",
+      "tech_stack": "Solidity, React, Python",
+      "image_url": "https://yieldwizards.com/logo.png",
+      "favorite_part": "The auto-compounding engine.",
+      "test_field": "Test value for v2"
+    },
+    {
+      "project_name": "AI Code Assistant",
+      "description": "An AI-powered assistant that helps developers write and debug code in real time.",
+      "category": "AI/Agents",
+      "team_name": "CodeGenies",
+      "discord_handle": "codegenie#5678",
+      "twitter_handle": "@codegeniesai",
+      "demo_video_url": "https://youtu.be/aicodeassistantdemo",
+      "github_url": "https://github.com/codegenies/ai-code-assistant",
+      "live_demo_url": "https://codegenies.ai/demo",
+      "how_it_works": "Integrates with editors to provide context-aware code suggestions and error fixes.",
+      "problem_solved": "Reduces time spent debugging and searching for code snippets.",
+      "tech_stack": "Python, TypeScript, VSCode Extension API",
+      "image_url": "https://codegenies.ai/logo.png",
+      "favorite_part": "The real-time code feedback.",
+      "test_field": "Test value for v2"
+    }
+  ]
+} 
