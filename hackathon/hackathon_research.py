@@ -44,7 +44,7 @@ MODEL = "perplexity/sonar-reasoning-pro:online"
 
 # Import versioned schema helpers
 try:
-    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+    from schema import LATEST_SUBMISSION_VERSION, get_fields
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")

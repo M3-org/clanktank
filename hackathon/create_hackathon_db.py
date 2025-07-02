@@ -7,7 +7,7 @@ import sys
 
 # Import versioned field manifests and helpers
 try:
-    from scripts.hackathon.schema import SUBMISSION_VERSIONS, get_fields
+    from schema import SUBMISSION_VERSIONS, get_fields
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")

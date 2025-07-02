@@ -48,7 +48,7 @@ BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Import versioned schema helpers
 try:
-    from scripts.hackathon.schema import LATEST_SUBMISSION_VERSION, get_fields
+    from schema import LATEST_SUBMISSION_VERSION, get_fields
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")

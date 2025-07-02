@@ -3,18 +3,19 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
-import { SubmissionInputs, SubmissionSchema, categoryOptions } from '../types/submission';
-import { postSubmission, hackathonApi } from '../lib/api';
+import { SubmissionInputs, SubmissionSchema } from '../types/submission';
+import { postSubmission } from '../lib/api';
 import { Button } from '../components/Button';
 import { Card, CardHeader, CardContent } from '../components/Card';
-import { SubmissionField, SUBMISSION_FIELDS_V2 } from '../types/submission_manifest';
-
-const LOCAL_STORAGE_SCHEMA_KEY = 'submission_schema_v2';
+import { SubmissionField, loadSubmissionSchema, createYupSchemaFromFields } from '../lib/schemaLoader';
 
 const SubmissionPage: React.FC = () => {
     const navigate = useNavigate();
-    const [schema, setSchema] = useState<SubmissionField[]>(SUBMISSION_FIELDS_V2);
+    const [schema, setSchema] = useState<SubmissionField[]>([]);
     const [schemaError, setSchemaError] = useState<string | null>(null);
+    const [validationSchema, setValidationSchema] = useState<any>(SubmissionSchema);
+    const [schemaSource, setSchemaSource] = useState<'api' | 'cache' | 'fallback'>('fallback');
+    
     const { 
         register, 
         control, 
@@ -22,31 +23,45 @@ const SubmissionPage: React.FC = () => {
         formState: { errors, isSubmitting },
         reset 
     } = useForm<SubmissionInputs>({ 
-        resolver: yupResolver(SubmissionSchema) as any,
-        defaultValues: Object.fromEntries(SUBMISSION_FIELDS_V2.map(f => [f.name, ''])) as any
+        resolver: yupResolver(validationSchema) as any,
+        defaultValues: Object.fromEntries(schema.map(f => [f.name, ''])) as any
     });
 
-    // Fetch schema on mount
+    // Load schema on mount
     useEffect(() => {
-        const loadSchema = async () => {
-            // Try localStorage first
-            const cached = localStorage.getItem(LOCAL_STORAGE_SCHEMA_KEY);
-            if (cached) {
-                try {
-                    setSchema(JSON.parse(cached));
-                } catch {}
-            }
+        const initializeSchema = async () => {
             try {
-                const remoteSchema = await hackathonApi.fetchSubmissionSchema();
-                setSchema(remoteSchema);
-                localStorage.setItem(LOCAL_STORAGE_SCHEMA_KEY, JSON.stringify(remoteSchema));
-                setSchemaError(null);
-            } catch (err) {
-                setSchemaError('Could not load latest schema from server. Using fallback.');
-                setSchema(SUBMISSION_FIELDS_V2);
+                const result = await loadSubmissionSchema('v2');
+                setSchema(result.schema);
+                setSchemaSource(result.source);
+                
+                if (result.error) {
+                    setSchemaError(`Schema loaded from ${result.source}: ${result.error}`);
+                } else {
+                    setSchemaError(result.source === 'fallback' 
+                        ? 'Using fallback schema (API unavailable)' 
+                        : null
+                    );
+                }
+
+                // Generate validation schema from loaded fields
+                const yupSchema = await createYupSchemaFromFields(result.schema);
+                setValidationSchema(yupSchema);
+                
+            } catch (error) {
+                console.error('Failed to initialize schema:', error);
+                setSchemaError('Failed to load schema, using minimal fallback');
+                // Use a minimal fallback if everything fails
+                setSchema([
+                    { name: 'project_name', label: 'Project Name', type: 'text', required: true, placeholder: 'My Awesome Project' },
+                    { name: 'team_name', label: 'Team Name', type: 'text', required: true, placeholder: 'The A-Team' },
+                    { name: 'description', label: 'Project Description', type: 'textarea', required: true, placeholder: 'Describe your project' },
+                ]);
+                setSchemaSource('fallback');
             }
         };
-        loadSchema();
+        
+        initializeSchema();
     }, []);
 
     const onSubmit = async (data: SubmissionInputs) => {
@@ -100,6 +115,11 @@ const SubmissionPage: React.FC = () => {
                     </p>
                     {schemaError && (
                         <p className="text-yellow-600 text-sm mt-2">{schemaError}</p>
+                    )}
+                    {schemaSource && (
+                        <p className="text-gray-500 text-xs mt-1">
+                            Schema source: {schemaSource === 'api' ? '🔄 Live API' : schemaSource === 'cache' ? '💾 Cached' : '📦 Fallback'}
+                        </p>
                     )}
                 </CardHeader>
                 <CardContent>

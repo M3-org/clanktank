@@ -28,7 +28,12 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from scripts.hackathon.schema import get_fields, get_schema
+
+# Add path for importing schema module
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+from schema import get_fields, get_schema
 
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -281,6 +286,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     with engine.connect() as conn:
         try:
             conn.execute(text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data)
+            conn.commit()  # Commit the transaction
         except Exception as e:
             return JSONResponse(status_code=400, content={"success": False, "error": str(e)})
     return {"success": True, "submission_id": submission_id}
@@ -395,8 +401,8 @@ async def get_submission_versioned(
 
 @app.get("/api/{version}/submission-schema", tags=["versioned"], response_model=List[SubmissionFieldSchema])
 async def get_submission_schema_versioned(version: str):
-    if version == "v2":
-        return JSONResponse(content=get_schema("v2"))
+    if version in ("v1", "v2"):
+        return JSONResponse(content=get_schema(version))
     # Add more versions as needed
     raise HTTPException(status_code=404, detail="Schema version not found")
 

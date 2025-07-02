@@ -1,0 +1,242 @@
+{
+  "id": "smoke_test_001",
+  "name": "Clank Tank: Smoke Test Project",
+  "premise": "Smoke Testers presents Smoke Test Project, A test submission for smoke testing....",
+  "summary": "Smoke Testers pitches Smoke Test Project, a test project that None. The judges deliver 0 PUMPs, 4 DUMPs, and 0 YAWNs.",
+  "scenes": [
+    {
+      "location": "main_stage",
+      "description": "Introduction and pitch of Smoke Test Project",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome to Clank Tank! Today we're evaluating Smoke Test Project, a test project from the hackathon!",
+          "action": "excited"
+        },
+        {
+          "actor": "elizahost",
+          "line": "\"Coming up, we have the Smoke Testers with their aptly named Smoke Test Project! These brave pioneers are putting our systems through their paces with a crucial test submission. Let's see if their smoke testing can light a fire under our competition!\"",
+          "action": "hosting"
+        },
+        {
+          "actor": "jin",
+          "line": "Thanks Eliza! Smoke Test Project is A test submission for smoke testing. We're solving None.",
+          "action": "pitching"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
+          "action": "questioning"
+        },
+        {
+          "actor": "jin",
+          "line": "Great question! Our unique approach sets us apart. We're not just another clone.",
+          "action": "explaining"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_intro",
+        "submission_id": "SMOKE_TEST_001",
+        "project_name": "Smoke Test Project",
+        "team_name": "Smoke Testers"
+      }
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews the team about Smoke Test Project",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "So tell me, what inspired you to build Smoke Test Project?",
+          "action": "curious"
+        },
+        {
+          "actor": "jin",
+          "line": "We saw that None. Our team has the perfect background to tackle this.",
+          "action": "passionate"
+        },
+        {
+          "actor": "elizahost",
+          "line": "What's been the biggest challenge so far?",
+          "action": "probing"
+        },
+        {
+          "actor": "jin",
+          "line": "Honestly? Getting everything production-ready in time. But we're committed to making this work.",
+          "action": "honest"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "interview"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final questions about Smoke Test Project",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "peepo",
+          "line": "Yo, but like, why would normies actually use this? Break it down for me.",
+          "action": "skeptical"
+        },
+        {
+          "actor": "jin",
+          "line": "Great point! None. We've focused heavily on UX.",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "spartan",
+          "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
+          "action": "challenging"
+        },
+        {
+          "actor": "jin",
+          "line": "We're in this for the long haul! Our tech stack includes None and we're ready to scale!",
+          "action": "determined"
+        },
+        {
+          "actor": "aishaw",
+          "line": "show me the github. i want to see commit history, not promises.",
+          "action": "demanding"
+        },
+        {
+          "actor": "jin",
+          "line": "Absolutely! Check out None - we've been shipping consistently.",
+          "action": "confident"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "pitch_conclusion"
+      }
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss Smoke Test Project",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "Alright, let's talk about Smoke Test Project. The business model is questionable at best, I don't see the path to revenue.",
+          "action": "analytical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the github activity is a complete disaster. i've seen better commit messages from bootcamp grads.",
+          "action": "critical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Real talk though - would I use this? Hell no, this UI is giving 2010 energy.",
+          "action": "thoughtful"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS PROJECT IS WEAK AND SHALL PERISH! THE MARKET DEMANDS STRENGTH!",
+          "action": "intense"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "deliberation"
+      }
+    },
+    {
+      "location": "main_stage",
+      "description": "Final verdicts for Smoke Test Project",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge_seat_1": "aimarc",
+        "judge_seat_2": "aishaw",
+        "judge_seat_3": "peepo",
+        "judge_seat_4": "spartan",
+        "announcer_position": "elizahost",
+        "presenter_area_1": "jin"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for our judges to decide! Will Smoke Test Project get the funding they need? Judges, what say you?",
+          "action": "hosting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Too many red flags in the business model. I have to DUMP this one.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "this codebase is held together with prayers and duct tape. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Nah fam, this ain't it. Big DUMP energy.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Ouch! 4 DUMPs! Smoke Test Project needs to go back to the drawing board!",
+          "action": "dramatic"
+        }
+      ],
+      "hackathon_metadata": {
+        "segment_type": "verdict",
+        "submission_id": "SMOKE_TEST_001",
+        "project_name": "Smoke Test Project",
+        "scores": {
+          "aimarc": 1.0,
+          "aishaw": 1.2,
+          "peepo": 0.0,
+          "spartan": 0.0
+        },
+        "average_score": 0.55
+      }
+    }
+  ],
+  "hackathon_metadata": {
+    "format_version": "unified_v1",
+    "generated_at": "2025-06-26T23:30:54.678915",
+    "submission_id": "SMOKE_TEST_001",
+    "project_name": "Smoke Test Project",
+    "team_name": "Smoke Testers",
+    "category": "test"
+  }
+}

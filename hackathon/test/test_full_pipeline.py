@@ -67,7 +67,7 @@ def start_api():
     import subprocess
     import time
     log("Starting FastAPI backend...")
-    proc = subprocess.Popen(["uvicorn", "scripts.hackathon.dashboard.app:app", "--port", "8000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(["uvicorn", "hackathon.dashboard.app:app", "--port", "8000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Wait for server to start
     for _ in range(20):
         try:

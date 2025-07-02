@@ -1,5 +1,5 @@
 # Hackathon Technical Implementation - WordPress with Elementor
-
+g
 > **Security Note:**
 > If submission data or endpoints are public/non-authenticated, do not collect sensitive personal information (such as email addresses). Use Discord and X (Twitter) usernames for contact, and optionally allow a Solana wallet address for prize distribution or verification.
 

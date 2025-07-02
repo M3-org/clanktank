@@ -24,7 +24,7 @@ def reset_db():
 def api_server():
     # Start FastAPI app in a subprocess
     proc = subprocess.Popen([
-        "uvicorn", "scripts.hackathon.dashboard.app:app",
+                    "uvicorn", "hackathon.dashboard.app:app",
         "--host", API_HOST, "--port", str(API_PORT)
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Wait for server to start
