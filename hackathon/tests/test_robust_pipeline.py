@@ -70,7 +70,7 @@ def test_recovery_tool():
     try:
         # Test listing backups
         result = subprocess.run([
-            "python3", "hackathon/recovery_tool.py", "--list"
+            "python3", "hackathon/admin_tools/recovery_tool.py", "--list"
         ], capture_output=True, text=True, cwd=".")
         
         if result.returncode == 0:

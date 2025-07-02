@@ -40,19 +40,19 @@ This document outlines the comprehensive robustness enhancements made to the hac
 
 ### 🔧 Recovery Tools
 
-#### Recovery Script (`hackathon/recovery_tool.py`)
+#### Recovery Script (`hackathon/admin_tools/recovery_tool.py`)
 ```bash
 # List all backups
-python recovery_tool.py --list
+python hackathon/admin_tools/recovery_tool.py --list
 
 # Restore by submission ID
-python recovery_tool.py --restore SUBMISSION_ID
+python hackathon/admin_tools/recovery_tool.py --restore SUBMISSION_ID
 
 # Restore from specific backup file
-python recovery_tool.py --restore-file backup.json
+python hackathon/admin_tools/recovery_tool.py --restore-file backup.json
 
 # Validate backup file
-python recovery_tool.py --validate backup.json
+python hackathon/admin_tools/recovery_tool.py --validate backup.json
 ```
 
 #### API Endpoints
@@ -147,7 +147,8 @@ data/
 └── hackathon.db                 # Main database
 
 hackathon/
-├── recovery_tool.py             # Recovery command-line tool
+├── admin_tools/
+│   └── recovery_tool.py         # Recovery command-line tool (admin use)
 ├── dashboard/
 │   ├── app.py                   # Enhanced backend with backup logic
 │   └── frontend/
@@ -231,20 +232,20 @@ Monitor these log patterns:
 ### Scenario 1: User Reports Lost Submission
 ```bash
 # Find the user's backup
-python recovery_tool.py --list | grep "USER_PROJECT_NAME"
+python hackathon/admin_tools/recovery_tool.py --list | grep "USER_PROJECT_NAME"
 
 # Restore the submission
-python recovery_tool.py --restore SUBMISSION_ID
+python hackathon/admin_tools/recovery_tool.py --restore SUBMISSION_ID
 ```
 
 ### Scenario 2: Database Corruption
 ```bash
 # List all available backups
-python recovery_tool.py --list
+python hackathon/admin_tools/recovery_tool.py --list
 
 # Restore all submissions from backups
 for backup in data/submission_backups/*.json; do
-    python recovery_tool.py --restore-file "$backup"
+    python hackathon/admin_tools/recovery_tool.py --restore-file "$backup"
 done
 ```
 
@@ -254,7 +255,7 @@ done
 #!/bin/bash
 for submission_id in $(cat lost_submissions.txt); do
     echo "Restoring $submission_id..."
-    python recovery_tool.py --restore "$submission_id"
+    python hackathon/admin_tools/recovery_tool.py --restore "$submission_id"
 done
 ```
 
