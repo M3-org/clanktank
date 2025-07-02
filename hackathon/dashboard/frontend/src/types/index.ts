@@ -51,6 +51,7 @@ export interface LeaderboardEntry {
   category: string
   final_score: number
   youtube_url?: string
+  status: string
 }
 
 export interface Stats {

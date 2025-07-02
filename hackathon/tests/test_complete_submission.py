@@ -6,10 +6,15 @@ Test complete submission flow with image upload
 import requests
 import io
 from PIL import Image
-import json
+import uuid
+import subprocess
 
 def test_complete_submission():
     """Test the complete submission flow including image upload"""
+    
+    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
+    unique_id = uuid.uuid4().hex[:8]
+    project_name = f"Test Project Complete {unique_id}"
     
     print("🧪 Testing complete submission flow...")
     
@@ -33,9 +38,7 @@ def test_complete_submission():
     files = {'file': ('test_logo.png', img_bytes, 'image/png')}
     upload_response = requests.post('http://localhost:8000/api/upload-image', files=files)
     
-    if upload_response.status_code != 200:
-        print(f"❌ Image upload failed: {upload_response.text}")
-        return False
+    assert upload_response.status_code == 200, f"Image upload failed: {upload_response.text}"
     
     image_url = upload_response.json()['url']
     print(f"✅ Image uploaded: {image_url}")
@@ -44,14 +47,14 @@ def test_complete_submission():
     print("2. Creating submission with uploaded image...")
     
     submission_data = {
-        "project_name": "AI Image Generator Pro",
-        "team_name": "The Neural Networks",
-        "category": "AI/Agents", 
-        "description": "An advanced AI-powered image generation tool that creates stunning visuals from text prompts using the latest diffusion models.",
-        "discord_handle": "neuralnetworks#1234",
+        "project_name": project_name,
+        "team_name": "Team Complete",
+        "category": "AI/Agents",
+        "description": "Test complete submission",
+        "discord_handle": "complete#1234",
         "twitter_handle": "@neuralnetworks",
-        "github_url": "https://github.com/neuralnetworks/ai-image-gen-pro",
-        "demo_video_url": "https://youtube.com/watch?v=demo123",
+        "github_url": "https://github.com/test/complete",
+        "demo_video_url": "https://youtube.com/complete",
         "live_demo_url": "https://ai-image-gen-pro.com",
         "project_image": image_url,  # Use the uploaded image URL
         "tech_stack": "Python, PyTorch, Diffusers, FastAPI, React, TailwindCSS",
@@ -67,10 +70,7 @@ def test_complete_submission():
         headers={'Content-Type': 'application/json'}
     )
     
-    if submit_response.status_code != 201:
-        print(f"❌ Submission failed: {submit_response.status_code}")
-        print(f"Response: {submit_response.text}")
-        return False
+    assert submit_response.status_code == 201, f"Submission failed: {submit_response.status_code} {submit_response.text}"
     
     submission_result = submit_response.json()
     submission_id = submission_result.get('submission_id')
@@ -80,34 +80,28 @@ def test_complete_submission():
     print("3. Verifying submission storage...")
     
     get_response = requests.get(f'http://localhost:8000/api/submissions/{submission_id}')
-    if get_response.status_code != 200:
-        print(f"❌ Failed to retrieve submission: {get_response.status_code}")
-        return False
+    assert get_response.status_code == 200, f"Failed to retrieve submission: {get_response.status_code}"
     
     stored_submission = get_response.json()
     
     # Check key fields
     checks = [
-        ("project_name", "AI Image Generator Pro"),
-        ("team_name", "The Neural Networks"),
+        ("project_name", project_name),
+        ("team_name", "Team Complete"),
         ("category", "AI/Agents"),
         ("project_image", image_url)
     ]
     
     for field, expected in checks:
         actual = stored_submission.get(field)
-        if actual != expected:
-            print(f"❌ Field {field} mismatch: expected '{expected}', got '{actual}'")
-            return False
+        assert actual == expected, f"Field {field} mismatch: expected '{expected}', got '{actual}'"
         print(f"✅ {field}: {actual}")
     
     # Step 4: Check if image is accessible
     print("4. Verifying image accessibility...")
     
     image_response = requests.get(f'http://localhost:8000{image_url}')
-    if image_response.status_code != 200:
-        print(f"❌ Image not accessible: {image_response.status_code}")
-        return False
+    assert image_response.status_code == 200, f"Image not accessible: {image_response.status_code}"
     
     print(f"✅ Image accessible: {len(image_response.content)} bytes")
     
@@ -115,9 +109,7 @@ def test_complete_submission():
     print("5. Verifying submission appears in listings...")
     
     list_response = requests.get('http://localhost:8000/api/submissions')
-    if list_response.status_code != 200:
-        print(f"❌ Failed to list submissions: {list_response.status_code}")
-        return False
+    assert list_response.status_code == 200, f"Failed to list submissions: {list_response.status_code}"
     
     submissions = list_response.json()
     found = False
@@ -125,21 +117,16 @@ def test_complete_submission():
         if sub['submission_id'] == submission_id:
             found = True
             print(f"✅ Found in listings: {sub['project_name']} by {sub['team_name']}")
-            if sub.get('project_image') == image_url:
-                print(f"✅ Image URL correctly stored in listing")
-            else:
-                print(f"❌ Image URL mismatch in listing: {sub.get('project_image')}")
-                return False
+            assert sub.get('project_image') == image_url, f"Image URL mismatch in listing: {sub.get('project_image')}"
+            print("✅ Image URL correctly stored in listing")
             break
     
-    if not found:
-        print(f"❌ Submission {submission_id} not found in listings")
-        return False
+    assert found, f"Submission {submission_id} not found in listings"
     
-    print(f"\n🎉 Complete submission flow successful!")
+    print("\n🎉 Complete submission flow successful!")
     print(f"📝 Submission ID: {submission_id}")
     print(f"🖼️ Image URL: {image_url}")
-    print(f"🌐 View at: http://localhost:8000/docs#/latest/get_submission_latest")
+    print("🌐 View at: http://localhost:8000/docs#/latest/get_submission_latest")
     
     return True
 

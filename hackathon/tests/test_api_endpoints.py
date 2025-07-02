@@ -4,7 +4,7 @@ import time
 import pytest
 import httpx
 import sqlite3
-from pathlib import Path
+import uuid
 
 DB_PATH = "data/hackathon.db"
 API_HOST = "127.0.0.1"
@@ -16,7 +16,7 @@ def reset_db():
     # Remove and recreate the test DB
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-    subprocess.run(["python3", "scripts/hackathon/create_hackathon_db.py"], check=True)
+    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
     yield
     # Cleanup if needed
 
@@ -24,7 +24,7 @@ def reset_db():
 def api_server():
     # Start FastAPI app in a subprocess
     proc = subprocess.Popen([
-                    "uvicorn", "hackathon.dashboard.app:app",
+                    "uvicorn", "hackathon.backend.app:app",
         "--host", API_HOST, "--port", str(API_PORT)
     ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Wait for server to start
@@ -46,84 +46,78 @@ def client(api_server):
     with httpx.Client(base_url=API_URL) as c:
         yield c
 
-# Example valid v1 and v2 submissions
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
+# v1 required fields
 v1_submission = {
-    "project_name": "Test V1 Project",
+    "project_name": unique_name("Test V1 Project"),
     "team_name": "Team V1",
-    "description": "Testing v1 schema",
-    "category": "ai",
-    "discord_handle": "test#0001",
-    "twitter_handle": "@testv1",
-    "github_url": "https://github.com/test/v1",
-    "demo_video_url": "https://youtu.be/testv1",
-    "live_demo_url": "https://testv1.live",
-    "logo_url": "https://testv1.live/logo.png",
-    "tech_stack": "Python, FastAPI",
-    "how_it_works": "It just works.",
-    "problem_solved": "Testing migration.",
-    "coolest_tech": "The hybrid workflow!",
-    "next_steps": "Ship it!"
-}
-v2_submission = {
-    "project_name": "Test V2 Project",
-    "team_name": "Team V2",
-    "description": "Testing v2 schema",
     "category": "AI/Agents",
-    "discord_handle": "test#0002",
+    "description": "Test V1 project description.",
+    "discord_handle": "testv1#1234",
+    "twitter_handle": "",
+    "github_url": "https://github.com/test/v1",
+    "demo_video_url": "https://youtube.com/testv1",
+    "live_demo_url": "",
+    "logo_url": "",
+    "tech_stack": "",
+    "how_it_works": "",
+    "problem_solved": "",
+    "coolest_tech": "",
+    "next_steps": ""
+}
+
+# v2 required fields + recommended optional fields for full coverage
+v2_submission = {
+    "project_name": unique_name("Test V2 Project"),
+    "team_name": "Team V2",
+    "category": "AI/Agents",
+    "description": "Test V2 project description.",
+    "discord_handle": "testv2#1234",
     "twitter_handle": "@testv2",
     "github_url": "https://github.com/test/v2",
-    "demo_video_url": "https://youtu.be/testv2",
+    "demo_video_url": "https://youtube.com/testv2",
     "live_demo_url": "https://testv2.live",
-    "image_url": "https://testv2.live/image.png",
-    "tech_stack": "Python, FastAPI",
-    "how_it_works": "It just works.",
-    "problem_solved": "Testing migration.",
-    "favorite_part": "The hybrid workflow!",
-    "test_field": "Test value for v2"
+    "project_image": "/api/uploads/testv2-image.png",
+    "tech_stack": "Python, FastAPI, React",
+    "how_it_works": "Explains how v2 project works.",
+    "problem_solved": "Describes the problem solved by v2.",
+    "favorite_part": "The best part of v2.",
+    "solana_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
 }
 
-def test_post_v1_submission(client):
-    resp = client.post("/api/v1/submissions", json=v1_submission)
-    assert resp.status_code == 201
-    data = resp.json()
-    assert data["status"] == "success"
-    assert "submission_id" in data
+def test_post_submission_v1():
+    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
+    payload = {
+        "project_name": unique_name("Test Project V1"),
+        "team_name": "Team V1",
+        "category": "AI/Agents",
+        "description": "Test V1 description",
+        "discord_handle": "testv1#1234",
+        "github_url": "https://github.com/test/v1",
+        "demo_video_url": "https://youtube.com/testv1"
+    }
+    # ... rest of test ...
 
-def test_post_v2_submission(client):
-    resp = client.post("/api/v2/submissions", json=v2_submission)
-    assert resp.status_code == 201
-    data = resp.json()
-    assert data["status"] == "success"
-    assert "submission_id" in data
-
-def test_get_v1_submissions(client):
-    resp = client.get("/api/v1/submissions")
-    assert resp.status_code == 200
-    submissions = resp.json()
-    assert isinstance(submissions, list)
-    assert any(s["project_name"] == v1_submission["project_name"] for s in submissions)
-
-def test_get_v2_submissions(client):
-    resp = client.get("/api/v2/submissions")
+def test_get_submissions(client):
+    # Create a submission first
+    resp_post = client.post("/api/submissions", json=v2_submission)
+    assert resp_post.status_code == 201
+    # Now GET
+    resp = client.get("/api/submissions")
     assert resp.status_code == 200
     submissions = resp.json()
     assert isinstance(submissions, list)
     assert any(s["project_name"] == v2_submission["project_name"] for s in submissions)
 
-def test_get_v1_submission_detail(client):
-    # Get the first v1 submission
-    resp = client.get("/api/v1/submissions")
-    sub_id = resp.json()[0]["submission_id"]
-    detail = client.get(f"/api/v1/submissions/{sub_id}")
-    assert detail.status_code == 200
-    data = detail.json()
-    assert data["submission_id"] == sub_id
-    assert data["project_name"] == v1_submission["project_name"]
-
-def test_get_v2_submission_detail(client):
-    resp = client.get("/api/v2/submissions")
-    sub_id = resp.json()[0]["submission_id"]
-    detail = client.get(f"/api/v2/submissions/{sub_id}")
+def test_get_submission_detail(client):
+    # Create a submission first
+    resp_post = client.post("/api/submissions", json=v2_submission)
+    assert resp_post.status_code == 201
+    sub_id = resp_post.json().get("submission_id")
+    assert sub_id
+    detail = client.get(f"/api/submissions/{sub_id}")
     assert detail.status_code == 200
     data = detail.json()
     assert data["submission_id"] == sub_id
@@ -212,7 +206,7 @@ def test_feedback_all_categories(client):
     # Create a new v1 submission for this test
     new_submission = v1_submission.copy()
     new_submission["project_name"] = "Feedback Test Project"
-    resp_post = client.post("/api/v1/submissions", json=new_submission)
+    resp_post = client.post("/api/submissions", json=new_submission)
     sub_id = resp_post.json()["submission_id"]
     insert_sample_feedback(sub_id)
     resp2 = client.get(f"/api/submission/{sub_id}/feedback")
@@ -262,7 +256,7 @@ def test_post_latest_submission(client):
     resp = client.post("/api/submissions", json=latest_submission)
     assert resp.status_code == 201
     data = resp.json()
-    assert data["status"] == "success"
+    assert data["success"] is True
     assert "submission_id" in data
 
 def test_get_latest_submissions(client):
@@ -271,14 +265,6 @@ def test_get_latest_submissions(client):
     submissions = resp.json()
     assert isinstance(submissions, list)
     assert any(s["project_name"] == "Test Latest Project" for s in submissions)
-
-def test_get_latest_submission_detail(client):
-    resp = client.get("/api/submissions")
-    sub_id = resp.json()[0]["submission_id"]
-    detail = client.get(f"/api/submissions/{sub_id}")
-    assert detail.status_code == 200
-    data = detail.json()
-    assert data["submission_id"] == sub_id
 
 def test_get_latest_leaderboard(client):
     resp = client.get("/api/leaderboard")

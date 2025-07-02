@@ -6,16 +6,7 @@ import os
 import sys
 
 # Import versioned field manifests and helpers
-try:
-    from schema import SUBMISSION_VERSIONS, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    SUBMISSION_VERSIONS = schema.SUBMISSION_VERSIONS
-    get_fields = schema.get_fields
+from hackathon.backend.schema import SUBMISSION_VERSIONS, get_fields
 
 def create_hackathon_database(db_path):
     """Create the hackathon database with all required versioned tables."""

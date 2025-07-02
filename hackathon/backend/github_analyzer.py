@@ -10,7 +10,6 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
-import time
 from dotenv import load_dotenv
 
 # Load environment variables

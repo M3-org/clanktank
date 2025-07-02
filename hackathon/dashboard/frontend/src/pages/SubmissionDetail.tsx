@@ -23,6 +23,8 @@ import {
   Trophy,
   Heart
 } from 'lucide-react'
+import { StatusBadge } from '../components/StatusBadge'
+import { CategoryBadge } from '../components/CategoryBadge'
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
@@ -119,22 +121,8 @@ export default function SubmissionDetail() {
               <p className="mt-2 text-xl text-gray-600">by <span className="font-medium">{submission.team_name}</span></p>
               
               <div className="mt-6 flex flex-wrap gap-3">
-                <Badge variant={
-                  submission.category === 'DeFi' ? 'info' :
-                  submission.category === 'Gaming' ? 'secondary' :
-                  submission.category === 'AI/Agents' ? 'warning' :
-                  'default'
-                }>
-                  {submission.category}
-                </Badge>
-                <Badge variant={
-                  submission.status === 'published' ? 'success' :
-                  submission.status === 'scored' ? 'info' :
-                  submission.status === 'researched' ? 'secondary' :
-                  'warning'
-                }>
-                  {submission.status}
-                </Badge>
+                <CategoryBadge category={submission.category} />
+                <StatusBadge status={submission.status} />
                 {submission.avg_score && (
                   <Badge variant="default">
                     <Trophy className="h-3 w-3 mr-1" />

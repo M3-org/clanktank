@@ -5,9 +5,7 @@ This simulates the browser making requests through the Vite proxy.
 """
 
 import requests
-import json
-import os
-from pathlib import Path
+import uuid
 
 def create_test_image():
     """Create a small test PNG file"""
@@ -21,6 +19,9 @@ def create_test_image():
     img_bytes.seek(0)
     return img_bytes
 
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
 def test_frontend_submission_flow():
     """Test the complete frontend submission flow"""
     frontend_url = "http://localhost:5173"
@@ -33,23 +34,18 @@ def test_frontend_submission_flow():
     try:
         response = requests.get(f"{frontend_url}/api/submission-schema")
         print(f"   Schema response: {response.status_code}")
+        assert response.status_code == 200, f"Schema test failed with status {response.status_code}"
+        schema = response.json()
+        file_fields = [field for field in schema if field.get('type') == 'file' and field.get('name') == 'project_image']
+        print(f"   File fields found: {len(file_fields)}")
+        assert len(file_fields) > 0, "No 'project_image' file field found in schema"
         
-        if response.status_code == 200:
-            schema = response.json()
-            file_fields = [field for field in schema if field.get('type') == 'file']
-            print(f"   File fields found: {len(file_fields)}")
-            
-            for field in file_fields:
-                print(f"     - {field['name']}: {field['label']}")
-                print(f"       Accept: {field.get('accept', 'not specified')}")
-                print(f"       Max size: {field.get('maxSize', 'not specified')} bytes")
-        else:
-            print(f"   ❌ Schema test failed with status {response.status_code}")
-            return False
-            
+        for field in file_fields:
+            print(f"     - {field['name']}: {field['label']}")
+            print(f"       Accept: {field.get('accept', 'not specified')}")
+            print(f"       Max size: {field.get('maxSize', 'not specified')} bytes")
     except Exception as e:
-        print(f"   ❌ Schema test failed: {e}")
-        return False
+        assert False, f"Schema test failed: {e}"
     
     # Step 2: Test image upload through frontend proxy
     print()
@@ -63,25 +59,19 @@ def test_frontend_submission_flow():
         
         response = requests.post(f"{frontend_url}/api/upload-image", files=files)
         print(f"   Upload response: {response.status_code}")
-        
-        if response.status_code == 200:
-            upload_result = response.json()
-            print(f"   Upload successful: {upload_result['url']}")
-            image_url = upload_result['url']
-        else:
-            print(f"   ❌ Upload failed: {response.text}")
-            return False
-            
+        assert response.status_code == 200, f"Upload failed: {response.text}"
+        upload_result = response.json()
+        print(f"   Upload successful: {upload_result['url']}")
+        image_url = upload_result['url']
     except Exception as e:
-        print(f"   ❌ Upload test failed: {e}")
-        return False
+        assert False, f"Upload test failed: {e}"
     
     # Step 3: Test complete submission through frontend proxy
     print()
     print("3. Testing complete submission through frontend proxy...")
     try:
         submission_data = {
-            "project_name": "FRONTEND_GUI_TEST",
+            "project_name": unique_name("FRONTEND_GUI_TEST"),
             "team_name": "Frontend Test Team",
             "category": "DeFi",
             "description": "Testing frontend GUI submission flow",
@@ -97,42 +87,31 @@ def test_frontend_submission_flow():
             headers={'Content-Type': 'application/json'}
         )
         print(f"   Submission response: {response.status_code}")
+        assert response.status_code == 201, f"Submission failed: {response.text}"
+        result = response.json()
+        print("   ✅ Submission successful!")
+        print(f"   Submission ID: {result.get('submission_id')}")
         
-        if response.status_code == 201:
-            result = response.json()
-            print(f"   ✅ Submission successful!")
-            print(f"   Submission ID: {result.get('submission_id')}")
-            
-            # Step 4: Verify the submission was saved with image
-            print()
-            print("4. Verifying submission was saved with image...")
-            verify_response = requests.get(f"{frontend_url}/api/submissions/{result.get('submission_id')}")
-            if verify_response.status_code == 200:
-                saved_submission = verify_response.json()
-                print(f"   ✅ Verification successful!")
-                print(f"   Project name: {saved_submission.get('project_name')}")
-                print(f"   Project image: {saved_submission.get('project_image')}")
-                
-                # Test image accessibility
-                if saved_submission.get('project_image'):
-                    img_response = requests.get(f"{frontend_url}{saved_submission['project_image']}")
-                    print(f"   Image accessibility: {img_response.status_code}")
-                    if img_response.status_code == 200:
-                        print(f"   ✅ Image is accessible!")
-                    else:
-                        print(f"   ❌ Image not accessible")
-                
-                return True
-            else:
-                print(f"   ❌ Verification failed: {verify_response.status_code}")
-                return False
-        else:
-            print(f"   ❌ Submission failed: {response.text}")
-            return False
-            
+        # Step 4: Verify the submission was saved with image
+        print()
+        print("4. Verifying submission was saved with image...")
+        verify_response = requests.get(f"{frontend_url}/api/submissions/{result.get('submission_id')}")
+        assert verify_response.status_code == 200, f"Verification failed: {verify_response.status_code}"
+        saved_submission = verify_response.json()
+        print("   ✅ Verification successful!")
+        print(f"   Project name: {saved_submission.get('project_name')}")
+        print(f"   Project image: {saved_submission.get('project_image')}")
+        
+        # Test image accessibility
+        if saved_submission.get('project_image'):
+            img_response = requests.get(f"{frontend_url}{saved_submission['project_image']}")
+            print(f"   Image accessibility: {img_response.status_code}")
+            assert img_response.status_code == 200, "Image not accessible"
+            print("   ✅ Image is accessible!")
+        
+        return True
     except Exception as e:
-        print(f"   ❌ Submission test failed: {e}")
-        return False
+        assert False, f"Submission test failed: {e}"
 
 def main():
     try:

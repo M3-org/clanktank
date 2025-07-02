@@ -12,20 +12,7 @@ import sqlite3
 from datetime import datetime
 import re
 import hashlib
-import sys
-
-# Import versioned schema helpers
-try:
-    from schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    SUBMISSION_VERSIONS = schema.SUBMISSION_VERSIONS
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
+from hackathon.backend.schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
 
 # Set up logging
 logging.basicConfig(

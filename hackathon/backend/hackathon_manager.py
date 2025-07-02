@@ -14,30 +14,17 @@ import argparse
 import re
 import time
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List
 from dotenv import load_dotenv
-import sys
 
 # Import versioned schema helpers
-try:
-    from schema import LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 
 # Import judge personas and weights
-from prompts.judge_personas import (
+from hackathon.prompts.judge_personas import (
     JUDGE_PERSONAS, 
     JUDGE_WEIGHTS, 
-    SCORING_CRITERIA,
-    get_judge_persona,
-    get_judge_weights
+    get_judge_persona
 )
 
 # Load environment variables
@@ -467,7 +454,7 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 """, (project_id, judge, final_score, json.dumps({'final_verdict': verdict})))
             
             # Update submission status
-            cursor.execute("UPDATE hackathon_submissions SET status = 'completed' WHERE submission_id = ?", (project_id,))
+            cursor.execute(f"UPDATE {self.table} SET status = 'completed' WHERE submission_id = ?", (project_id,))
             print(f"✓ Round 2 completed for {project_id}")
         
         conn.commit()
@@ -499,7 +486,7 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         # Get project details and community feedback breakdown
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT project_name, description FROM hackathon_submissions WHERE submission_id = ?", (project_id,))
+        cursor.execute(f"SELECT project_name, description FROM {self.table} WHERE submission_id = ?", (project_id,))
         project_name, description = cursor.fetchone()
         
         # Get detailed community feedback breakdown

@@ -1,0 +1,22 @@
+{
+  "id": 2,
+  "submission_id": "feedback-test-project",
+  "status": "submitted",
+  "created_at": "2025-07-02T18:08:31.134245",
+  "updated_at": "2025-07-02T18:08:31.134245",
+  "project_name": "Feedback Test Project",
+  "team_name": "Team V1",
+  "category": "AI/Agents",
+  "description": "Test V1 project description.",
+  "discord_handle": "testv1#1234",
+  "twitter_handle": "",
+  "github_url": "https://github.com/test/v1",
+  "demo_video_url": "https://youtube.com/testv1",
+  "live_demo_url": "",
+  "project_image": null,
+  "tech_stack": "",
+  "how_it_works": "",
+  "problem_solved": "",
+  "favorite_part": null,
+  "solana_address": null
+}

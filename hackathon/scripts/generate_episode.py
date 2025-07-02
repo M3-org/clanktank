@@ -10,23 +10,20 @@ import sqlite3
 import logging
 import argparse
 import requests
-import hashlib
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from dotenv import load_dotenv
-import sys
 
 # Import dialogue prompts
-from prompts.episode_dialogue import (
-    create_host_intro_prompt,
-    create_judge_dialogue_prompt,
-    create_score_reveal_prompt,
-    create_episode_outro_prompt,
-    create_transition_prompt
+from hackathon.prompts.episode_dialogue import (
+    create_host_intro_prompt
 )
 
 # Import judge personas
-from prompts.judge_personas import JUDGE_PERSONAS
+from hackathon.prompts.judge_personas import JUDGE_PERSONAS
+
+# Import versioned schema helpers
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 
 # Load environment variables
 load_dotenv()
@@ -45,18 +42,6 @@ AI_MODEL_NAME = os.getenv('AI_MODEL_NAME', 'anthropic/claude-3-opus')
 
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-
-# Import versioned schema helpers
-try:
-    from schema import LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
 
 class UnifiedEpisodeGenerator:
     """Generate backwards-compatible episodes with hackathon enhancements"""
@@ -248,7 +233,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "aimarc",
-                    "line": f"Interesting. But how does this differ from existing solutions? What's your moat?",
+                    "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
                     "action": "questioning"
                 },
                 {
@@ -314,7 +299,7 @@ class UnifiedEpisodeGenerator:
             "dialogue": [
                 {
                     "actor": "peepo",
-                    "line": f"Yo, but like, why would normies actually use this? Break it down for me.",
+                    "line": "Yo, but like, why would normies actually use this? Break it down for me.",
                     "action": "skeptical"
                 },
                 {
@@ -334,7 +319,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "aishaw",
-                    "line": f"show me the github. i want to see commit history, not promises.",
+                    "line": "show me the github. i want to see commit history, not promises.",
                     "action": "demanding"
                 },
                 {
@@ -440,32 +425,32 @@ class UnifiedEpisodeGenerator:
             
             if judge == 'aimarc':
                 if verdict == "PUMP":
-                    line = f"The fundamentals are strong and the market opportunity is real. This gets a PUMP from me!"
+                    line = "The fundamentals are strong and the market opportunity is real. This gets a PUMP from me!"
                 elif verdict == "DUMP":
-                    line = f"Too many red flags in the business model. I have to DUMP this one."
+                    line = "Too many red flags in the business model. I have to DUMP this one."
                 else:
-                    line = f"It's not terrible but it's not exciting either. YAWN."
+                    line = "It's not terrible but it's not exciting either. YAWN."
             elif judge == 'aishaw':
                 if verdict == "PUMP":
-                    line = f"the code is actually solid. color me impressed. PUMP."
+                    line = "the code is actually solid. color me impressed. PUMP."
                 elif verdict == "DUMP":
-                    line = f"this codebase is held together with prayers and duct tape. DUMP."
+                    line = "this codebase is held together with prayers and duct tape. DUMP."
                 else:
-                    line = f"it's... fine. nothing special. YAWN."
+                    line = "it's... fine. nothing special. YAWN."
             elif judge == 'peepo':
                 if verdict == "PUMP":
-                    line = f"Yo this actually slaps! The vibes are immaculate! PUMP!"
+                    line = "Yo this actually slaps! The vibes are immaculate! PUMP!"
                 elif verdict == "DUMP":
-                    line = f"Nah fam, this ain't it. Big DUMP energy."
+                    line = "Nah fam, this ain't it. Big DUMP energy."
                 else:
-                    line = f"It's mid, no cap. YAWN from me."
+                    line = "It's mid, no cap. YAWN from me."
             elif judge == 'spartan':
                 if verdict == "PUMP":
-                    line = f"THESE WARRIORS HAVE PROVEN THEIR WORTH! PUMP! THIS! IS! VICTORY!"
+                    line = "THESE WARRIORS HAVE PROVEN THEIR WORTH! PUMP! THIS! IS! VICTORY!"
                 elif verdict == "DUMP":
-                    line = f"WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!"
+                    line = "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!"
                 else:
-                    line = f"MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!"
+                    line = "MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!"
             
             dialogue.append({
                 "actor": judge,

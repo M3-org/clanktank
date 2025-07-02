@@ -20,6 +20,8 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
+import { StatusBadge } from '../components/StatusBadge'
+import { CategoryBadge } from '../components/CategoryBadge'
 
 export default function Dashboard() {
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([])
@@ -343,24 +345,10 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={
-                        submission.category === 'DeFi' ? 'info' :
-                        submission.category === 'Gaming' ? 'secondary' :
-                        submission.category === 'AI/Agents' ? 'warning' :
-                        'default'
-                      }>
-                        {submission.category}
-                      </Badge>
+                      <CategoryBadge category={submission.category} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge variant={
-                        submission.status === 'published' ? 'success' :
-                        submission.status === 'scored' ? 'info' :
-                        submission.status === 'researched' ? 'secondary' :
-                        'warning'
-                      }>
-                        {submission.status}
-                      </Badge>
+                      <StatusBadge status={submission.status} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {submission.avg_score ? (
@@ -450,22 +438,8 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center justify-between mb-4">
-                  <Badge variant={
-                    submission.category === 'DeFi' ? 'info' :
-                    submission.category === 'Gaming' ? 'secondary' :
-                    submission.category === 'AI/Agents' ? 'warning' :
-                    'default'
-                  } className="text-xs">
-                    {submission.category}
-                  </Badge>
-                  <Badge variant={
-                    submission.status === 'published' ? 'success' :
-                    submission.status === 'scored' ? 'info' :
-                    submission.status === 'researched' ? 'secondary' :
-                    'warning'
-                  } className="text-xs">
-                    {submission.status}
-                  </Badge>
+                  <CategoryBadge category={submission.category} />
+                  <StatusBadge status={submission.status} />
                 </div>
                 
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-3">

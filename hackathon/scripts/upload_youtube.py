@@ -50,7 +50,7 @@ SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 
 # Import versioned schema helpers
 try:
-    from schema import LATEST_SUBMISSION_VERSION, get_fields
+    from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")

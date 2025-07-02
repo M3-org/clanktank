@@ -12,17 +12,7 @@ import sys
 import os
 import re
 
-try:
-    from schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    SUBMISSION_VERSIONS = schema.SUBMISSION_VERSIONS
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
+from hackathon.backend.schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
 
 REQUIRED_SCORE_FIELDS = [
     "submission_id",

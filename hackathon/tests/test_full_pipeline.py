@@ -5,10 +5,8 @@ Simulates a real proposal submission and runs the entire pipeline, logging all o
 """
 import subprocess
 import requests
-import sqlite3
 import os
 import sys
-import json
 from datetime import datetime
 
 DB_PATH = os.path.join("data", "hackathon.db")
@@ -58,7 +56,7 @@ def run(cmd, input_data=None):
 def reset_db():
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-    run(["python3", "scripts/hackathon/create_hackathon_db.py"])
+    run(["python3", "-m", "hackathon.scripts.create_db"])
     log("Database reset.")
 
 
@@ -67,7 +65,7 @@ def start_api():
     import subprocess
     import time
     log("Starting FastAPI backend...")
-            proc = subprocess.Popen(["uvicorn", "hackathon.dashboard.app:app", "--port", "8000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(["uvicorn", "hackathon.backend.app:app", "--port", "8000"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Wait for server to start
     for _ in range(20):
         try:
@@ -110,11 +108,11 @@ def main():
         # Submit proposal
         submission_id = submit_proposal()
         # Run research
-        run(["python3", "scripts/hackathon/hackathon_research.py", "--submission-id", submission_id])
+        run(["python3", "-m", "hackathon.backend.research", "--submission-id", submission_id])
         # Run scoring
-        run(["python3", "scripts/hackathon/hackathon_manager.py", "--score", "--submission-id", submission_id])
+        run(["python3", "-m", "hackathon.backend.hackathon_manager", "--score", "--submission-id", submission_id])
         # Run episode generation
-        run(["python3", "scripts/hackathon/generate_episode.py", "--submission-id", submission_id])
+        run(["python3", "-m", "hackathon.scripts.generate_episode", "--submission-id", submission_id])
         log("\nFull pipeline test completed successfully.")
     finally:
         stop_api(api_proc)
