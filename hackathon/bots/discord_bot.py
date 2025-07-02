@@ -6,12 +6,10 @@ Handles community voting and feedback for hackathon submissions.
 
 import os
 import sys
-import json
 import sqlite3
 import logging
 import argparse
 import asyncio
-import time
 from datetime import datetime
 from typing import Dict, List, Optional
 import discord
@@ -68,7 +66,7 @@ class HackathonDiscordBot:
         cursor.execute("""
             SELECT submission_id, project_name, team_name, description, 
                    category, github_url, live_demo_url, demo_video_url, status
-            FROM hackathon_submissions
+            FROM hackathon_submissions_v2
             WHERE submission_id = ?
         """, (submission_id,))
         
@@ -97,7 +95,7 @@ class HackathonDiscordBot:
         cursor.execute("""
             SELECT submission_id, project_name, team_name, description,
                    category, github_url, live_demo_url, demo_video_url
-            FROM hackathon_submissions
+            FROM hackathon_submissions_v2
             WHERE status = 'scored'
             ORDER BY created_at
         """)
@@ -201,7 +199,7 @@ class HackathonDiscordBot:
         cursor = conn.cursor()
         
         cursor.execute("""
-            UPDATE hackathon_submissions
+            UPDATE hackathon_submissions_v2
             SET status = ?, updated_at = CURRENT_TIMESTAMP
             WHERE submission_id = ?
         """, (new_status, submission_id))

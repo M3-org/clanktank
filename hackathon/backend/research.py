@@ -16,10 +16,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dotenv import load_dotenv
-import sys
 
 # Import GitHub analyzer
-from github_analyzer import GitHubAnalyzer
+from hackathon.backend.github_analyzer import GitHubAnalyzer
 
 # Load environment variables
 load_dotenv()
@@ -44,7 +43,7 @@ MODEL = "perplexity/sonar-reasoning-pro:online"
 
 # Import versioned schema helpers
 try:
-    from schema import LATEST_SUBMISSION_VERSION, get_fields
+    from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 except ModuleNotFoundError:
     import importlib.util
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
@@ -325,9 +324,9 @@ def main():
     parser.add_argument(
         "--version",
         type=str,
-        default="latest",
-        choices=["latest", "v1", "v2"],
-        help="Submission schema version to use (default: latest)"
+        default="v2",
+        choices=["v1", "v2"],
+        help="Submission schema version to use (default: v2)"
     )
     parser.add_argument(
         "--db-file",

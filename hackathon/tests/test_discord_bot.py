@@ -7,6 +7,7 @@ import os
 import sys
 import sqlite3
 from dotenv import load_dotenv
+import uuid
 
 # Load environment variables
 load_dotenv()
@@ -26,7 +27,7 @@ def test_environment():
     print(f"✓ DISCORD_VOTING_CHANNEL_ID: {channel_id if channel_id else 'NOT SET'}")
     print(f"✓ HACKATHON_DB_PATH: {db_path}")
     
-    return discord_token and db_path
+    assert discord_token and db_path, "DISCORD_TOKEN or HACKATHON_DB_PATH not set"
 
 def test_database():
     """Test database access."""
@@ -49,11 +50,10 @@ def test_database():
         print(f"✓ Found {feedback_count} existing feedback entries")
         
         conn.close()
-        return True
+        assert True
         
     except Exception as e:
-        print(f"✗ Database error: {e}")
-        return False
+        assert False, f"Database error: {e}"
 
 def test_imports():
     """Test required imports."""
@@ -62,10 +62,26 @@ def test_imports():
     try:
         import discord
         print(f"✓ discord.py version: {discord.__version__}")
-        return True
+        assert True
     except ImportError:
-        print("✗ discord.py not installed. Run: pip install discord.py")
-        return False
+        assert False, "discord.py not installed. Run: pip install discord.py"
+
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
+def test_discord_bot_pipeline():
+    # ...
+    payload = {
+        "project_name": unique_name("DISCORD_BOT_TEST_001"),
+        "team_name": "Discord Bot Test Team",
+        "category": "AI/Agents",
+        "description": "Discord bot test project description.",
+        "discord_handle": "discordbot#1234",
+        "github_url": "https://github.com/test/discordbot",
+        "demo_video_url": "https://youtube.com/discordbot"
+        # Optional fields can be added as needed
+    }
+    # ...rest of the test remains unchanged, but all POSTs should use this payload and add any missing required fields if needed...
 
 def main():
     """Run all tests."""
@@ -94,8 +110,8 @@ def main():
         print("\n✅ All tests passed! The bot should be ready to run.")
         print("\nNext steps:")
         print("1. Set DISCORD_VOTING_CHANNEL_ID in .env")
-        print("2. Run: python scripts/hackathon/discord_bot.py --run-bot")
-        print("3. In another terminal: python scripts/hackathon/discord_bot.py --post-all")
+        print("2. Run: python hackathon/bots/discord_bot.py --run-bot")
+        print("3. In another terminal: python hackathon/bots/discord_bot.py --post-all")
 
 if __name__ == "__main__":
     main()

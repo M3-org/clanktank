@@ -6,6 +6,8 @@ import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { Trophy, ExternalLink, Share2, RefreshCw, Medal } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { StatusBadge } from '../components/StatusBadge'
+import { CategoryBadge } from '../components/CategoryBadge'
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
@@ -44,6 +46,19 @@ export default function Leaderboard() {
     if (rank === 3) return <Medal className="h-8 w-8 text-orange-600" />
     return null
   }
+
+  const statusColor = (status: string) => {
+    switch (status) {
+      case 'scored':
+        return 'bg-blue-100 text-blue-700 border-blue-300';
+      case 'completed':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'published':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
+  };
 
   if (loading) {
     return (
@@ -88,7 +103,8 @@ export default function Leaderboard() {
             <div
               key={`${entry.rank}-${entry.project_name}`}
               className={cn(
-                "px-6 py-6 hover:bg-gray-50 transition-colors",
+                "px-6 py-6 hover:bg-gray-50 transition-colors border-l-4",
+                statusColor(entry.status || "unknown"),
                 index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50",
                 index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50",
                 index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50"
@@ -109,21 +125,15 @@ export default function Leaderboard() {
                   
                   {/* Project Info */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                       {entry.project_name}
+                      <StatusBadge status={entry.status} />
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-sm text-gray-600">
                         by <span className="font-medium">{entry.team_name}</span>
                       </span>
-                      <Badge variant={
-                        entry.category === 'DeFi' ? 'info' :
-                        entry.category === 'Gaming' ? 'secondary' :
-                        entry.category === 'AI/Agents' ? 'warning' :
-                        'default'
-                      }>
-                        {entry.category}
-                      </Badge>
+                      <CategoryBadge category={entry.category} />
                     </div>
                   </div>
                 </div>

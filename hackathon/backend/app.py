@@ -6,25 +6,20 @@ Serves data from hackathon.db via REST API endpoints.
 
 import os
 import json
-import sqlite3
 import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from contextlib import contextmanager
 import logging
 import random
 
-from fastapi import FastAPI, HTTPException, Query, Request, Depends, status, UploadFile, File as FastAPIFile, Form
+from fastapi import FastAPI, HTTPException, Request, status, UploadFile, File as FastAPIFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, create_model
 import uvicorn
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from starlette.responses import Response
-from starlette.requests import Request as StarletteRequest
-from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -32,9 +27,8 @@ from slowapi.errors import RateLimitExceeded
 
 # Add path for importing schema module
 import sys
-from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-from schema import get_fields, get_schema, reload_schema
+from hackathon.backend.schema import get_fields, get_schema, reload_schema
 
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -75,7 +69,7 @@ async def debug_request_middleware(request: Request, call_next):
     if request.url.path == "/api/submissions" and request.method == "POST":
         # Read the request body for debugging
         body = await request.body()
-        logging.info(f"--- DEBUG MIDDLEWARE ---")
+        logging.info("--- DEBUG MIDDLEWARE ---")
         logging.info(f"Content-Type: {request.headers.get('content-type')}")
         logging.info(f"Raw body length: {len(body)}")
         logging.info(f"Raw body (first 1000 chars): {body[:1000]}")
@@ -184,6 +178,7 @@ class LeaderboardEntry(BaseModel):
     category: str
     final_score: float
     youtube_url: Optional[str] = None
+    status: str
 
 # Helper to get available columns in hackathon_scores
 from sqlalchemy.engine import Connection
@@ -478,7 +473,39 @@ async def reload_schema_endpoint():
 
 @app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
 async def get_leaderboard_latest():
-    return await get_leaderboard(version="v2")
+    # Use v2 as the default version
+    table = "hackathon_submissions_v2"
+    with engine.connect() as conn:
+        result = conn.execute(text(f"""
+            SELECT 
+                s.project_name,
+                s.team_name,
+                s.category,
+                s.demo_video_url as youtube_url,
+                s.status,
+                AVG(sc.weighted_total) as avg_score
+            FROM {table} s
+            JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
+            WHERE s.status IN ('scored', 'completed', 'published') AND sc.round = 1
+            GROUP BY s.submission_id
+            ORDER BY avg_score DESC
+        """))
+        entries = []
+        rank = 1
+        for row in result.fetchall():
+            row_dict = dict(row._mapping)
+            entry = LeaderboardEntry(
+                rank=rank,
+                project_name=row_dict['project_name'],
+                team_name=row_dict['team_name'],
+                category=row_dict['category'],
+                final_score=round(row_dict['avg_score'], 2),
+                youtube_url=row_dict['youtube_url'],
+                status=row_dict['status']
+            )
+            entries.append(entry)
+            rank += 1
+        return entries
 
 @app.get("/api/stats", tags=["latest"], response_model=StatsModel)
 async def get_stats_latest():
@@ -624,17 +651,17 @@ async def get_leaderboard(version: str):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
-        # Get published projects with scores
         result = conn.execute(text(f"""
             SELECT 
                 s.project_name,
                 s.team_name,
                 s.category,
                 s.demo_video_url as youtube_url,
+                s.status,
                 AVG(sc.weighted_total) as avg_score
             FROM {table} s
             JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
-            WHERE s.status = 'published' AND sc.round = 1
+            WHERE s.status IN ('scored', 'completed', 'published') AND sc.round = 1
             GROUP BY s.submission_id
             ORDER BY avg_score DESC
         """))
@@ -648,7 +675,8 @@ async def get_leaderboard(version: str):
                 team_name=row_dict['team_name'],
                 category=row_dict['category'],
                 final_score=round(row_dict['avg_score'], 2),
-                youtube_url=row_dict['youtube_url']
+                youtube_url=row_dict['youtube_url'],
+                status=row_dict['status']
             )
             entries.append(entry)
             rank += 1
@@ -802,17 +830,16 @@ def generate_static_data():
                 s.team_name,
                 s.category,
                 s.demo_video_url as youtube_url,
+                s.status,
                 AVG(sc.weighted_total) as avg_score
             FROM hackathon_submissions_v2 s
             JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
-            WHERE s.status = 'published' AND sc.round = 1
+            WHERE s.status IN ('scored', 'completed', 'published') AND sc.round = 1
             GROUP BY s.submission_id
             ORDER BY avg_score DESC
         """))
-        
         leaderboard = []
         rank = 1
-        
         for row in leaderboard_result.fetchall():
             row_dict = dict(row._mapping)
             leaderboard.append({
@@ -821,13 +848,12 @@ def generate_static_data():
                 'team_name': row_dict['team_name'],
                 'category': row_dict['category'],
                 'final_score': round(row_dict['avg_score'], 2),
-                'youtube_url': row_dict['youtube_url']
+                'youtube_url': row_dict['youtube_url'],
+                'status': row_dict['status']
             })
             rank += 1
-        
         with open(output_dir / 'leaderboard.json', 'w') as f:
             json.dump(leaderboard, f, indent=2)
-        
         print(f"Generated leaderboard.json with {len(leaderboard)} entries")
         
         # Generate stats.json

@@ -15,17 +15,12 @@ Usage:
 import argparse
 import json
 import sqlite3
-import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 # Import schema functions
-try:
-    from schema import get_fields
-except ImportError:
-    sys.path.append(str(Path(__file__).parent))
-    from schema import get_fields
+from hackathon.backend.schema import get_fields
 
 DEFAULT_DB_PATH = "data/hackathon.db"
 DEFAULT_BACKUP_DIR = "data/submission_backups"

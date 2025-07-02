@@ -48,10 +48,10 @@ def create_question_prompt(judge_name, project_info):
     voice = get_judge_voice(judge_name)
     
     prompts = {
-        'aimarc': f"Ask ONE sharp question about their competitive moat or market size.",
-        'aishaw': f"ask ONE technical question about their architecture or code quality.",
-        'spartan': f"DEMAND TO KNOW ONE THING ABOUT THEIR MONETIZATION!",
-        'peepo': f"Ask ONE question about user appeal or if normies would vibe with it."
+        'aimarc': "Ask ONE sharp question about their competitive moat or market size.",
+        'aishaw': "ask ONE technical question about their architecture or code quality.",
+        'spartan': "DEMAND TO KNOW ONE THING ABOUT THEIR MONETIZATION!",
+        'peepo': "Ask ONE question about user appeal or if normies would vibe with it."
     }
     
     context = f"Project: {project_info['project_name']} - {project_info['description'][:100]}..."

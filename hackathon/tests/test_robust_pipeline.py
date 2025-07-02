@@ -7,31 +7,37 @@ Tests auto-save, backup creation, error handling, and recovery mechanisms.
 import json
 import os
 import tempfile
-import time
 from pathlib import Path
 import sqlite3
 import requests
 import subprocess
 import sys
+import uuid
+
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
 
 def test_backend_backup_creation():
     """Test that backend creates backups properly."""
     print("🧪 Testing backend backup creation...")
     
     # Test submission data
-    test_data = {
-        "project_name": "Test Robustness Project",
+    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
+    unique_id = uuid.uuid4().hex[:8]
+    payload = {
+        "project_name": unique_name("Robustness Project"),
         "team_name": "Robustness Testers",
-        "description": "Testing the robustness enhancements",
         "category": "AI/Agents",
+        "description": "Testing the robustness enhancements",
         "discord_handle": "testuser#1234",
         "github_url": "https://github.com/test/project",
         "demo_video_url": "https://youtube.com/test"
+        # Optional fields can be added as needed
     }
     
     try:
         # Make submission
-        response = requests.post("http://localhost:8000/api/submissions", json=test_data)
+        response = requests.post("http://localhost:8000/api/submissions", json=payload)
         
         if response.status_code == 201:
             result = response.json()
@@ -46,15 +52,11 @@ def test_backend_backup_creation():
                 with open(backup_file, 'r') as f:
                     backup_data = json.load(f)
                 
-                if backup_data.get("submission_data", {}).get("submission_id") == submission_id:
-                    print("✅ Backup file is valid")
-                    return True
-                else:
-                    print("❌ Backup file data doesn't match submission")
+                assert backup_data.get("submission_data", {}).get("submission_id") == submission_id, "Backup file data doesn't match submission"
             else:
                 print("❌ Backup file not found")
         else:
-            print(f"❌ Submission failed: {response.status_code} - {response.text}")
+            assert False, f"Submission failed: {response.status_code} - {response.text}"
     
     except requests.exceptions.ConnectionError:
         print("❌ Could not connect to backend (is it running on localhost:8000?)")
@@ -70,7 +72,7 @@ def test_recovery_tool():
     try:
         # Test listing backups
         result = subprocess.run([
-            "python3", "hackathon/admin_tools/recovery_tool.py", "--list"
+            "python3", "-m", "hackathon.scripts.recovery_tool", "--list"
         ], capture_output=True, text=True, cwd=".")
         
         if result.returncode == 0:
@@ -79,9 +81,9 @@ def test_recovery_tool():
                 print("✅ Backup listing format correct")
                 return True
             else:
-                print("❌ Unexpected output format")
+                assert False, "Unexpected output format"
         else:
-            print(f"❌ Recovery tool failed: {result.stderr}")
+            assert False, f"Recovery tool failed: {result.stderr}"
     
     except Exception as e:
         print(f"❌ Recovery tool test error: {e}")
@@ -96,10 +98,11 @@ def test_database_resilience():
     temp_db = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
     temp_db.close()
     
+    conn = None
     try:
         # Create test database
         subprocess.run([
-            "python3", "hackathon/create_hackathon_db.py", temp_db.name
+            "python3", "-m", "hackathon.scripts.create_db", temp_db.name
         ], check=True, capture_output=True)
         
         # Test duplicate handling by inserting same submission twice
@@ -130,15 +133,13 @@ def test_database_resilience():
         try:
             cursor.execute(f"INSERT INTO hackathon_submissions_v2 ({columns}) VALUES ({placeholders})", values)
             conn.commit()
-            print("❌ Duplicate insertion should have failed")
-            return False
+            assert False, "Duplicate insertion should have failed"
         except sqlite3.IntegrityError:
             print("✅ Duplicate constraint properly enforced")
             return True
     
     except Exception as e:
-        print(f"❌ Database resilience test error: {e}")
-        return False
+        assert False, f"Database resilience test error: {e}"
     
     finally:
         if conn:
@@ -163,12 +164,8 @@ def test_backup_directory_creation():
     # This would happen in a real submission test, but we'll just verify the logic
     backup_dir.mkdir(parents=True, exist_ok=True)
     
-    if backup_dir.exists() and backup_dir.is_dir():
-        print("✅ Backup directory creation works")
-        return True
-    else:
-        print("❌ Backup directory not created")
-        return False
+    assert backup_dir.exists() and backup_dir.is_dir(), "Backup directory not created"
+    print("✅ Backup directory creation works")
 
 def run_all_tests():
     """Run all robustness tests."""
@@ -189,7 +186,11 @@ def run_all_tests():
         print('='*50)
         
         try:
-            results[test_name] = test_func()
+            test_func()
+            results[test_name] = True
+        except AssertionError as e:
+            print(f"❌ {test_name} failed: {e}")
+            results[test_name] = False
         except Exception as e:
             print(f"❌ Test '{test_name}' crashed: {e}")
             results[test_name] = False
@@ -199,14 +200,12 @@ def run_all_tests():
     print("TEST SUMMARY")
     print('='*50)
     
-    passed = 0
+    passed = sum(results.values())
     total = len(results)
     
     for test_name, result in results.items():
         status = "✅ PASS" if result else "❌ FAIL"
         print(f"{status} {test_name}")
-        if result:
-            passed += 1
     
     print(f"\nTotal: {passed}/{total} tests passed")
     

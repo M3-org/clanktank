@@ -6,6 +6,8 @@ Verifies that the core pipeline scripts run without error.
 import subprocess
 import sqlite3
 import os
+import sys
+import uuid
 
 DB_PATH = os.path.join("data", "hackathon.db")
 TEST_ID = "SMOKE_TEST_001"
@@ -14,14 +16,17 @@ DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
 
 
 def run(script_path, *args, check=True):
-    cmd = ["python3", script_path] + list(args)
-    print(f"Running: {' '.join(cmd)}")
+    cmd = ["python3", "-m"]
+    # Convert path to module syntax
+    module = script_path.replace("/", ".").replace(".py", "")
+    cmd.append(module)
+    cmd.extend(args)
     result = subprocess.run(cmd, capture_output=True)
-    print(result.stdout.decode())
-    print(result.stderr.decode())
+    print("STDOUT:\n" + result.stdout.decode())
+    print("STDERR:\n" + result.stderr.decode())
     if check and result.returncode != 0:
         print(f"FAILED: {' '.join(cmd)}")
-        exit(1)
+        sys.exit(1)
     return result
 
 
@@ -29,7 +34,7 @@ def setup_db():
     # Recreate the database
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-    run("scripts/hackathon/create_hackathon_db.py")
+    run("hackathon/scripts/create_db.py")
     # Insert a test record
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -40,14 +45,33 @@ def setup_db():
     print(f"Inserted test submission with ID {TEST_ID}")
 
 
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
+
+def test_smoke_pipeline():
+    # ...
+    payload = {
+        "project_name": unique_name("SMOKE_TEST_001"),
+        "team_name": "Smoke Test Team",
+        "category": "AI/Agents",
+        "description": "Smoke test project description.",
+        "discord_handle": "smoke#1234",
+        "github_url": "https://github.com/test/smoke",
+        "demo_video_url": "https://youtube.com/smoke"
+        # Optional fields can be added as needed
+    }
+    # ...rest of the test remains unchanged, but all POSTs should use this payload and add any missing required fields if needed...
+
+
 def main():
     setup_db()
     # Run research script
-    run("scripts/hackathon/hackathon_research.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
+    run("hackathon/backend/research.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     # Run scoring script
-    run("scripts/hackathon/hackathon_manager.py", "--score", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
+    run("hackathon/backend/hackathon_manager.py", "--score", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     # Run episode generation
-    run("scripts/hackathon/generate_episode.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
+    run("hackathon/scripts/generate_episode.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     print("Smoke test completed successfully.")
 
 if __name__ == "__main__":

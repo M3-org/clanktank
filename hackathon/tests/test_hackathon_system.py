@@ -5,12 +5,9 @@ Creates test submissions and runs through the complete pipeline.
 """
 
 import os
-import sys
-import json
 import sqlite3
 import logging
-from datetime import datetime
-from pathlib import Path
+import uuid
 
 # Set up logging
 logging.basicConfig(
@@ -80,9 +77,9 @@ def reset_test_environment():
         # Delete test submissions and related data
         for submission in TEST_SUBMISSIONS:
             submission_id = submission['submission_id']
-            cursor.execute(f"DELETE FROM hackathon_scores WHERE submission_id = ?", (submission_id,))
-            cursor.execute(f"DELETE FROM hackathon_research WHERE submission_id = ?", (submission_id,))
-            cursor.execute(f"DELETE FROM community_feedback WHERE submission_id = ?", (submission_id,))
+            cursor.execute("DELETE FROM hackathon_scores WHERE submission_id = ?", (submission_id,))
+            cursor.execute("DELETE FROM hackathon_research WHERE submission_id = ?", (submission_id,))
+            cursor.execute("DELETE FROM community_feedback WHERE submission_id = ?", (submission_id,))
             cursor.execute(f"DELETE FROM {DEFAULT_TABLE} WHERE submission_id = ?", (submission_id,))
         
         conn.commit()
@@ -235,6 +232,9 @@ def check_scoring_results():
     conn.close()
     return scores
 
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
 def run_test_pipeline():
     """Run the complete test pipeline."""
     logger.info("=" * 80)
@@ -278,8 +278,8 @@ def run_test_pipeline():
     
     # Test research
     logger.info("\n4. Testing research functionality...")
-    logger.info("Run: python scripts/hackathon/hackathon_research.py --submission-id TEST001 --version v2")
-    logger.info("Or:  python scripts/hackathon/hackathon_research.py --all --version v2")
+    logger.info("Run: python hackathon/backend/research.py --submission-id TEST001 --version v2")
+    logger.info("Or:  python hackathon/backend/research.py --all --version v2")
     logger.info("\nPress Enter after running research...")
     input()
     
@@ -288,8 +288,8 @@ def run_test_pipeline():
     
     # Test scoring
     logger.info("\n5. Testing scoring functionality...")
-    logger.info("Run: python scripts/hackathon/hackathon_manager.py --score --submission-id TEST001 --version v2")
-    logger.info("Or:  python scripts/hackathon/hackathon_manager.py --score --all --version v2")
+    logger.info("Run: python hackathon/backend/hackathon_manager.py --score --submission-id TEST001 --version v2")
+    logger.info("Or:  python hackathon/backend/hackathon_manager.py --score --all --version v2")
     logger.info("\nPress Enter after running scoring...")
     input()
     
@@ -298,7 +298,7 @@ def run_test_pipeline():
     
     # Test leaderboard
     logger.info("\n6. Testing leaderboard...")
-    logger.info("Run: python scripts/hackathon/hackathon_manager.py --leaderboard --version v2")
+    logger.info("Run: python hackathon/backend/hackathon_manager.py --leaderboard --version v2")
     
     logger.info("\n" + "=" * 80)
     logger.info("TEST PIPELINE COMPLETE")
