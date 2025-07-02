@@ -45,6 +45,21 @@ Optional visual improvements:
 - Props and overlay suggestions
 - Interactive creative partner guide
 
+### 🔧 **Technical Fixes & Architecture**
+
+#### [Schema Architecture Consolidation](schema-consolidation.md)
+Complete schema management overhaul:
+- Single source of truth architecture
+- Eliminated schema conflicts and duplicates
+- Dynamic validation generation
+- Bulletproof field synchronization
+
+#### [Image Upload Final Fix](image-upload-final-fix.md)
+Root cause analysis and fix for image upload issues:
+- Frontend File object handling bug
+- TypeScript type corrections
+- Complete validation chain fixes
+
 ## Quick Links
 
 - [Project Milestones](milestones.md) - Development roadmap and GitHub issues

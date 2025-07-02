@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-schema-drift
+        name: Check Schema Drift
+        entry: python scripts/hackathon/check_schema.py
+        language: system
+        pass_filenames: false
+        always_run: true 
