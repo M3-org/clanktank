@@ -13,8 +13,9 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from contextlib import contextmanager
 import logging
+import random
 
-from fastapi import FastAPI, HTTPException, Query, Request, Depends, status
+from fastapi import FastAPI, HTTPException, Query, Request, Depends, status, UploadFile, File as FastAPIFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, create_model
@@ -33,7 +34,7 @@ from slowapi.errors import RateLimitExceeded
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-from schema import get_fields, get_schema
+from schema import get_fields, get_schema, reload_schema
 
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -42,8 +43,8 @@ limiter = Limiter(key_func=get_remote_address)
 load_dotenv()
 
 # Configuration
-# Get the repository root directory (3 levels up from dashboard/app.py)
-REPO_ROOT = Path(__file__).parent.parent.parent.parent
+# Get the repository root directory (3 levels up from hackathon/dashboard/app.py)
+REPO_ROOT = Path(__file__).parent.parent.parent
 HACKATHON_DB_PATH = os.getenv('HACKATHON_DB_PATH', str(REPO_ROOT / 'data' / 'hackathon.db'))
 STATIC_DATA_DIR = os.getenv('STATIC_DATA_DIR', str(Path(__file__).parent / 'frontend' / 'public' / 'data'))
 LOG_FILE_PATH = REPO_ROOT / 'logs' / 'hackathon_api.log'
@@ -144,6 +145,7 @@ class SubmissionSummary(BaseModel):
     created_at: str
     avg_score: Optional[float] = None
     judge_count: Optional[int] = None
+    project_image: Optional[str] = None
 
 class SubmissionDetail(BaseModel):
     submission_id: str
@@ -157,6 +159,7 @@ class SubmissionDetail(BaseModel):
     github_url: Optional[str] = None
     demo_video_url: Optional[str] = None
     live_demo_url: Optional[str] = None
+    project_image: Optional[str] = None
     tech_stack: Optional[str] = None
     how_it_works: Optional[str] = None
     problem_solved: Optional[str] = None
@@ -171,6 +174,7 @@ submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1
 SubmissionCreateV1 = create_model('SubmissionCreateV1', **submission_fields_v1)
 
 submission_fields_v2 = {field: (Optional[str], None) for field in get_fields("v2")}
+# project_image field is used for file upload, but we store the URL in the database
 SubmissionCreateV2 = create_model('SubmissionCreateV2', **submission_fields_v2)
 
 class LeaderboardEntry(BaseModel):
@@ -270,34 +274,207 @@ async def get_submission_latest(submission_id: str, include: str = "scores,resea
 @app.post("/api/submissions", status_code=201, tags=["latest"], response_model=dict)
 @limiter.limit("5/minute")
 async def create_submission_latest(submission: SubmissionCreateV2, request: Request):
-    # Inline the logic for v2 submission creation
-    data = submission.dict()
-    submission_id = data.get("submission_id")
-    if not submission_id:
-        # Generate a new submission_id (e.g., based on project name and timestamp)
-        import time
-        base = data.get("project_name", "submission").replace(" ", "_").lower()
-        submission_id = f"{base}-{int(time.time())}"
-        data["submission_id"] = submission_id
-    data["status"] = "submitted"
+    """Create a new submission with v2 schema and basic error handling."""
+    print(f"📝 Processing submission: {submission.project_name}")
+    
+    # Validate project_image field
+    data_dict = submission.dict()
+    project_image = data_dict.get('project_image')
+    if project_image:
+        if project_image == '[object File]':
+            raise HTTPException(
+                status_code=422, 
+                detail="Invalid file object detected in project_image. Please upload the image first and submit the URL instead."
+            )
+        elif isinstance(project_image, str) and not project_image.startswith('/api/uploads/'):
+            # Remove invalid URLs that aren't our upload URLs
+            print(f"⚠️  Invalid project_image URL detected, removing: {project_image}")
+            data_dict['project_image'] = None
+    
+    # Generate submission ID
+    submission_id = submission.project_name.lower().replace(" ", "-")[:50]
+    if len(submission_id) < 6:
+        submission_id = f"{submission_id}-{random.randint(1000, 9999)}"
+    
+    # Basic data preparation
     now = datetime.now().isoformat()
+    data = submission.dict()
+    data["submission_id"] = submission_id
+    data["status"] = "submitted"
     data["created_at"] = now
     data["updated_at"] = now
+    
+    # Database insertion
     table = "hackathon_submissions_v2"
-    fields = list(data.keys())
-    placeholders = ", ".join([f":{f}" for f in fields])
-    columns = ", ".join(fields)
-    with engine.connect() as conn:
-        try:
+    columns = ", ".join(data.keys())
+    placeholders = ", ".join([f":{key}" for key in data.keys()])
+    
+    try:
+        with engine.connect() as conn:
             conn.execute(text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data)
-            conn.commit()  # Commit the transaction
+            conn.commit()
+        
+        print(f"✅ Submission saved: {submission_id}")
+        return {
+            "success": True, 
+            "submission_id": submission_id,
+            "message": "Submission received and saved successfully"
+        }
+        
+    except Exception as e:
+        print(f"❌ Database error: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "submission_id": submission_id
+            }
+        )
+
+# Add endpoint to retrieve submission backup
+@app.get("/api/submission-backup/{submission_id}", tags=["latest"])
+async def get_submission_backup(submission_id: str):
+    """Retrieve submission backup for recovery purposes."""
+    backup_dir = Path("data/submission_backups")
+    
+    # Look for backup files for this submission
+    backup_files = list(backup_dir.glob(f"{submission_id}-*.json"))
+    
+    if not backup_files:
+        raise HTTPException(status_code=404, detail="No backup found for this submission ID")
+    
+    # Return the most recent backup
+    most_recent = max(backup_files, key=lambda f: f.stat().st_mtime)
+    
+    try:
+        with open(most_recent, 'r') as f:
+            backup_data = json.load(f)
+        
+        return {
+            "submission_id": submission_id,
+            "backup_file": str(most_recent),
+            "backup_data": backup_data,
+            "file_modified": datetime.fromtimestamp(most_recent.stat().st_mtime).isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read backup file: {str(e)}")
+
+# Add endpoint to list all backups (admin only)
+@app.get("/api/submission-backups", tags=["latest"])
+async def list_submission_backups():
+    """List all submission backups for admin review."""
+    backup_dir = Path("data/submission_backups")
+    
+    if not backup_dir.exists():
+        return {"backups": [], "total": 0}
+    
+    backups = []
+    for backup_file in backup_dir.glob("*.json"):
+        try:
+            stat = backup_file.stat()
+            # Try to extract submission_id from filename
+            filename = backup_file.name
+            if filename.startswith("ERROR-"):
+                submission_id = filename.replace("ERROR-", "").split("-")[0]
+                backup_type = "error"
+            else:
+                submission_id = filename.split("-")[0]
+                backup_type = "normal"
+            
+            backups.append({
+                "filename": filename,
+                "submission_id": submission_id,
+                "type": backup_type,
+                "size_bytes": stat.st_size,
+                "created_at": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+                "modified_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
+            })
         except Exception as e:
-            return JSONResponse(status_code=400, content={"success": False, "error": str(e)})
-    return {"success": True, "submission_id": submission_id}
+            print(f"Warning: Failed to process backup file {backup_file}: {e}")
+            continue
+    
+    # Sort by creation time (newest first)
+    backups.sort(key=lambda x: x["created_at"], reverse=True)
+    
+    return {
+        "backups": backups,
+        "total": len(backups),
+        "backup_directory": str(backup_dir)
+    }
+
+# File upload endpoint
+@app.post("/api/upload-image", tags=["latest"])
+async def upload_image(file: UploadFile = FastAPIFile(...)):
+    """Upload project image and return URL."""
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+        
+        # Validate file size (2MB limit)
+        MAX_SIZE = 2 * 1024 * 1024  # 2MB
+        content = await file.read()
+        if len(content) > MAX_SIZE:
+            raise HTTPException(status_code=400, detail="File size must be less than 2MB")
+        
+        # Create uploads directory (use same path as serve_upload)
+        uploads_dir = Path(__file__).parent / "data" / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        import uuid
+        file_extension = Path(file.filename).suffix if file.filename else '.jpg'
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = uploads_dir / unique_filename
+        
+        # Save file
+        with open(file_path, 'wb') as f:
+            f.write(content)
+        
+        # Return the file URL (relative to server)
+        file_url = f"/api/uploads/{unique_filename}"
+        
+        print(f"✅ Image uploaded: {file_path} -> {file_url}")
+        
+        return {
+            "success": True,
+            "url": file_url,
+            "filename": unique_filename,
+            "size": len(content)
+        }
+        
+    except Exception as e:
+        print(f"❌ Image upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
+# Serve uploaded files
+@app.get("/api/uploads/{filename}")
+async def serve_upload(filename: str):
+    """Serve uploaded files."""
+    # Use absolute path relative to the app.py file location
+    uploads_dir = Path(__file__).parent / "data" / "uploads"
+    file_path = uploads_dir / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Return file content with appropriate headers
+    from fastapi.responses import FileResponse
+    return FileResponse(file_path)
 
 @app.get("/api/submission-schema", tags=["latest"], response_model=List[SubmissionFieldSchema])
 async def get_submission_schema_latest():
     return await get_submission_schema_versioned(version="v2")
+
+@app.post("/api/reload-schema", tags=["latest"])
+async def reload_schema_endpoint():
+    """Reload schema from file (useful for development)"""
+    try:
+        reload_schema()
+        return {"status": "success", "message": "Schema reloaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reload schema: {str(e)}")
 
 @app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
 async def get_leaderboard_latest():
@@ -319,6 +496,8 @@ async def list_submissions(
     table = f"hackathon_submissions_{version}"
     manifest = get_fields(version)
     fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
+    
+    # project_image field is handled properly via schema
     
     # Build WHERE clause for filtering
     where_conditions = []
@@ -721,10 +900,23 @@ def main():
         print(f"Starting FastAPI server on http://{args.host}:{args.port}")
         print(f"API documentation available at http://{args.host}:{args.port}/docs")
         print(f"Using database: {HACKATHON_DB_PATH}")
-        uvicorn.run(app, host=args.host, port=args.port)
+        print(f"Database absolute path: {os.path.abspath(HACKATHON_DB_PATH)}")
+        print(f"Database exists: {os.path.exists(HACKATHON_DB_PATH)}")
+        print(f"Current working directory: {os.getcwd()}")
 
-if __name__ == "__main__":
-    main()
+        # Debug: Check what columns SQLAlchemy sees
+        try:
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            columns = inspector.get_columns('hackathon_submissions_v2')
+            column_names = [col['name'] for col in columns]
+            print(f"SQLAlchemy sees columns: {column_names}")
+            print(f"SQLAlchemy sees project_image: {'project_image' in column_names}")
+            print(f"SQLAlchemy sees image_url: {'image_url' in column_names}")
+        except Exception as e:
+            print(f"Error checking columns: {e}")
+            
+        uvicorn.run(app, host=args.host, port=args.port)
 
 async def get_submission(submission_id: str, version: str = "v1", include: str = "scores,research,community"):
     if version not in ("v1", "v2"):
@@ -732,6 +924,8 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
     table = f"hackathon_submissions_{version}"
     manifest = get_fields(version)
     fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
+    
+    # project_image field is handled properly via schema
     select_stmt = text(f"SELECT {', '.join(fields)} FROM {table} WHERE submission_id = :submission_id")
     with engine.connect() as conn:
         result = conn.execute(select_stmt, {"submission_id": submission_id})
@@ -822,6 +1016,7 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
             'github_url': submission_dict.get('github_url'),
             'demo_video_url': submission_dict.get('demo_video_url'),
             'live_demo_url': submission_dict.get('live_demo_url'),
+            'project_image': submission_dict.get('project_image'),
             'tech_stack': submission_dict.get('tech_stack'),
             'how_it_works': submission_dict.get('how_it_works'),
             'problem_solved': submission_dict.get('problem_solved'),
@@ -832,7 +1027,11 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
             'avg_score': submission_dict.get('avg_score'),
         }
         # Fill missing optional fields with None
-        for k in ['github_url','demo_video_url','live_demo_url','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score']:
+        for k in ['github_url','demo_video_url','live_demo_url','project_image','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score']:
             if k not in detail:
                 detail[k] = None
+        
         return detail
+
+if __name__ == "__main__":
+    main()

@@ -200,11 +200,14 @@
         "placeholder": "https://my-project.com"
       },
       {
-        "name": "image_url",
-        "label": "Project Image URL",
-        "type": "url",
+        "name": "project_image",
+        "label": "Project Image",
+        "type": "file",
         "required": false,
-        "placeholder": "https://my-project.com/image.png"
+        "placeholder": "Upload a project image (max 2MB)",
+        "accept": "image/*",
+        "maxSize": 2097152,
+        "helperText": "Upload an image that represents your project (JPG, PNG, GIF - max 2MB)"
       },
       {
         "name": "tech_stack",
@@ -235,11 +238,13 @@
         "placeholder": "Describe what you're most excited about or proud of."
       },
       {
-        "name": "test_field",
-        "label": "Test Field",
+        "name": "solana_address",
+        "label": "Solana Wallet Address",
         "type": "text",
         "required": false,
-        "placeholder": "This is a test field for v2"
+        "placeholder": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
+        "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{32,44}$",
+        "helperText": "Your Solana wallet address for potential rewards (32-44 characters, Base58 format)"
       }
     ]
   }

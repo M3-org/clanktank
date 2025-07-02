@@ -1,24 +1,37 @@
-import { object, string } from 'yup'
+/**
+ * HACKATHON SCHEMA ARCHITECTURE
+ * =============================
+ * 
+ * Single Source of Truth: /hackathon/submission_schema.json
+ * 
+ * Flow:
+ * 1. JSON schema defines all fields, validation rules, and UI config
+ * 2. Backend (schema.py) loads JSON schema for Python validation  
+ * 3. Frontend (schemaLoader.ts) fetches schema via API
+ * 4. Frontend dynamically generates Yup validation from schema
+ * 5. This file (submission.ts) contains all TypeScript types
+ * 
+ * Benefits:
+ * - Single source of truth
+ * - No more hardcoded schemas  
+ * - Automatic sync between frontend/backend
+ * - Dynamic validation generation
+ */
 
-export const SubmissionSchema = object({
-  project_name: string().required('Project name is required').max(100, 'Project name must be 100 characters or less'),
-  team_name: string().required('Team name is required').max(100, 'Team name must be 100 characters or less'),
-  category: string().required('Category is required'),
-  description: string().required('Description is required').max(2000, 'Description must be 2000 characters or less'),
-  discord_handle: string()
-    .required('Discord handle is required')
-    .matches(/^.+#\d{4}$|^.+$/, 'Discord handle should be in format username#1234 or just username'),
-  twitter_handle: string().notRequired(),
-  github_url: string().url('Must be a valid URL').required('GitHub URL is required'),
-  demo_video_url: string().url('Must be a valid URL').required('Demo video URL is required'),
-  live_demo_url: string().url('Must be a valid URL').notRequired(),
-  logo_url: string().url('Must be a valid URL').notRequired(),
-  tech_stack: string().notRequired(),
-  how_it_works: string().notRequired(),
-  problem_solved: string().notRequired(),
-  coolest_tech: string().notRequired(),
-  next_steps: string().notRequired(),
-})
+// Field definition type used by the dynamic schema loader
+export type SubmissionField = {
+  name: string;
+  label: string;
+  type: 'text' | 'textarea' | 'select' | 'url' | 'file';
+  required: boolean;
+  placeholder?: string;
+  maxLength?: number;
+  options?: string[]; // for select fields
+  pattern?: RegExp | string;
+  helperText?: string;
+  accept?: string; // for file fields
+  maxSize?: number; // for file fields (in bytes)
+};
 
 export type SubmissionInputs = {
   project_name: string
@@ -30,12 +43,13 @@ export type SubmissionInputs = {
   github_url: string
   demo_video_url: string
   live_demo_url?: string
-  logo_url?: string
+  project_image?: File | string | null
   tech_stack?: string
   how_it_works?: string
   problem_solved?: string
-  coolest_tech?: string
-  next_steps?: string
+  favorite_part?: string
+  solana_address?: string
+  [key: string]: string | File | null | undefined
 }
 
 export const categoryOptions = [

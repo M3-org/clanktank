@@ -82,12 +82,12 @@ except Exception as e:
             "github_url",
             "demo_video_url",
             "live_demo_url",
-            "image_url",
+            "project_image",
             "tech_stack",
             "how_it_works",
             "problem_solved",
             "favorite_part",
-            "test_field",
+            "solana_address",
         ],
     }
     

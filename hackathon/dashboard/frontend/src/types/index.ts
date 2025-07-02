@@ -7,6 +7,7 @@ export interface SubmissionSummary {
   created_at: string
   avg_score?: number
   judge_count?: number
+  project_image?: string
 }
 
 export interface SubmissionDetail extends SubmissionSummary {

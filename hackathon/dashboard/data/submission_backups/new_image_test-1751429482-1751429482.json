@@ -1,0 +1,35 @@
+{
+  "submission_data": {
+    "project_name": "NEW IMAGE TEST",
+    "team_name": "HJIIBN",
+    "category": "Social",
+    "description": "fgdsafg",
+    "discord_handle": "dankvr",
+    "twitter_handle": "",
+    "github_url": "https://github.com/ai16z/eliza",
+    "demo_video_url": "https://cool.com/c.mp4",
+    "live_demo_url": "",
+    "project_image": "[object File]",
+    "tech_stack": "",
+    "how_it_works": "",
+    "problem_solved": "",
+    "favorite_part": "",
+    "solana_address": "wPwC9AJazM8y94u84srY6DDyYEiAPri8EBDe33U3aUa",
+    "image_url": null,
+    "submission_id": "new_image_test-1751429482",
+    "status": "submitted",
+    "created_at": "2025-07-02T00:11:22.068528",
+    "updated_at": "2025-07-02T00:11:22.068528"
+  },
+  "timestamp": "2025-07-02T00:11:22.068528",
+  "request_info": {
+    "client_ip": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "content_type": "application/json"
+  },
+  "metadata": {
+    "submission_id": "new_image_test-1751429482",
+    "table": "hackathon_submissions_v2",
+    "backup_version": "1.0"
+  }
+}

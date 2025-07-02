@@ -396,11 +396,39 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedSubmissions.map((submission) => (
             <Card key={submission.submission_id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Preview Image Placeholder */}
-              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Code className="h-16 w-16 text-indigo-300" />
-                </div>
+              {/* Preview Image */}
+              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 relative overflow-hidden">
+                {submission.project_image && 
+                 typeof submission.project_image === 'string' && 
+                 submission.project_image !== '[object File]' && 
+                 submission.project_image.trim() !== '' ? (
+                  <img 
+                    src={submission.project_image} 
+                    alt={`${submission.project_name} preview`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to code icon if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent && !parent.querySelector('.fallback-icon')) {
+                        const fallback = document.createElement('div');
+                        fallback.className = 'fallback-icon absolute inset-0 flex items-center justify-center';
+                        fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-16 w-16 text-indigo-300"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>';
+                        parent.appendChild(fallback);
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Code className="h-16 w-16 text-indigo-300" />
+                    {submission.project_image === '[object File]' && (
+                      <div className="absolute bottom-2 left-2 text-xs text-red-500 bg-white/90 px-2 py-1 rounded">
+                        Invalid Image
+                      </div>
+                    )}
+                  </div>
+                )}
                 {submission.avg_score && (
                   <div className="absolute top-2 right-2">
                     <Badge variant="default" className="bg-white/90 backdrop-blur-sm">

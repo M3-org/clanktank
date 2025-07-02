@@ -1,0 +1,40 @@
+{
+  "submission_data": {
+    "project_name": "aaaa",
+    "team_name": "cool team",
+    "category": "Social",
+    "description": "s",
+    "discord_handle": "dankvr",
+    "twitter_handle": "",
+    "github_url": "https://github.com/madjin/docs",
+    "demo_video_url": "https://cool.com/c.mp4",
+    "live_demo_url": "",
+    "project_image": "[object File]",
+    "tech_stack": "",
+    "how_it_works": "",
+    "problem_solved": "",
+    "favorite_part": "",
+    "solana_address": "wPwC9AJazM8y94u84srY6DDyYEiAPri8EBDe33U3aUa",
+    "image_url": null,
+    "submission_id": "aaaa-1751429685",
+    "status": "submitted",
+    "created_at": "2025-07-02T00:14:45.206942",
+    "updated_at": "2025-07-02T00:14:45.206942"
+  },
+  "timestamp": "2025-07-02T00:14:45.206942",
+  "request_info": {
+    "client_ip": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "content_type": "application/json"
+  },
+  "metadata": {
+    "submission_id": "aaaa-1751429685",
+    "table": "hackathon_submissions_v2",
+    "backup_version": "1.0"
+  },
+  "error": {
+    "message": "(sqlite3.OperationalError) table hackathon_submissions_v2 has no column named image_url\n[SQL: INSERT INTO hackathon_submissions_v2 (project_name, team_name, category, description, discord_handle, twitter_handle, github_url, demo_video_url, live_demo_url, project_image, tech_stack, how_it_works, problem_solved, favorite_part, solana_address, image_url, submission_id, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)]\n[parameters: ('aaaa', 'cool team', 'Social', 's', 'dankvr', '', 'https://github.com/madjin/docs', 'https://cool.com/c.mp4', '', '[object File]', '', '', '', '', 'wPwC9AJazM8y94u84srY6DDyYEiAPri8EBDe33U3aUa', None, 'aaaa-1751429685', 'submitted', '2025-07-02T00:14:45.206942', '2025-07-02T00:14:45.206942')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+    "type": "OperationalError",
+    "timestamp": "2025-07-02T00:14:45.207989"
+  }
+}
