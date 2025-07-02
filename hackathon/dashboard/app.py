@@ -256,8 +256,12 @@ async def root():
     }
 
 @app.get("/api/submissions", tags=["latest"], response_model=List[SubmissionSummary])
-async def list_submissions_latest(include: str = "scores,research,community"):
-    return await list_submissions(version="v2", include=include)
+async def list_submissions_latest(
+    include: str = "scores,research,community",
+    status: str = None,
+    category: str = None
+):
+    return await list_submissions(version="v2", include=include, status=status, category=category)
 
 @app.get("/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail)
 async def get_submission_latest(submission_id: str, include: str = "scores,research,community"):
@@ -306,21 +310,50 @@ async def get_stats_latest():
 @app.get("/api/{version}/submissions", tags=["versioned"], response_model=List[SubmissionSummary])
 async def list_submissions(
     version: str = "v1",
-    include: str = "scores,research,community"
+    include: str = "scores,research,community",
+    status: str = None,
+    category: str = None
 ):
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     manifest = get_fields(version)
     fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
-    select_stmt = text(f"SELECT {', '.join(fields)} FROM {table}")
+    
+    # Build WHERE clause for filtering
+    where_conditions = []
+    params = {}
+    if status:
+        where_conditions.append("status = :status")
+        params["status"] = status
+    if category:
+        where_conditions.append("category = :category")
+        params["category"] = category
+    
+    where_clause = f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
+    select_stmt = text(f"SELECT {', '.join(fields)} FROM {table}{where_clause}")
+    
     with engine.connect() as conn:
-        result = conn.execute(select_stmt)
+        result = conn.execute(select_stmt, params)
         submissions = []
         include_parts = set(i.strip() for i in include.split(",") if i.strip())
         for submission_row in result.fetchall():
             submission_dict = dict(submission_row._mapping)
             submission_id = submission_dict["submission_id"]
+            # Always calculate score aggregates for SubmissionSummary
+            scores_agg_result = conn.execute(text("""
+                SELECT AVG(weighted_total) as avg_score, COUNT(DISTINCT judge_name) as judge_count
+                FROM hackathon_scores 
+                WHERE submission_id = :submission_id AND round = 1
+            """), {"submission_id": submission_id})
+            agg_row = scores_agg_result.fetchone()
+            if agg_row and agg_row[0] is not None:
+                submission_dict["avg_score"] = round(float(agg_row[0]), 2)
+                submission_dict["judge_count"] = int(agg_row[1])
+            else:
+                submission_dict["avg_score"] = None
+                submission_dict["judge_count"] = 0
+            
             # Optionally add scores
             if "scores" in include_parts:
                 score_fields = [
