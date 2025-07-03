@@ -8,6 +8,7 @@ export interface SubmissionSummary {
   avg_score?: number
   judge_count?: number
   project_image?: string
+  description?: string
 }
 
 export interface SubmissionDetail extends SubmissionSummary {
@@ -23,6 +24,7 @@ export interface SubmissionDetail extends SubmissionSummary {
   next_steps?: string
   scores?: Score[]
   research?: Research
+  solana_address?: string
 }
 
 export interface Score {

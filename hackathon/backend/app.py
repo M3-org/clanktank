@@ -140,6 +140,7 @@ class SubmissionSummary(BaseModel):
     avg_score: Optional[float] = None
     judge_count: Optional[int] = None
     project_image: Optional[str] = None
+    description: Optional[str] = None
 
 class SubmissionDetail(BaseModel):
     submission_id: str
@@ -162,6 +163,7 @@ class SubmissionDetail(BaseModel):
     scores: Optional[List[Dict[str, Any]]] = None
     research: Optional[Dict[str, Any]] = None
     avg_score: Optional[float] = None
+    solana_address: Optional[str] = None
 
 # Dynamically create the SubmissionCreate models from versioned manifests
 submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
@@ -1051,9 +1053,10 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
             'scores': submission_dict.get('scores'),
             'research': submission_dict.get('research'),
             'avg_score': submission_dict.get('avg_score'),
+            'solana_address': submission_dict.get('solana_address'),
         }
         # Fill missing optional fields with None
-        for k in ['github_url','demo_video_url','live_demo_url','project_image','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score']:
+        for k in ['github_url','demo_video_url','live_demo_url','project_image','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score','solana_address']:
             if k not in detail:
                 detail[k] = None
         

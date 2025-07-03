@@ -26,6 +26,21 @@ import {
 } from 'lucide-react'
 import { StatusBadge } from '../components/StatusBadge'
 import { CategoryBadge } from '../components/CategoryBadge'
+import React from 'react'
+
+const solanaLogo = (
+  <img
+    src="https://solana.com/src/img/branding/solanaLogoMark.svg"
+    alt="Solana Logo"
+    className="inline-block w-4 h-4 mr-2 align-middle"
+    style={{ verticalAlign: 'middle' }}
+  />
+)
+
+function truncateSolanaAddress(address: string) {
+  if (!address || address.length <= 12) return address;
+  return `${address.slice(0, 5)}...${address.slice(-5)}`;
+}
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
@@ -87,7 +102,7 @@ export default function SubmissionDetail() {
               <Code className="h-8 w-8 text-gray-400" />
             </div>
             <p className="text-gray-500 mb-6">Submission not found</p>
-            <Link to="/">
+            <Link to="/dashboard">
               <Button variant="secondary" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
@@ -127,96 +142,53 @@ export default function SubmissionDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
+      {/* Hero Banner - full width, overlayed info */}
+      <div className="relative w-full h-72 md:h-96 mb-8 group overflow-hidden">
+        {/* Background: image/video or gray placeholder */}
+        {submission.project_image ? (
+          <>
+            <img
+              src={submission.project_image}
+              alt={submission.project_name + ' project image'}
+              className="absolute inset-0 w-full h-full object-cover transition-opacity group-hover:opacity-0"
+              style={{ zIndex: 1 }}
+            />
+            {submission.demo_video_url && (
+              <video
+                src={submission.demo_video_url}
+                className="absolute inset-0 w-full h-full object-cover hidden group-hover:block"
+                style={{ zIndex: 1 }}
+                muted
+                autoPlay
+                loop
+                playsInline
+                preload="metadata"
+              />
+            )}
+          </>
+        ) : (
+          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-100">
+            <span className="text-gray-400 text-lg">No project image</span>
+          </div>
+        )}
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" style={{ zIndex: 2 }} />
+        {/* Overlayed content: only title and team name, bottom left with margin */}
+        <div className="absolute left-0 bottom-0 p-8 z-10 flex flex-col gap-2 w-auto">
+          <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow mb-1">{submission.project_name}</h1>
+          <p className="text-lg text-white/80 mb-2">by <span className="font-semibold text-white">{submission.team_name}</span></p>
+        </div>
+      </div>
+
+      {/* The rest of the page content follows here, in normal flow */}
       {/* Back Button */}
-      <Link to="/">
+      <Link to="/dashboard">
         <Button variant="ghost" size="sm" className="mb-6">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </Button>
       </Link>
-
-      {/* Header */}
-      <Card className="mb-6">
-        <CardContent className="py-8">
-          <div className="flex flex-col md:flex-row md:items-center gap-8">
-            {/* Project Image */}
-            <div className="flex-shrink-0 flex justify-center md:justify-start">
-              {submission.project_image ? (
-                <img
-                  src={submission.project_image}
-                  alt={submission.project_name + ' project image'}
-                  className="h-48 w-80 max-w-full rounded-xl shadow-lg object-cover bg-gray-50 border border-gray-200"
-                  style={{ aspectRatio: '16/9' }}
-                />
-              ) : (
-                <div className="h-48 w-80 max-w-full flex items-center justify-center bg-gray-100 rounded-xl border border-gray-200">
-                  <span className="text-gray-400 text-lg">No project image</span>
-                </div>
-              )}
-            </div>
-            {/* Project Info */}
-            <div className="flex-1 flex flex-col justify-between min-w-0">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2 truncate">{submission.project_name}</h1>
-                <p className="text-lg text-gray-600 mb-4 truncate">by <span className="font-medium">{submission.team_name}</span></p>
-                <div className="flex flex-wrap gap-3 mb-4">
-                  <CategoryBadge category={submission.category} />
-                  <StatusBadge status={submission.status} />
-                  {submission.avg_score && (
-                    <Badge variant="default">
-                      <Trophy className="h-3 w-3 mr-1" />
-                      Score: {submission.avg_score.toFixed(2)}/40
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              {/* Links */}
-              <div className="flex flex-wrap gap-3 mt-2">
-                {submission.github_url && (
-                  <a
-                    href={submission.github_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button variant="secondary" size="sm">
-                      <Github className="h-4 w-4 mr-2" />
-                      GitHub
-                      <ExternalLink className="h-3 w-3 ml-2" />
-                    </Button>
-                  </a>
-                )}
-                {submission.demo_video_url && (
-                  <a
-                    href={submission.demo_video_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button variant="secondary" size="sm">
-                      <Video className="h-4 w-4 mr-2" />
-                      Demo Video
-                      <ExternalLink className="h-3 w-3 ml-2" />
-                    </Button>
-                  </a>
-                )}
-                {submission.live_demo_url && (
-                  <a
-                    href={submission.live_demo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button variant="secondary" size="sm">
-                      <Globe className="h-4 w-4 mr-2" />
-                      Live Demo
-                      <ExternalLink className="h-3 w-3 ml-2" />
-                    </Button>
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -449,15 +421,41 @@ export default function SubmissionDetail() {
                     {formatDate(submission.created_at)}
                   </dd>
                 </div>
-                <div className="flex items-center justify-between">
-                  <dt className="flex items-center text-sm text-gray-500">
-                    <RefreshCcw className="h-4 w-4 mr-2" />
-                    Last Updated
-                  </dt>
-                  <dd className="text-sm font-medium text-gray-900">
-                    {formatDate(submission.updated_at)}
-                  </dd>
-                </div>
+                {submission.github_url && (
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center text-sm text-gray-500">
+                      <Github className="h-4 w-4 mr-2" />
+                      GitHub
+                    </dt>
+                    <dd className="text-sm font-medium text-indigo-700 truncate max-w-[160px]">
+                      <a href={submission.github_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900">Repo ↗</a>
+                    </dd>
+                  </div>
+                )}
+                {submission.demo_video_url && (
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center text-sm text-gray-500">
+                      <Video className="h-4 w-4 mr-2" />
+                      Demo Video
+                    </dt>
+                    <dd className="text-sm font-medium text-indigo-700 truncate max-w-[160px]">
+                      <a href={submission.demo_video_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900">Watch ↗</a>
+                    </dd>
+                  </div>
+                )}
+                {submission['solana_address'] && (
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center text-sm text-gray-500">
+                      {solanaLogo}
+                      Solana Address
+                    </dt>
+                    <dd className="text-xs font-mono text-indigo-700 truncate max-w-[160px] flex items-center">
+                      <a href={`https://solscan.io/account/${submission['solana_address']}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 flex items-center">
+                        {truncateSolanaAddress(submission['solana_address'])}
+                      </a>
+                    </dd>
+                  </div>
+                )}
               </dl>
             </CardContent>
           </Card>
@@ -527,25 +525,7 @@ export default function SubmissionDetail() {
                   </div>
                   
                   {feedback.feedback.length > 0 && (
-                    <div className="mt-4 pt-3 border-t border-gray-200">
-                      <details className="group">
-                        <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
-                          View voters ({feedback.feedback.reduce((acc: number, item: any) => acc + item.voters.length, 0)} total)
-                        </summary>
-                        <div className="mt-2 space-y-2">
-                          {feedback.feedback.map((item: any) => (
-                            item.voters.length > 0 && (
-                              <div key={item.reaction_type} className="text-xs">
-                                <span className="font-medium">{item.emoji} {item.name}:</span>
-                                <span className="text-gray-600 ml-1">
-                                  {item.voters.join(', ')}
-                                </span>
-                              </div>
-                            )
-                          ))}
-                        </div>
-                      </details>
-                    </div>
+                    <></>
                   )}
                 </div>
               </CardContent>
