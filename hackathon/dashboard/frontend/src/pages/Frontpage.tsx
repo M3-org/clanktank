@@ -93,10 +93,10 @@ export default function Frontpage() {
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 w-full">
           <img src="/clanktank_white.png" alt="Clank Tank Logo" className="h-38 md:h-80 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
-          <div className="text-base md:text-lg font-medium text-indigo-200 uppercase tracking-wider mb-4">hackathon edition</div>
+          <div className="text-2xl md:text-3xl font-extrabold text-indigo-200 tracking-widest uppercase drop-shadow mb-6">hackathon edition</div>
  
-          <p className="text-lg md:text-2xl text-indigo-100 font-medium mb-8 max-w-2xl mx-auto">
-            AI-powered, community-judged innovation tournament
+          <p className="text-xl md:text-2xl font-semibold text-indigo-100 drop-shadow mb-8 max-w-2xl mx-auto">
+            AI-Powered Vibe Coding Competition
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="#how-it-works" className="inline-block text-lg font-semibold px-6 py-3 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition">

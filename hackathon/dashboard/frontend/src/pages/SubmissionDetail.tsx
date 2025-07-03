@@ -283,14 +283,40 @@ export default function SubmissionDetail() {
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             {round1 && (
-                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 font-semibold text-xs tabular-nums">
-                                R1: {round1.weighted_total.toFixed(2)}
-                              </span>
+                              <div className="w-44 flex flex-col items-end">
+                                <div className="flex items-center w-full">
+                                  <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mr-2">R1</span>
+                                  <div className="flex-1 h-3 rounded bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                                    <div
+                                      className="h-full rounded"
+                                      style={{
+                                        width: `${Math.min((round1.weighted_total / 40) * 100, 100)}%`,
+                                        background: 'linear-gradient(90deg, #6366f1, #818cf8)',
+                                        transition: 'width 0.3s'
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="ml-2 text-xs font-medium tabular-nums min-w-[38px] text-right text-gray-900 dark:text-gray-100">{round1.weighted_total.toFixed(2)}/40</span>
+                                </div>
+                              </div>
                             )}
                             {round2 && (
-                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-green-700 dark:text-green-400 font-semibold text-xs tabular-nums">
-                                R2: {round2.weighted_total.toFixed(2)}
-                              </span>
+                              <div className="w-44 flex flex-col items-end">
+                                <div className="flex items-center w-full">
+                                  <span className="text-xs text-green-700 dark:text-green-400 font-semibold mr-2">R2</span>
+                                  <div className="flex-1 h-3 rounded bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                                    <div
+                                      className="h-full rounded"
+                                      style={{
+                                        width: `${Math.min((round2.weighted_total / 40) * 100, 100)}%`,
+                                        background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+                                        transition: 'width 0.3s'
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="ml-2 text-xs font-medium tabular-nums min-w-[38px] text-right text-gray-900 dark:text-gray-100">{round2.weighted_total.toFixed(2)}/40</span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         </div>
