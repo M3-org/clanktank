@@ -54,6 +54,38 @@ The Clank Tank system uses a modular architecture with several key components:
 
 ![Gi-snNlWYAAmOVm](https://github.com/user-attachments/assets/abbfc2c9-b77f-4d59-ad84-e1ca2662abc2)
 
+### Core Technologies
+
+This project is built with a combination of Python for the backend and JavaScript for frontend components.
+
+**Backend (Python):**
+
+*   **Core & Web:**
+    *   **`fastapi`**: A modern, fast (high-performance) web framework for building APIs.
+    *   **`uvicorn`**: A lightning-fast ASGI server, used to run our FastAPI application.
+    *   **`pydantic`**: For data validation and settings management.
+    *   **`python-dotenv`**: For managing environment variables.
+    *   **`requests`**: A simple, yet elegant, HTTP library.
+
+*   **Integrations:**
+    *   **`gspread`**, **`google-auth`**: For interacting with Google Sheets.
+    *   **`discord.py`**: For creating the Discord bot.
+    *   **`openai`**, **`anthropic`**: For interacting with AI models.
+    *   **`PyGithub`**: For interacting with the GitHub API.
+    *   **`google-api-python-client`**, **`google-auth-httplib2`**, **`google-auth-oauthlib`**: For uploading videos to YouTube.
+
+*   **Development & Testing:**
+    *   **`pytest`**: A framework for writing and running tests.
+    *   **`black`**: A code formatter.
+    *   **`flake8`**: A tool for checking code style.
+
+**Frontend (JavaScript):**
+
+*   **`axios`**: For making HTTP requests from the browser.
+*   **`formsmd`**: A library for creating forms from markdown.
+*   **`fs-extra`**: An extension of the native `fs` module with more features.
+*   **`puppeteer-stream`**: For working with Puppeteer, a library for controlling Chrome or Chromium.
+
 
 ## Project Structure
 
