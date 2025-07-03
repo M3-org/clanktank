@@ -74,14 +74,27 @@ export default function Frontpage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <div className="relative w-full flex items-center justify-center overflow-hidden bg-gradient-to-br from-indigo-600 to-slate-900 sm:py-28 py-20">
-        {/* White noise overlay */}
-        <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'url("/noise.png")', opacity: 0.05 }} />
-        <div className="absolute inset-0 bg-black bg-opacity-40" />
+      <div className="relative w-full flex items-center justify-center overflow-hidden sm:py-28 py-20">
+        {/* Hero background: looping video */}
+        <div className="absolute inset-0 w-full h-full z-0">
+          <video
+            src="/loop.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover object-center"
+            style={{ filter: 'brightness(0.5) contrast(1.1)' }}
+          />
+          {/* Dither/noise overlay */}
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'url("/noise.png")', opacity: 0.12, mixBlendMode: 'overlay' }} />
+          {/* Extra darken overlay for text readability */}
+          <div className="absolute inset-0 bg-black bg-opacity-60" />
+        </div>
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 w-full">
-          <h1 className="text-4xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 tracking-tight max-w-3xl mx-auto">
-            Clank Tank Hackathon
-          </h1>
+          <img src="/clanktank_white.png" alt="Clank Tank Logo" className="h-38 md:h-80 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
+          <div className="text-base md:text-lg font-medium text-indigo-200 uppercase tracking-wider mb-4">hackathon edition</div>
+ 
           <p className="text-lg md:text-2xl text-indigo-100 font-medium mb-8 max-w-2xl mx-auto">
             AI-powered, community-judged innovation tournament
           </p>
