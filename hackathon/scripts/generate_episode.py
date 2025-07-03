@@ -666,7 +666,9 @@ def main():
         episode = generator.generate_episode(args.submission_id)
         
         # Save to file using submission ID as filename
-        output_path = os.path.join("episodes/hackathon", f"{args.submission_id}.json")
+        output_dir = "episodes/hackathon"
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, f"{args.submission_id}.json")
         with open(output_path, 'w') as f:
             json.dump(episode, f, indent=2)
         
