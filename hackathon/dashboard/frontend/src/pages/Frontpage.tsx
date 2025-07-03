@@ -97,14 +97,14 @@ export default function Frontpage() {
       </div>
 
       {/* How it Works Section */}
-      <section id="how-it-works" className="bg-slate-50 animate-fade-in">
+      <section id="how-it-works" className="bg-slate-50 dark:bg-gray-950 animate-fade-in">
         <div className="max-w-5xl mx-auto py-16 px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center md:text-left">How the Hackathon Works</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center md:text-left">How the Hackathon Works</h2>
             {/* Pill badge legend */}
             <div className="flex gap-2 items-center text-sm">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold">● You</span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">● Automated</span>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100 font-semibold">● You</span>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-100 font-semibold">● Automated</span>
             </div>
           </div>
           <div className="relative">
@@ -114,52 +114,52 @@ export default function Frontpage() {
             <div className="relative grid grid-rows-2 grid-cols-3 gap-8 z-10">
               {/* First row: Submit Project, AI Research, AI Scoring */}
               <div className="row-start-1 col-start-1">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 dark:bg-blue-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-blue-200/80 text-blue-700">1</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[0].icon, { strokeWidth: 2, className: `h-10 w-10 text-blue-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[0].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[0].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[0].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[0].desc}</p>
                 </div>
               </div>
               <div className="row-start-1 col-start-2">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">2</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[1].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[1].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[1].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[1].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[1].desc}</p>
                 </div>
               </div>
               <div className="row-start-1 col-start-3">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">3</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[2].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[2].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[2].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[2].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[2].desc}</p>
                 </div>
               </div>
               {/* Second row: Community Voting, Synthesis, Watch Episodes */}
               <div className="row-start-2 col-start-1">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 dark:bg-blue-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-blue-200/80 text-blue-700">4</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[3].icon, { strokeWidth: 2, className: `h-10 w-10 text-blue-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[3].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[3].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[3].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[3].desc}</p>
                 </div>
               </div>
               <div className="row-start-2 col-start-2">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">5</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[4].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[4].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[4].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[4].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[4].desc}</p>
                 </div>
               </div>
               <div className="row-start-2 col-start-3">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">6</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[5].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 mt-2">{howItWorks[5].title}</h3>
-                  <p className="text-base text-gray-700 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[5].desc}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[5].title}</h3>
+                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[5].desc}</p>
                 </div>
               </div>
             </div>
@@ -168,15 +168,15 @@ export default function Frontpage() {
       </section>
 
       {/* Judges Panel */}
-      <section className="bg-white animate-fade-in">
+      <section className="bg-white dark:bg-gray-900 animate-fade-in">
         <div className="max-w-4xl mx-auto py-12 px-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 text-center">Meet the Judges</h2>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6 text-center">Meet the Judges</h2>
           <div className="flex flex-wrap justify-center gap-8">
             {judges.map(j => (
               <div key={j.name} className="flex flex-col items-center">
-                <img src={j.avatar} alt={j.name} className="h-16 w-16 rounded-full border border-gray-200 mb-2 bg-white object-cover" />
-                <span className="font-semibold text-gray-800">{j.name}</span>
-                <span className="text-xs text-indigo-600 mt-1" style={{ height: 32 }}>{j.tag}</span>
+                <img src={j.avatar} alt={j.name} className="h-28 w-28 rounded-full border border-gray-200 dark:border-gray-700 mb-2 bg-white dark:bg-gray-900 object-cover" />
+                <span className="font-bold text-xl text-gray-800 dark:text-gray-100 mt-1">{j.name}</span>
+                <span className="text-xs text-indigo-600 dark:text-indigo-300 mt-1" style={{ height: 32 }}>{j.tag}</span>
               </div>
             ))}
           </div>
@@ -184,14 +184,14 @@ export default function Frontpage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-slate-50 animate-fade-in">
+      <section className="bg-slate-50 dark:bg-gray-950 animate-fade-in">
         <div className="max-w-3xl mx-auto py-16 px-4">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-10 text-center">FAQ</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-10 text-center">FAQ</h2>
           <div className="space-y-8">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-indigo-700 mb-2">{faq.q}</h3>
-                <div className="text-gray-700 text-base leading-relaxed">{faq.a}</div>
+              <div key={i} className="bg-white dark:bg-gray-900 rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-indigo-700 dark:text-indigo-300 mb-2">{faq.q}</h3>
+                <div className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">{faq.a}</div>
               </div>
             ))}
           </div>

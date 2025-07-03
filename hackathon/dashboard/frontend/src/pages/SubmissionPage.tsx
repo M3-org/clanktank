@@ -390,12 +390,12 @@ const SubmissionPage: React.FC = () => {
     return (
         <div className="p-4 md:p-10">
             <Toaster position="top-right" />
-            <Card className="max-w-4xl mx-auto">
+            <Card className="max-w-4xl mx-auto bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
                 <CardHeader>
                     <div className="flex justify-between items-start">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Submit Your Hackathon Project</h1>
-                            <p className="mt-2 text-gray-600">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Submit Your Hackathon Project</h1>
+                            <p className="mt-2 text-gray-600 dark:text-gray-300">
                                 Fill out the details below to enter your project into the Clank Tank Hackathon. 
                                 All fields with an * are required.
                             </p>
@@ -406,15 +406,15 @@ const SubmissionPage: React.FC = () => {
                                 </Button>
                             </a>
                             {schemaError && (
-                                <p className="text-yellow-600 text-sm mt-2">{schemaError}</p>
+                                <p className="text-yellow-600 dark:text-yellow-400 text-sm mt-2">{schemaError}</p>
                             )}
                             {lastAutoSave && (
-                                <p className="text-green-600 text-xs mt-1">
+                                <p className="text-green-600 dark:text-green-400 text-xs mt-1">
                                     💾 Last saved: {lastAutoSave.toLocaleTimeString()}
                                 </p>
                             )}
                             {retryAttempt > 0 && (
-                                <p className="text-blue-600 text-xs mt-1">
+                                <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
                                     🔄 Retry attempt: {retryAttempt}/{MAX_RETRY_ATTEMPTS}
                                 </p>
                             )}
@@ -426,7 +426,7 @@ const SubmissionPage: React.FC = () => {
                                     variant="ghost"
                                     size="sm"
                                     onClick={clearAutoSave}
-                                    className="text-xs text-gray-500 hover:text-red-600"
+                                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                                 >
                                     🗑️ Clear Draft
                                 </Button>
@@ -439,19 +439,25 @@ const SubmissionPage: React.FC = () => {
                         <div className="flex items-center justify-center py-12">
                             <div className="text-center">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-                                <p className="text-gray-600">Loading submission form...</p>
+                                <p className="text-gray-600 dark:text-gray-300">Loading submission form...</p>
                                 {schemaError && (
-                                    <p className="text-yellow-600 text-sm mt-2">{schemaError}</p>
+                                    <p className="text-yellow-600 dark:text-yellow-400 text-sm mt-2">{schemaError}</p>
                                 )}
                             </div>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                            <span className="text-red-500 dark:text-red-400">*</span> Required fields
+                          </p>
                         {/* Render fields dynamically from schema */}
                         {schema.map(field => (
                             <div key={field.name} className="mb-4">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    {field.label}{field.required ? ' *' : ''}
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                    {field.label}
+                                    {field.required && (
+                                      <span className="text-red-500 dark:text-red-400 ml-0.5">*</span>
+                                    )}
                                 </label>
                                 {field.type === 'text' && (
                                     <input
@@ -459,7 +465,7 @@ const SubmissionPage: React.FC = () => {
                                         type="text"
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 )}
                                 {field.type === 'url' && (
@@ -468,7 +474,7 @@ const SubmissionPage: React.FC = () => {
                                         type="url"
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 )}
                                 {field.type === 'textarea' && (
@@ -477,7 +483,7 @@ const SubmissionPage: React.FC = () => {
                                         rows={field.maxLength && field.maxLength > 500 ? 4 : 3}
                                         placeholder={field.placeholder}
                                         maxLength={field.maxLength}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 )}
                                 {field.type === 'select' && Array.isArray(field.options) && (
@@ -488,7 +494,7 @@ const SubmissionPage: React.FC = () => {
                                             <select
                                                 {...ctrlField}
                                                 value={typeof ctrlField.value === 'string' ? ctrlField.value : ''}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                                             >
                                                 <option value="">{field.placeholder || 'Select an option'}</option>
                                                 {(field.options ?? []).map(option => (
@@ -519,16 +525,16 @@ const SubmissionPage: React.FC = () => {
                                                             ctrlField.onChange(file);
                                                         }
                                                     }}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 dark:file:bg-indigo-900 file:text-indigo-700 dark:file:text-indigo-400 hover:file:bg-indigo-100 dark:hover:file:bg-indigo-800"
                                                 />
                                                 {ctrlField.value && ctrlField.value instanceof File && (
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                                         <span>📎 {ctrlField.value.name}</span>
                                                         <span>({(ctrlField.value.size / 1024 / 1024).toFixed(2)} MB)</span>
                                                         <button
                                                             type="button"
                                                             onClick={() => ctrlField.onChange(null)}
-                                                            className="text-red-600 hover:text-red-700 ml-2"
+                                                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 ml-2"
                                                         >
                                                             Remove
                                                         </button>
@@ -539,10 +545,10 @@ const SubmissionPage: React.FC = () => {
                                     />
                                 )}
                                 {field.helperText && (
-                                    <p className="text-gray-500 text-xs mt-1">{field.helperText}</p>
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-1">{field.helperText}</p>
                                 )}
                                 {errors[field.name as any] && (
-                                    <p className="text-red-600 text-xs mt-1">{(errors[field.name as any] as any)?.message}</p>
+                                    <p className="text-red-600 dark:text-red-400 text-xs mt-1">{(errors[field.name as any] as any)?.message}</p>
                                 )}
                             </div>
                         ))}

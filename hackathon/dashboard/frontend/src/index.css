@@ -22,4 +22,7 @@
     background-color: rgb(156 163 175);
     border-radius: 20px;
   }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgb(55 65 81); /* gray-700 for dark mode */
+  }
 }

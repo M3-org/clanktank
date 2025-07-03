@@ -8,36 +8,36 @@ export function cn(...inputs: ClassValue[]) {
 export function getStatusColor(status: string) {
   switch (status) {
     case 'submitted':
-      return 'bg-yellow-100 text-yellow-800'
+      return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100'
     case 'researched':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
     case 'scored':
-      return 'bg-indigo-100 text-indigo-800'
+      return 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100'
     case 'community-voting':
-      return 'bg-purple-100 text-purple-800'
+      return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100'
     case 'completed':
-      return 'bg-green-100 text-green-800'
+      return 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100'
     case 'published':
-      return 'bg-emerald-100 text-emerald-800'
+      return 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-100'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'
   }
 }
 
 export function getCategoryColor(category: string) {
   switch (category) {
     case 'DeFi':
-      return 'bg-blue-100 text-blue-800'
+      return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
     case 'Gaming':
-      return 'bg-purple-100 text-purple-800'
+      return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100'
     case 'AI/Agents':
-      return 'bg-indigo-100 text-indigo-800'
+      return 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100'
     case 'Infrastructure':
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'
     case 'Social':
-      return 'bg-pink-100 text-pink-800'
+      return 'bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-100'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'
   }
 }
 
