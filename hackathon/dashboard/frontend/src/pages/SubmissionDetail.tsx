@@ -295,7 +295,7 @@ export default function SubmissionDetail() {
                           </div>
                         </div>
                         {/* Metrics + comments grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="flex flex-col gap-6">
                           {/* Round 1 */}
                           <div>
                             <div className="mb-2 flex items-center gap-2">
@@ -336,7 +336,7 @@ export default function SubmissionDetail() {
                                 </div>
                                 {round1.notes?.overall_comment ? (
                                   <div className={`mt-2`}> 
-                                    <div className={`relative flex items-start max-w-prose rounded-lg p-3 leading-6 italic ${round1.weighted_total >= 36 ? 'bg-indigo-50' : 'bg-gray-50'} border-l-4 ${round1.weighted_total >= 36 ? 'border-indigo-500' : 'border-gray-200'}`}> 
+                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic ${round1.weighted_total >= 36 ? 'bg-indigo-50' : 'bg-gray-50'} border-l-4 ${round1.weighted_total >= 36 ? 'border-indigo-500' : 'border-gray-200'}`}> 
                                       <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
                                       <span className="pl-6">"{round1.notes.overall_comment}"</span>
                                     </div>
@@ -359,7 +359,7 @@ export default function SubmissionDetail() {
                               <>
                                 {round2.notes?.final_verdict ? (
                                   <div className={`mt-2`}> 
-                                    <div className={`relative flex items-start max-w-prose rounded-lg p-3 leading-6 italic bg-green-50 border-l-4 border-green-400`}> 
+                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic bg-green-50 border-l-4 border-green-400`}> 
                                       <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
                                       <span className="pl-6">"{round2.notes.final_verdict}"</span>
                                     </div>
