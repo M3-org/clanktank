@@ -35,3 +35,6 @@ google-auth-oauthlib>=1.1.0
 pytest>=7.4.0  # For running tests
 black>=23.9.0  # Code formatter
 flake8>=6.1.0  # Linter
+
+# Image processing
+Pillow

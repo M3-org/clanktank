@@ -8,6 +8,7 @@ import { postSubmission } from '../lib/api';
 import { Button } from '../components/Button';
 import { Card, CardHeader, CardContent } from '../components/Card';
 import { loadSubmissionSchema, createYupSchemaFromFields } from '../lib/schemaLoader';
+import { Code } from 'lucide-react';
 
 // Auto-save constants
 const AUTO_SAVE_KEY = 'hackathon_submission_draft';
@@ -398,6 +399,12 @@ const SubmissionPage: React.FC = () => {
                                 Fill out the details below to enter your project into the Clank Tank Hackathon. 
                                 All fields with an * are required.
                             </p>
+                            <a href="/submission_schema.json" download className="inline-block mt-3">
+                                <Button variant="secondary" size="sm">
+                                    <Code className="h-4 w-4 mr-2" />
+                                    Download Submission Schema (JSON)
+                                </Button>
+                            </a>
                             {schemaError && (
                                 <p className="text-yellow-600 text-sm mt-2">{schemaError}</p>
                             )}

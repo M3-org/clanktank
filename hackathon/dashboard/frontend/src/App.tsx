@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard'
 import Leaderboard from './pages/Leaderboard'
 import SubmissionDetail from './pages/SubmissionDetail'
 import SubmissionPage from './pages/SubmissionPage'
+import Frontpage from './pages/Frontpage'
 import { Trophy, LayoutDashboard, Upload } from 'lucide-react'
 import { cn } from './lib/utils'
 
@@ -16,14 +17,16 @@ function Navigation() {
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Trophy className="h-8 w-8 text-indigo-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">Clank Tank Hackathon</h1>
+              <Link to="/">
+                <h1 className="text-xl font-bold text-gray-900 hover:text-indigo-700 transition-colors">Clank Tank Hackathon</h1>
+              </Link>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link
-                to="/"
+                to="/dashboard"
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
-                  location.pathname === "/" 
+                  location.pathname === "/dashboard" 
                     ? "border-indigo-500 text-gray-900" 
                     : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                 )}
@@ -72,7 +75,8 @@ function App() {
         {/* Main Content */}
         <main className="py-8">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Frontpage />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/submission/:id" element={<SubmissionDetail />} />
             <Route path="/submit" element={<SubmissionPage />} />

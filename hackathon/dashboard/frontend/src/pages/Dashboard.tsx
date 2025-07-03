@@ -345,7 +345,24 @@ export default function Dashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <CategoryBadge category={submission.category} />
+                      <div className="flex items-center justify-between mb-2 text-xs font-medium min-h-[1.25em]">
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          title={`Filter by ${submission.category}`}
+                          className={
+                            `cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:opacity-80 ` +
+                            (submission.category?.toLowerCase() === 'defi' ? 'text-blue-700' :
+                             submission.category?.toLowerCase() === 'gaming' ? 'text-green-800' :
+                             submission.category?.toLowerCase().includes('ai') ? 'text-yellow-800' :
+                             'text-gray-700')
+                          }
+                          onClick={() => setCategoryFilter(submission.category)}
+                          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setCategoryFilter(submission.category); }}
+                        >
+                          {submission.category}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={submission.status} />
@@ -383,9 +400,15 @@ export default function Dashboard() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {sortedSubmissions.map((submission) => (
-            <Card key={submission.submission_id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card
+              key={submission.submission_id}
+              className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col cursor-pointer group focus-within:ring-2 focus-within:ring-indigo-500"
+              tabIndex={0}
+              onClick={() => window.location.href = `/submission/${submission.submission_id}`}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/submission/${submission.submission_id}`; }}
+            >
               {/* Preview Image */}
-              <div className="aspect-video bg-gradient-to-br from-indigo-100 to-purple-100 relative overflow-hidden">
+              <div className="aspect-[9/5] bg-gradient-to-br from-indigo-100 to-purple-100 relative overflow-hidden">
                 {submission.project_image && 
                  typeof submission.project_image === 'string' && 
                  submission.project_image !== '[object File]' && 
@@ -425,36 +448,50 @@ export default function Dashboard() {
                     </Badge>
                   </div>
                 )}
+                {/* Category top left */}
+                <span
+                  role="button"
+                  tabIndex={0}
+                  title={`Filter by ${submission.category}`}
+                  className={
+                    `absolute top-2 left-2 z-10 text-xs font-semibold cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-indigo-500 hover:opacity-80 ` +
+                    (submission.category?.toLowerCase() === 'defi' ? 'text-blue-700' :
+                     submission.category?.toLowerCase() === 'gaming' ? 'text-green-800' :
+                     submission.category?.toLowerCase().includes('ai') ? 'text-yellow-800' :
+                     'text-gray-800')
+                  }
+                  onClick={() => setCategoryFilter(submission.category)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setCategoryFilter(submission.category); }}
+                >
+                  {submission.category}
+                </span>
+                {/* Status icon bottom right */}
+                <span
+                  className={
+                    `absolute bottom-2 right-2 z-10 text-lg font-bold select-none ` +
+                    (submission.status === 'completed' || submission.status === 'published'
+                      ? 'text-green-500'
+                      : 'text-amber-500')
+                  }
+                  title={submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                >
+                  {(submission.status === 'completed' || submission.status === 'published')
+                    ? '✓'
+                    : <span className="inline-block align-middle" style={{fontSize: '1em'}}>&#8987;</span>}
+                </span>
               </div>
-              
-              <CardContent className="p-4">
-                <div className="mb-3">
-                  <h3 className="font-semibold text-gray-900 truncate">
+              <CardContent className="p-4 flex flex-col flex-1">
+                <div className="flex items-baseline gap-2 mb-1 min-h-[2.5em]">
+                  <h3 className="font-semibold text-gray-900 line-clamp-2 truncate">
                     {submission.project_name}
                   </h3>
-                  <p className="text-sm text-gray-500 truncate">
-                    by {submission.team_name}
-                  </p>
+                  <span className="text-xs text-gray-500 truncate">· {submission.team_name}</span>
                 </div>
-                
-                <div className="flex items-center justify-between mb-4">
-                  <CategoryBadge category={submission.category} />
-                  <StatusBadge status={submission.status} />
-                </div>
-                
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                  <span>{formatDate(submission.created_at)}</span>
-                  {submission.judge_count && (
-                    <span>{submission.judge_count} judges</span>
-                  )}
-                </div>
-                
-                <Link to={`/submission/${submission.submission_id}`}>
-                  <Button variant="secondary" size="sm" className="w-full">
-                    View Details
-                    <ArrowUpRight className="h-3 w-3 ml-2" />
-                  </Button>
-                </Link>
+                {submission.description && (
+                  <div className="text-sm text-muted-foreground mb-2 line-clamp-2" title={submission.description}>
+                    {submission.description}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

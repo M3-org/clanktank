@@ -30,6 +30,9 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent))
 from hackathon.backend.schema import get_fields, get_schema, reload_schema
 
+from PIL import Image
+from io import BytesIO
+
 # Setup rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
@@ -140,6 +143,7 @@ class SubmissionSummary(BaseModel):
     avg_score: Optional[float] = None
     judge_count: Optional[int] = None
     project_image: Optional[str] = None
+    description: Optional[str] = None
 
 class SubmissionDetail(BaseModel):
     submission_id: str
@@ -162,6 +166,7 @@ class SubmissionDetail(BaseModel):
     scores: Optional[List[Dict[str, Any]]] = None
     research: Optional[Dict[str, Any]] = None
     avg_score: Optional[float] = None
+    solana_address: Optional[str] = None
 
 # Dynamically create the SubmissionCreate models from versioned manifests
 submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
@@ -241,6 +246,7 @@ async def root():
                 "GET /api/{version}/submissions": "List all submissions (versioned)",
                 "GET /api/{version}/submissions/{submission_id}": "Get submission details (versioned)",
                 "GET /api/{version}/submission-schema": "Get submission schema (versioned)",
+                "POST /api/upload-image": "Upload a project image and get a URL",
             },
             "judging": {
                 "GET /api/submission/{submission_id}/feedback": "Get community feedback for a submission"
@@ -250,6 +256,7 @@ async def root():
                 "GET /api/stats": "Get overall hackathon stats (latest)",
                 "GET /api/{version}/leaderboard": "Get public leaderboard (versioned)",
                 "GET /api/{version}/stats": "Get overall hackathon stats (versioned)",
+                "GET /api/uploads/{filename}": "Serve uploaded project images"
             }
         }
     }
@@ -327,80 +334,9 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             }
         )
 
-# Add endpoint to retrieve submission backup
-@app.get("/api/submission-backup/{submission_id}", tags=["latest"])
-async def get_submission_backup(submission_id: str):
-    """Retrieve submission backup for recovery purposes."""
-    backup_dir = Path("data/submission_backups")
-    
-    # Look for backup files for this submission
-    backup_files = list(backup_dir.glob(f"{submission_id}-*.json"))
-    
-    if not backup_files:
-        raise HTTPException(status_code=404, detail="No backup found for this submission ID")
-    
-    # Return the most recent backup
-    most_recent = max(backup_files, key=lambda f: f.stat().st_mtime)
-    
-    try:
-        with open(most_recent, 'r') as f:
-            backup_data = json.load(f)
-        
-        return {
-            "submission_id": submission_id,
-            "backup_file": str(most_recent),
-            "backup_data": backup_data,
-            "file_modified": datetime.fromtimestamp(most_recent.stat().st_mtime).isoformat()
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read backup file: {str(e)}")
-
-# Add endpoint to list all backups (admin only)
-@app.get("/api/submission-backups", tags=["latest"])
-async def list_submission_backups():
-    """List all submission backups for admin review."""
-    backup_dir = Path("data/submission_backups")
-    
-    if not backup_dir.exists():
-        return {"backups": [], "total": 0}
-    
-    backups = []
-    for backup_file in backup_dir.glob("*.json"):
-        try:
-            stat = backup_file.stat()
-            # Try to extract submission_id from filename
-            filename = backup_file.name
-            if filename.startswith("ERROR-"):
-                submission_id = filename.replace("ERROR-", "").split("-")[0]
-                backup_type = "error"
-            else:
-                submission_id = filename.split("-")[0]
-                backup_type = "normal"
-            
-            backups.append({
-                "filename": filename,
-                "submission_id": submission_id,
-                "type": backup_type,
-                "size_bytes": stat.st_size,
-                "created_at": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                "modified_at": datetime.fromtimestamp(stat.st_mtime).isoformat()
-            })
-        except Exception as e:
-            print(f"Warning: Failed to process backup file {backup_file}: {e}")
-            continue
-    
-    # Sort by creation time (newest first)
-    backups.sort(key=lambda x: x["created_at"], reverse=True)
-    
-    return {
-        "backups": backups,
-        "total": len(backups),
-        "backup_directory": str(backup_dir)
-    }
-
-# File upload endpoint
+@limiter.limit("5/minute")
 @app.post("/api/upload-image", tags=["latest"])
-async def upload_image(file: UploadFile = FastAPIFile(...)):
+async def upload_image(request: Request, file: UploadFile = FastAPIFile(...)):
     """Upload project image and return URL."""
     try:
         # Validate file type
@@ -413,19 +349,27 @@ async def upload_image(file: UploadFile = FastAPIFile(...)):
         if len(content) > MAX_SIZE:
             raise HTTPException(status_code=400, detail="File size must be less than 2MB")
         
+        # Verify and sanitize image using Pillow
+        try:
+            img = Image.open(BytesIO(content))
+            img.verify()  # Verify image integrity
+        except Exception:
+            raise HTTPException(status_code=400, detail="Uploaded file is not a valid image")
+        # Re-open image for re-encoding (verify() leaves file in unusable state)
+        img = Image.open(BytesIO(content))
+        img = img.convert("RGB")  # Ensure JPEG compatible
+        
         # Create uploads directory (use same path as serve_upload)
         uploads_dir = Path(__file__).parent / "data" / "uploads"
         uploads_dir.mkdir(parents=True, exist_ok=True)
         
-        # Generate unique filename
+        # Generate unique filename with .jpg extension
         import uuid
-        file_extension = Path(file.filename).suffix if file.filename else '.jpg'
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        unique_filename = f"{uuid.uuid4()}.jpg"
         file_path = uploads_dir / unique_filename
         
-        # Save file
-        with open(file_path, 'wb') as f:
-            f.write(content)
+        # Save sanitized image as JPEG
+        img.save(file_path, format="JPEG")
         
         # Return the file URL (relative to server)
         file_url = f"/api/uploads/{unique_filename}"
@@ -436,7 +380,7 @@ async def upload_image(file: UploadFile = FastAPIFile(...)):
             "success": True,
             "url": file_url,
             "filename": unique_filename,
-            "size": len(content)
+            "size": file_path.stat().st_size
         }
         
     except Exception as e:
@@ -461,15 +405,6 @@ async def serve_upload(filename: str):
 @app.get("/api/submission-schema", tags=["latest"], response_model=List[SubmissionFieldSchema])
 async def get_submission_schema_latest():
     return await get_submission_schema_versioned(version="v2")
-
-@app.post("/api/reload-schema", tags=["latest"])
-async def reload_schema_endpoint():
-    """Reload schema from file (useful for development)"""
-    try:
-        reload_schema()
-        return {"status": "success", "message": "Schema reloaded successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reload schema: {str(e)}")
 
 @app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
 async def get_leaderboard_latest():
@@ -1051,9 +986,10 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
             'scores': submission_dict.get('scores'),
             'research': submission_dict.get('research'),
             'avg_score': submission_dict.get('avg_score'),
+            'solana_address': submission_dict.get('solana_address'),
         }
         # Fill missing optional fields with None
-        for k in ['github_url','demo_video_url','live_demo_url','project_image','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score']:
+        for k in ['github_url','demo_video_url','live_demo_url','project_image','tech_stack','how_it_works','problem_solved','coolest_tech','next_steps','scores','research','avg_score','solana_address']:
             if k not in detail:
                 detail[k] = None
         
