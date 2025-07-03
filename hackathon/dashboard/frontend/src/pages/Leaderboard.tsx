@@ -126,8 +126,9 @@ export default function Leaderboard() {
                   {/* Project Info */}
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      {entry.project_name}
-                      <StatusBadge status={entry.status} />
+                      <a href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="hover:underline text-indigo-700">
+                        {entry.project_name}
+                      </a>
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-sm text-gray-600">
@@ -146,17 +147,6 @@ export default function Leaderboard() {
                     </div>
                     <div className="text-xs text-gray-500 uppercase tracking-wide">Score</div>
                   </div>
-                  
-                  {entry.youtube_url && (
-                    <Button
-                      onClick={() => window.open(entry.youtube_url, '_blank')}
-                      variant="secondary"
-                      size="sm"
-                    >
-                      Watch
-                      <ExternalLink className="h-3 w-3 ml-2" />
-                    </Button>
-                  )}
                 </div>
               </div>
             </div>

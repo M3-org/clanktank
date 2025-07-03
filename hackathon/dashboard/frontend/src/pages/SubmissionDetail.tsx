@@ -144,29 +144,15 @@ export default function SubmissionDetail() {
   return (
     <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
       {/* Hero Banner - full width, overlayed info */}
-      <div className="relative w-full h-72 md:h-96 mb-8 group overflow-hidden">
+      <div className="relative w-full h-72 md:h-96 mb-8 overflow-hidden">
         {/* Background: image/video or gray placeholder */}
         {submission.project_image ? (
-          <>
-            <img
-              src={submission.project_image}
-              alt={submission.project_name + ' project image'}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity group-hover:opacity-0"
-              style={{ zIndex: 1 }}
-            />
-            {submission.demo_video_url && (
-              <video
-                src={submission.demo_video_url}
-                className="absolute inset-0 w-full h-full object-cover hidden group-hover:block"
-                style={{ zIndex: 1 }}
-                muted
-                autoPlay
-                loop
-                playsInline
-                preload="metadata"
-              />
-            )}
-          </>
+          <img
+            src={submission.project_image}
+            alt={submission.project_name + ' project image'}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 1 }}
+          />
         ) : (
           <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-100">
             <span className="text-gray-400 text-lg">No project image</span>
