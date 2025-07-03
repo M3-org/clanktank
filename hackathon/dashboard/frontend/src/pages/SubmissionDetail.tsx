@@ -154,8 +154,8 @@ export default function SubmissionDetail() {
             style={{ zIndex: 1 }}
           />
         ) : (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-100">
-            <span className="text-gray-400 text-lg">No project image</span>
+          <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+            <span className="text-gray-400 dark:text-gray-500 text-lg">No project image</span>
           </div>
         )}
         {/* Gradient overlay */}
@@ -170,7 +170,7 @@ export default function SubmissionDetail() {
       {/* The rest of the page content follows here, in normal flow */}
       {/* Back Button */}
       <Link to="/dashboard">
-        <Button variant="ghost" size="sm" className="mb-6">
+        <Button variant="ghost" size="sm" className="mb-6 dark:text-gray-200 dark:hover:text-white">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
         </Button>
@@ -180,68 +180,68 @@ export default function SubmissionDetail() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <CardHeader>
-              <h2 className="text-xl font-semibold text-gray-900">Description</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Description</h2>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 leading-relaxed">{submission.description}</p>
+              <p className="text-gray-700 dark:text-gray-200 leading-relaxed">{submission.description}</p>
             </CardContent>
           </Card>
 
           {/* Details */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <CardHeader>
-              <h2 className="text-xl font-semibold text-gray-900">Project Details</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Project Details</h2>
             </CardHeader>
             <CardContent className="space-y-6">
               {submission.how_it_works && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     How It Works
                   </h3>
-                  <p className="text-gray-700 leading-relaxed ml-5">{submission.how_it_works}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.how_it_works}</p>
                 </div>
               )}
               
               {submission.problem_solved && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     Problem Solved
                   </h3>
-                  <p className="text-gray-700 leading-relaxed ml-5">{submission.problem_solved}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.problem_solved}</p>
                 </div>
               )}
               
               {submission.coolest_tech && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     Technical Highlights
                   </h3>
-                  <p className="text-gray-700 leading-relaxed ml-5">{submission.coolest_tech}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.coolest_tech}</p>
                 </div>
               )}
               
               {submission.next_steps && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     What's Next
                   </h3>
-                  <p className="text-gray-700 leading-relaxed ml-5">{submission.next_steps}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.next_steps}</p>
                 </div>
               )}
               
               {submission.tech_stack && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2 flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     Tech Stack
                   </h3>
-                  <p className="text-gray-700 leading-relaxed ml-5">{submission.tech_stack}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.tech_stack}</p>
                 </div>
               )}
             </CardContent>
@@ -249,9 +249,9 @@ export default function SubmissionDetail() {
 
           {/* Judge Scores */}
           {submission.scores && submission.scores.length > 0 && (
-            <Card>
+            <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
               <CardHeader>
-                <h2 className="text-xl font-semibold text-gray-900">Judge Scores</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Judge Scores</h2>
               </CardHeader>
               <CardContent>
                 {/* Judge-centric cards */}
@@ -264,33 +264,59 @@ export default function SubmissionDetail() {
                     const avatarSrc = judgeAvatarMap[judgeKey] || '/avatars/default.png';
                     console.log('Judge:', judgeName, 'Key:', judgeKey, 'Avatar:', avatarSrc);
                     return (
-                      <div key={judgeName} className="border border-gray-200 rounded-lg p-5 hover:border-indigo-300 transition-colors">
+                      <div key={judgeName} className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors bg-white dark:bg-gray-900">
                         {/* Judge header */}
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
                             <img
                               src={avatarSrc}
                               alt={judgeName + ' avatar'}
-                              className="h-8 w-8 rounded-full border border-gray-200 object-cover bg-white"
+                              className="h-8 w-8 rounded-full border border-gray-200 dark:border-gray-700 object-cover bg-white dark:bg-gray-800"
                               style={{ minWidth: 32, minHeight: 32 }}
                             />
                             <div>
-                              <h4 className="font-medium text-gray-900 capitalize">
+                              <h4 className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                                 {judgeName.replace('ai', 'AI ')}
                               </h4>
-                              <p className="text-xs text-gray-500">AI Judge</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">AI Judge</p>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             {round1 && (
-                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-indigo-600 font-semibold text-xs tabular-nums">
-                                R1: {round1.weighted_total.toFixed(2)}
-                              </span>
+                              <div className="w-44 flex flex-col items-end">
+                                <div className="flex items-center w-full">
+                                  <span className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mr-2">R1</span>
+                                  <div className="flex-1 h-3 rounded bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                                    <div
+                                      className="h-full rounded"
+                                      style={{
+                                        width: `${Math.min((round1.weighted_total / 40) * 100, 100)}%`,
+                                        background: 'linear-gradient(90deg, #6366f1, #818cf8)',
+                                        transition: 'width 0.3s'
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="ml-2 text-xs font-medium tabular-nums min-w-[38px] text-right text-gray-900 dark:text-gray-100">{round1.weighted_total.toFixed(2)}/40</span>
+                                </div>
+                              </div>
                             )}
                             {round2 && (
-                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-green-700 font-semibold text-xs tabular-nums">
-                                R2: {round2.weighted_total.toFixed(2)}
-                              </span>
+                              <div className="w-44 flex flex-col items-end">
+                                <div className="flex items-center w-full">
+                                  <span className="text-xs text-green-700 dark:text-green-400 font-semibold mr-2">R2</span>
+                                  <div className="flex-1 h-3 rounded bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
+                                    <div
+                                      className="h-full rounded"
+                                      style={{
+                                        width: `${Math.min((round2.weighted_total / 40) * 100, 100)}%`,
+                                        background: 'linear-gradient(90deg, #22c55e, #4ade80)',
+                                        transition: 'width 0.3s'
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="ml-2 text-xs font-medium tabular-nums min-w-[38px] text-right text-gray-900 dark:text-gray-100">{round2.weighted_total.toFixed(2)}/40</span>
+                                </div>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -300,7 +326,7 @@ export default function SubmissionDetail() {
                           <div>
                             <div className="mb-2 flex items-center gap-2">
                               <span className="inline-block h-2 w-2 rounded-full bg-indigo-500"></span>
-                              <span className="text-xs font-semibold text-indigo-700">Round 1</span>
+                              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-400">Round 1</span>
                             </div>
                             {round1 ? (
                               <>
@@ -315,9 +341,9 @@ export default function SubmissionDetail() {
                                     const label = (key as string).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                                     return (
                                       <div key={key as string} className="flex items-center gap-2">
-                                        <Icon className="h-4 w-4 text-gray-400" />
-                                        <span className="w-24 text-xs text-gray-700">{label}</span>
-                                        <div className="flex-1 h-3 rounded bg-gray-200 relative overflow-hidden">
+                                        <Icon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                                        <span className="w-24 text-xs text-gray-700 dark:text-gray-200">{label}</span>
+                                        <div className="flex-1 h-3 rounded bg-gray-200 dark:bg-gray-700 relative overflow-hidden">
                                           {typeof value === 'number' && value >= 0 ? (
                                             <div
                                               className="h-full rounded"
@@ -329,47 +355,47 @@ export default function SubmissionDetail() {
                                             />
                                           ) : null}
                                         </div>
-                                        <span className="ml-2 text-xs font-medium tabular-nums min-w-[32px] text-right">{value !== null && value !== undefined ? value + '/10' : '-'}</span>
+                                        <span className="ml-2 text-xs font-medium tabular-nums min-w-[32px] text-right text-gray-900 dark:text-gray-100">{value !== null && value !== undefined ? value + '/10' : '-'}</span>
                                       </div>
                                     )
                                   })}
                                 </div>
                                 {round1.notes?.overall_comment ? (
                                   <div className={`mt-2`}> 
-                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic ${round1.weighted_total >= 36 ? 'bg-indigo-50' : 'bg-gray-50'} border-l-4 ${round1.weighted_total >= 36 ? 'border-indigo-500' : 'border-gray-200'}`}> 
-                                      <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
-                                      <span className="pl-6">"{round1.notes.overall_comment}"</span>
+                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic ${round1.weighted_total >= 36 ? 'bg-indigo-50 dark:bg-indigo-900' : 'bg-gray-50 dark:bg-gray-800'} border-l-4 ${round1.weighted_total >= 36 ? 'border-indigo-500 dark:border-indigo-400' : 'border-gray-200 dark:border-gray-700'}`}> 
+                                      <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute left-2 top-2" />
+                                      <span className="pl-6 text-gray-900 dark:text-gray-100">"{round1.notes.overall_comment}"</span>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="mt-2 text-xs text-gray-400 italic">– no comment –</div>
+                                  <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">– no comment –</div>
                                 )}
                               </>
                             ) : (
-                              <div className="text-xs text-gray-400 italic">No round 1 data</div>
+                              <div className="text-xs text-gray-400 dark:text-gray-500 italic">No round 1 data</div>
                             )}
                           </div>
                           {/* Round 2 */}
                           <div>
                             <div className="mb-2 flex items-center gap-2">
                               <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
-                              <span className="text-xs font-semibold text-green-700">Round 2</span>
+                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">Round 2</span>
                             </div>
                             {round2 ? (
                               <>
                                 {round2.notes?.final_verdict ? (
                                   <div className={`mt-2`}> 
-                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic bg-green-50 border-l-4 border-green-400`}> 
-                                      <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
-                                      <span className="pl-6">"{round2.notes.final_verdict}"</span>
+                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic bg-green-50 dark:bg-green-900 border-l-4 border-green-400 dark:border-green-500`}> 
+                                      <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute left-2 top-2" />
+                                      <span className="pl-6 text-gray-900 dark:text-gray-100">"{round2.notes.final_verdict}"</span>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="mt-2 text-xs text-gray-400 italic">– no final verdict –</div>
+                                  <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">– no final verdict –</div>
                                 )}
                               </>
                             ) : (
-                              <div className="text-xs text-gray-400 italic">No round 2 data</div>
+                              <div className="text-xs text-gray-400 dark:text-gray-500 italic">No round 2 data</div>
                             )}
                           </div>
                         </div>
@@ -385,58 +411,58 @@ export default function SubmissionDetail() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Metadata */}
-          <Card>
+          <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <CardHeader>
-              <h3 className="text-lg font-semibold text-gray-900">Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Information</h3>
             </CardHeader>
             <CardContent>
               <dl className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <dt className="flex items-center text-sm text-gray-500">
+                  <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <Hash className="h-4 w-4 mr-2" />
                     Submission ID
                   </dt>
-                  <dd className="text-sm font-medium text-gray-900">{submission.submission_id}</dd>
+                  <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">{submission.submission_id}</dd>
                 </div>
                 <div className="flex items-center justify-between">
-                  <dt className="flex items-center text-sm text-gray-500">
+                  <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <Calendar className="h-4 w-4 mr-2" />
                     Created
                   </dt>
-                  <dd className="text-sm font-medium text-gray-900">
+                  <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {formatDate(submission.created_at)}
                   </dd>
                 </div>
                 {submission.github_url && (
                   <div className="flex items-center justify-between">
-                    <dt className="flex items-center text-sm text-gray-500">
+                    <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       <Github className="h-4 w-4 mr-2" />
                       GitHub
                     </dt>
-                    <dd className="text-sm font-medium text-indigo-700 truncate max-w-[160px]">
-                      <a href={submission.github_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900">Repo ↗</a>
+                    <dd className="text-sm font-medium text-indigo-700 dark:text-indigo-400 truncate max-w-[160px]">
+                      <a href={submission.github_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 dark:hover:text-indigo-200">Repo ↗</a>
                     </dd>
                   </div>
                 )}
                 {submission.demo_video_url && (
                   <div className="flex items-center justify-between">
-                    <dt className="flex items-center text-sm text-gray-500">
+                    <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       <Video className="h-4 w-4 mr-2" />
                       Demo Video
                     </dt>
-                    <dd className="text-sm font-medium text-indigo-700 truncate max-w-[160px]">
-                      <a href={submission.demo_video_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900">Watch ↗</a>
+                    <dd className="text-sm font-medium text-indigo-700 dark:text-indigo-400 truncate max-w-[160px]">
+                      <a href={submission.demo_video_url} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 dark:hover:text-indigo-200">Watch ↗</a>
                     </dd>
                   </div>
                 )}
                 {submission['solana_address'] && (
                   <div className="flex items-center justify-between">
-                    <dt className="flex items-center text-sm text-gray-500">
+                    <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                       {solanaLogo}
                       Solana Address
                     </dt>
-                    <dd className="text-xs font-mono text-indigo-700 truncate max-w-[160px] flex items-center">
-                      <a href={`https://solscan.io/account/${submission['solana_address']}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 flex items-center">
+                    <dd className="text-xs font-mono text-indigo-700 dark:text-indigo-400 truncate max-w-[160px] flex items-center">
+                      <a href={`https://solscan.io/account/${submission['solana_address']}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 dark:hover:text-indigo-200 flex items-center">
                         {truncateSolanaAddress(submission['solana_address'])}
                       </a>
                     </dd>
@@ -448,15 +474,15 @@ export default function SubmissionDetail() {
 
           {/* Research Summary */}
           {submission.research && (
-            <Card>
+            <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
               <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900">Research Summary</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Research Summary</h3>
               </CardHeader>
               <CardContent>
                 {submission.research.github_analysis && (
-                  <div className="mb-4 p-4 bg-indigo-50 rounded-lg">
+                  <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-gray-900 flex items-center">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
                         <Github className="h-4 w-4 mr-2" />
                         GitHub Analysis
                       </h4>
@@ -464,12 +490,12 @@ export default function SubmissionDetail() {
                         Score: {submission.research.github_analysis.quality_score || 'N/A'}/100
                       </Badge>
                     </div>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
                       Repository analyzed for code quality and activity
                     </p>
                   </div>
                 )}
-                <p className="text-xs text-gray-500 italic">
+                <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                   Detailed research data available in database
                 </p>
               </CardContent>
@@ -478,27 +504,27 @@ export default function SubmissionDetail() {
 
           {/* Community Feedback */}
           {feedback && feedback.total_votes > 0 && (
-            <Card>
+            <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
               <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Heart className="h-5 w-5 mr-2 text-red-500" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                  <Heart className="h-5 w-5 mr-2 text-red-500 dark:text-red-400" />
                   Community Feedback
                 </h3>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
                     <span className="font-medium">{feedback.total_votes}</span> total votes from the community
                   </p>
                   
                   <div className="space-y-3">
                     {feedback.feedback.map((item: any) => (
-                      <div key={item.reaction_type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={item.reaction_type} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div className="flex items-center gap-3">
                           <span className="text-xl">{item.emoji}</span>
                           <div>
-                            <span className="text-sm font-medium text-gray-900">{item.name}</span>
-                            <p className="text-xs text-gray-500">{item.vote_count} votes</p>
+                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{item.vote_count} votes</p>
                           </div>
                         </div>
                         <div className="text-right">

@@ -7,12 +7,12 @@ interface BadgeProps {
 }
 
 const variantStyles = {
-  default: 'bg-gray-100 text-gray-800 ring-1 ring-inset ring-gray-500/10',
-  secondary: 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10',
-  success: 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20',
-  warning: 'bg-yellow-50 text-yellow-800 ring-1 ring-inset ring-yellow-600/20',
-  error: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/10',
-  info: 'bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-700/10',
+  default: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 ring-1 ring-inset ring-gray-500/10',
+  secondary: 'bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-100 ring-1 ring-inset ring-blue-700/10',
+  success: 'bg-green-50 dark:bg-green-900 text-green-700 dark:text-green-100 ring-1 ring-inset ring-green-600/20',
+  warning: 'bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 ring-1 ring-inset ring-yellow-600/20',
+  error: 'bg-red-50 dark:bg-red-900 text-red-700 dark:text-red-100 ring-1 ring-inset ring-red-600/10',
+  info: 'bg-indigo-50 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-100 ring-1 ring-inset ring-indigo-700/10',
 }
 
 export function Badge({ children, variant = 'default', className }: BadgeProps) {

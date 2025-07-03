@@ -11,14 +11,14 @@ function Navigation() {
   const location = useLocation()
   
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Trophy className="h-8 w-8 text-indigo-600 mr-3" />
               <Link to="/">
-                <h1 className="text-xl font-bold text-gray-900 hover:text-indigo-700 transition-colors">Clank Tank Hackathon</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-indigo-700 dark:hover:text-indigo-400 transition-colors">Clank Tank Hackathon</h1>
               </Link>
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
@@ -27,8 +27,8 @@ function Navigation() {
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
                   location.pathname === "/dashboard" 
-                    ? "border-indigo-500 text-gray-900" 
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-indigo-500 text-gray-900 dark:text-gray-100" 
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
                 )}
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -39,8 +39,8 @@ function Navigation() {
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
                   location.pathname === "/leaderboard"
-                    ? "border-indigo-500 text-gray-900"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-indigo-500 text-gray-900 dark:text-gray-100"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
                 )}
               >
                 <Trophy className="h-4 w-4 mr-2" />
@@ -51,8 +51,8 @@ function Navigation() {
                 className={cn(
                   "inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors",
                   location.pathname === "/submit"
-                    ? "border-indigo-500 text-gray-900"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                    ? "border-indigo-500 text-gray-900 dark:text-gray-100"
+                    : "border-transparent text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
                 )}
               >
                 <Upload className="h-4 w-4 mr-2" />
@@ -69,7 +69,7 @@ function Navigation() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <Navigation />
         
         {/* Main Content */}

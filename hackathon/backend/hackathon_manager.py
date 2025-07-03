@@ -157,11 +157,14 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 elif key == 'overall':
                     overall_comment = match.group(1).strip()
                 else:
-                    score = int(match.group(1))
-                    # Ensure score is within valid range
-                    scores[key] = max(0, min(10, score))
+                    try:
+                        score = int(match.group(1))
+                        scores[key] = max(0, min(10, score))
+                    except (ValueError, IndexError):
+                        logger.warning(f"Could not parse score for {key}, defaulting to 5.")
+                        scores[key] = 5
         
-        # Validate we have all required scores
+        # Validate we have all required scores, default if missing
         required_scores = ['innovation', 'technical_execution', 'market_potential', 'user_experience']
         for criterion in required_scores:
             if criterion not in scores:

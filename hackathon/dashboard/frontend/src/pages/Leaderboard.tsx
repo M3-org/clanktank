@@ -50,13 +50,13 @@ export default function Leaderboard() {
   const statusColor = (status: string) => {
     switch (status) {
       case 'scored':
-        return 'bg-blue-100 text-blue-700 border-blue-300';
+        return 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100 border-blue-300 dark:border-blue-700';
       case 'completed':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700';
       case 'published':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
+        return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 border-purple-300 dark:border-purple-700';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600';
     }
   };
 
@@ -80,8 +80,8 @@ export default function Leaderboard() {
             </div>
           </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Hackathon Leaderboard</h1>
-        <p className="text-lg text-gray-600">Top projects as judged by our AI panel</p>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Hackathon Leaderboard</h1>
+        <p className="text-lg text-gray-600 dark:text-gray-300">Top projects as judged by our AI panel</p>
         
         <Button
           onClick={shareLeaderboard}
@@ -93,7 +93,7 @@ export default function Leaderboard() {
       </div>
 
       {/* Leaderboard */}
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
           <h2 className="text-xl font-semibold text-white">Final Rankings</h2>
         </div>
@@ -103,9 +103,9 @@ export default function Leaderboard() {
             <div
               key={`${entry.rank}-${entry.project_name}`}
               className={cn(
-                "px-6 py-6 hover:bg-gray-50 transition-colors border-l-4",
+                "px-6 py-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4",
                 statusColor(entry.status || "unknown"),
-                index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50",
+                index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-gray-900 dark:to-gray-800",
                 index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50",
                 index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50"
               )}
@@ -125,13 +125,13 @@ export default function Leaderboard() {
                   
                   {/* Project Info */}
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <a href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="hover:underline text-indigo-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <a href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="hover:underline text-cyan-600 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200">
                         {entry.project_name}
                       </a>
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
                         by <span className="font-medium">{entry.team_name}</span>
                       </span>
                       <CategoryBadge category={entry.category} />
@@ -142,10 +142,10 @@ export default function Leaderboard() {
                 {/* Score and Link */}
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-gray-900">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
                       {entry.final_score.toFixed(2)}
                     </div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Score</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Score</div>
                   </div>
                 </div>
               </div>
@@ -156,7 +156,7 @@ export default function Leaderboard() {
 
       {/* Footer */}
       <div className="mt-8 text-center">
-        <Card>
+        <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
           <CardContent className="py-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">About the Scoring</h3>
             <p className="text-sm text-gray-600 max-w-2xl mx-auto">
