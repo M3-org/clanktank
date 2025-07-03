@@ -21,7 +21,8 @@ import {
   Hash,
   RefreshCcw,
   Trophy,
-  Heart
+  Heart,
+  Quote
 } from 'lucide-react'
 import { StatusBadge } from '../components/StatusBadge'
 import { CategoryBadge } from '../components/CategoryBadge'
@@ -31,6 +32,9 @@ export default function SubmissionDetail() {
   const [submission, setSubmission] = useState<SubmissionDetailType | null>(null)
   const [feedback, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  // Tab state for round selection
+  const [selectedRound, setSelectedRound] = useState(1)
 
   useEffect(() => {
     if (id) {
@@ -95,11 +99,31 @@ export default function SubmissionDetail() {
     )
   }
 
+  // Only compute these after submission is loaded
+  const availableRounds = Array.from(new Set((submission.scores || []).map(s => s.round))).sort()
+  const filteredScores = (submission.scores || []).filter(s => s.round === selectedRound)
+
   const scoreIcons = {
     innovation: Star,
     technical_execution: Code,
     market_potential: TrendingUp,
     user_experience: Users
+  }
+
+  // Add mapping for judge avatars
+  const judgeAvatarMap: Record<string, string> = {
+    'eliza': '/avatars/eliza.png',
+    'aimarc': '/avatars/aimarc.png',
+    'aishaw': '/avatars/aishaw.png',
+    'spartan': '/avatars/spartan.png',
+    'peepo': '/avatars/peepo.png',
+  }
+
+  // Helper for score gradient
+  function getScoreGradient(value: number) {
+    if (value <= 5) return 'linear-gradient(90deg, #ef4444, #f87171)'; // red
+    if (value <= 8) return 'linear-gradient(90deg, #f59e42, #fbbf24)'; // orange
+    return 'linear-gradient(90deg, #fbbf24, #ffd700)'; // gold
   }
 
   return (
@@ -115,65 +139,81 @@ export default function SubmissionDetail() {
       {/* Header */}
       <Card className="mb-6">
         <CardContent className="py-8">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900">{submission.project_name}</h1>
-              <p className="mt-2 text-xl text-gray-600">by <span className="font-medium">{submission.team_name}</span></p>
-              
-              <div className="mt-6 flex flex-wrap gap-3">
-                <CategoryBadge category={submission.category} />
-                <StatusBadge status={submission.status} />
-                {submission.avg_score && (
-                  <Badge variant="default">
-                    <Trophy className="h-3 w-3 mr-1" />
-                    Score: {submission.avg_score.toFixed(2)}/40
-                  </Badge>
+          <div className="flex flex-col md:flex-row md:items-center gap-8">
+            {/* Project Image */}
+            <div className="flex-shrink-0 flex justify-center md:justify-start">
+              {submission.project_image ? (
+                <img
+                  src={submission.project_image}
+                  alt={submission.project_name + ' project image'}
+                  className="h-48 w-80 max-w-full rounded-xl shadow-lg object-cover bg-gray-50 border border-gray-200"
+                  style={{ aspectRatio: '16/9' }}
+                />
+              ) : (
+                <div className="h-48 w-80 max-w-full flex items-center justify-center bg-gray-100 rounded-xl border border-gray-200">
+                  <span className="text-gray-400 text-lg">No project image</span>
+                </div>
+              )}
+            </div>
+            {/* Project Info */}
+            <div className="flex-1 flex flex-col justify-between min-w-0">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2 truncate">{submission.project_name}</h1>
+                <p className="text-lg text-gray-600 mb-4 truncate">by <span className="font-medium">{submission.team_name}</span></p>
+                <div className="flex flex-wrap gap-3 mb-4">
+                  <CategoryBadge category={submission.category} />
+                  <StatusBadge status={submission.status} />
+                  {submission.avg_score && (
+                    <Badge variant="default">
+                      <Trophy className="h-3 w-3 mr-1" />
+                      Score: {submission.avg_score.toFixed(2)}/40
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              {/* Links */}
+              <div className="flex flex-wrap gap-3 mt-2">
+                {submission.github_url && (
+                  <a
+                    href={submission.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="secondary" size="sm">
+                      <Github className="h-4 w-4 mr-2" />
+                      GitHub
+                      <ExternalLink className="h-3 w-3 ml-2" />
+                    </Button>
+                  </a>
+                )}
+                {submission.demo_video_url && (
+                  <a
+                    href={submission.demo_video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="secondary" size="sm">
+                      <Video className="h-4 w-4 mr-2" />
+                      Demo Video
+                      <ExternalLink className="h-3 w-3 ml-2" />
+                    </Button>
+                  </a>
+                )}
+                {submission.live_demo_url && (
+                  <a
+                    href={submission.live_demo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="secondary" size="sm">
+                      <Globe className="h-4 w-4 mr-2" />
+                      Live Demo
+                      <ExternalLink className="h-3 w-3 ml-2" />
+                    </Button>
+                  </a>
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Links */}
-          <div className="mt-8 pt-6 border-t border-gray-100 flex flex-wrap gap-3">
-            {submission.github_url && (
-              <a
-                href={submission.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="secondary" size="sm">
-                  <Github className="h-4 w-4 mr-2" />
-                  GitHub
-                  <ExternalLink className="h-3 w-3 ml-2" />
-                </Button>
-              </a>
-            )}
-            {submission.demo_video_url && (
-              <a
-                href={submission.demo_video_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="secondary" size="sm">
-                  <Video className="h-4 w-4 mr-2" />
-                  Demo Video
-                  <ExternalLink className="h-3 w-3 ml-2" />
-                </Button>
-              </a>
-            )}
-            {submission.live_demo_url && (
-              <a
-                href={submission.live_demo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="secondary" size="sm">
-                  <Globe className="h-4 w-4 mr-2" />
-                  Live Demo
-                  <ExternalLink className="h-3 w-3 ml-2" />
-                </Button>
-              </a>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -256,55 +296,128 @@ export default function SubmissionDetail() {
                 <h2 className="text-xl font-semibold text-gray-900">Judge Scores</h2>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {submission.scores.map((score) => (
-                    <div key={score.judge_name} className="border border-gray-200 rounded-lg p-5 hover:border-indigo-300 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-medium text-gray-900 capitalize">
-                            {score.judge_name.replace('ai', 'AI ')}
-                          </h4>
-                          <p className="text-xs text-gray-500">AI Judge</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-2xl font-bold text-indigo-600">
-                            {score.weighted_total.toFixed(2)}
-                          </span>
-                          <p className="text-xs text-gray-500">Total Score</p>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-gray-100">
-                        {Object.entries({
-                          innovation: score.innovation,
-                          technical_execution: score.technical_execution,
-                          market_potential: score.market_potential,
-                          user_experience: score.user_experience
-                        }).map(([key, value]) => {
-                          const Icon = scoreIcons[key as keyof typeof scoreIcons]
-                          return (
-                            <div key={key} className="flex items-center justify-between bg-gray-50 rounded-md px-3 py-2">
-                              <div className="flex items-center gap-2">
-                                <Icon className="h-4 w-4 text-indigo-600" />
-                                <span className="text-sm text-gray-700">
-                                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                                </span>
-                              </div>
-                              <span className="text-sm font-semibold">{value}/10</span>
+                {/* Judge-centric cards */}
+                <div className="space-y-6">
+                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey, idx) => {
+                    const round1 = (submission.scores || []).find(s => s.judge_name && s.round === 1 && s.judge_name.trim().toLowerCase() === judgeKey)
+                    const round2 = (submission.scores || []).find(s => s.judge_name && s.round === 2 && s.judge_name.trim().toLowerCase() === judgeKey)
+                    // Use the original judge name from round1 or round2 for display
+                    const judgeName = round1?.judge_name || round2?.judge_name || judgeKey
+                    const avatarSrc = judgeAvatarMap[judgeKey] || '/avatars/default.png';
+                    console.log('Judge:', judgeName, 'Key:', judgeKey, 'Avatar:', avatarSrc);
+                    return (
+                      <div key={judgeName} className="border border-gray-200 rounded-lg p-5 hover:border-indigo-300 transition-colors">
+                        {/* Judge header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={avatarSrc}
+                              alt={judgeName + ' avatar'}
+                              className="h-8 w-8 rounded-full border border-gray-200 object-cover bg-white"
+                              style={{ minWidth: 32, minHeight: 32 }}
+                            />
+                            <div>
+                              <h4 className="font-medium text-gray-900 capitalize">
+                                {judgeName.replace('ai', 'AI ')}
+                              </h4>
+                              <p className="text-xs text-gray-500">AI Judge</p>
                             </div>
-                          )
-                        })}
-                      </div>
-                      
-                      {score.notes?.overall_comment && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <p className="text-sm text-gray-600 italic bg-gray-50 rounded-md p-3">
-                            "{score.notes.overall_comment}"
-                          </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            {round1 && (
+                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-indigo-600 font-semibold text-xs tabular-nums">
+                                R1: {round1.weighted_total.toFixed(2)}
+                              </span>
+                            )}
+                            {round2 && (
+                              <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-green-700 font-semibold text-xs tabular-nums">
+                                R2: {round2.weighted_total.toFixed(2)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {/* Metrics + comments grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Round 1 */}
+                          <div>
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className="inline-block h-2 w-2 rounded-full bg-indigo-500"></span>
+                              <span className="text-xs font-semibold text-indigo-700">Round 1</span>
+                            </div>
+                            {round1 ? (
+                              <>
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                  {[
+                                    ['innovation', round1.innovation],
+                                    ['technical_execution', round1.technical_execution],
+                                    ['market_potential', round1.market_potential],
+                                    ['user_experience', round1.user_experience],
+                                  ].map(([key, value]) => {
+                                    const Icon = scoreIcons[key as keyof typeof scoreIcons]
+                                    const label = (key as string).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                                    return (
+                                      <div key={key as string} className="flex items-center gap-2">
+                                        <Icon className="h-4 w-4 text-gray-400" />
+                                        <span className="w-24 text-xs text-gray-700">{label}</span>
+                                        <div className="flex-1 h-3 rounded bg-gray-200 relative overflow-hidden">
+                                          {typeof value === 'number' && value >= 0 ? (
+                                            <div
+                                              className="h-full rounded"
+                                              style={{
+                                                width: `${(value as number / 10) * 100}%`,
+                                                background: getScoreGradient(value as number),
+                                                transition: 'width 0.3s'
+                                              }}
+                                            />
+                                          ) : null}
+                                        </div>
+                                        <span className="ml-2 text-xs font-medium tabular-nums min-w-[32px] text-right">{value !== null && value !== undefined ? value + '/10' : '-'}</span>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                                {round1.notes?.overall_comment ? (
+                                  <div className={`mt-2`}> 
+                                    <div className={`relative flex items-start max-w-prose rounded-lg p-3 leading-6 italic ${round1.weighted_total >= 36 ? 'bg-indigo-50' : 'bg-gray-50'} border-l-4 ${round1.weighted_total >= 36 ? 'border-indigo-500' : 'border-gray-200'}`}> 
+                                      <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
+                                      <span className="pl-6">"{round1.notes.overall_comment}"</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="mt-2 text-xs text-gray-400 italic">– no comment –</div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-400 italic">No round 1 data</div>
+                            )}
+                          </div>
+                          {/* Round 2 */}
+                          <div>
+                            <div className="mb-2 flex items-center gap-2">
+                              <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
+                              <span className="text-xs font-semibold text-green-700">Round 2</span>
+                            </div>
+                            {round2 ? (
+                              <>
+                                {round2.notes?.final_verdict ? (
+                                  <div className={`mt-2`}> 
+                                    <div className={`relative flex items-start max-w-prose rounded-lg p-3 leading-6 italic bg-green-50 border-l-4 border-green-400`}> 
+                                      <Quote className="h-4 w-4 text-gray-400 opacity-60 absolute left-2 top-2" />
+                                      <span className="pl-6">"{round2.notes.final_verdict}"</span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="mt-2 text-xs text-gray-400 italic">– no final verdict –</div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-400 italic">No round 2 data</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </CardContent>
             </Card>

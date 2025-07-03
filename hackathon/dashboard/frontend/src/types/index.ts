@@ -27,14 +27,16 @@ export interface SubmissionDetail extends SubmissionSummary {
 
 export interface Score {
   judge_name: string
-  innovation: number
-  technical_execution: number
-  market_potential: number
-  user_experience: number
+  innovation: number | null
+  technical_execution: number | null
+  market_potential: number | null
+  user_experience: number | null
   weighted_total: number
+  round: number
   notes?: {
     reasons?: Record<string, string>
     overall_comment?: string
+    final_verdict?: string
   }
 }
 
