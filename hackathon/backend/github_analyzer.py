@@ -234,10 +234,12 @@ class GitHubAnalyzer:
         return analysis
     
     def calculate_quality_score(self, analysis):
-        """Calculate a quality score based on various factors."""
+        """Calculate a quality score based on various factors.
+        (2024-06: Stars, forks, and language diversity are no longer scored for hackathon fairness.)
+        """
         score = 0
-        max_score = 100
-        
+        max_score = 100  # Keep 100-point scale
+
         # README quality (20 points)
         readme = analysis.get('readme_analysis', {})
         if readme.get('exists'):
@@ -248,7 +250,7 @@ class GitHubAnalyzer:
                 score += 5
             if readme.get('has_usage'):
                 score += 5
-        
+
         # Code structure (20 points)
         structure = analysis.get('file_structure', {})
         if structure.get('has_tests'):
@@ -257,7 +259,7 @@ class GitHubAnalyzer:
             score += 5
         if structure.get('has_ci'):
             score += 5
-        
+
         # Activity (20 points)
         commits = analysis.get('commit_activity', {})
         if commits.get('total_commits', 0) > 10:
@@ -266,22 +268,23 @@ class GitHubAnalyzer:
             score += 5
         if commits.get('daily_average', 0) > 0.5:
             score += 5
-        
+
         # Community (20 points)
-        if analysis.get('stars', 0) > 0:
-            score += 5
-        if analysis.get('forks', 0) > 0:
-            score += 5
+        # Stars and forks removed from scoring (2024-06)
+        # if analysis.get('stars', 0) > 0:
+        #     score += 5
+        # if analysis.get('forks', 0) > 0:
+        #     score += 5
         if analysis.get('license') != 'None':
             score += 10
-        
+
         # Technical diversity (20 points)
-        languages = analysis.get('languages', {})
-        if len(languages) > 1:
-            score += 10
-        if len(languages) > 3:
-            score += 10
-        
+        # Language diversity removed from scoring (2024-06)
+        # if len(languages) > 1:
+        #     score += 10
+        # if len(languages) > 3:
+        #     score += 10
+
         return min(score, max_score)
 
 def main():
