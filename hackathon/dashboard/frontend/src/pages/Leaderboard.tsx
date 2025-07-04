@@ -2,11 +2,9 @@ import { useEffect, useState } from 'react'
 import { hackathonApi } from '../lib/api'
 import { LeaderboardEntry } from '../types'
 import { Card, CardContent } from '../components/Card'
-import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
-import { Trophy, ExternalLink, Share2, RefreshCw, Medal } from 'lucide-react'
+import { Trophy, Share2, RefreshCw, Medal } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { StatusBadge } from '../components/StatusBadge'
 import { CategoryBadge } from '../components/CategoryBadge'
 
 export default function Leaderboard() {
@@ -62,14 +60,16 @@ export default function Leaderboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <RefreshCw className="h-8 w-8 animate-spin text-indigo-600" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="text-center mb-8">
         <div className="flex justify-center mb-4">
@@ -93,12 +93,12 @@ export default function Leaderboard() {
       </div>
 
       {/* Leaderboard */}
-      <Card className="overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <Card className="overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 mb-8">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
           <h2 className="text-xl font-semibold text-white">Final Rankings</h2>
         </div>
         
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {entries.map((entry, index) => (
             <div
               key={`${entry.rank}-${entry.project_name}`}
@@ -106,8 +106,8 @@ export default function Leaderboard() {
                 "px-6 py-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4",
                 statusColor(entry.status || "unknown"),
                 index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-gray-900 dark:to-gray-800",
-                index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50",
-                index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50"
+                index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-gray-700",
+                index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700"
               )}
             >
               <div className="flex items-center justify-between">
@@ -117,8 +117,8 @@ export default function Leaderboard() {
                     {index < 3 ? (
                       getMedalIcon(entry.rank)
                     ) : (
-                      <div className="h-12 w-12 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="font-bold text-lg text-gray-700">{entry.rank}</span>
+                      <div className="h-12 w-12 mx-auto rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span className="font-bold text-lg text-gray-700 dark:text-gray-200">{entry.rank}</span>
                       </div>
                     )}
                   </div>
@@ -155,18 +155,16 @@ export default function Leaderboard() {
       </Card>
 
       {/* Footer */}
-      <div className="mt-8 text-center">
-        <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-          <CardContent className="py-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">About the Scoring</h3>
-            <p className="text-sm text-gray-600 max-w-2xl mx-auto">
-              Projects are evaluated by our panel of AI judges on four criteria: Innovation & Creativity, 
-              Technical Execution, Market Potential, and User Experience. Each judge brings their unique 
-              perspective and expertise to create a balanced assessment.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <CardContent className="py-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">About the Scoring</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Projects are evaluated by our panel of AI judges on four criteria: Innovation & Creativity, 
+            Technical Execution, Market Potential, and User Experience. Each judge brings their unique 
+            perspective and expertise to create a balanced assessment.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }

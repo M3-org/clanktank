@@ -6,12 +6,11 @@ import { formatDate } from '../lib/utils'
 import { Card, CardHeader, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
+import { useAuth } from '../contexts/AuthContext'
 import { 
   ArrowLeft, 
-  ExternalLink, 
   Github, 
   Video, 
-  Globe,
   RefreshCw,
   Star,
   Code,
@@ -19,14 +18,10 @@ import {
   Users,
   Calendar,
   Hash,
-  RefreshCcw,
-  Trophy,
   Heart,
-  Quote
+  Quote,
+  Edit3
 } from 'lucide-react'
-import { StatusBadge } from '../components/StatusBadge'
-import { CategoryBadge } from '../components/CategoryBadge'
-import React from 'react'
 
 const solanaLogo = (
   <img
@@ -44,12 +39,13 @@ function truncateSolanaAddress(address: string) {
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
+  const { authState } = useAuth()
   const [submission, setSubmission] = useState<SubmissionDetailType | null>(null)
   const [feedback, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
-  // Tab state for round selection
-  const [selectedRound, setSelectedRound] = useState(1)
+  // Check if user is authenticated
+  const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
 
   useEffect(() => {
     if (id) {
@@ -95,7 +91,7 @@ export default function SubmissionDetail() {
 
   if (!submission) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="max-w-lg mx-auto mt-16">
           <CardContent className="text-center py-12">
             <div className="rounded-full bg-gray-100 h-16 w-16 flex items-center justify-center mx-auto mb-4">
@@ -115,8 +111,6 @@ export default function SubmissionDetail() {
   }
 
   // Only compute these after submission is loaded
-  const availableRounds = Array.from(new Set((submission.scores || []).map(s => s.round))).sort()
-  const filteredScores = (submission.scores || []).filter(s => s.round === selectedRound)
 
   const scoreIcons = {
     innovation: Star,
@@ -142,7 +136,7 @@ export default function SubmissionDetail() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
+    <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 py-8">
       {/* Hero Banner - full width, overlayed info */}
       <div className="relative w-full h-72 md:h-96 mb-8 overflow-hidden">
         {/* Background: image/video or gray placeholder */}
@@ -168,15 +162,26 @@ export default function SubmissionDetail() {
       </div>
 
       {/* The rest of the page content follows here, in normal flow */}
-      {/* Back Button */}
-      <Link to="/dashboard">
-        <Button variant="ghost" size="sm" className="mb-6 dark:text-gray-200 dark:hover:text-white">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      </Link>
+      {/* Action Buttons */}
+      <div className="flex justify-between items-center mb-6 px-4 sm:px-6 lg:px-8">
+        <Link to="/dashboard">
+          <Button variant="ghost" size="sm" className="dark:text-gray-200 dark:hover:text-white">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </Link>
+        
+        {submission?.can_edit && isAuthenticated && (
+          <Link to={`/submission/${id}/edit`}>
+            <Button variant="secondary" size="sm">
+              <Edit3 className="h-4 w-4 mr-2" />
+              Edit Submission
+            </Button>
+          </Link>
+        )}
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Description */}
@@ -256,7 +261,7 @@ export default function SubmissionDetail() {
               <CardContent>
                 {/* Judge-centric cards */}
                 <div className="space-y-6">
-                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey, idx) => {
+                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey) => {
                     const round1 = (submission.scores || []).find(s => s.judge_name && s.round === 1 && s.judge_name.trim().toLowerCase() === judgeKey)
                     const round2 = (submission.scores || []).find(s => s.judge_name && s.round === 2 && s.judge_name.trim().toLowerCase() === judgeKey)
                     // Use the original judge name from round1 or round2 for display

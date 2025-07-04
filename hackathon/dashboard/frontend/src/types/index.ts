@@ -25,6 +25,9 @@ export interface SubmissionDetail extends SubmissionSummary {
   scores?: Score[]
   research?: Research
   solana_address?: string
+  // Edit permission info
+  can_edit?: boolean
+  is_creator?: boolean
 }
 
 export interface Score {

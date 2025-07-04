@@ -38,6 +38,9 @@ interface SchemaLoaderResult {
   schema: SubmissionField[];
   source: 'api' | 'cache' | 'fallback';
   error?: string;
+  submissionWindowOpen?: boolean;
+  submissionDeadline?: string;
+  currentTime?: string;
 }
 
 /**
@@ -59,19 +62,39 @@ export const loadSubmissionSchema = async (version: string = 'v2'): Promise<Sche
   try {
     // Always try API first for fresh data
     console.log('Fetching schema from API...');
-    const apiSchema = await hackathonApi.fetchSubmissionSchema();
+    const apiResponse = await hackathonApi.fetchSubmissionSchema();
     
-    // Validate the API response
-    if (!Array.isArray(apiSchema) || apiSchema.length === 0) {
+    // Handle both old array format and new object format
+    let schema: SubmissionField[];
+    let windowInfo = {};
+    
+    if (Array.isArray(apiResponse)) {
+      // Legacy format - just an array of fields
+      schema = apiResponse;
+    } else if (apiResponse && typeof apiResponse === 'object' && Array.isArray(apiResponse.fields)) {
+      // New format - object with fields and window info
+      schema = apiResponse.fields;
+      windowInfo = {
+        submissionWindowOpen: apiResponse.submission_window_open,
+        submissionDeadline: apiResponse.submission_deadline,
+        currentTime: apiResponse.current_time
+      };
+    } else {
+      throw new Error('Invalid schema response from API');
+    }
+    
+    // Validate the schema
+    if (!Array.isArray(schema) || schema.length === 0) {
       throw new Error('Invalid schema response from API');
     }
 
     // Cache the successful response for offline backup
-    setCachedSchema(apiSchema);
+    setCachedSchema(schema);
 
     return {
-      schema: apiSchema,
-      source: 'api'
+      schema,
+      source: 'api',
+      ...windowInfo
     };
 
   } catch (error) {
