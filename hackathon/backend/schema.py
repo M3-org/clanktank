@@ -127,3 +127,22 @@ def get_field_names_by_version() -> Dict[str, List[str]]:
 def get_supported_versions() -> List[str]:
     """Get list of supported schema versions."""
     return SUBMISSION_VERSIONS.copy() 
+
+def get_database_fields(version="v2"):
+    """
+    Get database column names for the specified schema version.
+    This excludes UI-only fields that don't exist as database columns.
+    """
+    all_fields = get_schema(version)
+    
+    # UI-only fields that should not be included in database operations
+    ui_only_fields = {'invite_code'}  # Add more UI-only fields here as needed
+    
+    # Return only fields that exist as database columns
+    return [field for field in all_fields if field.get('name') not in ui_only_fields]
+
+def get_database_field_names(version="v2"):
+    """
+    Get just the field names for database operations.
+    """
+    return [field['name'] for field in get_database_fields(version)] 

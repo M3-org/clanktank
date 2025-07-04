@@ -12,10 +12,15 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 import random
+import secrets
+import hashlib
+import base64
+import urllib.parse
+import aiohttp
 
 from fastapi import FastAPI, HTTPException, Request, status, UploadFile, File as FastAPIFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, create_model
 import uvicorn
 from dotenv import load_dotenv
@@ -28,7 +33,7 @@ from slowapi.errors import RateLimitExceeded
 # Add path for importing schema module
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from hackathon.backend.schema import get_fields, get_schema, reload_schema
+from schema import get_fields, get_schema, reload_schema
 
 from PIL import Image
 from io import BytesIO
@@ -45,6 +50,14 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 HACKATHON_DB_PATH = os.getenv('HACKATHON_DB_PATH', str(REPO_ROOT / 'data' / 'hackathon.db'))
 STATIC_DATA_DIR = os.getenv('STATIC_DATA_DIR', str(Path(__file__).parent / 'frontend' / 'public' / 'data'))
 LOG_FILE_PATH = REPO_ROOT / 'logs' / 'hackathon_api.log'
+
+# Submission window configuration
+SUBMISSION_DEADLINE = os.getenv('SUBMISSION_DEADLINE')  # ISO format datetime string
+
+# Discord OAuth configuration
+DISCORD_CLIENT_ID = os.getenv('DISCORD_CLIENT_ID')
+DISCORD_CLIENT_SECRET = os.getenv('DISCORD_CLIENT_SECRET')
+DISCORD_REDIRECT_URI = os.getenv('DISCORD_REDIRECT_URI', 'http://localhost:5173/auth/discord/callback')
 
 # Setup logging
 LOG_FILE_PATH.parent.mkdir(exist_ok=True)
@@ -167,6 +180,9 @@ class SubmissionDetail(BaseModel):
     research: Optional[Dict[str, Any]] = None
     avg_score: Optional[float] = None
     solana_address: Optional[str] = None
+    # Edit permission info
+    can_edit: Optional[bool] = None
+    is_creator: Optional[bool] = None
 
 # Dynamically create the SubmissionCreate models from versioned manifests
 submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
@@ -197,6 +213,126 @@ def get_score_columns(conn: 'Connection', required_fields):
     columns = {row[1] for row in pragma_result.fetchall()}
     return [f for f in required_fields if f in columns]
 
+# Invite Code Validation Functions
+
+def is_submission_window_open() -> bool:
+    """Check if the submission window is currently open."""
+    if not SUBMISSION_DEADLINE:
+        return True  # No deadline set, submissions always open
+    
+    try:
+        deadline = datetime.fromisoformat(SUBMISSION_DEADLINE)
+        return datetime.now() < deadline
+    except ValueError:
+        logging.error(f"Invalid SUBMISSION_DEADLINE format: {SUBMISSION_DEADLINE}")
+        return True  # Default to open if deadline is invalid
+
+def get_submission_window_info() -> dict:
+    """Get information about the submission window status."""
+    window_open = is_submission_window_open()
+    
+    return {
+        "submission_window_open": window_open,
+        "submission_deadline": SUBMISSION_DEADLINE,
+        "current_time": datetime.now().isoformat()
+    }
+
+def create_users_table():
+    """Create the users table for Discord authentication."""
+    try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+        with engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS users (
+                    discord_id TEXT PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    discriminator TEXT,
+                    avatar TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.commit()
+            logging.info("Users table created successfully")
+    except Exception as e:
+        logging.error(f"Error creating users table: {e}")
+
+def generate_discord_auth_url() -> str:
+    """Generate Discord OAuth authorization URL."""
+    if not DISCORD_CLIENT_ID:
+        raise HTTPException(status_code=500, detail="Discord OAuth not configured")
+    
+    params = {
+        'client_id': DISCORD_CLIENT_ID,
+        'redirect_uri': DISCORD_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'identify'
+    }
+    
+    base_url = 'https://discord.com/api/oauth2/authorize'
+    return f"{base_url}?{urllib.parse.urlencode(params)}"
+
+async def exchange_discord_code(code: str) -> dict:
+    """Exchange Discord authorization code for access token and user info."""
+    if not DISCORD_CLIENT_ID or not DISCORD_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Discord OAuth not configured")
+    
+    # Exchange code for access token
+    token_data = {
+        'client_id': DISCORD_CLIENT_ID,
+        'client_secret': DISCORD_CLIENT_SECRET,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': DISCORD_REDIRECT_URI
+    }
+    
+    async with aiohttp.ClientSession() as session:
+        # Get access token
+        async with session.post(
+            'https://discord.com/api/oauth2/token',
+            data=token_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'}
+        ) as resp:
+            if resp.status != 200:
+                error_text = await resp.text()
+                logging.error(f"Discord token exchange failed: {resp.status} - {error_text}")
+                
+                # Provide more specific error messages based on Discord's response
+                if resp.status == 400:
+                    try:
+                        error_data = await resp.json() if resp.content_type == 'application/json' else {}
+                        if error_data.get('error') == 'invalid_grant':
+                            raise HTTPException(status_code=400, detail="Authorization code expired or already used")
+                        elif error_data.get('error') == 'invalid_client':
+                            raise HTTPException(status_code=500, detail="Discord OAuth client configuration error")
+                        else:
+                            raise HTTPException(status_code=400, detail=f"Discord OAuth error: {error_data.get('error', 'invalid_request')}")
+                    except:
+                        raise HTTPException(status_code=400, detail="Invalid authorization code")
+                else:
+                    raise HTTPException(status_code=400, detail=f"Discord service error (HTTP {resp.status})")
+                    
+            token_response = await resp.json()
+        
+        # Get user info
+        access_token = token_response['access_token']
+        async with session.get(
+            'https://discord.com/api/users/@me',
+            headers={'Authorization': f"Bearer {access_token}"}
+        ) as resp:
+            if resp.status != 200:
+                error_text = await resp.text()
+                logging.error(f"Discord user info fetch failed: {resp.status} - {error_text}")
+                raise HTTPException(status_code=400, detail="Failed to get Discord user info")
+            user_data = await resp.json()
+    
+    return {
+        'access_token': access_token,
+        'user': user_data
+    }
+
+# Function will be moved after DiscordUser model definition
+
 # Define a model for the submission schema field
 class SubmissionFieldSchema(BaseModel):
     name: str
@@ -208,6 +344,13 @@ class SubmissionFieldSchema(BaseModel):
     options: List[str] = None
     pattern: str = None
     helperText: str = None
+
+# Enhanced submission schema response with window information
+class SubmissionSchemaResponse(BaseModel):
+    fields: List[SubmissionFieldSchema]
+    submission_window_open: bool
+    submission_deadline: Optional[str] = None
+    current_time: str
 
 # Define a model for stats
 class StatsModel(BaseModel):
@@ -228,6 +371,78 @@ class FeedbackSummary(BaseModel):
     submission_id: str
     total_votes: int
     feedback: List[FeedbackItem]
+
+# Discord OAuth models
+class DiscordUser(BaseModel):
+    discord_id: str
+    username: str
+    discriminator: Optional[str] = None
+    avatar: Optional[str] = None
+
+class DiscordAuthResponse(BaseModel):
+    user: DiscordUser
+    access_token: str
+
+class DiscordCallbackRequest(BaseModel):
+    code: str
+
+def create_or_update_user(discord_user_data: dict) -> DiscordUser:
+    """Create or update user in database."""
+    try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+        with engine.connect() as conn:
+            discord_id = str(discord_user_data['id'])
+            username = discord_user_data['username']
+            discriminator = discord_user_data.get('discriminator')
+            avatar = discord_user_data.get('avatar')
+            
+            # Insert or update user
+            conn.execute(text("""
+                INSERT OR REPLACE INTO users (discord_id, username, discriminator, avatar, last_login)
+                VALUES (:discord_id, :username, :discriminator, :avatar, CURRENT_TIMESTAMP)
+            """), {
+                "discord_id": discord_id,
+                "username": username,
+                "discriminator": discriminator,
+                "avatar": avatar
+            })
+            conn.commit()
+            
+            return DiscordUser(
+                discord_id=discord_id,
+                username=username,
+                discriminator=discriminator,
+                avatar=avatar
+            )
+    except Exception as e:
+        logging.error(f"Error creating/updating user: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create user")
+
+async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
+    """Validate Discord access token and return user if valid."""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return None
+    
+    token = auth_header.split(" ")[1]
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                'https://discord.com/api/users/@me',
+                headers={'Authorization': f"Bearer {token}"}
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                user_data = await resp.json()
+                
+                # Update user in database
+                discord_user = create_or_update_user(user_data)
+                return discord_user
+                
+    except Exception as e:
+        logging.error(f"Error validating Discord token: {e}")
+        return None
 
 # API Endpoints
 @app.get("/")
@@ -261,6 +476,49 @@ async def root():
         }
     }
 
+# Discord OAuth Endpoints
+@app.get("/api/auth/discord/login", tags=["auth"])
+async def discord_login():
+    """Initiate Discord OAuth login flow."""
+    auth_url = generate_discord_auth_url()
+    return {"auth_url": auth_url}
+
+@app.post("/api/auth/discord/callback", tags=["auth"], response_model=DiscordAuthResponse)
+async def discord_callback(callback_data: DiscordCallbackRequest):
+    """Handle Discord OAuth callback."""
+    try:
+        # Exchange code for access token and user info
+        oauth_data = await exchange_discord_code(callback_data.code)
+        
+        # Create or update user in database
+        discord_user = create_or_update_user(oauth_data['user'])
+        
+        return DiscordAuthResponse(
+            user=discord_user,
+            access_token=oauth_data['access_token']
+        )
+    except Exception as e:
+        logging.error(f"Discord OAuth callback error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/auth/me", tags=["auth"], response_model=DiscordUser)
+async def get_current_user(request: Request):
+    """Get current authenticated user info."""
+    # For now, we'll implement a simple token-based auth
+    # In production, you'd want proper JWT or session management
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    # This is a simplified implementation
+    # In practice, you'd validate the token and get user from database
+    raise HTTPException(status_code=501, detail="Not implemented yet")
+
+@app.post("/api/auth/discord/logout", tags=["auth"])
+async def discord_logout():
+    """Logout user (clear session)."""
+    return {"message": "Logged out successfully"}
+
 @app.get("/api/submissions", tags=["latest"], response_model=List[SubmissionSummary])
 async def list_submissions_latest(
     include: str = "scores,research,community",
@@ -270,17 +528,39 @@ async def list_submissions_latest(
     return await list_submissions(version="v2", include=include, status=status, category=category)
 
 @app.get("/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail)
-async def get_submission_latest(submission_id: str, include: str = "scores,research,community"):
-    return await get_submission(submission_id=submission_id, version="v2", include=include)
+async def get_submission_latest(submission_id: str, request: Request, include: str = "scores,research,community"):
+    return await get_submission(submission_id=submission_id, version="v2", include=include, request=request)
 
 @app.post("/api/submissions", status_code=201, tags=["latest"], response_model=dict)
 @limiter.limit("5/minute")
 async def create_submission_latest(submission: SubmissionCreateV2, request: Request):
-    """Create a new submission with v2 schema and basic error handling."""
+    """Create a new submission with v2 schema. Requires Discord authentication."""
     print(f"📝 Processing submission: {submission.project_name}")
     
-    # Validate project_image field
+    # Check if submission window is open
+    if not is_submission_window_open():
+        raise HTTPException(
+            status_code=403,
+            detail="Submission window is closed. New submissions are no longer accepted."
+        )
+    
+    # Require Discord authentication
+    discord_user = await validate_discord_token(request)
+    if not discord_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Discord authentication required. Please log in with Discord to submit."
+        )
+    
+    print(f"🔵 Discord auth: {discord_user.username}")
     data_dict = submission.dict()
+    
+    # Auto-populate Discord username if not provided or empty
+    if not data_dict.get('discord_handle') or data_dict.get('discord_handle').strip() == '':
+        data_dict['discord_handle'] = discord_user.username
+        print(f"🔄 Auto-populated Discord handle: {discord_user.username}")
+    
+    # Validate project_image field
     project_image = data_dict.get('project_image')
     if project_image:
         if project_image == '[object File]':
@@ -300,11 +580,21 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     
     # Basic data preparation
     now = datetime.now().isoformat()
-    data = submission.dict()
+    data = data_dict.copy()
     data["submission_id"] = submission_id
     data["status"] = "submitted"
     data["created_at"] = now
     data["updated_at"] = now
+    
+    # Track Discord authentication
+    data["invite_code_used"] = f"discord:{discord_user.discord_id}"
+
+    # Remove invite_code field before DB insert (not a column)
+    if "invite_code" in data:
+        del data["invite_code"]
+
+    # Log Discord submission
+    print(f"🔵 Discord submission: {discord_user.username} ({discord_user.discord_id})")
     
     # Database insertion
     table = "hackathon_submissions_v2"
@@ -333,6 +623,97 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
                 "submission_id": submission_id
             }
         )
+
+
+@app.put("/api/submissions/{submission_id}", tags=["latest"], response_model=dict)
+@limiter.limit("5/minute")
+async def edit_submission_latest(submission_id: str, submission: SubmissionCreateV2, request: Request):
+    """
+    Edit an existing submission. Requires Discord authentication and user must be the original creator.
+    Only allowed during the submission window.
+    """
+    # Check if submission window is open
+    if not is_submission_window_open():
+        raise HTTPException(
+            status_code=403,
+            detail="Submission editing is no longer allowed. The submission window has closed."
+        )
+    
+    # Require Discord authentication
+    discord_user = await validate_discord_token(request)
+    if not discord_user:
+        raise HTTPException(
+            status_code=401,
+            detail="Discord authentication required. Please log in with Discord to edit."
+        )
+    
+    print(f"🔵 Discord edit request: {discord_user.username}")
+    
+    try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+        with engine.connect() as conn:
+            # Verify the submission exists and get auth info
+            result = conn.execute(
+                text("SELECT invite_code_used FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
+                {"submission_id": submission_id}
+            )
+            row = result.fetchone()
+            
+            if not row:
+                raise HTTPException(status_code=404, detail="Submission not found")
+            
+            original_auth_info = row[0]
+            
+            # Verify this Discord user is the original creator
+            expected_discord_auth = f"discord:{discord_user.discord_id}"
+            if original_auth_info != expected_discord_auth:
+                logging.warning(f"Discord edit attempt by {discord_user.username} for submission {submission_id} not created by them")
+                raise HTTPException(
+                    status_code=403,
+                    detail="You can only edit submissions you originally created."
+                )
+            
+            # Prepare data for update
+            now = datetime.now().isoformat()
+            data = submission.dict()
+            data["updated_at"] = now
+            
+            # Auto-populate Discord username if field is empty
+            if not data.get('discord_handle') or data.get('discord_handle').strip() == '':
+                data['discord_handle'] = discord_user.username
+                print(f"🔄 Auto-populated Discord handle during edit: {discord_user.username}")
+            
+            # Remove invite_code field before DB update (not a column)
+            if "invite_code" in data:
+                del data["invite_code"]
+            
+            # Build UPDATE statement
+            set_clauses = [f"{key} = :{key}" for key in data.keys()]
+            update_stmt = text(f"""
+                UPDATE hackathon_submissions_v2 
+                SET {', '.join(set_clauses)}
+                WHERE submission_id = :submission_id
+            """)
+            
+            # Add submission_id to parameters
+            data["submission_id"] = submission_id
+            
+            # Execute update
+            conn.execute(update_stmt, data)
+            conn.commit()
+            
+            logging.info(f"Submission {submission_id} edited successfully by {discord_user.username}")
+            return {
+                "success": True,
+                "submission_id": submission_id,
+                "message": "Submission updated successfully"
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logging.error(f"Error editing submission {submission_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update submission")
 
 @limiter.limit("5/minute")
 @app.post("/api/upload-image", tags=["latest"])
@@ -402,9 +783,14 @@ async def serve_upload(filename: str):
     from fastapi.responses import FileResponse
     return FileResponse(file_path)
 
-@app.get("/api/submission-schema", tags=["latest"], response_model=List[SubmissionFieldSchema])
+@app.get("/api/submission-schema", tags=["latest"], response_model=SubmissionSchemaResponse)
 async def get_submission_schema_latest():
-    return await get_submission_schema_versioned(version="v2")
+    fields = get_schema("v2")  # returns a list of field dicts
+    window_info = get_submission_window_info()
+    return SubmissionSchemaResponse(
+        fields=fields,
+        **window_info
+    )
 
 @app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
 async def get_leaderboard_latest():
@@ -456,8 +842,10 @@ async def list_submissions(
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
-    manifest = get_fields(version)
-    fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
+    from schema import get_database_field_names
+    # Get only database fields (excludes UI-only fields like 'invite_code')
+    db_field_names = get_database_field_names(version)
+    fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
     
     # project_image field is handled properly via schema
     
@@ -569,9 +957,10 @@ async def list_submissions(
 async def get_submission_versioned(
     version: str,
     submission_id: str,
+    request: Request,
     include: str = "scores,research,community"
 ):
-    return await get_submission(submission_id=submission_id, version=version, include=include)
+    return await get_submission(submission_id=submission_id, version=version, include=include, request=request)
 
 @app.get("/api/{version}/submission-schema", tags=["versioned"], response_model=List[SubmissionFieldSchema])
 async def get_submission_schema_versioned(version: str):
@@ -858,12 +1247,16 @@ def main():
     if args.generate_static_data:
         generate_static_data()
     else:
+        # Create users table for Discord OAuth
+        create_users_table()
+        
         print(f"Starting FastAPI server on http://{args.host}:{args.port}")
         print(f"API documentation available at http://{args.host}:{args.port}/docs")
         print(f"Using database: {HACKATHON_DB_PATH}")
         print(f"Database absolute path: {os.path.abspath(HACKATHON_DB_PATH)}")
         print(f"Database exists: {os.path.exists(HACKATHON_DB_PATH)}")
         print(f"Current working directory: {os.getcwd()}")
+        print(f"Discord OAuth configured: {bool(DISCORD_CLIENT_ID)}")
 
         # Debug: Check what columns SQLAlchemy sees
         try:
@@ -879,12 +1272,14 @@ def main():
             
         uvicorn.run(app, host=args.host, port=args.port)
 
-async def get_submission(submission_id: str, version: str = "v1", include: str = "scores,research,community"):
+async def get_submission(submission_id: str, version: str = "v1", include: str = "scores,research,community", request: Request = None):
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
-    manifest = get_fields(version)
-    fields = ["submission_id"] + list(manifest) + ["status", "created_at", "updated_at"]
+    from schema import get_database_field_names
+    # Get only database fields (excludes UI-only fields like 'invite_code')
+    db_field_names = get_database_field_names(version)
+    fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
     
     # project_image field is handled properly via schema
     select_stmt = text(f"SELECT {', '.join(fields)} FROM {table} WHERE submission_id = :submission_id")
@@ -993,6 +1388,35 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
             if k not in detail:
                 detail[k] = None
         
+        # Get edit permission info if request is provided
+        can_edit = False
+        is_creator = False
+        if request:
+            # Get the original auth info from database
+            result = conn.execute(
+                text("SELECT invite_code_used FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
+                {"submission_id": submission_id}
+            )
+            auth_row = result.fetchone()
+            original_auth_info = auth_row[0] if auth_row else None
+            
+            # Check for Discord authentication
+            discord_user = await validate_discord_token(request)
+            submission_window_open = is_submission_window_open()
+            
+            if discord_user and original_auth_info:
+                expected_discord_auth = f"discord:{discord_user.discord_id}"
+                is_creator = original_auth_info == expected_discord_auth
+                can_edit = is_creator and submission_window_open
+            else:
+                # For non-Discord users, they need to provide invite code during edit
+                # so we can't determine creator status without the code
+                can_edit = submission_window_open  # They can attempt to edit if window is open
+                is_creator = False # Not definitive for non-Discord users
+
+        detail['can_edit'] = can_edit
+        detail['is_creator'] = is_creator
+
         return detail
 
 if __name__ == "__main__":

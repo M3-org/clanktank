@@ -4,27 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Clank Tank is an AI-powered game show platform where entrepreneurs pitch to simulated AI judges. The system automatically transforms real business pitches into complete, simulated episodes featuring AI-generated characters, dialogue, and interactions.
+Clank Tank is an AI-powered game show platform where entrepreneurs pitch to simulated AI judges. The system automatically transforms real business pitches into complete, simulated episodes featuring AI-generated characters, dialogue, and interactions. There are two main deployments:
+
+1. **Main Platform**: Full production pipeline for creating episodes from pitch submissions
+2. **Hackathon Edition**: Specialized judging system for hackathon competitions with AI judges and community voting
 
 ## Core Architecture
 
 ### Component Structure
 - **Pitch Management System**: Processes submissions from Tally/Typeform through Google Sheets with SQLite tracking
-- **AI Research Pipeline**: Uses OpenRouter + Perplexity for automated pitch analysis and enhancement
+- **AI Research Pipeline**: Uses OpenRouter + Perplexity for automated pitch analysis and enhancement  
 - **AI Writers' Room**: Uses Anthropic Claude to generate natural dialogue between judges and pitchers
 - **Rendering Framework**: PlayCanvas-based web rendering with JSON-based episode control
 - **Episode System**: JSON event system controls scenes, dialogue, and camera work
 - **Audio Pipeline**: ElevenLabs voice synthesis + sound effects/transitions
 - **Recording System**: Automated video capture using Puppeteer-based tools
+- **Hackathon Dashboard**: React + FastAPI for hackathon submission management and judging
 
 ### Key Data Flows
+
+#### Main Platform Flow
 1. **Pitch Processing**: Tally/Typeform → Google Sheets → SQLite Database → AI Research → Character Folders
 2. **Episode Generation**: Character data → AI script generation → 3D rendering → Video recording
 3. **Publishing**: Video files → YouTube upload with automated metadata
 
+#### Hackathon Edition Flow
+1. **Submission**: API/Frontend submission → SQLite database (`hackathon.db`)
+2. **GitHub Analysis**: Automated repository analysis and quality scoring
+3. **Research Enrichment**: AI-powered market and technical research
+4. **AI Judging**: Personality-based scoring from 4 AI judges (aimarc, aishaw, spartan, peepo)
+5. **Community Voting**: Discord bot integration for community feedback
+6. **Round 2 Synthesis**: Final scoring combining AI judgments with community input
+7. **Episode Generation**: Automated episode creation with judge dialogue
+
 ## Development Commands
 
-### Pitch Management Workflow
+### Main Platform Commands
+
+#### Pitch Management Workflow
 ```bash
 # Process Google Sheets submissions
 python scripts/sheet_processor.py -s "Block Tank Pitch Submission" -o ./data -j --db-file pitches.db
@@ -45,7 +62,7 @@ python scripts/pitch_manager.py --db-file data/pitches.db --status 4Z5rGo done
 python scripts/pitch_manager.py --db-file data/pitches.db --export-json submissions.json
 ```
 
-### Episode Recording
+#### Episode Recording
 ```bash
 # Record a complete episode from Shmotime URL
 node scripts/shmotime-recorder.js https://shmotime.com/shmotime_episode/episode-url/
@@ -54,7 +71,7 @@ node scripts/shmotime-recorder.js https://shmotime.com/shmotime_episode/episode-
 node scripts/recorder.js [options]
 ```
 
-### YouTube Upload Pipeline
+#### YouTube Upload Pipeline
 ```bash
 # Upload video with metadata from JSON
 python scripts/upload_to_youtube.py --from-json metadata.json
@@ -66,79 +83,215 @@ python scripts/upload_to_youtube.py --video-file video.mp4 --title "Title" --des
 python scripts/setup_youtube_auth.py
 ```
 
-### Dependencies
+### Hackathon Edition Commands
+
+#### Database Management
 ```bash
-# Install Node.js dependencies
+# Reset hackathon database
+python -m hackathon.scripts.create_db
+
+# Migrate schema
+python -m hackathon.scripts.migrate_schema
+```
+
+#### Submission Pipeline
+```bash
+# GitHub analysis for specific repo
+python hackathon/backend/github_analyzer.py <repo_url>
+
+# Research enrichment for submission
+python -m hackathon.backend.research --submission-id <id>
+
+# AI judge scoring (Round 1)
+python -m hackathon.backend.hackathon_manager --score --submission-id <id> --version v2
+
+# Score all researched submissions
+python -m hackathon.backend.hackathon_manager --score --all --version v2
+
+# Round 2 synthesis (combines AI + community)
+python -m hackathon.backend.hackathon_manager --synthesize --submission-id <id> --version v2
+
+# Generate episode
+python -m hackathon.scripts.generate_episode --submission-id <id> --version v2
+
+# View leaderboard
+python -m hackathon.backend.hackathon_manager --leaderboard --version v2
+```
+
+#### API Server
+```bash
+# Start FastAPI backend
+cd hackathon/backend
+python app.py --host 0.0.0.0 --port 8000
+
+# Generate static data files
+python app.py --generate-static-data
+```
+
+#### Frontend Development
+```bash
+# Install dependencies
+cd hackathon/dashboard/frontend
 npm install
 
-# Python dependencies for pitch management and upload scripts
-pip install gspread google-api-python-client google-auth-oauthlib google-auth-httplib2
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Lint TypeScript
+npm run lint
 ```
+
+#### Testing
+```bash
+# Run smoke tests
+python -m hackathon.tests.test_smoke
+
+# Test complete pipeline
+python -m hackathon.tests.test_complete_submission
+
+# Test robust pipeline
+python -m hackathon.tests.test_robust_pipeline
+
+# Test API endpoints
+python -m hackathon.tests.test_api_endpoints
+```
+
+## Build and Development
+
+### JavaScript/Node.js
+- **Root package.json**: Contains basic dependencies for Puppeteer recording (`puppeteer-stream`, `axios`, `fs-extra`)
+- **Frontend**: React + TypeScript + Vite stack in `hackathon/dashboard/frontend/`
+  - Build: `npm run build` (TypeScript compilation + Vite build)
+  - Dev server: `npm run dev`
+  - Linting: `npm run lint` (ESLint with TypeScript)
+
+### Python
+- **Main requirements**: See `hackathon/requirements.txt` for core dependencies
+- **Key packages**: FastAPI, SQLAlchemy, Requests, OpenAI, Anthropic, Discord.py, Google APIs
+- **Testing**: Use `pytest` for test execution
+- **Code style**: `black` for formatting, `flake8` for linting
 
 ## File Organization
 
-### Pitch Management
+### Main Platform Structure
 - `data/pitches.db`: SQLite database with all submission data and status tracking
-- `data/submissions.json`: JSON export for dashboard compatibility
-- `blocktank.csv`: Sample/export data from Tally/Typeform submissions
+- `characters/[name]/`: Character data folders with `raw_data.json` and `README.md`
+- `scripts/`: Core automation tools (sheet processing, pitch management, recording, upload)
+- `media/`: Assets including cast headshots, video clips, logos, thumbnails
+- `recordings/`: Episode recordings and session metadata
 
-### Character Data
-- `characters/[name]/raw_data.json`: Complete submission data from pitch processing
-- `characters/[name]/README.md`: Formatted character profile and pitch summary
+### Hackathon Edition Structure
+- `hackathon/backend/`: FastAPI app, database management, AI judges
+  - `app.py`: Main FastAPI server with versioned API endpoints
+  - `hackathon_manager.py`: AI judge scoring system with personality-based evaluation
+  - `github_analyzer.py`: Automated repository analysis and quality scoring
+  - `research.py`: AI-powered market and technical research
+  - `schema.py`: Versioned submission schema management
+- `hackathon/dashboard/frontend/`: React dashboard for submissions and leaderboard
+- `hackathon/scripts/`: Database creation, episode generation, migrations
+- `hackathon/tests/`: Comprehensive test suite for API and pipeline
+- `hackathon/prompts/`: AI judge personas and unified prompt management
+- `data/hackathon.db`: SQLite database for hackathon submissions, scores, research
 
-### Scripts
-- `scripts/sheet_processor.py`: Processes Google Sheets data into SQLite + JSON + Markdown
-- `scripts/pitch_manager.py`: Management tool for research, status tracking, and character creation
-- `scripts/deepsearch.py`: AI-powered research using OpenRouter + Perplexity
-- `scripts/shmotime-recorder.js`: Primary episode recording tool with Puppeteer
-- `scripts/upload_to_youtube.py`: YouTube API integration for uploads
+### Important Data Formats
 
-### Media Assets
-- `media/cast/`: AI character headshots and thumbnails
-- `media/clips/`: Video segments (intro, outro, transitions, deliberations)
-- `media/thumbnails/`: Episode thumbnails for YouTube
-- `media/logos/`: Branding assets
+#### Episode Metadata JSON
+Generated files contain:
+- `show_config`: Actors, locations, and show configuration
+- `episode_data`: Scenes, dialogues, and episode structure  
+- `events`: Recording session events and timestamps
 
-### Recordings
-- `recordings/`: Contains episode recordings and session metadata
-- Generated files include `.webm/.mp4` video, session logs, and YouTube metadata
+#### Hackathon Submission Schema
+Versioned schemas (v1, v2) with fields like:
+- Core: `project_name`, `team_name`, `category`, `description`
+- Links: `github_url`, `demo_video_url`, `live_demo_url`
+- Details: `how_it_works`, `problem_solved`, `coolest_tech`, `next_steps`
+- Assets: `project_image` (file upload with URL storage)
+
+#### AI Judge Scoring
+- **Criteria**: Innovation, Technical Execution, Market Potential, User Experience (0-10 each)
+- **Weighted Scoring**: Each judge has different expertise weights
+- **Round 1**: Independent AI analysis
+- **Round 2**: Synthesis incorporating community feedback
+- **Community Bonus**: Up to +2.0 points based on Discord reactions
 
 ## Development Workflow
 
-### Complete Production Pipeline
-1. **Pitch Intake**: Submissions come from Tally/Typeform → Google Sheets
-2. **Data Processing**: Use `sheet_processor.py` to import into SQLite database and generate JSON/Markdown
-3. **Research Phase**: Use `pitch_manager.py --research` to analyze pitches with AI (deepsearch.py)
-4. **Character Creation**: Use `pitch_manager.py --create-character all` to generate character folders
-5. **Episode Generation**: Character data feeds into AI writers' room for script generation
-6. **Episode Recording**: Use recorder scripts to capture episodes as video files
-7. **Publishing**: Upload to YouTube using the upload pipeline with automated metadata
+### Main Platform Pipeline
+1. **Pitch Intake**: Submissions from Tally/Typeform → Google Sheets
+2. **Data Processing**: `sheet_processor.py` imports into SQLite + generates JSON/Markdown
+3. **Research Phase**: `pitch_manager.py --research` analyzes pitches with AI
+4. **Character Creation**: `pitch_manager.py --create-character all` generates character folders
+5. **Episode Generation**: Character data feeds AI writers' room for script generation
+6. **Recording**: Use recorder scripts to capture episodes as video files
+7. **Publishing**: Upload to YouTube with automated metadata
 
-### YouTube Authentication
-Authentication uses OAuth2 with support for both interactive (local) and CI/CD (environment variables) flows:
-- Local: Uses `client_secrets.json` and `youtube_credentials.json`
-- CI/CD: Uses `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN` environment variables
+### Hackathon Edition Pipeline
+1. **Database Setup**: `python -m hackathon.scripts.create_db`
+2. **Submission**: Frontend/API submission appears in DB as 'submitted'
+3. **GitHub Analysis**: Automated quality scoring and repository analysis
+4. **Research**: AI-powered market and technical research enrichment
+5. **Round 1 Scoring**: AI judges provide independent scores with personality-based weighting
+6. **Community Voting**: Discord bot collects reactions and feedback
+7. **Round 2 Synthesis**: Final scores combine AI judgments with community input
+8. **Episode Generation**: Automated creation of judge dialogue episodes
 
-## Important Data Formats
+### API Versioning
+- **Latest endpoints**: `/api/submissions`, `/api/leaderboard`, `/api/stats`
+- **Versioned endpoints**: `/api/v1/`, `/api/v2/` for backward compatibility
+- **Schema management**: Dynamic Pydantic models from versioned field manifests
+- **Deprecation handling**: HTTP 410 responses for deprecated POST endpoints
 
-### Episode Metadata JSON
-Generated files contain:
-- `show_config`: Actors, locations, and show configuration
-- `episode_data`: Scenes, dialogues, and episode structure
-- `events`: Recording session events and timestamps
+## Authentication and Environment
 
-### Character Raw Data
-Each character directory contains structured pitch data including personal information, project details, and AI persona characteristics.
+### YouTube API
+- **Local development**: Uses `client_secrets.json` and `youtube_credentials.json`
+- **CI/CD**: Environment variables `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`
+- **Setup**: Run `python scripts/setup_youtube_auth.py` for initial authentication
 
-### Pitch Status Workflow
-Pitches progress through four main states:
-- **🟡 submitted**: Fresh from Google Sheets
-- **🔵 researched**: AI research completed via deepsearch.py  
-- **🟠 in_progress**: Character folder created, episode development started
-- **🟢 done**: Episode published on YouTube
+### AI Services
+- **OpenRouter**: `OPENROUTER_API_KEY` for judge scoring and research
+- **GitHub**: Public API access for repository analysis
+- **Discord**: Bot token for community voting integration
 
-### Daily Operations
-```bash
-# Automated daily processing (via cron)
-0 9 * * * cd /path/to/clanktank/scripts && python sheet_processor.py -s "Block Tank Pitch Submission" -o ../data -j --db-file pitches.db
-```
+### Database Configuration
+- **Main platform**: `data/pitches.db` (SQLite)
+- **Hackathon**: `data/hackathon.db` (SQLite)
+- **Environment variable**: `HACKATHON_DB_PATH` to override default location
+
+## Testing Strategy
+
+### Hackathon Edition Tests
+- **Smoke tests**: Basic functionality and database connectivity
+- **API tests**: Full endpoint coverage with request/response validation
+- **Pipeline tests**: End-to-end submission processing
+- **Frontend tests**: Submission form and dashboard functionality
+- **Discord bot tests**: Community voting and webhook integration
+
+### Test Execution
+- Run individual tests: `python -m hackathon.tests.test_name`
+- Debug with browser: Use `test_browser_debug.html` for frontend issues
+- Database debugging: Direct SQLite queries and browser dev tools
+
+## Daily Operations
+
+### Automated GitHub Actions
+- **Daily episode recording**: Scheduled workflow at 04:15 UTC
+- **JedAI Council episodes**: Automatic fetch, record, and upload to YouTube
+- **Artifacts**: Session logs and thumbnails archived for 30 days
+
+### Status Tracking
+#### Main Platform
+Pitches progress: **🟡 submitted** → **🔵 researched** → **🟠 in_progress** → **🟢 done**
+
+#### Hackathon Edition  
+Submissions progress: **submitted** → **researched** → **scored** → **community-voting** → **completed** → **published**
+
+### Monitoring and Logs
+- **API logs**: `logs/hackathon_api.log`
+- **GitHub analysis**: `github_analyzer.log`
+- **Research logs**: `research.log`
+- **Scoring logs**: `score_all.log`
