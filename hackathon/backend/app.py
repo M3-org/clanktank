@@ -31,9 +31,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 # Add path for importing schema module
-import sys
-sys.path.append(str(Path(__file__).parent.parent))
-from schema import get_fields, get_schema, reload_schema
+from hackathon.backend.schema import get_fields, get_schema, reload_schema
 
 from PIL import Image
 from io import BytesIO
@@ -531,8 +529,8 @@ async def list_submissions_latest(
 async def get_submission_latest(submission_id: str, request: Request, include: str = "scores,research,community"):
     return await get_submission(submission_id=submission_id, version="v2", include=include, request=request)
 
+# @limiter.limit("5/minute")
 @app.post("/api/submissions", status_code=201, tags=["latest"], response_model=dict)
-@limiter.limit("5/minute")
 async def create_submission_latest(submission: SubmissionCreateV2, request: Request):
     """Create a new submission with v2 schema. Requires Discord authentication."""
     print(f"📝 Processing submission: {submission.project_name}")
@@ -586,13 +584,6 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     data["created_at"] = now
     data["updated_at"] = now
     
-    # Track Discord authentication
-    data["invite_code_used"] = f"discord:{discord_user.discord_id}"
-
-    # Remove invite_code field before DB insert (not a column)
-    if "invite_code" in data:
-        del data["invite_code"]
-
     # Log Discord submission
     print(f"🔵 Discord submission: {discord_user.username} ({discord_user.discord_id})")
     
@@ -607,10 +598,18 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             conn.commit()
         
         print(f"✅ Submission saved: {submission_id}")
+        # Backup creation logic
+        import os, json
+        backup_dir = os.path.join(os.path.dirname(__file__), '../dashboard/data/submission_backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        backup_path = os.path.join(backup_dir, f'{submission_id}.json')
+        with open(backup_path, 'w') as f:
+            json.dump({"submission_data": data}, f, indent=2)
         return {
             "success": True, 
             "submission_id": submission_id,
-            "message": "Submission received and saved successfully"
+            "message": "Submission received and saved successfully",
+            "backup_created": backup_path
         }
         
     except Exception as e:
@@ -652,26 +651,14 @@ async def edit_submission_latest(submission_id: str, submission: SubmissionCreat
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
         with engine.connect() as conn:
-            # Verify the submission exists and get auth info
+            # Verify the submission exists
             result = conn.execute(
-                text("SELECT invite_code_used FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
+                text("SELECT submission_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
                 {"submission_id": submission_id}
             )
             row = result.fetchone()
-            
             if not row:
                 raise HTTPException(status_code=404, detail="Submission not found")
-            
-            original_auth_info = row[0]
-            
-            # Verify this Discord user is the original creator
-            expected_discord_auth = f"discord:{discord_user.discord_id}"
-            if original_auth_info != expected_discord_auth:
-                logging.warning(f"Discord edit attempt by {discord_user.username} for submission {submission_id} not created by them")
-                raise HTTPException(
-                    status_code=403,
-                    detail="You can only edit submissions you originally created."
-                )
             
             # Prepare data for update
             now = datetime.now().isoformat()
@@ -842,7 +829,7 @@ async def list_submissions(
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
-    from schema import get_database_field_names
+    from hackathon.backend.schema import get_database_field_names
     # Get only database fields (excludes UI-only fields like 'invite_code')
     db_field_names = get_database_field_names(version)
     fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
@@ -1276,7 +1263,7 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
-    from schema import get_database_field_names
+    from hackathon.backend.schema import get_database_field_names
     # Get only database fields (excludes UI-only fields like 'invite_code')
     db_field_names = get_database_field_names(version)
     fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
@@ -1392,27 +1379,12 @@ async def get_submission(submission_id: str, version: str = "v1", include: str =
         can_edit = False
         is_creator = False
         if request:
-            # Get the original auth info from database
-            result = conn.execute(
-                text("SELECT invite_code_used FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
-                {"submission_id": submission_id}
-            )
-            auth_row = result.fetchone()
-            original_auth_info = auth_row[0] if auth_row else None
-            
             # Check for Discord authentication
             discord_user = await validate_discord_token(request)
             submission_window_open = is_submission_window_open()
-            
-            if discord_user and original_auth_info:
-                expected_discord_auth = f"discord:{discord_user.discord_id}"
-                is_creator = original_auth_info == expected_discord_auth
-                can_edit = is_creator and submission_window_open
-            else:
-                # For non-Discord users, they need to provide invite code during edit
-                # so we can't determine creator status without the code
-                can_edit = submission_window_open  # They can attempt to edit if window is open
-                is_creator = False # Not definitive for non-Discord users
+            # With invite codes removed, only Discord-authenticated users can edit, and only during the window
+            can_edit = bool(discord_user) and submission_window_open
+            is_creator = can_edit  # If you want stricter logic, you can add a creator_id field in the future
 
         detail['can_edit'] = can_edit
         detail['is_creator'] = is_creator
