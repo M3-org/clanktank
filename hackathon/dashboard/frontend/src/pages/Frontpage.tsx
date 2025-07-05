@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Search, Sliders, Users, MessageCircle, Star, Trophy, MessageSquare, PlayCircle, FlaskConical, Sparkles, BarChart3 } from 'lucide-react';
+import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3 } from 'lucide-react';
 
 const howItWorks = [
   {

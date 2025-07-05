@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { Card, CardHeader, CardContent } from '../components/Card'
@@ -26,12 +26,13 @@ interface SubmissionInputs {
   [key: string]: any
 }
 
-export default function SubmissionPage() {
+export default function SubmissionEdit() {
+  const { id } = useParams<{ id: string }>()
   const { authState } = useAuth()
   const navigate = useNavigate()
   const [schema, setSchema] = useState<SchemaField[]>([])
-  const [schemaLoaded, setSchemaLoaded] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [submissionWindowOpen, setSubmissionWindowOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -39,88 +40,56 @@ export default function SubmissionPage() {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-    watch,
     reset
   } = useForm<SubmissionInputs>()
 
-  // Load schema on component mount
+  // Load submission data and schema
   useEffect(() => {
-    const loadSchema = async () => {
+    const loadSubmission = async () => {
+      if (!id) return
+      
       try {
-        const schemaResponse = await hackathonApi.fetchSubmissionSchema()
+        const [submission, schemaResponse] = await Promise.all([
+          hackathonApi.getSubmission(id),
+          hackathonApi.fetchSubmissionSchema()
+        ])
+        
+        // Check submission window status
         setSubmissionWindowOpen(schemaResponse.submission_window_open)
         
-        // Use all schema fields for Discord users
+        // Use all schema fields
         const schemaFields = schemaResponse.fields || []
         setSchema(schemaFields)
-        setSchemaLoaded(true)
 
-        // Auto-populate Discord username
+        // Pre-populate form with existing data
+        const formData: any = {}
+        
+        // Populate all fields from submission
+        schemaFields.forEach((field: SchemaField) => {
+          formData[field.name] = (submission as any)[field.name] || ''
+        })
+
+        // Auto-populate Discord username if Discord authenticated
         if (authState.discordUser) {
-          setValue('discord_handle', authState.discordUser.username)
+          formData.discord_handle = authState.discordUser.username
         }
+
+        reset(formData)
         
-        // Load any saved draft
-        const draftKey = 'submission_draft'
-        const savedDraft = localStorage.getItem(draftKey)
-        if (savedDraft) {
-          try {
-            const draft = JSON.parse(savedDraft)
-            
-                         // Populate form with saved data, but override Discord username
-             Object.keys(draft).forEach(key => {
-               if (key !== 'discord_handle') { // Don't override Discord username
-                 setValue(key, draft[key])
-               }
-             })
-            
-            toast.success('Draft restored!', { duration: 2000 })
-          } catch (error) {
-            console.error('Failed to restore draft:', error)
-          }
-        }
-        
-      } catch (error) {
-        console.error('Failed to load schema:', error)
-        setError('Failed to load form schema')
+      } catch (err: any) {
+        console.error('Failed to load submission:', err)
+        setError('Failed to load submission data')
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    loadSchema()
-  }, [setValue, authState.discordUser])
-
-  // Auto-save draft
-  const formData = watch()
-  useEffect(() => {
-    if (schemaLoaded && Object.keys(formData).length > 0) {
-      const timeoutId = setTimeout(() => {
-        try {
-          localStorage.setItem('submission_draft', JSON.stringify(formData))
-        } catch (error) {
-          console.error('Failed to save draft:', error)
-        }
-      }, 1000)
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [formData, schemaLoaded])
-
-  const clearDraft = () => {
-    localStorage.removeItem('submission_draft')
-    reset()
-    // Re-populate Discord username
-    if (authState.discordUser) {
-      setValue('discord_handle', authState.discordUser.username)
-    }
-  }
+    loadSubmission()
+  }, [id, reset, authState.discordUser])
 
   const onSubmit = async (data: SubmissionInputs) => {
-    if (!submissionWindowOpen) {
-      setError('Submission window is closed')
-      return
-    }
-
+    if (!id) return
+    
     try {
       setIsSubmitting(true)
       setError(null)
@@ -131,33 +100,41 @@ export default function SubmissionPage() {
       }
       
       // Handle file upload for project_image
-      if (data.project_image && data.project_image instanceof FileList) {
-        const file = data.project_image[0]
-        if (file) {
-          try {
-            const uploadResult = await hackathonApi.uploadImage(file)
-            data.project_image = uploadResult.url
-          } catch (uploadError) {
-            console.error('Image upload failed:', uploadError)
-            toast.error('Image upload failed. Submission will proceed without image.')
-            data.project_image = ''
+      if (data.project_image) {
+        if (data.project_image instanceof FileList) {
+          const file = data.project_image[0]
+          if (file) {
+            try {
+              const uploadResult = await hackathonApi.uploadImage(file)
+              data.project_image = uploadResult.url
+            } catch (uploadError) {
+              console.error('Image upload failed:', uploadError)
+              toast.error('Image upload failed. Submission will proceed without image.')
+              data.project_image = ''
+            }
           }
+        } else if (typeof data.project_image === 'string') {
+          // Keep existing URL
+        } else {
+          delete data.project_image
         }
       }
       
-      const result = await hackathonApi.createSubmission(data)
+      // Submit the edit
+      await hackathonApi.editSubmission(id, data)
       
-      if (result.success) {
-        toast.success('Submission created successfully!')
-        localStorage.removeItem('submission_draft')
-        navigate(`/submission/${result.submission_id}`)
-      } else {
-        setError(result.error || 'Submission failed')
-      }
+      toast.success('Submission updated successfully!')
+      navigate(`/submission/${id}`)
+      
     } catch (error: any) {
-      console.error('Submission error:', error)
+      console.error('Edit submission error:', error)
       
-      if (error.response?.status === 422) {
+      if (error.response?.status === 403) {
+        setError('You can only edit submissions you created, or the submission window has closed')
+      } else if (error.response?.status === 404) {
+        setError('Submission not found')
+      } else if (error.response?.status === 422) {
+        // Handle validation errors
         const errorData = error.response.data
         if (errorData.detail && Array.isArray(errorData.detail)) {
           errorData.detail.forEach((validationError: any) => {
@@ -173,18 +150,20 @@ export default function SubmissionPage() {
       } else if (error.response?.status === 401) {
         setError('Authentication required. Please log in with Discord.')
       } else {
-        setError('Failed to submit. Please try again.')
+        setError('Failed to update submission. Please try again.')
       }
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (!schemaLoaded) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
+      <ProtectedRoute>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      </ProtectedRoute>
     )
   }
 
@@ -198,16 +177,16 @@ export default function SubmissionPage() {
                 <span className="text-red-600 text-2xl">⏰</span>
               </div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                Submission Window Closed
+                Editing Window Closed
               </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-6">
-                The submission window for this hackathon has ended. No new submissions are being accepted.
+                The submission window has closed. Submissions can no longer be edited.
               </p>
               <Button 
                 variant="secondary" 
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate(`/submission/${id}`)}
               >
-                View Submissions
+                View Submission
               </Button>
             </CardContent>
           </Card>
@@ -231,7 +210,7 @@ export default function SubmissionPage() {
                   Authenticated via Discord
                 </h3>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  Welcome {authState.discordUser?.username}! Your Discord username will be auto-populated.
+                  Welcome {authState.discordUser?.username}! You can edit this submission.
                 </p>
               </div>
             </div>
@@ -241,10 +220,10 @@ export default function SubmissionPage() {
         <Card>
           <CardHeader>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Submit Your Project
+              Edit Submission
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Share your hackathon project with the community
+              Update your hackathon project details
             </p>
           </CardHeader>
           <CardContent>
@@ -298,7 +277,7 @@ export default function SubmissionPage() {
                     <input
                       type="file"
                       {...register(field.name, { 
-                        required: field.required ? `${field.label} is required` : false 
+                        required: false // Don't require file on edit
                       })}
                       accept={field.accept}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
@@ -343,16 +322,16 @@ export default function SubmissionPage() {
                   disabled={isSubmitting}
                   className="flex-1"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Project'}
+                  {isSubmitting ? 'Updating...' : 'Update Submission'}
                 </Button>
                 
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={clearDraft}
+                  onClick={() => navigate(`/submission/${id}`)}
                   disabled={isSubmitting}
                 >
-                  Clear Form
+                  Cancel
                 </Button>
               </div>
             </form>

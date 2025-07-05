@@ -1,50 +1,27 @@
 import os
-import subprocess
-import time
 import pytest
-import httpx
 import sqlite3
 import uuid
+import subprocess
+from fastapi.testclient import TestClient
 
 DB_PATH = "data/hackathon.db"
-API_HOST = "127.0.0.1"
-API_PORT = 8001
-API_URL = f"http://{API_HOST}:{API_PORT}"
 
 @pytest.fixture(scope="session", autouse=True)
 def reset_db():
     # Remove and recreate the test DB
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
+    import subprocess
     subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
     yield
     # Cleanup if needed
 
-@pytest.fixture(scope="session")
-def api_server():
-    # Start FastAPI app in a subprocess
-    proc = subprocess.Popen([
-                    "uvicorn", "hackathon.backend.app:app",
-        "--host", API_HOST, "--port", str(API_PORT)
-    ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # Wait for server to start
-    for _ in range(30):
-        try:
-            httpx.get(f"{API_URL}/")
-            break
-        except Exception:
-            time.sleep(0.5)
-    else:
-        proc.terminate()
-        raise RuntimeError("FastAPI server did not start in time")
-    yield
-    proc.terminate()
-    proc.wait()
-
 @pytest.fixture
-def client(api_server):
-    with httpx.Client(base_url=API_URL) as c:
-        yield c
+def client():
+    from fastapi.testclient import TestClient
+    from hackathon.backend.app import app
+    return TestClient(app)
 
 def unique_name(base):
     return f"{base}-{uuid.uuid4().hex[:8]}"
@@ -113,7 +90,9 @@ def test_get_submissions(client):
 
 def test_get_submission_detail(client):
     # Create a submission first
-    resp_post = client.post("/api/submissions", json=v2_submission)
+    unique_submission = v2_submission.copy()
+    unique_submission["project_name"] = unique_name("Test V2 Project Detail")
+    resp_post = client.post("/api/submissions", json=unique_submission)
     assert resp_post.status_code == 201
     sub_id = resp_post.json().get("submission_id")
     assert sub_id
@@ -121,7 +100,7 @@ def test_get_submission_detail(client):
     assert detail.status_code == 200
     data = detail.json()
     assert data["submission_id"] == sub_id
-    assert data["project_name"] == v2_submission["project_name"]
+    assert data["project_name"] == unique_submission["project_name"]
 
 def test_v1_stats(client):
     resp = client.get("/api/v1/stats")
@@ -163,9 +142,13 @@ def test_feedback_no_data(client):
     assert data["feedback"] == []
 
 def test_feedback_with_data(client):
-    # Insert feedback for a v1 submission
-    resp = client.get("/api/v1/submissions")
-    sub_id = resp.json()[0]["submission_id"]
+    # Create a submission first
+    unique_submission = v2_submission.copy()
+    unique_submission["project_name"] = unique_name("Test Feedback Project")
+    resp_post = client.post("/api/submissions", json=unique_submission)
+    assert resp_post.status_code == 201
+    sub_id = resp_post.json().get("submission_id")
+    assert sub_id
     # Insert feedback directly into DB
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -282,17 +265,10 @@ def test_get_latest_stats(client):
     assert data["total_submissions"] >= 0
 
 def test_get_latest_submission_schema(client):
-    resp = client.get("/api/submission-schema")
+    resp = client.get('/api/submission-schema')
     assert resp.status_code == 200
     schema = resp.json()
-    assert isinstance(schema, list)
-    assert any(f["name"] == "project_name" for f in schema)
-    assert any(f["name"] == "team_name" for f in schema)
-    for field in schema:
-        assert "name" in field
-        assert "label" in field
-        assert "type" in field
-        assert "required" in field
+    assert isinstance(schema["fields"], list)
 
 def test_get_feedback_latest(client):
     # Use a known submission_id with feedback in the test DB

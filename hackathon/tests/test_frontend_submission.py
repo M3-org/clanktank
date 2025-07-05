@@ -6,6 +6,7 @@ This simulates the browser making requests through the Vite proxy.
 
 import requests
 import uuid
+import pytest
 
 def create_test_image():
     """Create a small test PNG file"""
@@ -22,6 +23,14 @@ def create_test_image():
 def unique_name(base):
     return f"{base}-{uuid.uuid4().hex[:8]}"
 
+def is_frontend_running():
+    try:
+        r = requests.get("http://localhost:5173/api/submission-schema", timeout=1)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+@pytest.mark.skipif(not is_frontend_running(), reason="Frontend not running on localhost:5173")
 def test_frontend_submission_flow():
     """Test the complete frontend submission flow"""
     frontend_url = "http://localhost:5173"
@@ -36,7 +45,7 @@ def test_frontend_submission_flow():
         print(f"   Schema response: {response.status_code}")
         assert response.status_code == 200, f"Schema test failed with status {response.status_code}"
         schema = response.json()
-        file_fields = [field for field in schema if field.get('type') == 'file' and field.get('name') == 'project_image']
+        file_fields = [field for field in schema.get('fields', []) if field.get('type') == 'file' and field.get('name') == 'project_image']
         print(f"   File fields found: {len(file_fields)}")
         assert len(file_fields) > 0, "No 'project_image' file field found in schema"
         
