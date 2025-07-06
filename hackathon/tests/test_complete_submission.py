@@ -22,10 +22,25 @@ def client():
 
 def test_complete_submission(client):
     """Test the complete submission flow including image upload"""
-    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
+    subprocess.run(["python3", "-m", "hackathon.backend.create_db"], check=True)
     unique_id = uuid.uuid4().hex[:8]
     project_name = f"Test Project Complete {unique_id}"
 
+    # Use a fake Discord Bearer token for both requests
+    headers = {"Authorization": "Bearer test-token-123"}
+    # Step 0: Create a valid submission before uploading the image
+    submission_payload = {
+        "submission_id": unique_id,
+        "project_name": project_name,
+        "description": "A complete submission test.",
+        "category": "AI/Agents",
+        "discord_handle": "testuser#1234",
+        "github_url": "https://github.com/test/project",
+        "demo_video_url": "https://youtube.com/test"
+    }
+    create_response = client.post('/api/submissions', json=submission_payload, headers=headers)
+    assert create_response.status_code == 201, f"Submission creation failed: {create_response.text}"
+    submission_id = create_response.json()["submission_id"]
     # Step 1: Create a test image and upload it
     img = Image.new('RGB', (400, 300), color='lightblue')
     try:
@@ -39,14 +54,14 @@ def test_complete_submission(client):
     img.save(img_bytes, format='PNG')
     img_bytes.seek(0)
     files = {'file': ('test_logo.png', img_bytes, 'image/png')}
-    upload_response = client.post('/api/upload-image', files=files)
+    data = {'submission_id': submission_id}
+    upload_response = client.post('/api/upload-image', files=files, data=data, headers=headers)
     assert upload_response.status_code == 200, f"Image upload failed: {upload_response.text}"
     image_url = upload_response.json()['url']
 
-    # Step 2: Create a complete submission
+    # Step 2: Edit the complete submission (PUT)
     submission_data = {
         "project_name": project_name,
-        "team_name": "Team Complete",
         "category": "AI/Agents",
         "description": "Test complete submission",
         "discord_handle": "complete#1234",
@@ -55,18 +70,14 @@ def test_complete_submission(client):
         "demo_video_url": "https://youtube.com/complete",
         "live_demo_url": "https://ai-image-gen-pro.com",
         "project_image": image_url,
-        "tech_stack": "Python, PyTorch, Diffusers, FastAPI, React, TailwindCSS",
-        "how_it_works": "Our system uses a fine-tuned stable diffusion model combined with custom LoRA adapters to generate high-quality images from text descriptions. The backend is built with FastAPI and the frontend uses React with real-time WebSocket updates.",
         "problem_solved": "Current AI image generators are expensive, slow, or produce low-quality results. Our solution provides fast, high-quality image generation at affordable prices with an intuitive interface.",
         "favorite_part": "The real-time generation preview that shows the image being created step-by-step, giving users insight into the AI's creative process.",
         "solana_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
     }
-    time.sleep(12)
-    submit_response = client.post('/api/submissions', json=submission_data)
-    assert submit_response.status_code == 201, f"Submission failed: {submit_response.status_code} {submit_response.text}"
-    submission_result = submit_response.json()
-    submission_id = submission_result.get('submission_id')
-    assert submission_id
+    import time
+    time.sleep(1)
+    submit_response = client.put(f'/api/submissions/{submission_id}', json=submission_data, headers=headers)
+    assert submit_response.status_code == 200, f"Submission update failed: {submit_response.status_code} {submit_response.text}"
 
     # Step 3: Verify the submission was stored correctly
     get_response = client.get(f'/api/submissions/{submission_id}')
@@ -74,7 +85,6 @@ def test_complete_submission(client):
     stored_submission = get_response.json()
     checks = [
         ("project_name", project_name),
-        ("team_name", "Team Complete"),
         ("category", "AI/Agents"),
         ("project_image", image_url)
     ]

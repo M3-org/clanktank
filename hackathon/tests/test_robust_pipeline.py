@@ -31,7 +31,7 @@ def client():
 def test_backend_backup_creation(client):
     """Test that backend creates backups properly."""
     import subprocess
-    subprocess.run(["python3", "-m", "hackathon.scripts.create_db"], check=True)
+    subprocess.run(["python3", "-m", "hackathon.backend.create_db"], check=True)
     unique_id = uuid.uuid4().hex[:8]
     payload = {
         "project_name": unique_name("Robustness Project"),
@@ -73,14 +73,13 @@ def test_database_resilience():
     try:
         import subprocess
         subprocess.run([
-            "python3", "-m", "hackathon.scripts.create_db", temp_db.name
+            "python3", "-m", "hackathon.backend.create_db", temp_db.name
         ], check=True, capture_output=True)
         conn = sqlite3.connect(temp_db.name)
         cursor = conn.cursor()
         test_submission = {
             "submission_id": "test-duplicate-123",
             "project_name": "Test Project",
-            "team_name": "Test Team",
             "description": "Test description",
             "category": "AI/Agents",
             "status": "submitted",

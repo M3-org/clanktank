@@ -56,7 +56,7 @@ def run(cmd, input_data=None):
 def reset_db():
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-    run(["python3", "-m", "hackathon.scripts.create_db"])
+    run(["python3", "-m", "hackathon.backend.create_db"])
     log("Database reset.")
 
 
