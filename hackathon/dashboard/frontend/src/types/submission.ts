@@ -18,6 +18,11 @@
  * - Dynamic validation generation
  */
 
+// This type is now generated from the backend schema. Do not edit manually.
+export { SubmissionSchemaV2 } from './submissionSchema';
+
+// If you need to extend or add frontend-only types, do so below.
+
 // Field definition type used by the dynamic schema loader
 export type SubmissionField = {
   name: string;
@@ -35,17 +40,13 @@ export type SubmissionField = {
 
 export type SubmissionInputs = {
   project_name: string
-  team_name: string
+  discord_handle: string
   category: string
   description: string
-  discord_handle: string
   twitter_handle?: string
   github_url: string
   demo_video_url: string
-  live_demo_url?: string
   project_image?: File | string | null
-  tech_stack?: string
-  how_it_works?: string
   problem_solved?: string
   favorite_part?: string
   solana_address?: string

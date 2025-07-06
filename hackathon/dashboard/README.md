@@ -176,3 +176,42 @@ Use the share button to post on social media.
 ## License
 
 Part of the Clank Tank Hackathon system.
+
+---
+
+## Schema Sync & Canonical Types
+
+- The canonical submission schema is defined in `hackathon/backend/submission_schema.json`.
+- After any schema change, run:
+  ```bash
+  npm run sync-schema
+  ```
+  This copies the schema to `frontend/public/submission_schema.json` and generates TypeScript types in `frontend/src/types/submissionSchema.ts`.
+- All frontend forms and types should use the generated types from `src/types/submission.ts`.
+- Always sync the schema before building or deploying the frontend.
+
+## Build & Deployment
+
+- **Development:**
+  ```bash
+  npm run dev
+  ```
+- **Production Build:**
+  ```bash
+  npm run build
+  ```
+  Serve the contents of `frontend/dist/` with your preferred static file server or CDN.
+- **Linting:**
+  ```bash
+  npm run lint
+  ```
+
+## Sysadmin & Troubleshooting Notes
+
+- Ensure the backend API is running and accessible at the configured base URL (see `src/lib/api.ts`).
+- The frontend expects the schema and static data in `frontend/public/`.
+- If you see schema mismatch errors, rerun `npm run sync-schema` and rebuild.
+- For CORS or API errors, check proxy settings in `vite.config.ts` and backend CORS config.
+- For DB issues, ensure `data/hackathon.db` is present and permissions are correct.
+
+---

@@ -157,7 +157,7 @@ export default function SubmissionDetail() {
         {/* Overlayed content: only title and team name, bottom left with margin */}
         <div className="absolute left-0 bottom-0 p-8 z-10 flex flex-col gap-2 w-auto">
           <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow mb-1">{submission.project_name}</h1>
-          <p className="text-lg text-white/80 mb-2">by <span className="font-semibold text-white">{submission.team_name}</span></p>
+          <p className="text-lg text-white/80 mb-2">by <span className="font-semibold text-white">{submission.discord_handle}</span></p>
         </div>
       </div>
 
@@ -200,15 +200,6 @@ export default function SubmissionDetail() {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Project Details</h2>
             </CardHeader>
             <CardContent className="space-y-6">
-              {submission.how_it_works && (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                    <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
-                    How It Works
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.how_it_works}</p>
-                </div>
-              )}
               
               {submission.problem_solved && (
                 <div>
@@ -220,35 +211,16 @@ export default function SubmissionDetail() {
                 </div>
               )}
               
-              {submission.coolest_tech && (
+              {submission.favorite_part && (
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
-                    Technical Highlights
+                    Favorite Part
                   </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.coolest_tech}</p>
+                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.favorite_part}</p>
                 </div>
               )}
               
-              {submission.next_steps && (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                    <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
-                    What's Next
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.next_steps}</p>
-                </div>
-              )}
-              
-              {submission.tech_stack && (
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center">
-                    <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
-                    Tech Stack
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.tech_stack}</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 

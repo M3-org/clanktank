@@ -12,33 +12,47 @@ import sys
 import os
 import re
 
-from hackathon.backend.schema import SUBMISSION_VERSIONS, LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.backend.schema import (
+    SUBMISSION_VERSIONS,
+    LATEST_SUBMISSION_VERSION,
+    get_fields,
+)
 
 REQUIRED_SCORE_FIELDS = [
     "submission_id",
-    "judge_name", "innovation", "technical_execution", "market_potential",
-    "user_experience", "weighted_total", "notes", "round",
-    "community_bonus", "final_verdict"
+    "judge_name",
+    "innovation",
+    "technical_execution",
+    "market_potential",
+    "user_experience",
+    "weighted_total",
+    "notes",
+    "round",
+    "community_bonus",
+    "final_verdict",
 ]
 
-STATIC_FIELDS = [
-    "id", "submission_id", "status", "created_at", "updated_at"
-]
+STATIC_FIELDS = ["id", "submission_id", "status", "created_at", "updated_at"]
 
-SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.py")
+# Update SCHEMA_PATH and any relative imports to reflect new location in backend/
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
+
 
 def resolve_version(version):
     if version == "latest":
         return LATEST_SUBMISSION_VERSION
     return version
 
+
 def get_table_columns(cursor, table):
     cursor.execute(f"PRAGMA table_info({table})")
     return [row[1] for row in cursor.fetchall()]
 
+
 def add_column(cursor, table, col, coltype):
     print(f"  Adding column {col} ({coltype}) to {table}")
     cursor.execute(f"ALTER TABLE {table} ADD COLUMN {col} {coltype}")
+
 
 def check_and_migrate_submissions(cursor, table, manifest, dry_run):
     print(f"Checking table: {table}")
@@ -56,11 +70,15 @@ def check_and_migrate_submissions(cursor, table, manifest, dry_run):
     if not missing and not extra:
         print(f"  {table} is up to date.")
 
+
 def check_and_migrate_scores(cursor, dry_run):
     print("Checking table: hackathon_scores")
     cols = get_table_columns(cursor, "hackathon_scores")
     col_types = {
-        "judge_name": "TEXT", "notes": "TEXT", "final_verdict": "TEXT", "submission_id": "TEXT"
+        "judge_name": "TEXT",
+        "notes": "TEXT",
+        "final_verdict": "TEXT",
+        "submission_id": "TEXT",
     }
     for f in REQUIRED_SCORE_FIELDS:
         if f not in cols:
@@ -71,13 +89,16 @@ def check_and_migrate_scores(cursor, dry_run):
                 print(f"  Would add column {f} ({coltype})")
     extra = [f for f in cols if f not in REQUIRED_SCORE_FIELDS + ["id", "created_at"]]
     if extra:
-        print(f"  WARNING: Extra columns in hackathon_scores not in required set: {extra}")
+        print(
+            f"  WARNING: Extra columns in hackathon_scores not in required set: {extra}"
+        )
     print("  hackathon_scores check complete.")
+
 
 def add_field_to_manifest(field_name, version):
     with open(SCHEMA_PATH, "r") as f:
         lines = f.readlines()
-    manifest_name = f"SUBMISSION_FIELDS[\"{version}\"]"
+    manifest_name = f'SUBMISSION_FIELDS["{version}"]'
     in_manifest = False
     for i, line in enumerate(lines):
         if line.strip().startswith(manifest_name):
@@ -91,6 +112,7 @@ def add_field_to_manifest(field_name, version):
     with open(SCHEMA_PATH, "w") as f:
         f.writelines(lines)
     print(f"Appended '{field_name}' to {manifest_name} in schema.py.")
+
 
 def add_field(args):
     db_path = args.db
@@ -110,20 +132,41 @@ def add_field(args):
         add_column(cursor, table, field_name, "TEXT")
     conn.commit()
     conn.close()
-    print(f"Added column '{field_name}' to {', '.join(f'hackathon_submissions_{v}' for v in versions)}.")
+    print(
+        f"Added column '{field_name}' to {', '.join(f'hackathon_submissions_{v}' for v in versions)}."
+    )
+
 
 def main():
     parser = argparse.ArgumentParser(description="Migrate/check hackathon DB schema.")
     subparsers = parser.add_subparsers(dest="command")
 
-    parser.add_argument("--dry-run", action="store_true", help="Only print actions, do not modify DB.")
-    parser.add_argument("--version", choices=SUBMISSION_VERSIONS + ["all", "latest"], default="all", help="Which submission table(s) to check.")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Only print actions, do not modify DB."
+    )
+    parser.add_argument(
+        "--version",
+        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        default="all",
+        help="Which submission table(s) to check.",
+    )
     parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
-    add_parser = subparsers.add_parser("add-field", help="Add a new field to manifest and DB.")
-    add_parser.add_argument("field_name", type=str, help="Name of the new field to add.")
-    add_parser.add_argument("--version", choices=SUBMISSION_VERSIONS + ["all", "latest"], default="all", help="Which manifest/table to add to.")
-    add_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
+    add_parser = subparsers.add_parser(
+        "add-field", help="Add a new field to manifest and DB."
+    )
+    add_parser.add_argument(
+        "field_name", type=str, help="Name of the new field to add."
+    )
+    add_parser.add_argument(
+        "--version",
+        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        default="all",
+        help="Which manifest/table to add to.",
+    )
+    add_parser.add_argument(
+        "--db", default="data/hackathon.db", help="Path to DB file."
+    )
 
     args = parser.parse_args()
 
@@ -153,5 +196,6 @@ def main():
     conn.close()
     print("Migration/check complete.")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

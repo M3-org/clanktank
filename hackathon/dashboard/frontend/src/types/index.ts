@@ -16,15 +16,13 @@ export interface SubmissionDetail extends SubmissionSummary {
   updated_at: string
   github_url?: string
   demo_video_url?: string
-  live_demo_url?: string
-  tech_stack?: string
-  how_it_works?: string
+  project_image?: string
   problem_solved?: string
-  coolest_tech?: string
-  next_steps?: string
+  favorite_part?: string
   scores?: Score[]
   research?: Research
   solana_address?: string
+  discord_handle?: string
   // Edit permission info
   can_edit?: boolean
   is_creator?: boolean
@@ -54,11 +52,11 @@ export interface Research {
 export interface LeaderboardEntry {
   rank: number
   project_name: string
-  team_name: string
   category: string
   final_score: number
   youtube_url?: string
   status: string
+  discord_handle?: string
 }
 
 export interface Stats {
