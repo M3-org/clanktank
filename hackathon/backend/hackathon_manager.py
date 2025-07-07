@@ -487,10 +487,16 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
 
         return results
 
-    def get_leaderboard(self, round_num: int = 1) -> List[Dict[str, Any]]:
-        """Get the current leaderboard with average scores."""
+    def get_leaderboard(self, round_num: int = None) -> List[Dict[str, Any]]:
+        """Get the current leaderboard with average scores from the latest available round."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
+
+        # If no round specified, use the latest available round
+        if round_num is None:
+            cursor.execute("SELECT MAX(round) FROM hackathon_scores")
+            latest_round = cursor.fetchone()[0] or 1
+            round_num = latest_round
 
         cursor.execute(
             f"""
@@ -748,7 +754,8 @@ RELATIVE POSITIONING:
                 if judge not in r1_scores:
                     continue
 
-                verdict = self._generate_final_verdict_with_comparison(
+                # Get structured Round 2 response
+                round2_response = self._generate_final_verdict_with_comparison(
                     project_id, 
                     judge, 
                     r1_scores[judge], 
@@ -757,28 +764,44 @@ RELATIVE POSITIONING:
                     distribution_analysis
                 )
                 
-                # Round 2 score is judge's revised assessment, not automatic bonus
+                # Parse structured response
+                parsed_response = self._parse_round2_response(round2_response)
+                
+                # Calculate Round 2 score based on structured response
                 final_score = self._calculate_judge_round2_score(
-                    judge, r1_scores[judge]["score"], verdict, community_data[project_id]
+                    judge, r1_scores[judge]["score"], round2_response, community_data[project_id]
                 )
 
-                # Store Round 2 data with comparative context
+                # Store Round 2 data with flattened, logical structure
                 cursor.execute(
                     """
                     INSERT INTO hackathon_scores 
-                    (submission_id, judge_name, round, weighted_total, notes)
-                    VALUES (?, ?, 2, ?, ?)
+                    (submission_id, judge_name, round, weighted_total, notes, created_at)
+                    VALUES (?, ?, 2, ?, ?, ?)
                 """,
                     (
                         project_id,
                         judge,
                         final_score,
                         json.dumps({
-                            "final_verdict": verdict,
+                            # Round 2 core data
+                            "round2_final_verdict": parsed_response.get("final_verdict", ""),
+                            "round2_reasoning": parsed_response.get("reasoning", ""),
+                            "score_revision": parsed_response.get("score_revision", {}),
+                            "community_influence": parsed_response.get("community_influence", "unknown"),
+                            "confidence": parsed_response.get("confidence", "medium"),
+                            
+                            # Context data
+                            "round1_score": r1_scores[judge]["score"],
                             "comparative_reasoning": comparative_reasoning,
                             "community_context": community_data[project_id],
-                            "round1_score": r1_scores[judge]["score"]
+                            
+                            # Metadata
+                            "judge_persona": judge,
+                            "submission_id": project_id,
+                            "synthesis_timestamp": datetime.now().isoformat()
                         }),
+                        datetime.now().isoformat(),
                     ),
                 )
 
@@ -793,59 +816,165 @@ RELATIVE POSITIONING:
         conn.close()
 
     def _get_community_feedback_context(self, cursor, project_ids):
-        """Get community feedback data as context for judge reasoning, not automatic bonuses."""
+        """Get community feedback data as context for Round 2 synthesis."""
+        import statistics
+        
         community_data = {}
-
+        all_reaction_counts = []
+        
+        # First pass: collect all reaction data and counts for statistical analysis
         for project_id in project_ids:
+            # Get total reactions for this project
+            cursor.execute(
+                "SELECT COUNT(*) FROM community_feedback WHERE submission_id = ?",
+                (project_id,),
+            )
+            total_reactions = cursor.fetchone()[0]
+            all_reaction_counts.append(total_reactions)
+            
             # Get reaction breakdown
             cursor.execute(
-                """
-                SELECT reaction_type, COUNT(*) as count 
-                FROM community_feedback 
-                WHERE submission_id = ? 
-                GROUP BY reaction_type
-                """,
+                "SELECT reaction_type, COUNT(*) FROM community_feedback WHERE submission_id = ? GROUP BY reaction_type",
                 (project_id,),
             )
             reaction_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
             
-            # Get total reactions
-            total_reactions = sum(reaction_breakdown.values())
-            
-            # Calculate engagement metrics for context
+            # Get unique voters
             cursor.execute(
                 "SELECT COUNT(DISTINCT discord_user_id) FROM community_feedback WHERE submission_id = ?",
                 (project_id,),
             )
             unique_voters = cursor.fetchone()[0]
             
+            # Store basic data for now
             community_data[project_id] = {
                 "total_reactions": total_reactions,
                 "unique_voters": unique_voters,
                 "reaction_breakdown": reaction_breakdown,
-                "engagement_level": "high" if total_reactions > 10 else "medium" if total_reactions > 3 else "low"
+                "engagement_level": "pending"  # Will calculate after getting distribution
+            }
+        
+        # Calculate statistical thresholds based on distribution
+        if len(all_reaction_counts) > 1:
+            try:
+                median_reactions = statistics.median(all_reaction_counts)
+                mean_reactions = statistics.mean(all_reaction_counts)
+                
+                # Use median-based thresholds for more robust classification
+                # High: Above median + (median * 0.5)
+                # Medium: Above median
+                # Low: Below median
+                high_threshold = median_reactions + (median_reactions * 0.5)
+                medium_threshold = median_reactions
+                
+                # Fallback to mean-based if median is 0
+                if median_reactions == 0:
+                    high_threshold = mean_reactions * 1.5
+                    medium_threshold = mean_reactions * 0.5
+                    
+            except statistics.StatisticsError:
+                # Fallback to simple thresholds if statistics fail
+                high_threshold = 5
+                medium_threshold = 2
+        else:
+            # Single project fallback
+            high_threshold = 5
+            medium_threshold = 2
+        
+        # Second pass: assign engagement levels based on calculated thresholds
+        for project_id in community_data:
+            total_reactions = community_data[project_id]["total_reactions"]
+            
+            if total_reactions >= high_threshold:
+                engagement_level = "high"
+            elif total_reactions >= medium_threshold:
+                engagement_level = "medium"
+            else:
+                engagement_level = "low"
+                
+            community_data[project_id]["engagement_level"] = engagement_level
+            
+            # Add threshold info for transparency
+            community_data[project_id]["thresholds"] = {
+                "high": high_threshold,
+                "medium": medium_threshold,
+                "median": median_reactions if len(all_reaction_counts) > 1 else 0,
+                "mean": mean_reactions if len(all_reaction_counts) > 1 else 0
             }
 
         return community_data
 
-    def _calculate_judge_round2_score(self, judge_name, round1_score, verdict_text, community_context):
-        """Calculate Round 2 score based on judge's reasoning, not automatic bonus."""
-        # For now, return the Round 1 score as baseline
-        # In the future, this could parse the verdict for score adjustments based on judge reasoning
-        # e.g., looking for phrases like "I'm revising upward" or "upon reflection, lower"
+    def _parse_round2_response(self, response_text: str) -> Dict[str, Any]:
+        """Parse Round 2 judge response with structured JSON format."""
+        import json
+        import re
         
-        # Simple heuristic: if verdict mentions community alignment positively, small boost
-        # if mentions disconnect negatively, small penalty
-        adjustment = 0
-        verdict_lower = verdict_text.lower()
+        # Try to extract JSON from the response
+        json_match = re.search(r'```json\s*\n(.*?)\n```', response_text, re.DOTALL)
+        if not json_match:
+            # Try to find JSON without code blocks
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
         
-        if any(phrase in verdict_lower for phrase in ["community is right", "undervalued", "deserves higher"]):
-            adjustment = min(2.0, 0.1 * community_context["total_reactions"])  # Max 2 point boost
-        elif any(phrase in verdict_lower for phrase in ["overrated", "community missed", "disconnect"]):
-            adjustment = -1.0  # Small penalty for disconnect
+        if json_match:
+            try:
+                json_data = json.loads(json_match.group(1))
+                
+                # Validate required fields
+                required_fields = ['final_verdict', 'score_revision']
+                if all(field in json_data for field in required_fields):
+                    return {
+                        'final_verdict': json_data.get('final_verdict', ''),
+                        'score_revision': json_data.get('score_revision', {}),
+                        'reasoning': json_data.get('reasoning', ''),
+                        'community_influence': json_data.get('community_influence', 'none'),
+                        'confidence': json_data.get('confidence', 'medium')
+                    }
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON from Round 2 response: {e}")
         
-        final_score = max(0, min(40, round1_score + adjustment))  # Keep within bounds
-        return round(final_score, 2)
+        # Fallback: treat entire response as final_verdict
+        logger.warning("Round 2 response not in expected JSON format, using as final_verdict")
+        return {
+            'final_verdict': response_text.strip(),
+            'score_revision': {'type': 'none'},
+            'reasoning': 'Non-structured response',
+            'community_influence': 'unknown',
+            'confidence': 'low'
+        }
+
+    def _calculate_judge_round2_score(self, judge_name, round1_score, round2_response, community_context):
+        """Calculate Round 2 score based on structured judge response."""
+        
+        # Parse the structured response
+        parsed_response = self._parse_round2_response(round2_response)
+        score_revision = parsed_response.get('score_revision', {})
+        
+        # Handle different types of score revisions
+        revision_type = score_revision.get('type', 'none')
+        
+        if revision_type == 'explicit':
+            # Direct score override
+            new_score = score_revision.get('new_score')
+            if new_score is not None and 0 <= new_score <= 40:
+                logger.info(f"{judge_name} provided explicit score revision: {new_score}/40")
+                return round(float(new_score), 2)
+        
+        elif revision_type == 'adjustment':
+            # Relative adjustment from Round 1
+            adjustment = score_revision.get('adjustment', 0)
+            reason = score_revision.get('reason', '')
+            final_score = max(0, min(40, round1_score + adjustment))
+            logger.info(f"{judge_name} adjusted score by {adjustment:+.1f}: {round1_score} → {final_score} ({reason})")
+            return round(final_score, 2)
+        
+        elif revision_type == 'none':
+            # No score change, maintain Round 1 score
+            logger.info(f"{judge_name} maintained Round 1 score: {round1_score}/40")
+            return round1_score
+        
+        # Fallback for malformed responses
+        logger.warning(f"{judge_name} provided invalid score revision format, maintaining Round 1 score")
+        return round1_score
 
     def _calculate_community_bonuses(self, cursor, project_ids):
         """DEPRECATED: Community feedback is now contextual, not automatic bonus."""
@@ -901,17 +1030,38 @@ PROJECT DETAILS:
 {project_name} ({category}): {description}
 
 YOUR FINAL SYNTHESIS TASK:
-Consider your Round 1 analysis, the community response as a signal (not automatic adjustment), and how this project compares to others:
+Provide your Round 2 assessment in the following JSON format:
 
+```json
+{{
+  "final_verdict": "Your 2-3 sentence final perspective as {judge.upper()}",
+  "score_revision": {{
+    "type": "none|adjustment|explicit",
+    "new_score": 25.0,
+    "adjustment": -2.5,
+    "reason": "Brief explanation for score change"
+  }},
+  "reasoning": "Detailed explanation of your assessment",
+  "community_influence": "none|minimal|moderate|significant",
+  "confidence": "low|medium|high"
+}}
+```
+
+SCORE REVISION TYPES:
+- "none": Keep Round 1 score unchanged
+- "adjustment": Modify Round 1 score by +/- amount (use "adjustment" field)
+- "explicit": Replace with entirely new score (use "new_score" field)
+
+Consider:
 1. Does your initial technical assessment hold up against the comparative data?
 2. What does the community feedback pattern suggest about user appeal vs technical merit?
 3. Given the competitive landscape, should you revise your scoring reasoning?
-4. If you were to adjust your score, what would it be and why?
+4. If adjusting your score, be explicit about the new value and reasoning.
 
-Provide your final perspective as {judge.upper()} in 3-4 sentences. Be explicit about any score revision and reasoning."""
+Respond ONLY with the JSON structure above."""
 
         try:
-            logger.info(f"Getting comparative final verdict from {judge} for {project_name}")
+            logger.info(f"Getting structured final verdict from {judge} for {project_name}")
             response = requests.post(
                 BASE_URL,
                 json={
@@ -920,7 +1070,7 @@ Provide your final perspective as {judge.upper()} in 3-4 sentences. Be explicit 
                         {"role": "system", "content": persona},
                         {"role": "user", "content": prompt},
                     ],
-                    "max_tokens": 400,
+                    "max_tokens": 600,
                     "temperature": 0.3,
                 },
                 headers=self.headers,
@@ -929,9 +1079,16 @@ Provide your final perspective as {judge.upper()} in 3-4 sentences. Be explicit 
             if response.ok:
                 return response.json()["choices"][0]["message"]["content"].strip()
         except Exception as e:
-            logger.warning(f"Failed to get comparative final verdict from {judge}: {e}")
+            logger.warning(f"Failed to get structured final verdict from {judge}: {e}")
 
-        return f"Maintaining Round 1 assessment of {r1_data['score']:.1f}/40 considering community feedback pattern and competitive ranking."
+        # Fallback response in JSON format
+        return f"""{{
+  "final_verdict": "Maintaining Round 1 assessment of {r1_data['score']:.1f}/40 considering community feedback pattern and competitive ranking.",
+  "score_revision": {{"type": "none"}},
+  "reasoning": "API error occurred during Round 2 synthesis",
+  "community_influence": "unknown",
+  "confidence": "low"
+}}"""
 
 
 def main():

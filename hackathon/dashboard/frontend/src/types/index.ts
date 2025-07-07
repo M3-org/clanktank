@@ -40,11 +40,48 @@ export interface Score {
     reasons?: Record<string, string>
     overall_comment?: string
     final_verdict?: string
+    // Round 2 flattened structure
+    round2_final_verdict?: string
+    round2_reasoning?: string
+    score_revision?: {
+      type: 'none' | 'adjustment' | 'explicit'
+      new_score?: number
+      adjustment?: number
+      reason?: string
+    }
+    community_influence?: 'none' | 'minimal' | 'moderate' | 'significant'
+    confidence?: 'low' | 'medium' | 'high'
+    round1_score?: number
+    comparative_reasoning?: string
+    community_context?: CommunityContext
+    judge_persona?: string
+    submission_id?: string
+    synthesis_timestamp?: string
+  }
+}
+
+export interface CommunityContext {
+  total_reactions: number
+  unique_voters: number
+  reaction_breakdown: Record<string, number>
+  engagement_level: 'low' | 'medium' | 'high'
+  thresholds: {
+    high: number
+    medium: number
+    median: number
+    mean: number
   }
 }
 
 export interface Research {
-  github_analysis?: any
+  github_analysis?: {
+    file_count?: number
+    token_budget?: number
+    gitingest_config?: any
+    red_flags?: string[]
+    dependency_analysis?: any
+    repository_stats?: any
+  }
   market_research?: any
   technical_assessment?: any
 }
@@ -57,6 +94,7 @@ export interface LeaderboardEntry {
   youtube_url?: string
   status: string
   discord_handle?: string
+  round?: number  // Added to indicate which round the score is from
 }
 
 export interface Stats {

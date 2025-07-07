@@ -360,11 +360,11 @@ export default function SubmissionDetail() {
                             </div>
                             {round2 ? (
                               <>
-                                {round2.notes?.final_verdict ? (
+                                {round2.notes?.round2_final_verdict ? (
                                   <div className={`mt-2`}> 
                                     <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic bg-green-50 dark:bg-green-900 border-l-4 border-green-400 dark:border-green-500`}> 
                                       <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute left-2 top-2" />
-                                      <span className="pl-6 text-gray-900 dark:text-gray-100">"{round2.notes.final_verdict}"</span>
+                                      <span className="pl-6 text-gray-900 dark:text-gray-100">"{round2.notes.round2_final_verdict}"</span>
                                     </div>
                                   </div>
                                 ) : (
