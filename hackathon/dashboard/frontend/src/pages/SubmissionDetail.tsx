@@ -457,69 +457,194 @@ export default function SubmissionDetail() {
               </CardHeader>
               <CardContent>
                 {submission.research.github_analysis && (
-                  <div className="mb-4 p-4 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
+                  <div className="mb-3 p-3 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
+                    <div className="flex items-center justify-between">
                       <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
                         <Github className="h-4 w-4 mr-2" />
                         GitHub Analysis
                       </h4>
-                      <Badge variant="info">
-                        Score: {submission.research.github_analysis.quality_score || 'N/A'}/100
-                      </Badge>
+                      <div className="flex items-center">
+                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      Repository analyzed for code quality and activity
-                    </p>
                   </div>
                 )}
-                <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                  Detailed research data available in database
-                </p>
+                
+                {/* AI Research Summary */}
+                {submission.research.technical_assessment && (
+                  <div className="mb-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        AI Research
+                      </h4>
+                      <div className="flex items-center">
+                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
+                      </div>
+                    </div>
+                    
+                    {(() => {
+                      try {
+                        const research = typeof submission.research.technical_assessment === 'string' 
+                          ? JSON.parse(submission.research.technical_assessment) 
+                          : submission.research.technical_assessment;
+                        
+                        // Only show red flags if any exist
+                        if (research['Red Flags'] && Array.isArray(research['Red Flags']) && research['Red Flags'].length > 0) {
+                          return (
+                            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900 rounded border-l-4 border-red-400">
+                              <h5 className="text-xs font-medium text-red-800 dark:text-red-200 mb-1">Red Flags Found</h5>
+                              <ul className="text-xs text-red-700 dark:text-red-300 space-y-1">
+                                {research['Red Flags'].slice(0, 2).map((flag: string, idx: number) => (
+                                  <li key={idx} className="flex items-start">
+                                    <span className="mr-1">•</span>
+                                    <span>{flag}</span>
+                                  </li>
+                                ))}
+                                {research['Red Flags'].length > 2 && (
+                                  <li className="text-xs italic">... and {research['Red Flags'].length - 2} more</li>
+                                )}
+                              </ul>
+                            </div>
+                          );
+                        }
+                        return null;
+                      } catch (e) {
+                        return null;
+                      }
+                    })()}
+                  </div>
+                )}
+                
+                {!submission.research.github_analysis && !submission.research.technical_assessment && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                    No research data available
+                  </p>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {/* Community Feedback */}
-          {feedback && feedback.total_votes > 0 && (
-            <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-              <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Heart className="h-5 w-5 mr-2 text-red-500 dark:text-red-400" />
-                  Community Feedback
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                    <span className="font-medium">{feedback.total_votes}</span> total votes from the community
-                  </p>
-                  
-                  <div className="space-y-3">
-                    {feedback.feedback.map((item: any) => (
-                      <div key={item.reaction_type} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xl">{item.emoji}</span>
-                          <div>
-                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{item.vote_count} votes</p>
+          {/* Community Context - Updated */}
+          {(() => {
+            // Check for community context in Round 2 scores
+            const round2Scores = submission.scores?.filter(s => s.round === 2) || [];
+            let communityContext = null;
+            
+            // Try to extract community context from any Round 2 score notes
+            for (const score of round2Scores) {
+              try {
+                const notes = typeof score.notes === 'string' ? JSON.parse(score.notes) : score.notes;
+                if (notes?.community_context) {
+                  communityContext = notes.community_context;
+                  break;
+                }
+              } catch (e) {
+                // Continue to next score
+              }
+            }
+            
+            // Fallback to old feedback format if no community context found
+            const hasOldFeedback = feedback && feedback.total_votes > 0;
+            
+            if (communityContext || hasOldFeedback) {
+              return (
+                <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                  <CardHeader>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                      <Heart className="h-5 w-5 mr-2 text-red-500 dark:text-red-400" />
+                      Community Context
+                    </h3>
+                  </CardHeader>
+                  <CardContent>
+                    {communityContext ? (
+                      <div className="space-y-4">
+                        {/* Engagement Overview */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              {communityContext.total_reactions}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Total Reactions</div>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                              {communityContext.unique_voters}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Unique Voters</div>
+                          </div>
+                          <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className={`text-lg font-bold ${
+                              communityContext.engagement_level === 'high' ? 'text-green-600 dark:text-green-400' :
+                              communityContext.engagement_level === 'medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-gray-600 dark:text-gray-400'
+                            }`}>
+                              {communityContext.engagement_level.toUpperCase()}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">Engagement</div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <Badge variant="secondary">
-                            {item.vote_count}
-                          </Badge>
+                        
+                        {/* Reaction Breakdown */}
+                        {communityContext.reaction_breakdown && Object.keys(communityContext.reaction_breakdown).length > 0 && (
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Reaction Breakdown</h4>
+                            <div className="space-y-2">
+                              {Object.entries(communityContext.reaction_breakdown).map(([reactionType, count]) => (
+                                <div key={reactionType} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                                    {reactionType.replace('_', ' ')}
+                                  </span>
+                                  <Badge variant="secondary">{count as number}</Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
+                          <p className="text-xs text-blue-800 dark:text-blue-200">
+                            This community feedback was considered as contextual information by judges in Round 2, 
+                            not as automatic score adjustments.
+                          </p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {feedback.feedback.length > 0 && (
-                    <></>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    ) : hasOldFeedback ? (
+                      // Fallback to old feedback display
+                      <div className="mb-4">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                          <span className="font-medium">{feedback.total_votes}</span> total votes from the community
+                        </p>
+                        
+                        <div className="space-y-3">
+                          {feedback.feedback.map((item: any) => (
+                            <div key={item.reaction_type} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                <span className="text-xl">{item.emoji}</span>
+                                <div>
+                                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">{item.vote_count} votes</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <Badge variant="secondary">
+                                  {item.vote_count}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              );
+            }
+            
+            return null;
+          })()}
         </div>
       </div>
     </div>

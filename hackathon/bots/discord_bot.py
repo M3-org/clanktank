@@ -64,8 +64,8 @@ class HackathonDiscordBot:
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT submission_id, project_name, team_name, description, 
-                   category, github_url, live_demo_url, demo_video_url, status
+            SELECT submission_id, project_name, discord_handle, description, 
+                   category, github_url, demo_video_url, status
             FROM hackathon_submissions_v2
             WHERE submission_id = ?
         """, (submission_id,))
@@ -77,13 +77,12 @@ class HackathonDiscordBot:
             return {
                 'submission_id': row[0],
                 'project_name': row[1],
-                'team_name': row[2],
+                'discord_handle': row[2],  # Use discord_handle instead of team_name
                 'description': row[3],
                 'category': row[4],
                 'github_url': row[5],
-                'demo_url': row[6],  # live_demo_url
-                'video_url': row[7], # demo_video_url
-                'status': row[8]
+                'video_url': row[6],  # demo_video_url
+                'status': row[7]
             }
         return None
     
@@ -93,8 +92,8 @@ class HackathonDiscordBot:
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT submission_id, project_name, team_name, description,
-                   category, github_url, live_demo_url, demo_video_url
+            SELECT submission_id, project_name, discord_handle, description,
+                   category, github_url, demo_video_url
             FROM hackathon_submissions_v2
             WHERE status = 'scored'
             ORDER BY created_at
@@ -108,12 +107,11 @@ class HackathonDiscordBot:
             submissions.append({
                 'submission_id': row[0],
                 'project_name': row[1],
-                'team_name': row[2],
+                'discord_handle': row[2],  # Use discord_handle instead of team_name
                 'description': row[3],
                 'category': row[4],
                 'github_url': row[5],
-                'demo_url': row[6],  # live_demo_url
-                'video_url': row[7]  # demo_video_url
+                'video_url': row[6]  # demo_video_url
             })
         
         return submissions
@@ -139,7 +137,7 @@ class HackathonDiscordBot:
         )
         
         # Add fields
-        embed.add_field(name="Team", value=submission['team_name'], inline=True)
+        embed.add_field(name="Creator", value=submission['discord_handle'], inline=True)  # Changed from "Team"
         embed.add_field(name="Category", value=submission['category'], inline=True)
         embed.add_field(name="ID", value=submission['submission_id'], inline=True)
         
@@ -239,6 +237,30 @@ class HackathonDiscordBot:
             conn.rollback()
         finally:
             conn.close()
+
+    def remove_vote(self, submission_id: str, discord_username: str, vote_category: str):
+        """Remove a vote from the community_feedback table."""
+        conn = self.get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            # Delete the vote
+            cursor.execute("""
+                DELETE FROM community_feedback
+                WHERE submission_id = ? AND discord_user_id = ? AND reaction_type = ?
+            """, (submission_id, discord_username, vote_category))
+            
+            if cursor.rowcount > 0:
+                conn.commit()
+                logger.info(f"Removed vote: @{discord_username} removed {vote_category} vote for {submission_id}")
+            else:
+                logger.info(f"No vote found to remove: @{discord_username} - {vote_category} for {submission_id}")
+            
+        except Exception as e:
+            logger.error(f"Error removing vote: {e}")
+            conn.rollback()
+        finally:
+            conn.close()
     
 
 # Global bot instance
@@ -288,6 +310,46 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
         submission_id=submission_id,
         discord_username=username,
         discord_user_nickname=nickname,
+        vote_category=vote_category
+    )
+
+@bot.event
+async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
+    """Handle reaction removals."""
+    # Ignore bot's own reactions
+    if user.bot:
+        return
+    
+    # Check if this message was posted by this bot
+    if reaction.message.author.id != bot.user.id:
+        return
+    
+    # Check if this is a valid voting emoji
+    emoji_str = str(reaction.emoji)
+    if emoji_str not in REACTION_TO_CATEGORY:
+        return
+    
+    # Extract submission ID from the embed
+    submission_id = None
+    if reaction.message.embeds:
+        embed = reaction.message.embeds[0]
+        # Look for submission ID in the embed fields
+        for field in embed.fields:
+            if field.name == "ID":
+                submission_id = field.value
+                break
+    
+    if not submission_id:
+        logger.warning(f"Could not find submission ID in message {reaction.message.id}")
+        return
+    
+    vote_category = REACTION_TO_CATEGORY[emoji_str]
+    username = user.name  # Discord username (more readable than ID)
+    
+    # Remove the vote
+    hackathon_bot.remove_vote(
+        submission_id=submission_id,
+        discord_username=username,
         vote_category=vote_category
     )
 

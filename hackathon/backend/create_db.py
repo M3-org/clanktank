@@ -103,7 +103,7 @@ def create_hackathon_database(db_path):
     """
     )
 
-    # Research data table
+    # Research data table (references v2 submissions)
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS hackathon_research (
@@ -113,9 +113,9 @@ def create_hackathon_database(db_path):
             market_research TEXT,
             technical_assessment TEXT,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
         )
-    """
+        """
     )
 
     # Users table for Discord authentication
@@ -149,6 +149,10 @@ def create_hackathon_database(db_path):
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)"
     )
+    cursor.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_research_submission_id_unique ON hackathon_research(submission_id)"
+    )
+    # This unique index is required for ON CONFLICT(submission_id) upserts in research.py
 
     conn.commit()
     conn.close()
