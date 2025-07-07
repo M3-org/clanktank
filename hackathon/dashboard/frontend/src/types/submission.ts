@@ -19,7 +19,6 @@
  */
 
 // This type is now generated from the backend schema. Do not edit manually.
-export { SubmissionSchemaV2 } from './submissionSchema';
 
 // If you need to extend or add frontend-only types, do so below.
 

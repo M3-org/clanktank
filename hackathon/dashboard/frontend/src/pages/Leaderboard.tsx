@@ -132,7 +132,7 @@ export default function Leaderboard() {
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-sm text-gray-600 dark:text-gray-300">
-                        by <span className="font-medium">{entry.team_name}</span>
+                        by {entry.discord_handle}
                       </span>
                       <CategoryBadge category={entry.category} />
                     </div>
