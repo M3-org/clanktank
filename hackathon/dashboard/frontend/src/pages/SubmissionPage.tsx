@@ -130,22 +130,33 @@ export default function SubmissionPage() {
         data.discord_handle = authState.discordUser.username
       }
       
-      // Handle file upload for project_image
+      // Store file for later upload (after submission creation)
+      let imageFile: File | null = null
       if (data.project_image && data.project_image instanceof FileList) {
-        const file = data.project_image[0]
-        if (file) {
-          try {
-            const uploadResult = await hackathonApi.uploadImage(file)
-            data.project_image = uploadResult.url
-          } catch (uploadError) {
-            console.error('Image upload failed:', uploadError)
-            toast.error('Image upload failed. Submission will proceed without image.')
-            data.project_image = ''
-          }
-        }
+        imageFile = data.project_image[0] || null
       }
       
-      const result = await hackathonApi.createSubmission(data)
+      // Remove file from submission data and create submission first
+      const submissionData = { ...data }
+      delete submissionData.project_image
+      
+      const result = await hackathonApi.createSubmission(submissionData)
+      
+      // If submission successful and we have an image, upload it
+      if (result.success && imageFile) {
+        try {
+          const uploadResult = await hackathonApi.uploadImage(imageFile, result.submission_id)
+          
+          // Update submission with image URL
+          await hackathonApi.editSubmission(result.submission_id, {
+            ...submissionData,
+            project_image: uploadResult.url
+          })
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError)
+          toast.error('Submission created but image upload failed. You can edit and add the image later.')
+        }
+      }
       
       if (result.success) {
         toast.success('Submission created successfully!')

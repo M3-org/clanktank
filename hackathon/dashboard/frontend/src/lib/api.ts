@@ -2,7 +2,7 @@ import axios from 'axios'
 import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats } from '../types'
 import { SubmissionInputs } from '../types/submission'
 
-const API_BASE = import.meta.env.PROD ? '/data' : 'http://localhost:8000/api'
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api'
 
 // For static deployment, we'll check if we should use JSON files
 const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
@@ -13,7 +13,7 @@ const api = axios.create({
 
 // Add Discord token to requests if available
 api.interceptors.request.use((config) => {
-  const discordToken = localStorage.getItem('discord_access_token')
+  const discordToken = localStorage.getItem('discord_token')
   if (discordToken) {
     config.headers.Authorization = `Bearer ${discordToken}`
   }
@@ -127,13 +127,12 @@ export const hackathonApi = {
   },
 
   // File upload
-  uploadImage: async (file: File) => {
+  uploadImage: async (file: File, submissionId: string) => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('submission_id', submissionId);
     const response = await api.post('/upload-image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
