@@ -159,35 +159,35 @@ export default function SubmissionPage() {
       }
       
       if (result.success) {
-        toast.success('Submission created successfully!')
-        localStorage.removeItem('submission_draft')
-        navigate(`/submission/${result.submission_id}`)
+        toast.success('Submission created successfully!');
+        localStorage.removeItem('submission_draft');
+        navigate(`/submission/${result.submission_id}`);
       } else {
-        setError(result.error || 'Submission failed')
+        setError(result.error || 'Submission failed');
       }
     } catch (error: any) {
-      console.error('Submission error:', error)
+      console.error('Submission error:', error);
       
       if (error.response?.status === 422) {
-        const errorData = error.response.data
+        const errorData = error.response.data;
         if (errorData.detail && Array.isArray(errorData.detail)) {
           errorData.detail.forEach((validationError: any) => {
-            const field = validationError.loc?.[validationError.loc.length - 1]
-            const message = validationError.msg
+            const field = validationError.loc?.[validationError.loc.length - 1];
+            const message = validationError.msg;
             if (field) {
-              toast.error(`${field}: ${message}`, { duration: 6000 })
+              toast.error(`${field}: ${message}`, { duration: 6000 });
             }
-          })
+          });
         } else {
-          setError('Please check your form inputs and try again.')
+          setError('Please check your form inputs and try again.');
         }
       } else if (error.response?.status === 401) {
-        setError('Authentication required. Please log in with Discord.')
+        setError('Authentication required. Please log in with Discord.');
       } else {
-        setError('Failed to submit. Please try again.')
+        setError('Failed to submit. Please try again.');
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
