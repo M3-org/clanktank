@@ -6,6 +6,7 @@ requests>=2.31.0
 
 # Database
 # sqlite3 is included in Python standard library
+sqlalchemy>=2.0.0
 
 # Google Sheets integration
 gspread>=5.12.0
@@ -25,6 +26,7 @@ PyGithub>=2.1.1  # Optional, if not using requests directly
 fastapi>=0.104.0
 uvicorn>=0.24.0
 pydantic>=2.4.0
+python-multipart>=0.0.6
 
 # YouTube upload
 google-api-python-client>=2.108.0

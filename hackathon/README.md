@@ -74,8 +74,8 @@ This directory contains all scripts and tools for the **Clank Tank Hackathon Edi
    - **Frontend Dashboard**: React development server
    - **Run:**
      ```bash
-     # Backend (from hackathon/backend/)
-     python app.py --host 0.0.0.0 --port 8000
+     # Backend (from the root of the repo)
+     uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
      
      # Frontend (from hackathon/dashboard/frontend/)
      npm install
@@ -178,10 +178,10 @@ python -m hackathon.scripts.migrate_schema add-field <field_name> --version v2
 ```bash
 # Start FastAPI server
 cd hackathon/backend
-python app.py --host 0.0.0.0 --port 8000
+uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 
 # Generate static data files
-python app.py --generate-static-data
+python -m hackathon.backend.app --generate-static-data
 
 # API documentation available at http://127.0.0.1:8000/docs
 ```
@@ -339,7 +339,7 @@ python -m hackathon.scripts.upload_youtube
 ### Development Workflow
 1. **Database Setup**: `python -m hackathon.scripts.create_db`
 2. **Schema Migration**: `python -m hackathon.scripts.migrate_schema`
-3. **Backend Development**: Start FastAPI server (`python backend/app.py`)
+3. **Backend Development**: Start FastAPI server (`uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000`)
 4. **Frontend Development**: Start React dev server (`npm run dev`)
 5. **Testing**: Run test suite (`pytest hackathon/tests/`)
 
@@ -404,7 +404,7 @@ python -m hackathon.tests.test_robust_pipeline
 3. **Start Development Environment:**
    ```bash
    # Backend
-   cd hackathon/backend && python app.py
+   uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
    
    # Frontend (new terminal)
    cd hackathon/dashboard/frontend && npm run dev
@@ -652,12 +652,51 @@ python -m hackathon.backend.sync_schema_to_frontend
 
 ---
 
+## How to Run (Canonical Commands)
+
+### 1. Database Setup
+```bash
+python -m hackathon.backend.create_db
+```
+
+### 2. Schema Migration (if you change the schema)
+```bash
+python -m hackathon.backend.migrate_schema
+# To add a new field:
+python -m hackathon.backend.migrate_schema add-field <field_name> --version v2
+```
+
+### 3. Sync Schema to Frontend (after schema changes)
+```bash
+python -m hackathon.backend.sync_schema_to_frontend
+# Or from the frontend directory:
+npm run sync-schema
+```
+
+### 4. Start the Backend API Server
+```bash
+uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
+```
+
+### 5. Frontend Development
+```bash
+cd hackathon/dashboard/frontend
+npm install
+npm run dev
+```
+
+### 6. Frontend Production Build
+```bash
+npm run build
+```
+
+---
+
 ## Notes
-- **Single Source of Truth:** The backend `submission_schema.json` is the canonical schema. All scripts and frontend types are generated from it.
-- **Automation:** Always run the schema sync script after changing the schema. Consider adding it to your build/CI pipeline.
-- **Relevant Files:** See `hackathon/TODO.md` for a list of all files affected by schema or pipeline changes.
-- **Documentation:** Update this README and `TODO.md` with any new scripts, workflow changes, or developer notes.
-- **Testing:** After schema or pipeline changes, run the test suite and perform manual QA to ensure all flows work as expected.
+- Always use `python -m ...` for backend scripts to avoid import errors.
+- Only run schema migration and sync if you change the schema.
+- The API server should be started with `uvicorn`, not by running `app.py` directly.
+- See the updated README sections for more details on each step.
 
 ---
 
