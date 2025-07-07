@@ -390,7 +390,7 @@ GitIngest outputs are saved as `gitingest-output-{submission_id}.txt` and includ
 
 ### Optional Configuration
 - `AI_MODEL_PROVIDER`: AI provider (default: `openrouter`)
-- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-3-opus`)
+- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-4-opus`)
 - `STATIC_DATA_DIR`: Static data directory for frontend
 - `SUBMISSION_DEADLINE`: ISO datetime string to close submissions (e.g., `2024-01-31T23:59:59`)
 - `GOOGLE_APPLICATION_CREDENTIALS`: Google Sheets API credentials
