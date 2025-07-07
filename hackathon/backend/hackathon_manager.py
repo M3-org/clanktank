@@ -83,6 +83,17 @@ class HackathonManager:
     ) -> str:
         """Create a detailed scoring prompt for a specific judge."""
         persona = JUDGE_PERSONAS.get(judge_name, "")
+        
+        # Hardened scoring scale with explicit anchors
+        SCALE = """
+SCORE SCALE (use these anchors):
+10 – Benchmark-setting, better than 95% of open-source projects
+ 8 – Strong; minor issues only experts notice
+ 6 – Adequate; clear rough edges
+ 4 – Significant gaps or shortcuts
+ 2 – Barely functional / mostly boilerplate
+ 0 – Non-working, plagiarized, or irrelevant
+"""
 
         # Parse research data
         github_analysis = {}
@@ -111,16 +122,24 @@ class HackathonManager:
             )
             ai_research.update(tech_assessment)
 
-        # Extract key insights
-        github_quality = (
-            github_analysis.get("quality_score", 0) if github_analysis else 0
-        )
+        # Extract key insights and red flags from research
         is_fork = github_analysis.get("is_fork", False) if github_analysis else False
         contributors = (
             github_analysis.get("contributors_count", 1) if github_analysis else 1
         )
+        
+        # Extract red flags from AI research if available
+        red_flags = ai_research.get("Red Flags", []) if isinstance(ai_research.get("Red Flags"), list) else []
+        red_flags_section = ""
+        if red_flags:
+            red_flags_section = f"""
+RESEARCH-IDENTIFIED RED FLAGS:
+{chr(10).join(f"• {flag}" for flag in red_flags)}
+"""
 
         prompt = f"""{persona}
+
+{SCALE}
 
 You are judging this hackathon project for Clank Tank. Evaluate it based on your unique perspective.
 
@@ -134,26 +153,29 @@ Favorite part: {project_data.get('favorite_part', 'Not provided')}
 Solana Address: {project_data.get('solana_address', 'Not provided')}
 
 RESEARCH FINDINGS:
-GitHub Quality Score: {github_quality}/100
 Is Fork: {is_fork}
 Contributors: {contributors}
+{red_flags_section}
 AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI research available'}
 
 SCORING TASK:
-Rate each criterion from 0-10 (whole numbers only). Provide your reasoning in 2-3 sentences for each score, staying true to your personality.
+Rate each criterion from 0-10 (whole numbers only).
+**Your reasoning must cite at least one weakness or risk.**
+Do not give >8 unless you reference a concrete, verifiable feature that meets production-grade standards.
+Provide your reasoning in 2-3 sentences for each score, staying true to your personality.
 
 Format your response EXACTLY like this:
 INNOVATION_SCORE: [0-10]
-INNOVATION_REASON: [Your reasoning]
+INNOVATION_REASON: [Your reasoning - must include at least one criticism or concern]
 
 TECHNICAL_SCORE: [0-10]
-TECHNICAL_REASON: [Your reasoning]
+TECHNICAL_REASON: [Your reasoning - must include at least one criticism or concern]
 
 MARKET_SCORE: [0-10]
-MARKET_REASON: [Your reasoning]
+MARKET_REASON: [Your reasoning - must include at least one criticism or concern]
 
 EXPERIENCE_SCORE: [0-10]
-EXPERIENCE_REASON: [Your reasoning]
+EXPERIENCE_REASON: [Your reasoning - must include at least one criticism or concern]
 
 OVERALL_COMMENT: [One punchy line summarizing your view of this project in your unique style]"""
 
@@ -213,8 +235,23 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             "overall_comment": overall_comment,
         }
 
+    def renormalize_scores(self, scores, target_mean=6):
+        """Post-hoc score normalization to prevent grade inflation."""
+        if not scores:
+            return scores
+        
+        cur_mean = sum(scores) / len(scores)
+        if cur_mean == 0:
+            return scores
+            
+        factor = target_mean / cur_mean
+        normalized = [max(0, min(10, round(s * factor, 1))) for s in scores]
+        
+        logger.info(f"Score normalization: mean {cur_mean:.1f} → {sum(normalized)/len(normalized):.1f}")
+        return normalized
+
     def calculate_weighted_score(
-        self, judge_name: str, raw_scores: Dict[str, float]
+        self, judge_name: str, raw_scores: Dict[str, float], normalize: bool = False
     ) -> float:
         """Calculate the weighted total score for a judge."""
         weights = JUDGE_WEIGHTS.get(judge_name, {})
@@ -228,9 +265,17 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             "user_experience": "user_experience",
         }
 
+        # Apply normalization if requested
+        if normalize:
+            score_values = [raw_scores.get(key, 5) for key in score_mapping.keys()]
+            normalized_values = self.renormalize_scores(score_values)
+            normalized_scores = dict(zip(score_mapping.keys(), normalized_values))
+        else:
+            normalized_scores = raw_scores
+
         for score_key, weight_key in score_mapping.items():
-            if score_key in raw_scores and weight_key in weights:
-                weighted_total += raw_scores[score_key] * weights[weight_key]
+            if score_key in normalized_scores and weight_key in weights:
+                weighted_total += normalized_scores[score_key] * weights[weight_key]
 
         return round(weighted_total, 2)
 
@@ -252,7 +297,7 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 },
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0.7,
+            "temperature": 0.3,
             "max_tokens": 1500,
         }
 
@@ -442,10 +487,16 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
 
         return results
 
-    def get_leaderboard(self, round_num: int = 1) -> List[Dict[str, Any]]:
-        """Get the current leaderboard with average scores."""
+    def get_leaderboard(self, round_num: int = None) -> List[Dict[str, Any]]:
+        """Get the current leaderboard with average scores from the latest available round."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
+
+        # If no round specified, use the latest available round
+        if round_num is None:
+            cursor.execute("SELECT MAX(round) FROM hackathon_scores")
+            latest_round = cursor.fetchone()[0] or 1
+            round_num = latest_round
 
         cursor.execute(
             f"""
@@ -480,8 +531,180 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         conn.close()
         return leaderboard
 
+    def analyze_score_distribution(self, round_num: int = 1) -> Dict[str, Any]:
+        """Analyze the distribution of scores across all submissions for comparative reasoning."""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # Get all scores for the round
+        cursor.execute(
+            """
+            SELECT 
+                s.submission_id,
+                s.project_name,
+                s.category,
+                sc.judge_name,
+                sc.innovation,
+                sc.technical_execution,
+                sc.market_potential,
+                sc.user_experience,
+                sc.weighted_total,
+                sc.notes
+            FROM hackathon_scores sc
+            JOIN hackathon_submissions_v2 s ON sc.submission_id = s.submission_id
+            WHERE sc.round = ?
+            ORDER BY sc.weighted_total DESC
+            """,
+            (round_num,),
+        )
+        
+        results = cursor.fetchall()
+        conn.close()
+        
+        if not results:
+            return {"error": "No scores found for this round"}
+        
+        # Organize data
+        projects = {}
+        all_scores = []
+        
+        for row in results:
+            submission_id, project_name, category, judge_name, innovation, technical, market, experience, weighted_total, notes = row
+            
+            if submission_id not in projects:
+                projects[submission_id] = {
+                    "project_name": project_name,
+                    "category": category,
+                    "judges": {},
+                    "avg_score": 0,
+                    "score_variance": 0
+                }
+            
+            # Parse notes to extract reasoning
+            try:
+                judge_notes = json.loads(notes) if notes else {}
+            except:
+                judge_notes = {"raw": notes}
+            
+            projects[submission_id]["judges"][judge_name] = {
+                "innovation": innovation,
+                "technical_execution": technical,
+                "market_potential": market,
+                "user_experience": experience,
+                "weighted_total": weighted_total,
+                "notes": judge_notes
+            }
+            
+            all_scores.append(weighted_total)
+        
+        # Calculate statistics
+        import statistics
+        
+        for project_id in projects:
+            judge_scores = [judge_data["weighted_total"] for judge_data in projects[project_id]["judges"].values()]
+            projects[project_id]["avg_score"] = statistics.mean(judge_scores)
+            projects[project_id]["score_variance"] = statistics.variance(judge_scores) if len(judge_scores) > 1 else 0
+        
+        # Overall distribution stats
+        distribution_stats = {
+            "mean": statistics.mean(all_scores),
+            "median": statistics.median(all_scores),
+            "std_dev": statistics.stdev(all_scores) if len(all_scores) > 1 else 0,
+            "min": min(all_scores),
+            "max": max(all_scores),
+            "total_projects": len(projects),
+            "score_ranges": {
+                "excellent": len([s for s in all_scores if s >= 32]),  # 8+ avg
+                "good": len([s for s in all_scores if 24 <= s < 32]),   # 6-8 avg
+                "average": len([s for s in all_scores if 16 <= s < 24]), # 4-6 avg
+                "poor": len([s for s in all_scores if s < 16])          # <4 avg
+            }
+        }
+        
+        # Rank projects
+        ranked_projects = sorted(projects.items(), key=lambda x: x[1]["avg_score"], reverse=True)
+        
+        return {
+            "distribution_stats": distribution_stats,
+            "projects": dict(ranked_projects),
+            "rankings": [(project_id, data["project_name"], data["avg_score"]) for project_id, data in ranked_projects]
+        }
+
+    def generate_comparative_reasoning(self, target_project_id: str, round_num: int = 1) -> str:
+        """Generate comparative reasoning for a project against others in the same round."""
+        distribution_data = self.analyze_score_distribution(round_num)
+        
+        if "error" in distribution_data:
+            return "No comparative data available for reasoning."
+        
+        projects = distribution_data["projects"]
+        stats = distribution_data["distribution_stats"]
+        rankings = distribution_data["rankings"]
+        
+        if target_project_id not in projects:
+            return "Target project not found in score distribution."
+        
+        target_project = projects[target_project_id]
+        target_score = target_project["avg_score"]
+        
+        # Find project's rank
+        target_rank = next((i + 1 for i, (pid, _, _) in enumerate(rankings) if pid == target_project_id), None)
+        
+        # Identify comparative context
+        better_projects = [p for p in projects.values() if p["avg_score"] > target_score]
+        worse_projects = [p for p in projects.values() if p["avg_score"] < target_score]
+        
+        # Find most similar projects (within 2 points)
+        similar_projects = [
+            (pid, data) for pid, data in projects.items() 
+            if pid != target_project_id and abs(data["avg_score"] - target_score) <= 2.0
+        ]
+        
+        # Extract common criticisms from better projects
+        better_criticisms = []
+        for project_data in better_projects[:3]:  # Top 3 better projects
+            for judge_data in project_data["judges"].values():
+                reasons = judge_data.get("notes", {}).get("reasons", {})
+                for criterion, reason in reasons.items():
+                    if "but" in reason.lower() or "however" in reason.lower() or "concern" in reason.lower():
+                        better_criticisms.append(f"{criterion}: {reason}")
+        
+        # Extract common strengths from worse projects
+        worse_strengths = []
+        for project_data in worse_projects[-3:]:  # Bottom 3 worse projects
+            for judge_data in project_data["judges"].values():
+                reasons = judge_data.get("notes", {}).get("reasons", {})
+                for criterion, reason in reasons.items():
+                    if any(word in reason.lower() for word in ["good", "strong", "impressive", "solid"]):
+                        worse_strengths.append(f"{criterion}: {reason}")
+        
+        # Generate comparative summary
+        percentile = (len(worse_projects) / len(projects)) * 100 if projects else 0
+        
+        reasoning = f"""
+COMPARATIVE ANALYSIS FOR {target_project["project_name"]}:
+
+RANKING CONTEXT:
+- Ranked #{target_rank} out of {stats['total_projects']} projects
+- Score: {target_score:.1f} (Hackathon mean: {stats['mean']:.1f}, median: {stats['median']:.1f})
+- Percentile: {percentile:.0f}th percentile
+- Judge consensus: {'High' if target_project['score_variance'] < 2 else 'Low'} (variance: {target_project['score_variance']:.1f})
+
+COMPETITIVE LANDSCAPE:
+- {len(better_projects)} projects scored higher (avg gap: {(sum(p['avg_score'] for p in better_projects) / len(better_projects) - target_score):.1f} points)
+- {len(worse_projects)} projects scored lower
+- {len(similar_projects)} projects in similar score range (±2 points)
+
+RELATIVE POSITIONING:
+{f"This project outperformed {percentile:.0f}% of submissions" if percentile > 50 else f"This project underperformed compared to {100-percentile:.0f}% of submissions"}
+{"" if len(better_criticisms) == 0 else f"Common issues in higher-ranked projects that this project might share: {'; '.join(better_criticisms[:2])}"}
+{"" if len(worse_strengths) == 0 else f"Potential advantages over lower-ranked projects: {'; '.join(worse_strengths[:2])}"}
+"""
+        
+        return reasoning.strip()
+
     def run_round2_synthesis(self, project_id: str = None):
-        """Run Round 2 synthesis combining judge scores with community feedback."""
+        """Enhanced Round 2 synthesis with comparative reasoning and distribution analysis."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -503,8 +726,12 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             conn.close()
             return
 
-        # Calculate community bonuses
-        community_data = self._calculate_community_bonuses(cursor, project_ids)
+        # Get comparative analysis for all projects
+        print(f"Analyzing score distribution across {len(project_ids)} projects...")
+        distribution_analysis = self.analyze_score_distribution(round_num=1)
+        
+        # Get community feedback data (as context, not bonus)
+        community_data = self._get_community_feedback_context(cursor, project_ids)
 
         for project_id in project_ids:
             print(f"\nProcessing Round 2 for {project_id}...")
@@ -519,30 +746,62 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 for row in cursor.fetchall()
             }
 
-            # Generate final verdicts
+            # Generate comparative reasoning
+            comparative_reasoning = self.generate_comparative_reasoning(project_id, round_num=1)
+
+            # Generate final verdicts with comparative context
             for judge in ["aimarc", "aishaw", "peepo", "spartan"]:
                 if judge not in r1_scores:
                     continue
 
-                verdict = self._generate_final_verdict(
-                    project_id, judge, r1_scores[judge], community_data[project_id]
+                # Get structured Round 2 response
+                round2_response = self._generate_final_verdict_with_comparison(
+                    project_id, 
+                    judge, 
+                    r1_scores[judge], 
+                    community_data[project_id],
+                    comparative_reasoning,
+                    distribution_analysis
                 )
-                final_score = (
-                    r1_scores[judge]["score"] + community_data[project_id]["bonus"]
+                
+                # Parse structured response
+                parsed_response = self._parse_round2_response(round2_response)
+                
+                # Calculate Round 2 score based on structured response
+                final_score = self._calculate_judge_round2_score(
+                    judge, r1_scores[judge]["score"], round2_response, community_data[project_id]
                 )
 
-                # Store Round 2 data
+                # Store Round 2 data with flattened, logical structure
                 cursor.execute(
                     """
                     INSERT INTO hackathon_scores 
-                    (submission_id, judge_name, round, weighted_total, notes)
-                    VALUES (?, ?, 2, ?, ?)
+                    (submission_id, judge_name, round, weighted_total, notes, created_at)
+                    VALUES (?, ?, 2, ?, ?, ?)
                 """,
                     (
                         project_id,
                         judge,
                         final_score,
-                        json.dumps({"final_verdict": verdict}),
+                        json.dumps({
+                            # Round 2 core data
+                            "round2_final_verdict": parsed_response.get("final_verdict", ""),
+                            "round2_reasoning": parsed_response.get("reasoning", ""),
+                            "score_revision": parsed_response.get("score_revision", {}),
+                            "community_influence": parsed_response.get("community_influence", "unknown"),
+                            "confidence": parsed_response.get("confidence", "medium"),
+                            
+                            # Context data
+                            "round1_score": r1_scores[judge]["score"],
+                            "comparative_reasoning": comparative_reasoning,
+                            "community_context": community_data[project_id],
+                            
+                            # Metadata
+                            "judge_persona": judge,
+                            "submission_id": project_id,
+                            "synthesis_timestamp": datetime.now().isoformat()
+                        }),
+                        datetime.now().isoformat(),
                     ),
                 )
 
@@ -556,92 +815,253 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         conn.commit()
         conn.close()
 
-    def _calculate_community_bonuses(self, cursor, project_ids):
-        """Calculate community bonus for each project."""
+    def _get_community_feedback_context(self, cursor, project_ids):
+        """Get community feedback data as context for Round 2 synthesis."""
+        import statistics
+        
         community_data = {}
-
-        # Get reaction counts per project
+        all_reaction_counts = []
+        
+        # First pass: collect all reaction data and counts for statistical analysis
         for project_id in project_ids:
+            # Get total reactions for this project
             cursor.execute(
                 "SELECT COUNT(*) FROM community_feedback WHERE submission_id = ?",
                 (project_id,),
             )
             total_reactions = cursor.fetchone()[0]
-            community_data[project_id] = {"reactions": total_reactions}
-
-        # Calculate bonuses (max gets 2.0, others proportional)
-        max_reactions = max(
-            (data["reactions"] for data in community_data.values()), default=1
-        )
-
-        for project_id, data in community_data.items():
-            if max_reactions == 0:
-                data["bonus"] = 0
+            all_reaction_counts.append(total_reactions)
+            
+            # Get reaction breakdown
+            cursor.execute(
+                "SELECT reaction_type, COUNT(*) FROM community_feedback WHERE submission_id = ? GROUP BY reaction_type",
+                (project_id,),
+            )
+            reaction_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
+            
+            # Get unique voters
+            cursor.execute(
+                "SELECT COUNT(DISTINCT discord_user_id) FROM community_feedback WHERE submission_id = ?",
+                (project_id,),
+            )
+            unique_voters = cursor.fetchone()[0]
+            
+            # Store basic data for now
+            community_data[project_id] = {
+                "total_reactions": total_reactions,
+                "unique_voters": unique_voters,
+                "reaction_breakdown": reaction_breakdown,
+                "engagement_level": "pending"  # Will calculate after getting distribution
+            }
+        
+        # Calculate statistical thresholds based on distribution
+        if len(all_reaction_counts) > 1:
+            try:
+                median_reactions = statistics.median(all_reaction_counts)
+                mean_reactions = statistics.mean(all_reaction_counts)
+                
+                # Use median-based thresholds for more robust classification
+                # High: Above median + (median * 0.5)
+                # Medium: Above median
+                # Low: Below median
+                high_threshold = median_reactions + (median_reactions * 0.5)
+                medium_threshold = median_reactions
+                
+                # Fallback to mean-based if median is 0
+                if median_reactions == 0:
+                    high_threshold = mean_reactions * 1.5
+                    medium_threshold = mean_reactions * 0.5
+                    
+            except statistics.StatisticsError:
+                # Fallback to simple thresholds if statistics fail
+                high_threshold = 5
+                medium_threshold = 2
+        else:
+            # Single project fallback
+            high_threshold = 5
+            medium_threshold = 2
+        
+        # Second pass: assign engagement levels based on calculated thresholds
+        for project_id in community_data:
+            total_reactions = community_data[project_id]["total_reactions"]
+            
+            if total_reactions >= high_threshold:
+                engagement_level = "high"
+            elif total_reactions >= medium_threshold:
+                engagement_level = "medium"
             else:
-                data["bonus"] = 2.0 * (data["reactions"] / max_reactions)
+                engagement_level = "low"
+                
+            community_data[project_id]["engagement_level"] = engagement_level
+            
+            # Add threshold info for transparency
+            community_data[project_id]["thresholds"] = {
+                "high": high_threshold,
+                "medium": medium_threshold,
+                "median": median_reactions if len(all_reaction_counts) > 1 else 0,
+                "mean": mean_reactions if len(all_reaction_counts) > 1 else 0
+            }
 
         return community_data
 
-    def _generate_final_verdict(self, project_id, judge, r1_data, community_data):
-        """Generate final verdict text for a judge."""
-        # Get project details and community feedback breakdown
+    def _parse_round2_response(self, response_text: str) -> Dict[str, Any]:
+        """Parse Round 2 judge response with structured JSON format."""
+        import json
+        import re
+        
+        # Try to extract JSON from the response
+        json_match = re.search(r'```json\s*\n(.*?)\n```', response_text, re.DOTALL)
+        if not json_match:
+            # Try to find JSON without code blocks
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+        
+        if json_match:
+            try:
+                json_data = json.loads(json_match.group(1))
+                
+                # Validate required fields
+                required_fields = ['final_verdict', 'score_revision']
+                if all(field in json_data for field in required_fields):
+                    return {
+                        'final_verdict': json_data.get('final_verdict', ''),
+                        'score_revision': json_data.get('score_revision', {}),
+                        'reasoning': json_data.get('reasoning', ''),
+                        'community_influence': json_data.get('community_influence', 'none'),
+                        'confidence': json_data.get('confidence', 'medium')
+                    }
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON from Round 2 response: {e}")
+        
+        # Fallback: treat entire response as final_verdict
+        logger.warning("Round 2 response not in expected JSON format, using as final_verdict")
+        return {
+            'final_verdict': response_text.strip(),
+            'score_revision': {'type': 'none'},
+            'reasoning': 'Non-structured response',
+            'community_influence': 'unknown',
+            'confidence': 'low'
+        }
+
+    def _calculate_judge_round2_score(self, judge_name, round1_score, round2_response, community_context):
+        """Calculate Round 2 score based on structured judge response."""
+        
+        # Parse the structured response
+        parsed_response = self._parse_round2_response(round2_response)
+        score_revision = parsed_response.get('score_revision', {})
+        
+        # Handle different types of score revisions
+        revision_type = score_revision.get('type', 'none')
+        
+        if revision_type == 'explicit':
+            # Direct score override
+            new_score = score_revision.get('new_score')
+            if new_score is not None and 0 <= new_score <= 40:
+                logger.info(f"{judge_name} provided explicit score revision: {new_score}/40")
+                return round(float(new_score), 2)
+        
+        elif revision_type == 'adjustment':
+            # Relative adjustment from Round 1
+            adjustment = score_revision.get('adjustment', 0)
+            reason = score_revision.get('reason', '')
+            final_score = max(0, min(40, round1_score + adjustment))
+            logger.info(f"{judge_name} adjusted score by {adjustment:+.1f}: {round1_score} → {final_score} ({reason})")
+            return round(final_score, 2)
+        
+        elif revision_type == 'none':
+            # No score change, maintain Round 1 score
+            logger.info(f"{judge_name} maintained Round 1 score: {round1_score}/40")
+            return round1_score
+        
+        # Fallback for malformed responses
+        logger.warning(f"{judge_name} provided invalid score revision format, maintaining Round 1 score")
+        return round1_score
+
+    def _calculate_community_bonuses(self, cursor, project_ids):
+        """DEPRECATED: Community feedback is now contextual, not automatic bonus."""
+        # Keep for backward compatibility, but returns zero bonuses
+        community_data = {}
+        for project_id in project_ids:
+            community_data[project_id] = {"reactions": 0, "bonus": 0}
+        return community_data
+
+    def _generate_final_verdict_with_comparison(self, project_id, judge, r1_data, community_context, comparative_reasoning, distribution_analysis):
+        """Generate final verdict with comparative context and community feedback as reasoning signal."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT project_name, description FROM {self.table} WHERE submission_id = ?",
+            f"SELECT project_name, description, category FROM {self.table} WHERE submission_id = ?",
             (project_id,),
         )
-        project_name, description = cursor.fetchone()
-
-        # Get detailed community feedback breakdown
-        cursor.execute(
-            """
-            SELECT reaction_type, COUNT(*) as count 
-            FROM community_feedback 
-            WHERE submission_id = ? 
-            GROUP BY reaction_type
-        """,
-            (project_id,),
-        )
-
-        feedback_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
+        project_name, description, category = cursor.fetchone()
         conn.close()
 
         # Get judge persona for context
         persona = get_judge_persona(judge)
 
-        # Format feedback breakdown
-        feedback_summary = "\n".join(
-            [
-                f"- {reaction_type.replace('_', ' ').title()}: {count} votes"
-                for reaction_type, count in feedback_breakdown.items()
-            ]
-        )
+        # Format community feedback for context
+        reaction_breakdown = community_context.get("reaction_breakdown", {})
+        feedback_summary = "\n".join([
+            f"- {reaction_type.replace('_', ' ').title()}: {count} votes"
+            for reaction_type, count in reaction_breakdown.items()
+        ]) if reaction_breakdown else "No community votes yet"
+
+        # Find this project's ranking context
+        projects = distribution_analysis.get("projects", {})
+        target_rank = None
+        if project_id in projects:
+            ranked_projects = sorted(projects.items(), key=lambda x: x[1]["avg_score"], reverse=True)
+            target_rank = next((i + 1 for i, (pid, _) in enumerate(ranked_projects) if pid == project_id), None)
 
         prompt = f"""You are {judge.upper()}, one of the Clank Tank hackathon judges. In Round 1, you provided the following analysis:
 
-ROUND 1 NOTES:
+ROUND 1 ASSESSMENT:
 {r1_data.get('notes', {}).get('overall_comment', 'No specific notes available')}
-
 Your Round 1 weighted score: {r1_data['score']:.1f}/40
 
-Now consider the community's feedback on this project:
+COMMUNITY FEEDBACK SIGNAL:
+{feedback_summary}
+Total reactions: {community_context['total_reactions']} from {community_context['unique_voters']} unique users
+Engagement level: {community_context['engagement_level']}
 
-COMMUNITY VOTE BREAKDOWN:
-{feedback_summary if feedback_summary else 'No community votes yet'}
-Total community reactions: {community_data['reactions']} votes
-Community bonus: +{community_data['bonus']:.1f} points
+COMPARATIVE CONTEXT:
+{comparative_reasoning}
 
-PROJECT SUMMARY:
-{project_name}: {description}
+PROJECT DETAILS:
+{project_name} ({category}): {description}
 
-YOUR TASK:
-Based on the community's reaction, provide your final synthesized verdict. Do you stand by your initial assessment, or does the community's feedback change your perspective? Address any disconnect between your technical analysis and the community's response.
+YOUR FINAL SYNTHESIS TASK:
+Provide your Round 2 assessment in the following JSON format:
 
-Respond in 2-3 sentences in your characteristic style as {judge.upper()}."""
+```json
+{{
+  "final_verdict": "Your 2-3 sentence final perspective as {judge.upper()}",
+  "score_revision": {{
+    "type": "none|adjustment|explicit",
+    "new_score": 25.0,
+    "adjustment": -2.5,
+    "reason": "Brief explanation for score change"
+  }},
+  "reasoning": "Detailed explanation of your assessment",
+  "community_influence": "none|minimal|moderate|significant",
+  "confidence": "low|medium|high"
+}}
+```
+
+SCORE REVISION TYPES:
+- "none": Keep Round 1 score unchanged
+- "adjustment": Modify Round 1 score by +/- amount (use "adjustment" field)
+- "explicit": Replace with entirely new score (use "new_score" field)
+
+Consider:
+1. Does your initial technical assessment hold up against the comparative data?
+2. What does the community feedback pattern suggest about user appeal vs technical merit?
+3. Given the competitive landscape, should you revise your scoring reasoning?
+4. If adjusting your score, be explicit about the new value and reasoning.
+
+Respond ONLY with the JSON structure above."""
 
         try:
-            logger.info(f"Getting final verdict from {judge} for {project_name}")
+            logger.info(f"Getting structured final verdict from {judge} for {project_name}")
             response = requests.post(
                 BASE_URL,
                 json={
@@ -650,8 +1070,8 @@ Respond in 2-3 sentences in your characteristic style as {judge.upper()}."""
                         {"role": "system", "content": persona},
                         {"role": "user", "content": prompt},
                     ],
-                    "max_tokens": 200,
-                    "temperature": 0.7,
+                    "max_tokens": 600,
+                    "temperature": 0.3,
                 },
                 headers=self.headers,
             )
@@ -659,9 +1079,16 @@ Respond in 2-3 sentences in your characteristic style as {judge.upper()}."""
             if response.ok:
                 return response.json()["choices"][0]["message"]["content"].strip()
         except Exception as e:
-            logger.warning(f"Failed to get final verdict from {judge}: {e}")
+            logger.warning(f"Failed to get structured final verdict from {judge}: {e}")
 
-        return f"Final score: {r1_data['score'] + community_data['bonus']:.1f}/42 considering community feedback."
+        # Fallback response in JSON format
+        return f"""{{
+  "final_verdict": "Maintaining Round 1 assessment of {r1_data['score']:.1f}/40 considering community feedback pattern and competitive ranking.",
+  "score_revision": {{"type": "none"}},
+  "reasoning": "API error occurred during Round 2 synthesis",
+  "community_influence": "unknown",
+  "confidence": "low"
+}}"""
 
 
 def main():

@@ -92,15 +92,18 @@ This directory contains all scripts and tools for the **Clank Tank Hackathon Edi
      ```
 
 5. **Research & Analysis**
-   - `github_analyzer.py`: Analyzes GitHub repos for code quality, structure, and activity.
+   - `github_analyzer.py`: Analyzes GitHub repos for code quality, structure, and activity. Now includes GitIngest integration for comprehensive code analysis.
+   - `research.py`: AI-powered research pipeline that uses GitIngest output as context for judge analysis.
    - **Run:**
      ```bash
-     python hackathon/backend/github_analyzer.py <repo_url>
-     ```
-   - `research.py`: AI-powered research on technical, market, and innovation aspects.
-   - **Run:**
-     ```bash
-     python -m hackathon.backend.research --submission-id <id>
+     # GitHub analysis with GitIngest
+     python hackathon/backend/github_analyzer.py <repo_url> --gitingest
+     
+     # Full research pipeline for a submission
+     python -m hackathon.backend.research --submission-id <id> --version v2
+     
+     # Research all pending submissions
+     python -m hackathon.backend.research --all --version v2
      ```
 
 6. **Scoring & Judging**
@@ -269,6 +272,80 @@ python -m hackathon.scripts.upload_youtube
 
 ---
 
+## GitIngest Integration
+
+The Clank Tank hackathon system now uses **GitIngest** as the primary method for generating comprehensive code context for AI research and judging. GitIngest replaces the legacy `quality_score` system with dynamic, prompt-ready repository digests.
+
+### Installation
+
+```bash
+# Install GitIngest
+pip install gitingest
+
+# Verify installation
+gitingest --help
+```
+
+### How It Works
+
+1. **Repository Analysis**: The `github_analyzer.py` script first analyzes the repository structure, languages, and file types
+2. **Dynamic Configuration**: Based on the analysis, optimal GitIngest settings are automatically determined:
+   - **File size limits**: Adjusted based on repository size (50KB for large repos, 100KB for smaller ones)
+   - **Include patterns**: Important files like README, config files, and documentation
+   - **Exclude patterns**: Build artifacts, dependencies, logs based on detected tech stack
+3. **Context Generation**: GitIngest generates a comprehensive, LLM-friendly digest of the repository
+4. **AI Research**: The digest is used as primary context for judge evaluation and market research
+
+### Usage Examples
+
+```bash
+# GitHub analysis with automatic GitIngest integration
+python hackathon/backend/github_analyzer.py https://github.com/user/repo --gitingest
+
+# Full research pipeline (includes GitIngest automatically)
+python -m hackathon.backend.research --submission-id ABC123 --version v2
+
+# Research all pending submissions with GitIngest
+python -m hackathon.backend.research --all --version v2
+```
+
+### Dynamic Settings Example
+
+For a JavaScript React project, GitIngest might use:
+```bash
+gitingest https://github.com/user/react-app \
+  -s 100000 \
+  -e "node_modules/**" -e "build/**" -e "dist/**" \
+  -i "**/*.md" -i "package.json" -i "src/**/*.js" -i "src/**/*.jsx"
+```
+
+For a Python project:
+```bash
+gitingest https://github.com/user/python-app \
+  -s 100000 \
+  -e "__pycache__/**" -e "*.pyc" -e ".venv/**" \
+  -i "**/*.md" -i "requirements.txt" -i "**/*.py"
+```
+
+### Benefits Over Legacy Quality Score
+
+- **Comprehensive Code Analysis**: Full repository context instead of simple metrics
+- **Dynamic Adaptation**: Settings automatically optimized per project type
+- **LLM-Ready Output**: Formatted specifically for AI consumption
+- **Judge Context**: Provides rich technical context for evaluation
+- **Token-Aware**: Respects LLM context limits with intelligent truncation
+
+### Output Files
+
+GitIngest outputs are saved as `gitingest-output-{submission_id}.txt` and include:
+- Repository structure
+- Key source files
+- Documentation and README content
+- Configuration files
+- Filtered to exclude build artifacts and dependencies
+
+---
+
 ## File Organization
 
 ### Core Structure
@@ -313,7 +390,7 @@ python -m hackathon.scripts.upload_youtube
 
 ### Optional Configuration
 - `AI_MODEL_PROVIDER`: AI provider (default: `openrouter`)
-- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-3-opus`)
+- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-4-opus`)
 - `STATIC_DATA_DIR`: Static data directory for frontend
 - `SUBMISSION_DEADLINE`: ISO datetime string to close submissions (e.g., `2024-01-31T23:59:59`)
 - `GOOGLE_APPLICATION_CREDENTIALS`: Google Sheets API credentials
@@ -715,3 +792,48 @@ npm run build
 - **Discord/AI Keys:** Store all API keys and secrets securely. Never commit them to git.
 
 ---
+
+## GitIngest Integration for Submission Analysis
+
+We use [GitIngest](https://gitingest.com/llm.txt) to generate objective, context-rich digests of each submission's codebase. This output is used as the main context for AI-powered research and for judges to review submissions.
+
+### Installation
+
+GitIngest is required for research and judging:
+
+```bash
+pipx install gitingest
+# or
+pip install gitingest
+```
+
+### Usage
+
+- **CLI:**
+  ```bash
+  gitingest https://github.com/user/repo -o output.txt
+  # Stream to LLM:
+  gitingest https://github.com/user/repo -o - | your_llm_processor
+  # Filtering:
+  gitingest https://github.com/user/repo -i "*.py" -e "node_modules/*" -s 102400 -o -
+  ```
+- **Python integration:**
+  ```python
+  from gitingest import ingest
+  summary, tree, content = ingest("https://github.com/user/repo")
+  full_context = f"{summary}\n\n{tree}\n\n{content}"
+  ```
+
+### Usage in Pipeline
+
+- The backend research pipeline runs GitIngest on each submission repo and saves the output as `gitingest-output-{submission_id}.txt`.
+- This file is used as the main context for AI research and for judges.
+- The deprecated `quality_score` field is no longer used or displayed.
+
+### Best Practices
+- Use `--max-size`/`-s` to limit file size for large repos
+- Use `--include-pattern`/`-i` and `--exclude-pattern`/`-e` for focused analysis
+- For private repos, set `GITHUB_TOKEN` env var
+- For batch/async processing, use `ingest_async` in Python
+
+See [gitingest.com/llm.txt](https://gitingest.com/llm.txt) for the full integration guide and advanced usage.

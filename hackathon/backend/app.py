@@ -934,22 +934,38 @@ async def get_leaderboard_latest():
     # Use v2 as the default version
     table = "hackathon_submissions_v2"
     with engine.connect() as conn:
+        # Get each project's latest available round and score
         result = conn.execute(
             text(
                 f"""
+            WITH latest_scores AS (
+                SELECT 
+                    sc.submission_id,
+                    MAX(sc.round) as latest_round
+                FROM hackathon_scores sc
+                GROUP BY sc.submission_id
+            ),
+            project_scores AS (
+                SELECT 
+                    sc.submission_id,
+                    AVG(sc.weighted_total) as avg_score,
+                    COUNT(DISTINCT sc.judge_name) as judge_count
+                FROM hackathon_scores sc
+                JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
+                GROUP BY sc.submission_id
+            )
             SELECT 
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
                 s.status,
-                AVG(sc.weighted_total) as avg_score,
+                ps.avg_score,
                 u.username as discord_handle
             FROM {table} s
-            JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
+            JOIN project_scores ps ON s.submission_id = ps.submission_id
             JOIN users u ON s.owner_discord_id = u.discord_id
-            WHERE s.status IN ('scored', 'completed', 'published') AND sc.round = 1
-            GROUP BY s.submission_id
-            ORDER BY avg_score DESC
+            WHERE s.status IN ('scored', 'completed', 'published')
+            ORDER BY ps.avg_score DESC
         """
             )
         )
@@ -1193,22 +1209,38 @@ async def get_leaderboard(version: str):
         )
     table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
+        # Get each project's latest available round and score
         result = conn.execute(
             text(
                 f"""
+            WITH latest_scores AS (
+                SELECT 
+                    sc.submission_id,
+                    MAX(sc.round) as latest_round
+                FROM hackathon_scores sc
+                GROUP BY sc.submission_id
+            ),
+            project_scores AS (
+                SELECT 
+                    sc.submission_id,
+                    AVG(sc.weighted_total) as avg_score,
+                    COUNT(DISTINCT sc.judge_name) as judge_count
+                FROM hackathon_scores sc
+                JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
+                GROUP BY sc.submission_id
+            )
             SELECT 
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
                 s.status,
-                AVG(sc.weighted_total) as avg_score,
+                ps.avg_score,
                 u.username as discord_handle
             FROM {table} s
-            JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
+            JOIN project_scores ps ON s.submission_id = ps.submission_id
             JOIN users u ON s.owner_discord_id = u.discord_id
-            WHERE s.status IN ('scored', 'completed', 'published') AND sc.round = 1
-            GROUP BY s.submission_id
-            ORDER BY avg_score DESC
+            WHERE s.status IN ('scored', 'completed', 'published')
+            ORDER BY ps.avg_score DESC
         """
             )
         )
