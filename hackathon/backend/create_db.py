@@ -49,13 +49,14 @@ def create_hackathon_database(db_path):
         """
         )
 
-    # v2 submissions table
+    # v2 submissions table (always include owner_discord_id)
     v2_fields = get_v2_fields_from_schema()
     user_fields_sql = ",\n    ".join([f"{field} TEXT" for field in v2_fields])
     conn.execute(
         f"""
         CREATE TABLE IF NOT EXISTS hackathon_submissions_v2 (
             submission_id TEXT PRIMARY KEY,
+            owner_discord_id TEXT,
             {user_fields_sql},
             status TEXT NOT NULL,
             created_at TEXT NOT NULL,
