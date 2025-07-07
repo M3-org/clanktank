@@ -105,7 +105,7 @@ export default function SubmissionEdit() {
           const file = data.project_image[0]
           if (file) {
             try {
-              const uploadResult = await hackathonApi.uploadImage(file)
+              const uploadResult = await hackathonApi.uploadImage(file, id)
               data.project_image = uploadResult.url
             } catch (uploadError) {
               console.error('Image upload failed:', uploadError)
