@@ -438,6 +438,20 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             )
 
             conn.commit()
+            
+            # Log scoring action
+            from hackathon.backend.audit_logger import AuditLogger
+            audit_logger = AuditLogger(self.db_path)
+            audit_logger.log_action(
+                action="submission_scored",
+                resource_type="submission",
+                resource_id=submission_id,
+                user_id="system",
+                old_values={"status": project_data.get("status")},
+                new_values={"status": "scored", "scores": [{"judge": score["judge"], "total_score": score["total_score"]} for score in all_scores]},
+                result="success"
+            )
+            
             logger.info(f"Scoring completed for {submission_id}")
 
             return all_scores
