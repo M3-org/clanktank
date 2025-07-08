@@ -18,6 +18,7 @@ import base64
 import urllib.parse
 import aiohttp
 from fastapi import Form
+import re
 
 from fastapi import (
     FastAPI,
@@ -525,6 +526,47 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
         return None
 
 
+def sanitize_submission_id(project_name: str) -> str:
+    """
+    Safely generate submission ID from project name to prevent path traversal attacks.
+    Removes dangerous characters and ensures filename safety.
+    """
+    if not project_name:
+        project_name = "unnamed-project"
+    
+    # Remove path traversal characters and dangerous symbols
+    dangerous_chars = ['/', '\\', '..', '.', '~', '$', '&', '|', ';', '`', '!', '*', '?', '[', ']', '{', '}', '<', '>', '"', "'", '\x00']
+    
+    # Start with basic cleanup
+    clean_name = project_name.lower().strip()
+    
+    # Remove dangerous characters
+    for char in dangerous_chars:
+        clean_name = clean_name.replace(char, '')
+    
+    # Replace spaces and remaining special chars with dashes
+    clean_name = re.sub(r'[^a-z0-9\-_]', '-', clean_name)
+    
+    # Remove consecutive dashes and trim
+    clean_name = re.sub(r'-+', '-', clean_name).strip('-')
+    
+    # Ensure minimum length and add randomness for uniqueness
+    if len(clean_name) < 3:
+        clean_name = f"project-{secrets.randbelow(10000):04d}"
+    
+    # Limit length and add entropy suffix
+    clean_name = clean_name[:40]
+    entropy = secrets.randbelow(10000)
+    final_id = f"{clean_name}-{entropy:04d}"
+    
+    # Final validation - must be safe filename
+    if not re.match(r'^[a-z0-9\-_]+$', final_id):
+        # Fallback to completely safe ID
+        final_id = f"safe-project-{secrets.randbelow(100000):05d}"
+    
+    return final_id
+
+
 # API Endpoints
 @app.get("/")
 async def root():
@@ -674,9 +716,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             data_dict["project_image"] = None
 
     # Generate submission ID
-    submission_id = submission.project_name.lower().replace(" ", "-")[:50]
-    if len(submission_id) < 6:
-        submission_id = f"{submission_id}-{random.randint(1000, 9999)}"
+    submission_id = sanitize_submission_id(submission.project_name)
 
     # Basic data preparation
     now = datetime.now().isoformat()
