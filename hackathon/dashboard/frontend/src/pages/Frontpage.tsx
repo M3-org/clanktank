@@ -1,5 +1,6 @@
 import React from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3 } from 'lucide-react';
+// REMOVE: import metadata from '../../../recordings/metadata.json';
 
 const howItWorks = [
   {
@@ -17,13 +18,13 @@ const howItWorks = [
   {
     icon: <BarChart3 className="h-8 w-8 mb-2 text-emerald-600" strokeWidth={2.2} />,
     title: 'AI Scoring',
-    desc: 'Judges and AI score your project.',
+    desc: 'AI judges score your project.',
     role: 'auto',
   },
   {
     icon: <Users className="h-8 w-8 mb-2 fill-blue-500 text-blue-600" fill="currentColor" />,
     title: 'Community Voting',
-    desc: <span>The community votes in our <a href="https://discord.gg/ai16z" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Discord</a> (channel TBA).</span>,
+    desc: <span>The community votes in our <a href="https://discord.gg/ai16z" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Discord</a>.</span>,
     role: 'user',
   },
   {
@@ -71,6 +72,77 @@ const faqs = [
 ];
 
 export default function Frontpage() {
+  // Hardcoded video data for all 8 episodes
+  const latestEpisodes = [
+    {
+      id: 'R-oObQtsksw',
+      title: 'Clank Tank Season 1 Episode 1',
+      url: 'https://www.youtube.com/watch?v=R-oObQtsksw',
+      thumbnail: 'https://i.ytimg.com/vi/R-oObQtsksw/hqdefault.jpg',
+      view_count: 2200,
+      duration: 653,
+    },
+    {
+      id: 'ldYcVK4X6Qk',
+      title: 'Clank Tank Season 1 Episode 2',
+      url: 'https://www.youtube.com/watch?v=ldYcVK4X6Qk',
+      thumbnail: 'https://i.ytimg.com/vi/ldYcVK4X6Qk/hqdefault.jpg',
+      view_count: 375,
+      duration: 514,
+    },
+    {
+      id: 'mY6gEcoC-fE',
+      title: 'Clank Tank Season 1 Episode 3',
+      url: 'https://www.youtube.com/watch?v=mY6gEcoC-fE',
+      thumbnail: 'https://i.ytimg.com/vi/mY6gEcoC-fE/hqdefault.jpg',
+      view_count: 232,
+      duration: 3197,
+    },
+    {
+      id: 'ZEsQPhNjLBQ',
+      title: 'Clank Tank S1E3: Nounspace Tom, Social',
+      url: 'https://www.youtube.com/watch?v=ZEsQPhNjLBQ',
+      thumbnail: 'https://i.ytimg.com/vi/ZEsQPhNjLBQ/hqdefault.jpg',
+      view_count: 50,
+      duration: 1137,
+    },
+    {
+      id: 'J0UC8JgKD4Y',
+      title: 'Clank Tank S1E4: Silkroad, Eido, Rita',
+      url: 'https://www.youtube.com/watch?v=J0UC8JgKD4Y',
+      thumbnail: 'https://i.ytimg.com/vi/J0UC8JgKD4Y/hqdefault.jpg',
+      view_count: 287,
+      duration: 824,
+    },
+    {
+      id: 'gLlIs-a1nkw',
+      title: 'Clank Tank Launch Trailer / Intro',
+      url: 'https://www.youtube.com/watch?v=gLlIs-a1nkw',
+      thumbnail: 'https://i.ytimg.com/vi/gLlIs-a1nkw/hqdefault.jpg',
+      view_count: 2,
+      duration: 35,
+    },
+    {
+      id: 'Q6PATiyZmI0',
+      title: 'Clank Tank Episode 4 Sizzler',
+      url: 'https://www.youtube.com/watch?v=Q6PATiyZmI0',
+      thumbnail: 'https://i.ytimg.com/vi/Q6PATiyZmI0/hqdefault.jpg',
+      view_count: 0,
+      duration: 39,
+    },
+    {
+      id: 'n_g7VaO-zVE',
+      title: 'Clank Tank Announcement Trailer',
+      url: 'https://www.youtube.com/watch?v=n_g7VaO-zVE',
+      thumbnail: 'https://i.ytimg.com/vi/n_g7VaO-zVE/hqdefault.jpg',
+      view_count: 3,
+      duration: 43,
+    },
+  ].slice().reverse();
+
+  // Lightbox state
+  const [openVideo, setOpenVideo] = React.useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
@@ -99,15 +171,73 @@ export default function Frontpage() {
             AI-Powered Vibe Coding Competition
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="#how-it-works" className="inline-block text-lg font-semibold px-6 py-3 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition">
-              How it works
-            </a>
-            <a href="/leaderboard" className="inline-block text-lg font-semibold px-6 py-3 rounded-full border border-indigo-300 text-indigo-100 bg-white/10 hover:bg-indigo-100 hover:text-indigo-700 transition">
-              View Leaderboard
-            </a>
+            {/* Remove How it works and View Leaderboard buttons */}
           </div>
         </div>
       </div>
+
+      {/* Latest Episodes Section */}
+      <section className="bg-white dark:bg-gray-900 py-12 animate-fade-in">
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">Latest Episodes</h2>
+          <div className="flex gap-8 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {latestEpisodes.map((ep) => (
+              <div
+                key={ep.id}
+                onClick={() => setOpenVideo(ep.id)}
+                className="group flex-shrink-0 w-72 rounded-xl overflow-hidden shadow-lg bg-slate-50 dark:bg-gray-800 hover:shadow-2xl transition border border-gray-200 dark:border-gray-700 cursor-pointer snap-start"
+                role="button"
+                tabIndex={0}
+                onKeyPress={e => { if (e.key === 'Enter') setOpenVideo(ep.id); }}
+                aria-label={`Play ${ep.title}`}
+              >
+                <div className="relative aspect-video w-full overflow-hidden">
+                  <img
+                    src={ep.thumbnail}
+                    alt={ep.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                    {Math.floor(ep.duration / 60)}:{(ep.duration % 60).toString().padStart(2, '0')}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <div className="font-semibold text-base text-gray-900 dark:text-gray-100 mb-1 line-clamp-2 min-h-[2.5em]">{ep.title}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{ep.view_count} views</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Lightbox Video Player */}
+      {openVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+          onClick={() => setOpenVideo(null)}
+        >
+          <div
+            className="relative w-full max-w-3xl aspect-video"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setOpenVideo(null)}
+              className="absolute top-2 right-2 text-white text-2xl z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80 transition"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <iframe
+              src={`https://www.youtube.com/embed/${openVideo}?autoplay=1`}
+              title="Clank Tank Video"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="w-full h-full rounded-lg"
+            />
+          </div>
+        </div>
+      )}
 
       {/* How it Works Section */}
       <section id="how-it-works" className="bg-slate-50 dark:bg-gray-950 animate-fade-in">
@@ -170,7 +300,7 @@ export default function Frontpage() {
               <div className="row-start-2 col-start-3">
                 <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">6</div>
-                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[5].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
+                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[5].icon, { strokeWidth: 2, className: 'h-10 w-10 text-emerald-600' })}</div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[5].title}</h3>
                   <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[5].desc}</p>
                 </div>
@@ -212,4 +342,4 @@ export default function Frontpage() {
       </section>
     </div>
   );
-} 
+}
