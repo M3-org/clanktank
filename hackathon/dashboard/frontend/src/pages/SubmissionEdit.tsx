@@ -7,6 +7,8 @@ import { Button } from '../components/Button'
 import { Card, CardHeader, CardContent } from '../components/Card'
 import { useAuth } from '../contexts/AuthContext'
 import ProtectedRoute from '../components/ProtectedRoute'
+import { Download, Upload } from 'lucide-react'
+import { useRef } from 'react';
 
 interface SchemaField {
   name: string
@@ -35,12 +37,16 @@ export default function SubmissionEdit() {
   const [isLoading, setIsLoading] = useState(true)
   const [submissionWindowOpen, setSubmissionWindowOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const dropRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    reset,
+    watch,
+    setValue
   } = useForm<SubmissionInputs>()
 
   // Load submission data and schema
@@ -87,45 +93,46 @@ export default function SubmissionEdit() {
     loadSubmission()
   }, [id, reset, authState.discordUser])
 
-  const onSubmit = async (data: SubmissionInputs) => {
-    if (!id) return
-    
-    try {
-      setIsSubmitting(true)
-      setError(null)
-      
-      // Ensure Discord username is populated
-      if (!data.discord_handle && authState.discordUser) {
-        data.discord_handle = authState.discordUser.username
+  // If project_image is a URL, set preview
+  useEffect(() => {
+    if (schema.length && !isLoading) {
+      const imageField = schema.find(f => f.name === 'project_image');
+      if (imageField && typeof watch('project_image') === 'string' && watch('project_image')) {
+        setImagePreview(watch('project_image'));
       }
-      
-      // Handle file upload for project_image
-      if (data.project_image) {
-        if (data.project_image instanceof FileList) {
-          const file = data.project_image[0]
-          if (file) {
-            try {
-              const uploadResult = await hackathonApi.uploadImage(file, id)
-              data.project_image = uploadResult.url
-            } catch (uploadError) {
-              console.error('Image upload failed:', uploadError)
-              toast.error('Image upload failed. Submission will proceed without image.')
-              data.project_image = ''
-            }
-          }
-        } else if (typeof data.project_image === 'string') {
-          // Keep existing URL
-        } else {
-          delete data.project_image
+    }
+  }, [schema, isLoading, watch]);
+
+  const onSubmit = async (data: SubmissionInputs) => {
+    if (!id) return;
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      if (!data.discord_handle && authState.discordUser) {
+        data.discord_handle = authState.discordUser.username;
+      }
+      let imageFile: File | null = null;
+      if (data.project_image && data.project_image instanceof File) {
+        imageFile = data.project_image;
+      }
+      // Remove file from submission data and submit edit
+      const editData = { ...data };
+      delete editData.project_image;
+      await hackathonApi.editSubmission(id, editData);
+      if (imageFile) {
+        try {
+          const uploadResult = await hackathonApi.uploadImage(imageFile, id);
+          await hackathonApi.editSubmission(id, {
+            ...editData,
+            project_image: uploadResult.url
+          });
+        } catch (uploadError) {
+          console.error('Image upload failed:', uploadError);
+          toast.error('Image upload failed. Submission will proceed without image.');
         }
       }
-      
-      // Submit the edit
-      await hackathonApi.editSubmission(id, data)
-      
-      toast.success('Submission updated successfully!')
-      navigate(`/submission/${id}`)
-      
+      toast.success('Submission updated successfully!');
+      navigate(`/submission/${id}`);
     } catch (error: any) {
       console.error('Edit submission error:', error)
       
@@ -155,6 +162,53 @@ export default function SubmissionEdit() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // JSON Download/Upload helpers
+  function generateTemplate(schema: SchemaField[]) {
+    const template: any = {}
+    schema.forEach(field => {
+      if (field.name !== 'discord_handle') {
+        template[field.name] = field.type === 'file' ? '' : (field.placeholder || '')
+      }
+    })
+    return template
+  }
+
+  function handleDownloadTemplate() {
+    const template = generateTemplate(schema)
+    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'hackathon_submission_template.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleUploadJson(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 100 * 1024) {
+      toast.error('File too large (max 100KB)')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target?.result as string)
+        // Only allow schema fields (except discord_handle)
+        Object.keys(data).forEach(key => {
+          if (schema.some(f => f.name === key && key !== 'discord_handle')) {
+            reset((prev: any) => ({ ...prev, [key]: data[key] }))
+          }
+        })
+        toast.success('Form auto-filled from JSON!')
+      } catch {
+        toast.error('Invalid JSON file')
+      }
+    }
+    reader.readAsText(file)
   }
 
   if (isLoading) {
@@ -198,34 +252,67 @@ export default function SubmissionEdit() {
   return (
     <ProtectedRoute>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Discord Authentication Status */}
+        {/* Compact Discord Auth + JSON Buttons Row */}
+        {/* REMOVE this block:
         {authState.authMethod === 'discord' && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg">
+          <div className="flex items-center justify-between mb-6 p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg">
             <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <span className="text-green-600 dark:text-green-400 text-xl">✅</span>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
-                  Authenticated via Discord
-                </h3>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Welcome {authState.discordUser?.username}! You can edit this submission.
-                </p>
-              </div>
+              <span className="text-green-600 dark:text-green-400 text-xl mr-2">✅</span>
+              <span className="text-sm text-green-800 dark:text-green-200 font-medium">
+                Authenticated via Discord{authState.discordUser?.username ? ` as ${authState.discordUser.username}` : ''}
+              </span>
+              <span className="ml-2 text-xs text-green-700 dark:text-green-300">
+                (Use JSON shortcut to fill the form)
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleDownloadTemplate} variant="secondary" type="button" size="sm">
+                <Download className="mr-1" size={16}/> Download JSON
+              </Button>
+              <label className="inline-flex items-center cursor-pointer">
+                <Upload className="mr-1" size={16}/> Upload JSON
+                <input type="file" accept="application/json" onChange={handleUploadJson} className="hidden" />
+              </label>
             </div>
           </div>
         )}
+        */}
 
         <Card>
-          <CardHeader>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Edit Submission
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300">
-              Update your hackathon project details
-            </p>
-          </CardHeader>
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 items-center">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:col-span-1">
+                Edit Submission
+              </h1>
+              <div className="flex flex-col items-end md:col-span-1">
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  💡 Tip: Download a JSON template to fill in offline and upload later.
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    type="button"
+                    size="sm"
+                    className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
+                  >
+                    <Download className="mr-1" size={16} />
+                    Download JSON
+                  </Button>
+                  <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
+                    <Upload className="mr-1" size={16} />
+                    Upload JSON
+                    <input
+                      type="file"
+                      accept="application/json"
+                      onChange={handleUploadJson}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      tabIndex={-1}
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
           <CardContent>
             {error && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
@@ -234,16 +321,125 @@ export default function SubmissionEdit() {
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {schema.map((field) => (
+              {/* Project Name first */}
+              {schema.filter(f => f.name === 'project_name').map((field) => (
                 <div key={field.name}>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                     {field.label}
                     {field.required && <span className="text-red-500 ml-1">*</span>}
                   </label>
-                  
+                  <input
+                    type="text"
+                    {...register(field.name, {
+                      required: field.required ? `${field.label} is required` : false
+                    })}
+                    placeholder={field.placeholder}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
+                  />
+                  {field.helperText && (
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {field.helperText}
+                    </p>
+                  )}
+                  {errors[field.name] && (
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {errors[field.name]?.message as string}
+                    </p>
+                  )}
+                </div>
+              ))}
+              {/* Discord Handle and Category side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {schema.filter(f => f.name === 'discord_handle' || f.name === 'category').map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    {field.type === 'select' ? (
+                      <select
+                        {...register(field.name, {
+                          required: field.required ? `${field.label} is required` : false
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
+                      >
+                        <option value="">Select an option</option>
+                        {field.options?.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        {...register(field.name, {
+                          required: field.required ? `${field.label} is required` : false
+                        })}
+                        placeholder={field.placeholder}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
+                        readOnly={field.name === 'discord_handle' && authState.authMethod === 'discord'}
+                      />
+                    )}
+                    {/* Helper text for Discord Handle */}
+                    {field.name === 'discord_handle' && authState.authMethod === 'discord' && (
+                      <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                        Signed in via Discord
+                      </p>
+                    )}
+                    {/* Other helper text */}
+                    {field.helperText && field.name !== 'discord_handle' && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {field.helperText}
+                      </p>
+                    )}
+                    {errors[field.name] && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors[field.name]?.message as string}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* GitHub URL and Demo Video URL side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {schema.filter(f => f.name === 'github_url' || f.name === 'demo_video_url').map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <input
+                      type={field.type === 'url' ? 'url' : 'text'}
+                      {...register(field.name, {
+                        required: field.required ? `${field.label} is required` : false
+                      })}
+                      placeholder={field.placeholder}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
+                    />
+                    {field.helperText && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {field.helperText}
+                      </p>
+                    )}
+                    {errors[field.name] && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors[field.name]?.message as string}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {/* Render the rest of the fields vertically, except paired fields and project_image */}
+              {schema.filter(f => f.name !== 'project_name' && f.name !== 'discord_handle' && f.name !== 'category' && f.name !== 'twitter_handle' && f.name !== 'solana_address' && f.name !== 'github_url' && f.name !== 'demo_video_url' && f.name !== 'project_image').map((field) => (
+                <div key={field.name}>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                    {field.label}
+                    {field.required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
                   {field.type === 'textarea' ? (
                     <textarea
-                      {...register(field.name, { 
+                      {...register(field.name, {
                         required: field.required ? `${field.label} is required` : false,
                         maxLength: field.maxLength ? {
                           value: field.maxLength,
@@ -261,8 +457,8 @@ export default function SubmissionEdit() {
                     />
                   ) : field.type === 'select' ? (
                     <select
-                      {...register(field.name, { 
-                        required: field.required ? `${field.label} is required` : false 
+                      {...register(field.name, {
+                        required: field.required ? `${field.label} is required` : false
                       })}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
                     >
@@ -273,19 +469,10 @@ export default function SubmissionEdit() {
                         </option>
                       ))}
                     </select>
-                  ) : field.type === 'file' ? (
-                    <input
-                      type="file"
-                      {...register(field.name, { 
-                        required: false // Don't require file on edit
-                      })}
-                      accept={field.accept}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
-                    />
                   ) : (
                     <input
                       type={field.type === 'url' ? 'url' : 'text'}
-                      {...register(field.name, { 
+                      {...register(field.name, {
                         required: field.required ? `${field.label} is required` : false,
                         maxLength: field.maxLength ? {
                           value: field.maxLength,
@@ -301,13 +488,11 @@ export default function SubmissionEdit() {
                       readOnly={field.name === 'discord_handle' && authState.authMethod === 'discord'}
                     />
                   )}
-                  
                   {field.helperText && (
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {field.helperText}
                     </p>
                   )}
-                  
                   {errors[field.name] && (
                     <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                       {errors[field.name]?.message as string}
@@ -315,16 +500,105 @@ export default function SubmissionEdit() {
                   )}
                 </div>
               ))}
-
+              {/* Project image drag-and-drop field (already handled above) */}
+              {schema.filter(f => f.name === 'project_image').map((field) => {
+                return (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <div
+                      ref={dropRef}
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-md cursor-pointer bg-gray-50 dark:bg-gray-800 hover:border-indigo-500 transition relative"
+                      onDragOver={e => { e.preventDefault(); dropRef.current?.classList.add('border-indigo-500'); }}
+                      onDragLeave={e => { e.preventDefault(); dropRef.current?.classList.remove('border-indigo-500'); }}
+                      onDrop={e => {
+                        e.preventDefault();
+                        dropRef.current?.classList.remove('border-indigo-500');
+                        const file = e.dataTransfer.files[0];
+                        if (file && file.type.startsWith('image/')) {
+                          setValue('project_image', file);
+                          const reader = new FileReader();
+                          reader.onload = ev => setImagePreview(ev.target?.result as string);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      onClick={() => {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = 'image/*';
+                        input.onchange = (e: any) => {
+                          const file = e.target.files[0];
+                          if (file && file.type.startsWith('image/')) {
+                            setValue('project_image', file);
+                            const reader = new FileReader();
+                            reader.onload = ev => setImagePreview(ev.target?.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        };
+                        input.click();
+                      }}
+                    >
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="max-h-28 object-contain rounded" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                          <svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4a1 1 0 011-1h8a1 1 0 011 1v12m-4 4h-4a1 1 0 01-1-1v-4m0 0l4-4m0 0l4 4m-4-4v12" /></svg>
+                          <span className="text-xs">Drag & drop or click to upload image</span>
+                        </div>
+                      )}
+                    </div>
+                    {field.helperText && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {field.helperText}
+                      </p>
+                    )}
+                    {errors[field.name] && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors[field.name]?.message as string}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              {/* Twitter handle and Solana address side by side at the bottom */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {schema.filter(f => f.name === 'twitter_handle' || f.name === 'solana_address').map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+                      {field.label}
+                      {field.required && <span className="text-red-500 ml-1">*</span>}
+                    </label>
+                    <input
+                      type="text"
+                      {...register(field.name, {
+                        required: field.required ? `${field.label} is required` : false
+                      })}
+                      placeholder={field.placeholder}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:text-gray-100"
+                    />
+                    {field.helperText && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {field.helperText}
+                      </p>
+                    )}
+                    {errors[field.name] && (
+                      <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                        {errors[field.name]?.message as string}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
               <div className="flex gap-4">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1"
+                  className="flex-1 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-400 border border-indigo-700 dark:border-indigo-400 text-white font-semibold rounded-md shadow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                   {isSubmitting ? 'Updating...' : 'Update Submission'}
                 </Button>
-                
                 <Button
                   type="button"
                   variant="ghost"
@@ -340,4 +614,4 @@ export default function SubmissionEdit() {
       </div>
     </ProtectedRoute>
   )
-} 
+}
