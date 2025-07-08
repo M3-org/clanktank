@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { Card, CardHeader, CardContent } from '../components/Card'
 import { useAuth } from '../contexts/AuthContext'
 import ProtectedRoute from '../components/ProtectedRoute'
-import { Download, Upload } from 'lucide-react'
+import { Download, Upload, User } from 'lucide-react'
+import { SubmissionDetail } from '../types';
 
 interface SchemaField {
   name: string
@@ -30,6 +31,8 @@ interface SubmissionInputs {
 export default function SubmissionPage() {
   const { authState } = useAuth()
   const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>();
+  const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [schema, setSchema] = useState<SchemaField[]>([])
   const [schemaLoaded, setSchemaLoaded] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -108,6 +111,12 @@ export default function SubmissionPage() {
       return () => clearTimeout(timeoutId)
     }
   }, [formData, schemaLoaded])
+
+  useEffect(() => {
+    if (id) {
+      hackathonApi.getSubmission(id).then(setSubmission).catch(() => setSubmission(null));
+    }
+  }, [id]);
 
   const clearDraft = () => {
     localStorage.removeItem('submission_draft')
@@ -300,48 +309,24 @@ export default function SubmissionPage() {
     <ProtectedRoute>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
-          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 items-center">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 md:col-span-1">
-                Submit Your Project
-              </h1>
-              <div className="flex flex-col items-end md:col-span-1">
-                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  💡 Tip: Download a JSON template to fill in offline and upload later.
+          {submission && (
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
+              {submission.discord_avatar && submission.discord_id ? (
+                <img
+                  src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
+                  alt="Discord avatar"
+                  className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-700"
+                />
+              ) : (
+                <span className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                  <User className="h-6 w-6 text-gray-400" />
                 </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleDownloadTemplate}
-                    type="button"
-                    size="sm"
-                    className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
-                  >
-                    <Download className="mr-1" size={16} />
-                    Download JSON
-                  </Button>
-                  <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
-                    <Upload className="mr-1" size={16} />
-                    Upload JSON
-                    <input
-                      type="file"
-                      accept="application/json"
-                      onChange={handleUploadJson}
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      tabIndex={-1}
-                    />
-                  </label>
-                  <Button
-                    onClick={clearDraft}
-                    type="button"
-                    size="sm"
-                    className="py-1 px-3 rounded-md bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm hover:bg-indigo-50 dark:hover:bg-gray-800 transition"
-                  >
-                    Clear Form
-                  </Button>
-                </div>
-              </div>
+              )}
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {submission.project_name}
+              </h1>
             </div>
-          </div>
+          )}
           <CardContent>
             {error && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg">
