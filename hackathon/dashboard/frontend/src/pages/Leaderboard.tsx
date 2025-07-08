@@ -5,7 +5,6 @@ import { Card, CardContent } from '../components/Card'
 import { Button } from '../components/Button'
 import { Trophy, Share2, RefreshCw, Medal, User } from 'lucide-react'
 import { cn } from '../lib/utils'
-import { CategoryBadge } from '../components/CategoryBadge'
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
