@@ -21,7 +21,7 @@ from hackathon.prompts.episode_dialogue import create_host_intro_prompt
 from hackathon.prompts.judge_personas import JUDGE_PERSONAS
 
 # Import versioned schema helpers
-from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields, get_schema
 
 # Load environment variables
 load_dotenv()
@@ -45,13 +45,90 @@ SCHEMA_PATH = os.path.join(
 )
 
 
-def get_v2_fields_from_schema():
-    with open(SCHEMA_PATH) as f:
-        schema = json.load(f)
-    return [f["name"] for f in schema["schemas"]["v2"]]
+def load_schema_fields(version: str) -> List[str]:
+    """Load field names from schema dynamically."""
+    try:
+        with open(SCHEMA_PATH) as f:
+            schema = json.load(f)
+        return [f["name"] for f in schema["schemas"][version]]
+    except Exception as e:
+        logger.warning(f"Could not load schema for {version}: {e}")
+        return get_fields(version)  # Fallback to schema.py
 
 
-# In all episode generation logic, use get_v2_fields_from_schema() for field access and validation.
+class SubmissionFieldMapper:
+    """Dynamic field mapper for different schema versions."""
+    
+    def __init__(self, submission_data: Dict[str, Any], version: str):
+        self.data = submission_data
+        self.version = version
+        self.available_fields = set(submission_data.keys())
+        
+    def get_team_name(self) -> str:
+        """Get team name with fallbacks."""
+        # v1 has team_name, v2 uses discord_handle as the creator
+        if 'team_name' in self.data:
+            return self.data['team_name']
+        elif 'discord_handle' in self.data:
+            return f"{self.data['discord_handle']}'s Team"
+        else:
+            return "The Development Team"
+    
+    def get_description(self) -> str:
+        """Get project description."""
+        return self.data.get('description', 'an innovative project')
+    
+    def get_problem_solved(self) -> str:
+        """Get problem description with fallbacks."""
+        if 'problem_solved' in self.data:
+            return self.data['problem_solved']
+        elif 'description' in self.data:
+            return f"addressing key challenges in {self.data.get('category', 'the space')}"
+        else:
+            return "a critical problem in the space"
+    
+    def get_technical_details(self) -> str:
+        """Get technical details with fallbacks."""
+        # v1: coolest_tech, v2: favorite_part
+        if 'coolest_tech' in self.data:
+            return self.data['coolest_tech']
+        elif 'favorite_part' in self.data:
+            return self.data['favorite_part']
+        else:
+            return "Our unique technical approach"
+    
+    def get_how_it_works(self) -> str:
+        """Get how it works description with fallbacks."""
+        if 'how_it_works' in self.data:
+            return self.data['how_it_works']
+        elif 'favorite_part' in self.data:
+            return self.data['favorite_part']
+        elif 'description' in self.data:
+            return f"It's {self.data['description']}"
+        else:
+            return "It's super simple - users just connect and go"
+    
+    def get_next_steps(self) -> str:
+        """Get next steps with fallbacks."""
+        if 'next_steps' in self.data:
+            return self.data['next_steps']
+        else:
+            return "Getting everything production-ready and scaling our user base"
+    
+    def get_tech_stack(self) -> str:
+        """Get tech stack with fallbacks."""
+        if 'tech_stack' in self.data:
+            return self.data['tech_stack']
+        else:
+            return "battle-tested technologies"
+    
+    def get_github_url(self) -> str:
+        """Get GitHub URL with fallbacks."""
+        return self.data.get('github_url', 'our repository')
+    
+    def get_safe_field(self, field_name: str, default: str = "") -> str:
+        """Safely get any field with default."""
+        return self.data.get(field_name, default)
 
 
 class UnifiedEpisodeGenerator:
@@ -216,6 +293,10 @@ class UnifiedEpisodeGenerator:
         """Generate scenes for a single project review following original Clank Tank format"""
         submission = project_data["submission"]
         scores = project_data["scores"]
+        
+        # Create field mapper for dynamic field access
+        field_mapper = SubmissionFieldMapper(submission, self.version)
+        
         scenes = []
 
         # Scene 1: Introduction and main pitch (main_stage)
@@ -228,7 +309,7 @@ class UnifiedEpisodeGenerator:
 
         scene1 = {
             "location": "main_stage",
-            "description": f"Introduction and pitch of {submission['project_name']}",
+            "description": f"Introduction and pitch of {field_mapper.get_safe_field('project_name')}",
             "in": "cut",
             "out": "cut",
             "cast": presenter_cast,
@@ -236,7 +317,7 @@ class UnifiedEpisodeGenerator:
                 {"actor": "elizahost", "line": intro_dialogue, "action": "hosting"},
                 {
                     "actor": "jin",
-                    "line": f"Thanks Eliza! {submission['project_name']} is {submission['description']} We're solving {submission.get('problem_solved', 'a critical problem in the space')}.",
+                    "line": f"Thanks Eliza! {field_mapper.get_safe_field('project_name')} is {field_mapper.get_description()}. We're solving {field_mapper.get_problem_solved()}.",
                     "action": "pitching",
                 },
                 {
@@ -246,15 +327,15 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "jin",
-                    "line": f"Great question! {submission.get('coolest_tech', 'Our unique approach')} sets us apart. We're not just another clone.",
+                    "line": f"Great question! {field_mapper.get_technical_details()} sets us apart. We're not just another clone.",
                     "action": "explaining",
                 },
             ],
             "hackathon_metadata": {
                 "segment_type": "pitch_intro",
-                "submission_id": submission["submission_id"],
-                "project_name": submission["project_name"],
-                "team_name": submission["team_name"],
+                "submission_id": field_mapper.get_safe_field('submission_id'),
+                "project_name": field_mapper.get_safe_field('project_name'),
+                "team_name": field_mapper.get_team_name(),
             },
         }
         scenes.append(scene1)
@@ -262,19 +343,19 @@ class UnifiedEpisodeGenerator:
         # Scene 2: Interview between pitcher and host (interview_room)
         scene2 = {
             "location": "interview_room_solo",
-            "description": f"Eliza interviews the team about {submission['project_name']}",
+            "description": f"Eliza interviews the team about {field_mapper.get_safe_field('project_name')}",
             "in": "cut",
             "out": "cut",
             "cast": {"interviewer_seat": "elizahost", "contestant_seat": "jin"},
             "dialogue": [
                 {
                     "actor": "elizahost",
-                    "line": f"So tell me, what inspired you to build {submission['project_name']}?",
+                    "line": f"So tell me, what inspired you to build {field_mapper.get_safe_field('project_name')}?",
                     "action": "curious",
                 },
                 {
                     "actor": "jin",
-                    "line": f"We saw that {submission.get('problem_solved', 'there was a real gap in the market')}. Our team has the perfect background to tackle this.",
+                    "line": f"We saw that {field_mapper.get_problem_solved()}. Our team has the perfect background to tackle this.",
                     "action": "passionate",
                 },
                 {
@@ -284,7 +365,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "jin",
-                    "line": f"Honestly? {submission.get('next_steps', 'Getting everything production-ready in time')}. But we're committed to making this work.",
+                    "line": f"Honestly? {field_mapper.get_next_steps()}. But we're committed to making this work.",
                     "action": "honest",
                 },
             ],
@@ -295,7 +376,7 @@ class UnifiedEpisodeGenerator:
         # Scene 3: Conclusion of pitch (main_stage)
         scene3 = {
             "location": "main_stage",
-            "description": f"Final questions about {submission['project_name']}",
+            "description": f"Final questions about {field_mapper.get_safe_field('project_name')}",
             "in": "cut",
             "out": "cut",
             "cast": presenter_cast,
@@ -307,7 +388,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "jin",
-                    "line": f"Great point! {submission.get('how_it_works', 'Its super simple - users just connect and go')}. We've focused heavily on UX.",
+                    "line": f"Great point! {field_mapper.get_how_it_works()}. We've focused heavily on UX.",
                     "action": "enthusiastic",
                 },
                 {
@@ -317,7 +398,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "jin",
-                    "line": f"We're in this for the long haul! Our tech stack includes {submission.get('tech_stack', 'battle-tested technologies')} and we're ready to scale!",
+                    "line": f"We're in this for the long haul! Our tech stack includes {field_mapper.get_tech_stack()} and we're ready to scale!",
                     "action": "determined",
                 },
                 {
@@ -327,7 +408,7 @@ class UnifiedEpisodeGenerator:
                 },
                 {
                     "actor": "jin",
-                    "line": f"Absolutely! Check out {submission.get('github_url', 'our repository')} - we've been shipping consistently.",
+                    "line": f"Absolutely! Check out {field_mapper.get_github_url()} - we've been shipping consistently.",
                     "action": "confident",
                 },
             ],
@@ -338,7 +419,7 @@ class UnifiedEpisodeGenerator:
         # Scene 4: Judges deliberate (deliberation_room)
         scene4 = {
             "location": "deliberation_room",
-            "description": f"Judges discuss {submission['project_name']}",
+            "description": f"Judges discuss {field_mapper.get_safe_field('project_name')}",
             "in": "cut",
             "out": "cut",
             "cast": {
@@ -347,7 +428,7 @@ class UnifiedEpisodeGenerator:
                 "judge_seat_3": "peepo",
                 "judge_seat_4": "spartan",
             },
-            "dialogue": self._generate_deliberation_dialogue(submission, scores),
+            "dialogue": self._generate_deliberation_dialogue(field_mapper, scores),
             "hackathon_metadata": {"segment_type": "deliberation"},
         }
         scenes.append(scene4)
@@ -355,15 +436,15 @@ class UnifiedEpisodeGenerator:
         # Scene 5: Final verdicts - PUMP/DUMP/YAWN (main_stage)
         scene5 = {
             "location": "main_stage",
-            "description": f"Final verdicts for {submission['project_name']}",
+            "description": f"Final verdicts for {field_mapper.get_safe_field('project_name')}",
             "in": "cut",
             "out": "cut",
             "cast": presenter_cast,
-            "dialogue": self._generate_verdict_dialogue(submission, scores),
+            "dialogue": self._generate_verdict_dialogue(field_mapper, scores),
             "hackathon_metadata": {
                 "segment_type": "verdict",
-                "submission_id": submission["submission_id"],
-                "project_name": submission["project_name"],
+                "submission_id": field_mapper.get_safe_field('submission_id'),
+                "project_name": field_mapper.get_safe_field('project_name'),
                 "scores": {
                     score["judge_name"]: score["weighted_total"] for score in scores
                 },
@@ -379,7 +460,7 @@ class UnifiedEpisodeGenerator:
         return scenes
 
     def _generate_deliberation_dialogue(
-        self, submission: Dict, scores: List[Dict]
+        self, field_mapper: SubmissionFieldMapper, scores: List[Dict]
     ) -> List[Dict]:
         """Generate judge deliberation dialogue"""
         dialogue = []
@@ -388,7 +469,7 @@ class UnifiedEpisodeGenerator:
         dialogue.append(
             {
                 "actor": "aimarc",
-                "line": f"Alright, let's talk about {submission['project_name']}. The business model is {self._assess_business_model(scores)}.",
+                "line": f"Alright, let's talk about {field_mapper.get_safe_field('project_name')}. The business model is {self._assess_business_model(scores)}.",
                 "action": "analytical",
             }
         )
@@ -420,7 +501,7 @@ class UnifiedEpisodeGenerator:
         return dialogue
 
     def _generate_verdict_dialogue(
-        self, submission: Dict, scores: List[Dict]
+        self, field_mapper: SubmissionFieldMapper, scores: List[Dict]
     ) -> List[Dict]:
         """Generate final verdict dialogue with PUMP/DUMP/YAWN votes"""
         dialogue = []
@@ -428,7 +509,7 @@ class UnifiedEpisodeGenerator:
         dialogue.append(
             {
                 "actor": "elizahost",
-                "line": f"Time for our judges to decide! Will {submission['project_name']} get the funding they need? Judges, what say you?",
+                "line": f"Time for our judges to decide! Will {field_mapper.get_safe_field('project_name')} get the funding they need? Judges, what say you?",
                 "action": "hosting",
             }
         )
@@ -479,12 +560,13 @@ class UnifiedEpisodeGenerator:
         dump_count = verdicts.count("DUMP")
         yawn_count = verdicts.count("YAWN")
 
+        project_name = field_mapper.get_safe_field('project_name')
         if pump_count >= 3:
-            final_line = f"Incredible! {pump_count} PUMPs! {submission['project_name']} is heading to the moon!"
+            final_line = f"Incredible! {pump_count} PUMPs! {project_name} is heading to the moon!"
         elif dump_count >= 3:
-            final_line = f"Ouch! {dump_count} DUMPs! {submission['project_name']} needs to go back to the drawing board!"
+            final_line = f"Ouch! {dump_count} DUMPs! {project_name} needs to go back to the drawing board!"
         else:
-            final_line = f"A mixed verdict! {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs. {submission['project_name']} has work to do!"
+            final_line = f"A mixed verdict! {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs. {project_name} has work to do!"
 
         dialogue.append(
             {"actor": "elizahost", "line": final_line, "action": "dramatic"}
@@ -572,18 +654,19 @@ class UnifiedEpisodeGenerator:
             raise ValueError(f"Could not load submission {submission_id}")
 
         submission = project_data["submission"]
+        field_mapper = SubmissionFieldMapper(submission, self.version)
 
         # Generate episode ID from submission ID
         episode_id = self._generate_episode_id(submission_id)
 
         if not episode_title:
-            episode_title = f"Clank Tank: {submission['project_name']}"
+            episode_title = f"Clank Tank: {field_mapper.get_safe_field('project_name')}"
 
         episode = {
             # Original required fields for backwards compatibility
             "id": episode_id,
             "name": episode_title,
-            "premise": f"{submission['team_name']} presents {submission['project_name']}, {submission['description'][:100]}...",
+            "premise": f"{field_mapper.get_team_name()} presents {field_mapper.get_safe_field('project_name')}, {field_mapper.get_description()[:100]}...",
             "summary": self._generate_episode_summary(project_data),
             "scenes": [],
             # Hackathon metadata (ignored by original renderer)
@@ -591,9 +674,9 @@ class UnifiedEpisodeGenerator:
                 "format_version": "unified_v1",
                 "generated_at": datetime.now().isoformat(),
                 "submission_id": submission_id,
-                "project_name": submission["project_name"],
-                "team_name": submission["team_name"],
-                "category": submission["category"],
+                "project_name": field_mapper.get_safe_field('project_name'),
+                "team_name": field_mapper.get_team_name(),
+                "category": field_mapper.get_safe_field('category'),
             },
         }
 
@@ -605,7 +688,7 @@ class UnifiedEpisodeGenerator:
             0,
             {
                 "actor": "elizahost",
-                "line": f"Welcome to Clank Tank! Today we're evaluating {submission['project_name']}, a {submission['category']} project from the hackathon!",
+                "line": f"Welcome to Clank Tank! Today we're evaluating {field_mapper.get_safe_field('project_name')}, a {field_mapper.get_safe_field('category')} project from the hackathon!",
                 "action": "excited",
             },
         )
@@ -618,6 +701,7 @@ class UnifiedEpisodeGenerator:
         """Generate episode-specific summary"""
         submission = project_data["submission"]
         scores = project_data["scores"]
+        field_mapper = SubmissionFieldMapper(submission, self.version)
 
         # Calculate verdict counts
         if scores:
@@ -630,8 +714,8 @@ class UnifiedEpisodeGenerator:
             verdict_summary = "The judges evaluate this ambitious project."
 
         return (
-            f"{submission['team_name']} pitches {submission['project_name']}, "
-            f"a {submission['category']} project that {submission.get('problem_solved', 'aims to revolutionize the space')}. "
+            f"{field_mapper.get_team_name()} pitches {field_mapper.get_safe_field('project_name')}, "
+            f"a {field_mapper.get_safe_field('category')} project that {field_mapper.get_problem_solved()}. "
             f"{verdict_summary}"
         )
 

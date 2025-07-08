@@ -87,10 +87,18 @@ def create_host_intro_prompt(project_data):
     """Generate host introduction for a project."""
     voice = get_judge_voice('elizahost')
     
+    # Handle missing team_name field gracefully
+    if 'team_name' in project_data:
+        team_name = project_data['team_name']
+    elif 'discord_handle' in project_data:
+        team_name = f"{project_data['discord_handle']}'s Team"
+    else:
+        team_name = "The Development Team"
+    
     return f"""{voice}
 
 Introduce this project excitedly:
-{project_data['team_name']} presents {project_data['project_name']} 
+{team_name} presents {project_data['project_name']} 
 Category: {project_data['category']}"""
 
 def create_score_reveal_prompt(project_name, avg_score):

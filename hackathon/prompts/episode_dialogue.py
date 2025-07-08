@@ -5,12 +5,21 @@ Creates natural, entertaining dialogue for host and judges.
 
 def create_host_intro_prompt(project_data):
     """Generate host introduction for a project."""
+    # Handle missing team_name field gracefully
+    team_info = ""
+    if 'team_name' in project_data:
+        team_info = f"Team: {project_data['team_name']}"
+    elif 'discord_handle' in project_data:
+        team_info = f"Team: {project_data['discord_handle']}'s Team"
+    else:
+        team_info = "Team: The Development Team"
+    
     return f"""
 You are Eliza, an enthusiastic AI host of the Clank Tank hackathon show. 
 Generate a brief, engaging introduction (30-40 words) for this project:
 
 Project: {project_data['project_name']}
-Team: {project_data['team_name']}
+{team_info}
 Category: {project_data['category']}
 Description: {project_data['description']}
 

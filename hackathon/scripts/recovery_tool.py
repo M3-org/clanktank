@@ -35,7 +35,7 @@ def get_v2_fields_from_schema():
 
 
 DEFAULT_DB_PATH = "data/hackathon.db"
-DEFAULT_BACKUP_DIR = "data/submission_backups"
+DEFAULT_BACKUP_DIR = "hackathon/dashboard/data/submission_backups"
 DEFAULT_TABLE = "hackathon_submissions_v2"
 
 
