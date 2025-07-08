@@ -39,4 +39,5 @@ black>=23.9.0  # Code formatter
 flake8>=6.1.0  # Linter
 
 # Image processing
-Pillow
+Pillow>=10.0.0,<11.0.0
+structlog>=23.2.0

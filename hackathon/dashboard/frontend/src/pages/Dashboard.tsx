@@ -272,6 +272,9 @@ export default function Dashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
+                    Submitter
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('project_name')}>
                     <div className="flex items-center gap-1">
                       Project
@@ -320,6 +323,24 @@ export default function Dashboard() {
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {sortedSubmissions.map((submission) => (
                   <tr key={submission.submission_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {submission.discord_avatar && submission.discord_id ? (
+                          <img
+                            src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
+                            alt="Discord avatar"
+                            className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
+                          />
+                        ) : (
+                          <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-gray-400" />
+                          </span>
+                        )}
+                        <span className="text-sm text-gray-700 dark:text-gray-200">
+                          {submission.discord_username || submission.discord_handle || '—'}
+                        </span>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -465,11 +486,22 @@ export default function Dashboard() {
                 </span>
               </div>
               <CardContent className="p-4 flex flex-col flex-1">
-                <div className="flex items-baseline gap-2 mb-1 min-h-[2.5em]">
+                <div className="flex items-center gap-2 mb-1 min-h-[2.5em]">
+                  {submission.discord_avatar && submission.discord_id ? (
+                    <img
+                      src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
+                      alt="Discord avatar"
+                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
+                    />
+                  ) : (
+                    <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-gray-400" />
+                    </span>
+                  )}
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 truncate">
                     {submission.project_name}
                   </h3>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.team_name}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.discord_username || submission.discord_handle || '—'}</span>
                 </div>
                 {submission.description && (
                   <div className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2" title={submission.description}>

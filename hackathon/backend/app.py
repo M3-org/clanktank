@@ -173,6 +173,11 @@ class SubmissionSummary(BaseModel):
     project_image: Optional[str] = None
     description: Optional[str] = None
     discord_handle: Optional[str] = None
+    # Add Discord user info
+    discord_id: Optional[str] = None
+    discord_username: Optional[str] = None
+    discord_discriminator: Optional[str] = None
+    discord_avatar: Optional[str] = None
 
 
 class SubmissionDetail(BaseModel):
@@ -226,6 +231,10 @@ class LeaderboardEntry(BaseModel):
     youtube_url: Optional[str] = None
     status: str
     discord_handle: Optional[str] = None
+    # Add these fields for avatar and linking
+    discord_id: Optional[str] = None
+    discord_username: Optional[str] = None
+    discord_avatar: Optional[str] = None
 
 
 # Helper to get available columns in hackathon_scores
@@ -497,6 +506,7 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
 
 async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
     """Validate Discord access token and return user if valid."""
+    
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
@@ -516,13 +526,19 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
                 headers={"Authorization": f"Bearer {token}"},
             ) as resp:
                 if resp.status != 200:
+                    from hackathon.backend.simple_audit import log_security_event
+                    log_security_event("auth_failed")
                     return None
                 user_data = await resp.json()
                 # Update user in database
                 discord_user = create_or_update_user(user_data)
+                from hackathon.backend.simple_audit import log_user_action
+                log_user_action("auth_success", discord_user.discord_id)
                 return discord_user
     except Exception as e:
         logging.error(f"Error validating Discord token: {e}")
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("auth_error")
         return None
 
 
@@ -539,6 +555,11 @@ def sanitize_submission_id(project_name: str) -> str:
     
     # Start with basic cleanup
     clean_name = project_name.lower().strip()
+    
+    # Log potential path traversal attempts
+    if any(char in project_name for char in ['/', '\\', '..']):
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("path_traversal_attempt", f"input:{project_name}")
     
     # Remove dangerous characters
     for char in dangerous_chars:
@@ -648,7 +669,9 @@ async def discord_logout():
     return {"message": "Logged out successfully"}
 
 
-@app.get("/api/submissions", tags=["latest"], response_model=List[SubmissionSummary])
+@app.get(
+    "/api/submissions", tags=["latest"], response_model=List[SubmissionSummary]
+)
 async def list_submissions_latest(
     include: str = "scores,research,community", status: str = None, category: str = None
 ):
@@ -742,6 +765,10 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
                 text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data
             )
             conn.commit()
+
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_user_action
+        log_user_action("submission_created", discord_user.discord_id, submission_id)
 
         print(f"✅ Submission saved: {submission_id}")
         # Backup creation logic
@@ -840,9 +867,14 @@ async def edit_submission_latest(
             # Add submission_id to parameters
             data["submission_id"] = submission_id
 
+            
             # Execute update
             conn.execute(update_stmt, data)
             conn.commit()
+
+            # Simple audit logging
+            from hackathon.backend.simple_audit import log_user_action
+            log_user_action("submission_edited", discord_user.discord_id, submission_id)
 
             logging.info(
                 f"Submission {submission_id} edited successfully by {discord_user.username}"
@@ -937,6 +969,10 @@ async def upload_image(
 
         print(f"✅ Image uploaded: {file_path} -> {file_url}")
 
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_user_action
+        log_user_action("file_uploaded", discord_user.discord_id, submission_id)
+
         return {
             "success": True,
             "url": file_url,
@@ -1006,7 +1042,10 @@ async def get_leaderboard_latest():
                 s.demo_video_url as youtube_url,
                 s.status,
                 ps.avg_score,
-                u.username as discord_handle
+                u.username as discord_handle,
+                u.discord_id as discord_id,
+                u.username as discord_username,
+                u.avatar as discord_avatar
             FROM {table} s
             JOIN project_scores ps ON s.submission_id = ps.submission_id
             JOIN users u ON s.owner_discord_id = u.discord_id
@@ -1027,6 +1066,9 @@ async def get_leaderboard_latest():
                 youtube_url=row_dict["youtube_url"],
                 status=row_dict["status"],
                 discord_handle=row_dict["discord_handle"],
+                discord_id=row_dict.get("discord_id"),
+                discord_username=row_dict.get("discord_username"),
+                discord_avatar=row_dict.get("discord_avatar"),
             )
             entries.append(entry)
             rank += 1
@@ -1060,8 +1102,6 @@ async def list_submissions(
     db_field_names = get_database_field_names(version)
     fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
 
-    # project_image field is handled properly via schema
-
     # Build WHERE clause for filtering
     where_conditions = []
     params = {}
@@ -1075,7 +1115,17 @@ async def list_submissions(
     where_clause = (
         f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
     )
-    select_stmt = text(f"SELECT {', '.join(fields)} FROM {table}{where_clause}")
+    # Join users table for Discord info
+    select_stmt = text(f"""
+        SELECT {', '.join([f's.{f}' for f in fields])},
+               u.discord_id AS discord_id,
+               u.username AS discord_username,
+               u.discriminator AS discord_discriminator,
+               u.avatar AS discord_avatar
+        FROM {table} s
+        LEFT JOIN users u ON s.owner_discord_id = u.discord_id
+        {where_clause}
+    """)
 
     with engine.connect() as conn:
         result = conn.execute(select_stmt, params)
@@ -1281,7 +1331,10 @@ async def get_leaderboard(version: str):
                 s.demo_video_url as youtube_url,
                 s.status,
                 ps.avg_score,
-                u.username as discord_handle
+                u.username as discord_handle,
+                u.discord_id as discord_id,
+                u.username as discord_username,
+                u.avatar as discord_avatar
             FROM {table} s
             JOIN project_scores ps ON s.submission_id = ps.submission_id
             JOIN users u ON s.owner_discord_id = u.discord_id
@@ -1302,6 +1355,9 @@ async def get_leaderboard(version: str):
                 youtube_url=row_dict["youtube_url"],
                 status=row_dict["status"],
                 discord_handle=row_dict["discord_handle"],
+                discord_id=row_dict.get("discord_id"),
+                discord_username=row_dict.get("discord_username"),
+                discord_avatar=row_dict.get("discord_avatar"),
             )
             entries.append(entry)
             rank += 1

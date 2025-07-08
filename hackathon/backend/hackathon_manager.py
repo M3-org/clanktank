@@ -438,6 +438,11 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             )
 
             conn.commit()
+            
+            # Simple audit logging
+            from hackathon.backend.simple_audit import log_system_action
+            log_system_action("submission_scored", submission_id)
+            
             logger.info(f"Scoring completed for {submission_id}")
 
             return all_scores
@@ -813,6 +818,11 @@ RELATIVE POSITIONING:
             print(f"✓ Round 2 completed for {project_id}")
 
         conn.commit()
+        
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_system_action
+        log_system_action("round2_synthesis_completed", project_id or f"bulk_{len(project_ids)}_projects")
+        
         conn.close()
 
     def _get_community_feedback_context(self, cursor, project_ids):

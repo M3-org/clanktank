@@ -9,6 +9,12 @@ export interface SubmissionSummary {
   judge_count?: number
   project_image?: string
   description?: string
+  // Discord user info
+  discord_id?: string
+  discord_username?: string
+  discord_discriminator?: string
+  discord_avatar?: string
+  discord_handle?: string
 }
 
 export interface SubmissionDetail extends SubmissionSummary {
@@ -94,6 +100,11 @@ export interface LeaderboardEntry {
   youtube_url?: string
   status: string
   discord_handle?: string
+  // Discord user info
+  discord_id?: string
+  discord_username?: string
+  discord_discriminator?: string
+  discord_avatar?: string
   round?: number  // Added to indicate which round the score is from
 }
 

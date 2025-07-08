@@ -611,6 +611,10 @@ Provide your response as a valid JSON object with clear sections for each assess
         # Save to cache
         self._save_to_cache(submission_id, research_results)
         
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_system_action
+        log_system_action("research_completed", submission_id)
+        
         logger.info(f"Research completed for submission {submission_id}")
         return research_results
 

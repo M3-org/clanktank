@@ -62,13 +62,15 @@ export default function Header() {
               <div className="flex items-center space-x-3">
                 {/* User Info */}
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">
-                    {authState.discordUser?.username || 'User'}
-                  </span>
-                  <span className="inline sm:hidden">
-                    Discord
-                  </span>
+                  {authState.discordUser?.avatar ? (
+                    <img
+                      src={`https://cdn.discordapp.com/avatars/${authState.discordUser.discord_id}/${authState.discordUser.avatar}.png`}
+                      alt="Discord avatar"
+                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
+                    />
+                  ) : (
+                    <User className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 p-1" />
+                  )}
                 </div>
 
                 {/* Quick Actions */}

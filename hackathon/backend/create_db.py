@@ -155,6 +155,11 @@ def create_hackathon_database(db_path):
     # This unique index is required for ON CONFLICT(submission_id) upserts in research.py
 
     conn.commit()
+    
+    # Simple audit logging
+    from hackathon.backend.simple_audit import log_system_action
+    log_system_action("database_created", db_path)
+    
     conn.close()
     print(f"Hackathon database created successfully at: {db_path}")
 

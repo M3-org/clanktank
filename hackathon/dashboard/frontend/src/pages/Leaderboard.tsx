@@ -3,7 +3,7 @@ import { hackathonApi } from '../lib/api'
 import { LeaderboardEntry } from '../types'
 import { Card, CardContent } from '../components/Card'
 import { Button } from '../components/Button'
-import { Trophy, Share2, RefreshCw, Medal } from 'lucide-react'
+import { Trophy, Share2, RefreshCw, Medal, User } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { CategoryBadge } from '../components/CategoryBadge'
 
@@ -124,18 +124,27 @@ export default function Leaderboard() {
                   </div>
                   
                   {/* Project Info */}
-                  <div className="flex-1">
+                  <div className="flex-1 flex items-center gap-3">
+                    {entry.discord_avatar && entry.discord_id ? (
+                      <img
+                        src={`https://cdn.discordapp.com/avatars/${entry.discord_id}/${entry.discord_avatar}.png`}
+                        alt="Discord avatar"
+                        className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
+                      />
+                    ) : (
+                      <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <User className="h-5 w-5 text-gray-400" />
+                      </span>
+                    )}
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <a href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`} className="hover:underline text-cyan-600 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200">
+                      <a
+                        // TODO: Use submission_id for deep linking if available in LeaderboardEntry
+                        href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
+                        className="hover:underline text-cyan-600 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200"
+                      >
                         {entry.project_name}
                       </a>
                     </h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        by {entry.discord_handle}
-                      </span>
-                      <CategoryBadge category={entry.category} />
-                    </div>
                   </div>
                 </div>
                 

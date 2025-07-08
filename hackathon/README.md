@@ -518,17 +518,56 @@ python -m hackathon.tests.test_robust_pipeline
     ```bash
     python -m hackathon.scripts.generate_episode --submission-id <id> --version v2
     ```
-11. **Record Episodes:**
+
+### Security & Audit Logging
+
+The system now includes comprehensive security and audit logging:
+
+11. **Security Monitoring:**
+    ```bash
+    # View audit logs (requires database access)
+    sqlite3 data/hackathon.db "SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 10"
+    
+    # Check security events in logs
+    tail -f logs/hackathon_api.log | grep "security"
+    ```
+
+12. **Dependency Security Scanning:**
+    ```bash
+    # Python dependencies
+    pip-audit --requirement hackathon/requirements.txt
+    
+    # Frontend dependencies  
+    cd hackathon/dashboard/frontend && npm audit
+    ```
+
+**Audit Events Logged:**
+- ✅ **Submission creation** - All new submissions with user tracking
+- ✅ **Submission edits** - Changes with old/new value comparison
+- ✅ **File uploads** - Image uploads with metadata
+- ✅ **Authentication attempts** - Success/failure with IP tracking
+- ✅ **Research completion** - AI research and GitHub analysis
+- ✅ **Scoring operations** - AI judge scoring and status changes
+- ✅ **Security events** - Path traversal attempts and suspicious activity
+
+**Security Features:**
+- 🛡️ **Structured security logging** with JSON output
+- 🔒 **Complete audit trail** for all administrative actions
+- 🚨 **Attack detection** for path traversal and malicious inputs
+- 📊 **Automated security scanning** in CI/CD pipeline
+- 🔐 **Secure dependency management** with version pinning
+
+13. **Record Episodes:**
     ```bash
     ./hackathon/record_episodes.sh batch
     # or
     ./hackathon/record_episodes.sh single <episode_file>
     ```
-12. **Upload to YouTube:**
+14. **Upload to YouTube:**
     ```bash
     python -m hackathon.scripts.upload_youtube
     ```
-13. **Run Tests:**
+15. **Run Tests:**
     ```bash
     pytest hackathon/tests/test_api_endpoints.py
     python -m hackathon.tests.test_hackathon_system
