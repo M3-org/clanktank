@@ -758,14 +758,13 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             "success": True,
             "submission_id": submission_id,
             "message": "Submission received and saved successfully",
-            "backup_created": backup_path,
         }
 
     except Exception as e:
         print(f"❌ Database error: {e}")
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": str(e), "submission_id": submission_id},
+            content={"success": False, "error": "Internal server error. Please try again later.", "submission_id": submission_id},
         )
 
 
