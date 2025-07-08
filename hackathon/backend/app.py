@@ -829,6 +829,13 @@ async def upload_image(
     file: UploadFile = FastAPIFile(...),
 ):
     """Upload project image and return URL."""
+    # Check if submission window is open
+    if not is_submission_window_open():
+        raise HTTPException(
+            status_code=403,
+            detail="Image upload is no longer allowed. The submission window has closed.",
+        )
+    
     # Require Discord authentication
     discord_user = await validate_discord_token(request)
     if not discord_user:
