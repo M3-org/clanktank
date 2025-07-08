@@ -611,23 +611,9 @@ Provide your response as a valid JSON object with clear sections for each assess
         # Save to cache
         self._save_to_cache(submission_id, research_results)
         
-        # Log research action
-        from hackathon.backend.audit_logger import AuditLogger
-        audit_logger = AuditLogger(self.db_path)
-        audit_logger.log_action(
-            action="research_completed",
-            resource_type="submission",
-            resource_id=submission_id,
-            user_id="system",
-            old_values={"status": project_data.get("status")},
-            new_values={
-                "status": "researched", 
-                "github_analysis_present": bool(github_analysis and "error" not in github_analysis),
-                "ai_research_present": bool(ai_research),
-                "gitingest_path": gitingest_path
-            },
-            result="success"
-        )
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_system_action
+        log_system_action("research_completed", submission_id)
         
         logger.info(f"Research completed for submission {submission_id}")
         return research_results

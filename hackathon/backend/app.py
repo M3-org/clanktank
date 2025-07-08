@@ -497,8 +497,6 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
 
 async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
     """Validate Discord access token and return user if valid."""
-    from hackathon.backend.security_logger import SecurityLogger
-    security_logger = SecurityLogger()
     
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -519,25 +517,19 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
                 headers={"Authorization": f"Bearer {token}"},
             ) as resp:
                 if resp.status != 200:
-                    security_logger.log_auth_attempt(
-                        success=False,
-                        user_id="unknown"
-                    )
+                    from hackathon.backend.simple_audit import log_security_event
+                    log_security_event("auth_failed")
                     return None
                 user_data = await resp.json()
                 # Update user in database
                 discord_user = create_or_update_user(user_data)
-                security_logger.log_auth_attempt(
-                    success=True,
-                    user_id=discord_user.discord_id
-                )
+                from hackathon.backend.simple_audit import log_user_action
+                log_user_action("auth_success", discord_user.discord_id)
                 return discord_user
     except Exception as e:
         logging.error(f"Error validating Discord token: {e}")
-        security_logger.log_auth_attempt(
-            success=False,
-            user_id="unknown"
-        )
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("auth_error")
         return None
 
 
@@ -556,13 +548,9 @@ def sanitize_submission_id(project_name: str) -> str:
     clean_name = project_name.lower().strip()
     
     # Log potential path traversal attempts
-    from hackathon.backend.security_logger import SecurityLogger
-    security_logger = SecurityLogger()
     if any(char in project_name for char in ['/', '\\', '..']):
-        security_logger.log_path_traversal_attempt(
-            input_val=project_name,
-            ip="unknown"  # Request context not available here
-        )
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("path_traversal_attempt", f"input:{project_name}")
     
     # Remove dangerous characters
     for char in dangerous_chars:
@@ -767,18 +755,9 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             )
             conn.commit()
 
-        # Log submission creation
-        from hackathon.backend.audit_logger import AuditLogger
-        audit_logger = AuditLogger(HACKATHON_DB_PATH)
-        audit_logger.log_action(
-            action="submission_create",
-            resource_type="submission",
-            resource_id=submission_id,
-            user_id=discord_user.discord_id,
-            old_values=None,
-            new_values=data,
-            result="success"
-        )
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_user_action
+        log_user_action("submission_created", discord_user.discord_id, submission_id)
 
         print(f"✅ Submission saved: {submission_id}")
         # Backup creation logic
@@ -877,31 +856,14 @@ async def edit_submission_latest(
             # Add submission_id to parameters
             data["submission_id"] = submission_id
 
-            # Get old values for audit logging
-            from hackathon.backend.audit_logger import AuditLogger
-            audit_logger = AuditLogger(HACKATHON_DB_PATH)
-            
-            old_result = conn.execute(
-                text("SELECT * FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
-                {"submission_id": submission_id}
-            )
-            old_row = old_result.fetchone()
-            old_values = dict(old_row._mapping) if old_row else {}
             
             # Execute update
             conn.execute(update_stmt, data)
             conn.commit()
 
-            # Log the audit action
-            audit_logger.log_action(
-                action="submission_edit",
-                resource_type="submission",
-                resource_id=submission_id,
-                user_id=discord_user.discord_id,
-                old_values=old_values,
-                new_values=data,
-                result="success"
-            )
+            # Simple audit logging
+            from hackathon.backend.simple_audit import log_user_action
+            log_user_action("submission_edited", discord_user.discord_id, submission_id)
 
             logging.info(
                 f"Submission {submission_id} edited successfully by {discord_user.username}"
@@ -996,23 +958,9 @@ async def upload_image(
 
         print(f"✅ Image uploaded: {file_path} -> {file_url}")
 
-        # Log file upload
-        from hackathon.backend.audit_logger import AuditLogger
-        audit_logger = AuditLogger(HACKATHON_DB_PATH)
-        audit_logger.log_action(
-            action="file_upload",
-            resource_type="image",
-            resource_id=submission_id,
-            user_id=discord_user.discord_id,
-            old_values=None,
-            new_values={
-                "filename": unique_filename,
-                "original_filename": file.filename,
-                "file_size": file_path.stat().st_size,
-                "content_type": file.content_type
-            },
-            result="success"
-        )
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_user_action
+        log_user_action("file_uploaded", discord_user.discord_id, submission_id)
 
         return {
             "success": True,

@@ -131,6 +131,11 @@ def add_field(args):
         table = f"hackathon_submissions_{v}"
         add_column(cursor, table, field_name, "TEXT")
     conn.commit()
+    
+    # Simple audit logging
+    from hackathon.backend.simple_audit import log_system_action
+    log_system_action("schema_field_added", field_name)
+    
     conn.close()
     print(
         f"Added column '{field_name}' to {', '.join(f'hackathon_submissions_{v}' for v in versions)}."
