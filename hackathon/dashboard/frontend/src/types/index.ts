@@ -15,6 +15,7 @@ export interface SubmissionSummary {
   discord_discriminator?: string
   discord_avatar?: string
   discord_handle?: string
+  twitter_handle?: string
 }
 
 export interface SubmissionDetail extends SubmissionSummary {
@@ -32,6 +33,7 @@ export interface SubmissionDetail extends SubmissionSummary {
   // Edit permission info
   can_edit?: boolean
   is_creator?: boolean
+  twitter_handle?: string
 }
 
 export interface Score {

@@ -207,12 +207,11 @@ export default function SubmissionPage() {
   function generateTemplate(schema: SchemaField[]) {
     const template: any = {}
     schema.forEach(field => {
-      if (field.name !== 'discord_handle') {
+      if (field.name === 'project_image') {
+        template['project_image'] = 'https://your-api-domain.com/uploads/example-image.png' // Example: leave blank for new, or use image URL if already uploaded
+      } else if (field.name !== 'discord_handle' && field.name !== 'category') {
         if (field.type === 'select' && field.options) {
-          template[field.name] = {
-            example: field.options[0],
-            options: field.options
-          }
+          template[field.name] = field.options[0]
         } else {
           template[field.name] = field.type === 'file' ? '' : (field.placeholder || '')
         }
@@ -325,7 +324,87 @@ export default function SubmissionPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {submission.project_name}
               </h1>
+              <div className="flex flex-col items-end md:col-span-1">
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  💡 Tip: Download a JSON template to fill in offline and upload later.
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    type="button"
+                    size="sm"
+                    className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
+                  >
+                    <Download className="mr-1" size={16} />
+                    Download JSON
+                  </Button>
+                  <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
+                    <Upload className="mr-1" size={16} />
+                    Upload JSON
+                    <input
+                      type="file"
+                      accept="application/json"
+                      onChange={handleUploadJson}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      tabIndex={-1}
+                    />
+                  </label>
+                  <Button
+                    onClick={clearDraft}
+                    type="button"
+                    size="sm"
+                    className="py-1 px-3 rounded-md bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm hover:bg-indigo-50 dark:hover:bg-gray-800 transition"
+                  >
+                    Clear Form
+                  </Button>
+                </div>
+              </div>
             </div>
+          )}
+          {/* JSON Draft Utility UI Block */}
+          {schemaLoaded && submissionWindowOpen && (
+            <>
+              <div className="flex items-center justify-between mb-6 p-3 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-blue-600 dark:text-blue-400 text-xl mr-2">📝</span>
+                  <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                    Use JSON to save/load your draft offline.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    type="button"
+                    size="sm"
+                    className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
+                  >
+                    <Download className="mr-1" size={16}/> Download JSON
+                  </Button>
+                  <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
+                    <Upload className="mr-1" size={16}/> Upload JSON
+                    <input
+                      type="file"
+                      accept="application/json"
+                      onChange={handleUploadJson}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      tabIndex={-1}
+                    />
+                  </label>
+                  <Button
+                    onClick={clearDraft}
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="py-1 px-3 rounded-md border border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-200 bg-white dark:bg-blue-950 hover:bg-blue-50 dark:hover:bg-blue-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 text-xs"
+                  >
+                    Clear Draft
+                  </Button>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mt-1 mb-4">
+                <strong>Instructions:</strong> For <code>category</code>, pick one of: <code>DeFi</code>, <code>AI/Agents</code>, <code>Gaming</code>, <code>Infrastructure</code>, <code>Social</code>, <code>Other</code>. For <code>project_image</code>, leave blank if not uploaded, or use the image URL after uploading.
+              </div>
+            </>
           )}
           <CardContent>
             {error && (

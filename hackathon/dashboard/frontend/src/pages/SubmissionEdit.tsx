@@ -168,7 +168,9 @@ export default function SubmissionEdit() {
   function generateTemplate(schema: SchemaField[]) {
     const template: any = {}
     schema.forEach(field => {
-      if (field.name !== 'discord_handle') {
+      if (field.name === 'project_image') {
+        template['project_image'] = 'https://your-api-domain.com/uploads/example-image.png' // Example: leave blank for new, or use image URL if already uploaded
+      } else if (field.name !== 'discord_handle' && field.name !== 'category') {
         template[field.name] = field.type === 'file' ? '' : (field.placeholder || '')
       }
     })
@@ -252,32 +254,6 @@ export default function SubmissionEdit() {
   return (
     <ProtectedRoute>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Compact Discord Auth + JSON Buttons Row */}
-        {/* REMOVE this block:
-        {authState.authMethod === 'discord' && (
-          <div className="flex items-center justify-between mb-6 p-3 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg">
-            <div className="flex items-center">
-              <span className="text-green-600 dark:text-green-400 text-xl mr-2">✅</span>
-              <span className="text-sm text-green-800 dark:text-green-200 font-medium">
-                Authenticated via Discord{authState.discordUser?.username ? ` as ${authState.discordUser.username}` : ''}
-              </span>
-              <span className="ml-2 text-xs text-green-700 dark:text-green-300">
-                (Use JSON shortcut to fill the form)
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={handleDownloadTemplate} variant="secondary" type="button" size="sm">
-                <Download className="mr-1" size={16}/> Download JSON
-              </Button>
-              <label className="inline-flex items-center cursor-pointer">
-                <Upload className="mr-1" size={16}/> Upload JSON
-                <input type="file" accept="application/json" onChange={handleUploadJson} className="hidden" />
-              </label>
-            </div>
-          </div>
-        )}
-        */}
-
         <Card>
           <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
             <div className="grid grid-cols-1 md:grid-cols-2 items-center">

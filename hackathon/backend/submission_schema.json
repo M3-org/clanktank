@@ -56,7 +56,8 @@
         "label": "X (Twitter) Handle",
         "type": "text",
         "required": false,
-        "placeholder": "@username"
+        "placeholder": "@username",
+        "helperText": "Enter your X (Twitter) username, e.g. @yourhandle"
       },
       {
         "name": "github_url",

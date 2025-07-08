@@ -178,6 +178,7 @@ class SubmissionSummary(BaseModel):
     discord_username: Optional[str] = None
     discord_discriminator: Optional[str] = None
     discord_avatar: Optional[str] = None
+    twitter_handle: Optional[str] = None
 
 
 class SubmissionDetail(BaseModel):
@@ -200,7 +201,7 @@ class SubmissionDetail(BaseModel):
     discord_handle: Optional[str] = None
     can_edit: Optional[bool] = None
     is_creator: Optional[bool] = None
-
+    twitter_handle: Optional[str] = None
 
 # Dynamically create the SubmissionCreate models from versioned manifests
 submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
@@ -1856,6 +1857,7 @@ async def get_submission(
             "avg_score": submission_dict.get("avg_score"),
             "solana_address": submission_dict.get("solana_address"),
             "discord_handle": submission_dict.get("discord_handle"),
+            "twitter_handle": submission_dict.get("twitter_handle"),
         }
         # Fill missing optional fields with None
         for k in [

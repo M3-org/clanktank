@@ -432,6 +432,20 @@ export default function SubmissionDetail() {
                     </dd>
                   </div>
                 )}
+                {submission.twitter_handle && (
+                  <div className="flex items-center justify-between">
+                    <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                      {/* Twitter SVG logo */}
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" className="mr-2"><path d="M22.46 5.924c-.793.352-1.645.59-2.54.698a4.48 4.48 0 0 0 1.965-2.475 8.94 8.94 0 0 1-2.828 1.082A4.48 4.48 0 0 0 16.11 4c-2.485 0-4.5 2.014-4.5 4.5 0 .353.04.697.116 1.027C7.728 9.37 4.1 7.6 1.67 4.905c-.388.666-.61 1.44-.61 2.263 0 1.563.796 2.942 2.006 3.75a4.48 4.48 0 0 1-2.037-.563v.057c0 2.185 1.555 4.007 3.623 4.425-.378.104-.777.16-1.188.16-.29 0-.57-.028-.844-.08.57 1.78 2.223 3.075 4.183 3.11A8.98 8.98 0 0 1 2 19.54a12.68 12.68 0 0 0 6.88 2.017c8.26 0 12.78-6.84 12.78-12.77 0-.195-.004-.39-.013-.583A9.22 9.22 0 0 0 24 4.59a8.93 8.93 0 0 1-2.54.698z"/></svg>
+                      X (Twitter)
+                    </dt>
+                    <dd className="text-sm font-medium text-indigo-700 dark:text-indigo-400 truncate max-w-[160px]">
+                      <a href={`https://x.com/${submission.twitter_handle.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="underline hover:text-indigo-900 dark:hover:text-indigo-200">
+                        {submission.twitter_handle}
+                      </a>
+                    </dd>
+                  </div>
+                )}
                 {submission['solana_address'] && (
                   <div className="flex items-center justify-between">
                     <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
