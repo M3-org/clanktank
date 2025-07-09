@@ -33,12 +33,23 @@ def create_hackathon_database(db_path):
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     """
 
-    # Create all versioned submission tables
+    # Create all versioned submission tables with proper constraints
     for version in SUBMISSION_VERSIONS:
-        user_fields = get_fields(version)
-        user_fields_sql = ",\n    ".join([f"{field} TEXT" for field in user_fields])
+        # Load schema to identify required fields
+        with open(SCHEMA_PATH) as f:
+            schema = json.load(f)
+        
+        version_fields = schema["schemas"][version]
+        user_fields_sql = []
+        
+        for field_def in version_fields:
+            field_name = field_def["name"]
+            constraint = "NOT NULL" if field_def.get("required", False) else ""
+            user_fields_sql.append(f"{field_name} TEXT {constraint}")
+        
+        user_fields_sql_str = ",\n    ".join(user_fields_sql)
         columns_sql = (
-            f"{static_fields_sql},\n    owner_discord_id TEXT,\n    {user_fields_sql}"
+            f"{static_fields_sql},\n    owner_discord_id TEXT,\n    {user_fields_sql_str}"
         )
         table_name = f"hackathon_submissions_{version}"
         cursor.execute(
@@ -49,21 +60,7 @@ def create_hackathon_database(db_path):
         """
         )
 
-    # v2 submissions table (always include owner_discord_id)
-    v2_fields = get_v2_fields_from_schema()
-    user_fields_sql = ",\n    ".join([f"{field} TEXT" for field in v2_fields])
-    conn.execute(
-        f"""
-        CREATE TABLE IF NOT EXISTS hackathon_submissions_v2 (
-            submission_id TEXT PRIMARY KEY,
-            owner_discord_id TEXT,
-            {user_fields_sql},
-            status TEXT NOT NULL,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
-        )
-    """
-    )
+    # Remove duplicate v2 table creation - handled by loop above
 
     # Judge scores table (not versioned)
     cursor.execute(
