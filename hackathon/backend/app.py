@@ -920,16 +920,20 @@ async def edit_submission_latest(
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
         with engine.connect() as conn:
-            # Verify the submission exists
+            # Verify the submission exists and check ownership
             result = conn.execute(
                 text(
-                    "SELECT submission_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"
+                    "SELECT owner_discord_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"
                 ),
                 {"submission_id": submission_id},
             )
-            row = result.fetchone()
+            row = result.mappings().first()
             if not row:
                 raise HTTPException(status_code=404, detail="Submission not found")
+            if row["owner_discord_id"] != discord_user.discord_id:
+                raise HTTPException(
+                    status_code=403, detail="You can only edit your own submissions"
+                )
 
             # Prepare data for update
             now = datetime.now().isoformat()
