@@ -543,6 +543,27 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
         return None
 
 
+def validate_github_url(url: str) -> bool:
+    """Validate GitHub URL format for security."""
+    if not url:
+        return False
+    # Pattern: https://github.com/username/repo (with optional trailing slash)
+    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+/?$'
+    return bool(re.match(pattern, url))
+
+
+def validate_submission_github_url(data_dict: dict, action: str = "submission"):
+    """Validate GitHub URL in submission data and raise HTTPException if invalid."""
+    github_url = data_dict.get("github_url")
+    if github_url and not validate_github_url(github_url):
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("invalid_github_url", f"rejected in {action}: {github_url}")
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid GitHub repository URL format. Please use: https://github.com/username/repository"
+        )
+
+
 def sanitize_submission_id(project_name: str) -> str:
     """
     Safely generate submission ID from project name to prevent path traversal attacks.
@@ -724,6 +745,9 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
         data_dict["discord_handle"] = discord_user.username
         print(f"🔄 Auto-populated Discord handle: {discord_user.username}")
 
+    # Validate GitHub URL for security
+    validate_submission_github_url(data_dict, "create")
+
     # Validate project_image field
     project_image = data_dict.get("project_image")
     if project_image:
@@ -840,6 +864,9 @@ async def edit_submission_latest(
             now = datetime.now().isoformat()
             data = submission.dict()
             data["updated_at"] = now
+
+            # Validate GitHub URL for security
+            validate_submission_github_url(data, "edit")
 
             # Auto-populate Discord username if field is empty
             if (
