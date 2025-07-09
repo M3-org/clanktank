@@ -41,6 +41,7 @@ from slowapi.errors import RateLimitExceeded
 
 # Add path for importing schema module
 from hackathon.backend.schema import get_fields, get_schema, reload_schema
+from hackathon.backend.simple_audit import log_security_event, log_user_action
 
 from PIL import Image
 from io import BytesIO
@@ -428,16 +429,22 @@ async def exchange_discord_code(code: str) -> dict:
                             else {}
                         )
                         if error_data.get("error") == "invalid_grant":
+                            from hackathon.backend.simple_audit import log_security_event
+                            log_security_event("oauth_invalid_grant", f"expired or reused authorization code: {error_data}")
                             raise HTTPException(
                                 status_code=400,
                                 detail="Authorization code expired or already used",
                             )
                         elif error_data.get("error") == "invalid_client":
+                            from hackathon.backend.simple_audit import log_security_event
+                            log_security_event("oauth_invalid_client", f"client configuration error: {error_data}")
                             raise HTTPException(
                                 status_code=500,
                                 detail="Discord OAuth client configuration error",
                             )
                         else:
+                            from hackathon.backend.simple_audit import log_security_event
+                            log_security_event("oauth_error", f"Discord OAuth error: {error_data}")
                             raise HTTPException(
                                 status_code=400,
                                 detail=f"Discord OAuth error: {error_data.get('error', 'invalid_request')}",
@@ -745,15 +752,16 @@ async def discord_callback(callback_data: DiscordCallbackRequest):
 @app.get("/api/auth/me", tags=["auth"], response_model=DiscordUser)
 async def get_current_user(request: Request):
     """Get current authenticated user info."""
-    # For now, we'll implement a simple token-based auth
-    # In production, you'd want proper JWT or session management
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
+    # Validate Discord token and return user
+    discord_user = await validate_discord_token(request)
+    if not discord_user:
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("auth_me_failed", "invalid or missing token")
         raise HTTPException(status_code=401, detail="Not authenticated")
-
-    # This is a simplified implementation
-    # In practice, you'd validate the token and get user from database
-    raise HTTPException(status_code=501, detail="Not implemented yet")
+    
+    from hackathon.backend.simple_audit import log_user_action
+    log_user_action("auth_me_success", discord_user.discord_id)
+    return discord_user
 
 
 @app.post("/api/auth/discord/logout", tags=["auth"])
@@ -792,6 +800,8 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
 
     # Check if submission window is open
     if not is_submission_window_open():
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("submission_window_closed", "attempted submission outside window")
         raise HTTPException(
             status_code=403,
             detail="Submission window is closed. New submissions are no longer accepted.",
@@ -800,6 +810,8 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     # Require Discord authentication
     discord_user = await validate_discord_token(request)
     if not discord_user:
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("unauthorized_submission", "attempted submission without auth")
         raise HTTPException(
             status_code=401,
             detail="Discord authentication required. Please log in with Discord to submit.",
@@ -902,6 +914,8 @@ async def edit_submission_latest(
     """
     # Check if submission window is open
     if not is_submission_window_open():
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("edit_window_closed", "attempted edit outside window")
         raise HTTPException(
             status_code=403,
             detail="Submission editing is no longer allowed. The submission window has closed.",
@@ -910,6 +924,8 @@ async def edit_submission_latest(
     # Require Discord authentication
     discord_user = await validate_discord_token(request)
     if not discord_user:
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("unauthorized_edit", "attempted edit without auth")
         raise HTTPException(
             status_code=401,
             detail="Discord authentication required. Please log in with Discord to edit.",
@@ -929,8 +945,12 @@ async def edit_submission_latest(
             )
             row = result.mappings().first()
             if not row:
+                from hackathon.backend.simple_audit import log_security_event
+                log_security_event("edit_nonexistent", f"attempted edit of non-existent submission: {submission_id}")
                 raise HTTPException(status_code=404, detail="Submission not found")
             if row["owner_discord_id"] != discord_user.discord_id:
+                from hackathon.backend.simple_audit import log_security_event
+                log_security_event("unauthorized_edit_attempt", f"user {discord_user.discord_id} attempted to edit submission {submission_id} owned by {row['owner_discord_id']}")
                 raise HTTPException(
                     status_code=403, detail="You can only edit your own submissions"
                 )
@@ -1005,6 +1025,8 @@ async def upload_image(
     """Upload project image and return URL."""
     # Check if submission window is open
     if not is_submission_window_open():
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("upload_window_closed", "attempted upload outside window")
         raise HTTPException(
             status_code=403,
             detail="Image upload is no longer allowed. The submission window has closed.",
@@ -1013,6 +1035,8 @@ async def upload_image(
     # Require Discord authentication
     discord_user = await validate_discord_token(request)
     if not discord_user:
+        from hackathon.backend.simple_audit import log_security_event
+        log_security_event("unauthorized_upload", "attempted upload without auth")
         raise HTTPException(status_code=401, detail="Discord authentication required.")
     # Check submission ownership
     with engine.connect() as conn:
@@ -1024,35 +1048,108 @@ async def upload_image(
         )
         row = result.mappings().first()
         if not row:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("upload_nonexistent", f"attempted upload to non-existent submission: {submission_id}")
             raise HTTPException(status_code=404, detail="Submission not found")
         if row["owner_discord_id"] != discord_user.discord_id:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("unauthorized_upload_attempt", f"user {discord_user.discord_id} attempted to upload to submission {submission_id} owned by {row['owner_discord_id']}")
             raise HTTPException(
                 status_code=403, detail="You do not own this submission."
             )
     try:
-        # Validate file type
+        # Validate filename (basic sanitization)
+        if file.filename:
+            import string
+            safe_chars = string.ascii_letters + string.digits + '.-_'
+            if not all(c in safe_chars for c in file.filename):
+                from hackathon.backend.simple_audit import log_security_event
+                log_security_event("malicious_filename", f"attempted upload with suspicious filename: {file.filename}")
+                raise HTTPException(status_code=400, detail="Filename contains invalid characters")
+
+        # Validate file type by content-type
         if not file.content_type or not file.content_type.startswith("image/"):
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("invalid_file_type", f"attempted upload of {file.content_type} to submission {submission_id}")
             raise HTTPException(status_code=400, detail="File must be an image")
 
         # Validate file size (2MB limit)
         MAX_SIZE = 2 * 1024 * 1024  # 2MB
         content = await file.read()
         if len(content) > MAX_SIZE:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("file_too_large", f"attempted upload of {len(content)} bytes to submission {submission_id} (max: {MAX_SIZE})")
             raise HTTPException(
                 status_code=400, detail="File size must be less than 2MB"
             )
+
+        # Check minimum file size to prevent empty files
+        MIN_SIZE = 100  # 100 bytes minimum
+        if len(content) < MIN_SIZE:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("file_too_small", f"attempted upload of {len(content)} bytes to submission {submission_id} (min: {MIN_SIZE})")
+            raise HTTPException(status_code=400, detail="File is too small to be a valid image")
+
+        # Validate file signature/magic bytes for additional security
+        image_signatures = {
+            b'\xFF\xD8\xFF': 'jpeg',
+            b'\x89PNG\r\n\x1a\n': 'png',
+            b'GIF87a': 'gif',
+            b'GIF89a': 'gif',
+            b'WEBP': 'webp'
+        }
+        
+        file_header = content[:10]
+        valid_signature = False
+        detected_format = None
+        
+        for signature, format_name in image_signatures.items():
+            if file_header.startswith(signature) or signature in file_header[:8]:
+                valid_signature = True
+                detected_format = format_name
+                break
+                
+        if not valid_signature:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("invalid_file_signature", f"attempted upload with invalid image signature to submission {submission_id}")
+            raise HTTPException(status_code=400, detail="File does not appear to be a valid image format")
 
         # Verify and sanitize image using Pillow
         try:
             img = Image.open(BytesIO(content))
             img.verify()  # Verify image integrity
         except Exception:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("invalid_image", f"attempted upload of corrupted image to submission {submission_id}")
             raise HTTPException(
                 status_code=400, detail="Uploaded file is not a valid image"
             )
-        # Re-open image for re-encoding (verify() leaves file in unusable state)
+            
+        # Re-open and validate image properties
         img = Image.open(BytesIO(content))
-        img = img.convert("RGB")  # Ensure JPEG compatible
+        
+        # Check image dimensions for reasonableness
+        MAX_DIMENSION = 4000  # 4000x4000 max
+        MIN_DIMENSION = 50    # 50x50 min
+        width, height = img.size
+        
+        if width > MAX_DIMENSION or height > MAX_DIMENSION:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("image_too_large", f"attempted upload of {width}x{height} image to submission {submission_id} (max: {MAX_DIMENSION})")
+            raise HTTPException(status_code=400, detail=f"Image dimensions too large (max: {MAX_DIMENSION}x{MAX_DIMENSION})")
+            
+        if width < MIN_DIMENSION or height < MIN_DIMENSION:
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("image_too_small", f"attempted upload of {width}x{height} image to submission {submission_id} (min: {MIN_DIMENSION})")
+            raise HTTPException(status_code=400, detail=f"Image dimensions too small (min: {MIN_DIMENSION}x{MIN_DIMENSION})")
+
+        # Check for and remove EXIF data for privacy/security
+        if hasattr(img, '_getexif') and img._getexif():
+            from hackathon.backend.simple_audit import log_security_event
+            log_security_event("exif_data_removed", f"removed EXIF data from image upload to submission {submission_id}")
+        
+        # Convert to RGB for consistent JPEG output (removes EXIF data)
+        img = img.convert("RGB")
 
         # Create uploads directory (use same path as serve_upload)
         uploads_dir = Path(__file__).parent / "data" / "uploads"
