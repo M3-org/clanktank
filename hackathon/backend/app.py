@@ -45,8 +45,20 @@ from hackathon.backend.schema import get_fields, get_schema, reload_schema
 from PIL import Image
 from io import BytesIO
 
-# Setup rate limiter
+# Setup rate limiter (can be disabled for testing)
+ENABLE_RATE_LIMITING = os.getenv("ENABLE_RATE_LIMITING", "true").lower() not in ["false", "0", "no"]
 limiter = Limiter(key_func=get_remote_address)
+
+# Conditional rate limiting decorator
+def conditional_rate_limit(rate_limit_str):
+    """Apply rate limiting only if ENABLE_RATE_LIMITING is True."""
+    if ENABLE_RATE_LIMITING:
+        return limiter.limit(rate_limit_str)
+    else:
+        # Return a no-op decorator for testing
+        def no_op_decorator(func):
+            return func
+        return no_op_decorator
 
 # Load environment variables
 load_dotenv()
@@ -148,14 +160,72 @@ async def debug_request_middleware(request: Request, call_next):
     return response
 
 
-# Configure CORS
+# Configure CORS with environment-specific origins
+def get_allowed_origins():
+    """Get CORS allowed origins based on environment."""
+    # Allow override via environment variable
+    cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
+    if cors_origins:
+        return cors_origins.split(",")
+    
+    # Environment-specific defaults
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    
+    if environment == "production":
+        # Production: Restrict to actual domain
+        return [
+            "https://clanktank.tv"
+        ]
+    else:
+        # Development: Allow local development
+        return [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173"
+        ]
+
+allowed_origins = get_allowed_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify actual origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # Prevent clickjacking
+    response.headers["X-Frame-Options"] = "DENY"
+    
+    # XSS protection (legacy browsers)
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    # HTTPS enforcement for production
+    environment = os.getenv("ENVIRONMENT", "development").lower()
+    if environment == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Content Security Policy
+    csp_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self'; "
+        "frame-ancestors 'none';"
+    )
+    response.headers["Content-Security-Policy"] = csp_policy
+    
+    return response
 
 # Database Engine
 engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
@@ -512,8 +582,9 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
     token = auth_header.split(" ")[1]
-    # Patch: Return mock user for test token
-    if token == "test-token-123":
+    # Environment-configurable test token for development/testing
+    test_token = os.getenv("TEST_AUTH_TOKEN")
+    if test_token and token == test_token:
         return DiscordUser(
             discord_id="1234567890",
             username="testuser",
@@ -713,7 +784,7 @@ async def get_submission_latest(
     )
 
 
-# @limiter.limit("5/minute")
+@conditional_rate_limit("5/minute")
 @app.post("/api/submissions", status_code=201, tags=["latest"], response_model=dict)
 async def create_submission_latest(submission: SubmissionCreateV2, request: Request):
     """Create a new submission with v2 schema. Requires Discord authentication."""
@@ -821,7 +892,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
 
 
 @app.put("/api/submissions/{submission_id}", tags=["latest"], response_model=dict)
-@limiter.limit("5/minute")
+@conditional_rate_limit("5/minute")
 async def edit_submission_latest(
     submission_id: str, submission: SubmissionCreateV2, request: Request
 ):
@@ -920,7 +991,7 @@ async def edit_submission_latest(
         raise HTTPException(status_code=500, detail="Failed to update submission")
 
 
-@limiter.limit("5/minute")
+@conditional_rate_limit("5/minute")
 @app.post("/api/upload-image", tags=["latest"])
 async def upload_image(
     request: Request,
@@ -1647,7 +1718,7 @@ def generate_static_data():
 
 
 @app.post("/api/v1/submissions", status_code=410, include_in_schema=False)
-@limiter.limit("5/minute")
+@conditional_rate_limit("5/minute")
 async def deprecated_post_v1_submissions(request: Request, *args, **kwargs):
     raise HTTPException(
         status_code=status.HTTP_410_GONE,
@@ -1656,7 +1727,7 @@ async def deprecated_post_v1_submissions(request: Request, *args, **kwargs):
 
 
 @app.post("/api/v2/submissions", status_code=410, include_in_schema=False)
-@limiter.limit("5/minute")
+@conditional_rate_limit("5/minute")
 async def deprecated_post_v2_submissions(request: Request, *args, **kwargs):
     raise HTTPException(
         status_code=status.HTTP_410_GONE,

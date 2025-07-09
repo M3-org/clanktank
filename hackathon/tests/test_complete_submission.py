@@ -10,6 +10,7 @@ import subprocess
 import pytest
 from PIL import Image
 import time
+import os
 
 def unique_name(base):
     return f"{base}-{uuid.uuid4().hex[:8]}"
@@ -26,8 +27,11 @@ def test_complete_submission(client):
     unique_id = uuid.uuid4().hex[:8]
     project_name = f"Test Project Complete {unique_id}"
 
-    # Use a fake Discord Bearer token for both requests
-    headers = {"Authorization": "Bearer test-token-123"}
+    # Generate a secure test token for this test run
+    import time as time_module
+    test_token = f"test-{uuid.uuid4().hex}-{int(time_module.time())}"
+    os.environ["TEST_AUTH_TOKEN"] = test_token
+    headers = {"Authorization": f"Bearer {test_token}"}
     # Step 0: Create a valid submission before uploading the image
     submission_payload = {
         "submission_id": unique_id,
@@ -106,4 +110,8 @@ def test_complete_submission(client):
             found = True
             assert sub.get('project_image') == image_url, f"Image URL mismatch in listing: {sub.get('project_image')}"
             break
-    assert found, f"Submission {submission_id} not found in listings" 
+    assert found, f"Submission {submission_id} not found in listings"
+    
+    # Clean up: Remove test token from environment
+    if "TEST_AUTH_TOKEN" in os.environ:
+        del os.environ["TEST_AUTH_TOKEN"] 
