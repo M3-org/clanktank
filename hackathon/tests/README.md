@@ -104,6 +104,25 @@ This folder contains automated and manual test scripts for the Clank Tank hackat
 - All dependencies in `requirements.txt` installed
 - Database initialized with `scripts/hackathon/create_hackathon_db.py`
 
+## Rate Limiting for Tests
+
+**By default, rate limiting is ENABLED** for production security (5/minute on critical endpoints).
+
+For testing, you can disable rate limiting to avoid test failures:
+
+```bash
+# Disable rate limiting for tests
+ENABLE_RATE_LIMITING=false python -m pytest hackathon/tests/
+
+# Or for individual test scripts
+ENABLE_RATE_LIMITING=false python hackathon/tests/test_complete_submission.py
+
+# Production (default) - rate limiting enabled
+python -m hackathon.backend.app
+```
+
+**Note**: Most test scripts work fine with rate limiting enabled, but disable it if you encounter rate limit errors during rapid testing.
+
 ## See Also
 - [../README.md](../README.md) for main project setup and API usage
 - [../schema.py](../schema.py) for versioned schema details

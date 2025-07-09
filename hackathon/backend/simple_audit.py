@@ -110,9 +110,9 @@ def log_system_action(action: str, resource_id: str = None):
     """Log a system action."""
     get_audit().log(action, resource_id, "system")
 
-def log_security_event(event: str, details: str = None):
-    """Log a security event."""
-    get_audit().log(f"security_{event}", None, "system", details)
+def log_security_event(event: str, details: str = None, user_id: str = None):
+    """Log a security event with optional user context."""
+    get_audit().log(f"security_{event}", None, user_id or "system", details)
 
 
 # Quick aliases for common patterns
