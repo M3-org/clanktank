@@ -180,12 +180,12 @@ export default function Frontpage() {
       <section className="bg-white dark:bg-gray-900 py-12 animate-fade-in">
         <div className="max-w-5xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">Latest Episodes</h2>
-          <div className="flex gap-8 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             {latestEpisodes.map((ep) => (
               <div
                 key={ep.id}
                 onClick={() => setOpenVideo(ep.id)}
-                className="group flex-shrink-0 w-72 rounded-xl overflow-hidden shadow-lg bg-slate-50 dark:bg-gray-800 hover:shadow-2xl transition border border-gray-200 dark:border-gray-700 cursor-pointer snap-start"
+                className="group rounded-xl overflow-hidden shadow-lg bg-slate-50 dark:bg-gray-800 hover:shadow-2xl transition border border-gray-200 dark:border-gray-700 cursor-pointer"
                 role="button"
                 tabIndex={0}
                 onKeyPress={e => { if (e.key === 'Enter') setOpenVideo(ep.id); }}
