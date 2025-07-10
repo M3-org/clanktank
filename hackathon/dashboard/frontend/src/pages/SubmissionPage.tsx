@@ -368,7 +368,7 @@ export default function SubmissionPage() {
                 <div className="flex items-center">
                   <span className="text-blue-600 dark:text-blue-400 text-xl mr-2">📝</span>
                   <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                    Use JSON to save/load your draft offline.
+                    Save/Load template for faster form filling.
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -400,9 +400,6 @@ export default function SubmissionPage() {
                     Clear Draft
                   </Button>
                 </div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 mb-4">
-                <strong>Instructions:</strong> For <code>category</code>, pick one of: <code>DeFi</code>, <code>AI/Agents</code>, <code>Gaming</code>, <code>Infrastructure</code>, <code>Social</code>, <code>Other</code>. For <code>project_image</code>, leave blank if not uploaded, or use the image URL after uploading.
               </div>
             </>
           )}
