@@ -1,5 +1,6 @@
 import React from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3 } from 'lucide-react';
+import { CountdownTimer } from '../components/CountdownTimer';
 // REMOVE: import metadata from '../../../recordings/metadata.json';
 
 const howItWorks = [
@@ -170,6 +171,12 @@ export default function Frontpage() {
           <p className="text-xl md:text-2xl font-semibold text-indigo-100 drop-shadow mb-8 max-w-2xl mx-auto">
             AI-Powered Vibe Coding Competition
           </p>
+          
+          {/* Countdown Timer */}
+          <div className="mt-8 max-w-md mx-auto">
+            <CountdownTimer variant="banner" showLabel={true} />
+          </div>
+          
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {/* Remove How it works and View Leaderboard buttons */}
           </div>

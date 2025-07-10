@@ -21,6 +21,7 @@ import {
   ArrowDown
 } from 'lucide-react'
 import { StatusBadge } from '../components/StatusBadge'
+import { CountdownTimer } from '../components/CountdownTimer'
 
 export default function Dashboard() {
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([])
@@ -99,10 +100,6 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Hackathon Dashboard</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">Monitor and manage hackathon submissions</p>
-      </div>
 
       {/* Stats */}
       {stats && (
@@ -188,6 +185,11 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
+
+      {/* Countdown Timer */}
+      <div className="mb-8">
+        <CountdownTimer variant="banner" />
+      </div>
 
       {/* Filters */}
       <Card className="mb-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">

@@ -7,7 +7,7 @@ Serves data from hackathon.db via REST API endpoints.
 import os
 import json
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
@@ -1278,6 +1278,24 @@ async def get_leaderboard_latest():
 @app.get("/api/stats", tags=["latest"], response_model=StatsModel)
 async def get_stats_latest():
     return await get_stats(version="v2")
+
+
+@app.get("/api/config", tags=["latest"])
+async def get_config():
+    """Get configuration including submission deadline information."""
+    info = get_submission_window_info()
+    
+    # Add grace period logic here (not in frontend)
+    GRACE_PERIOD_MINUTES = 60  # 60 minutes grace (feeling generous!)
+    grace_period = GRACE_PERIOD_MINUTES * 60
+    if info["submission_deadline"]:
+        deadline = datetime.fromisoformat(info["submission_deadline"])
+        now = datetime.now(timezone.utc)
+        info["can_submit"] = now < (deadline + timedelta(seconds=grace_period))
+    else:
+        info["can_submit"] = True
+        
+    return info
 
 
 @app.get(
