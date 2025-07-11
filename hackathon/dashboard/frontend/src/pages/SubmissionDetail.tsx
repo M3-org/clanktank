@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { useAuth } from '../contexts/AuthContext'
+import { VotingSlider } from '../components/VotingSlider'
 import { 
   ArrowLeft, 
   Github, 
@@ -20,7 +21,8 @@ import {
   Hash,
   Heart,
   Quote,
-  Edit3
+  Edit3,
+  Coins
 } from 'lucide-react'
 
 const solanaLogo = (
@@ -659,6 +661,22 @@ export default function SubmissionDetail() {
             
             return null;
           })()}
+
+          {/* Community Voting Section */}
+          <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+            <CardHeader>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                <Coins className="h-5 w-5 mr-2 text-yellow-500" />
+                Community Voting
+              </h3>
+            </CardHeader>
+            <CardContent className="p-0">
+              <VotingSlider 
+                submissionId={submission.submission_id}
+                projectName={submission.project_name}
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

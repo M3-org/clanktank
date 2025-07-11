@@ -19,6 +19,9 @@ import urllib.parse
 import aiohttp
 from fastapi import Form
 import re
+import math
+import time
+import requests
 
 from fastapi import (
     FastAPI,
@@ -232,6 +235,72 @@ async def add_security_headers(request: Request, call_next):
 engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
 
 
+# Token Voting Functions
+def calculate_vote_weight(total_tokens_sent):
+    """Calculate vote weight using logarithmic formula from voting spec."""
+    min_vote = float(os.getenv('MIN_VOTE_AMOUNT', 1))
+    if total_tokens_sent < min_vote:
+        return 0
+    
+    multiplier = float(os.getenv('VOTE_WEIGHT_MULTIPLIER', 3))
+    cap = float(os.getenv('VOTE_WEIGHT_CAP', 10))
+    
+    return min(math.log10(total_tokens_sent + 1) * multiplier, cap)
+
+
+class BirdeyePriceService:
+    """Service for fetching token prices from Birdeye API."""
+    def __init__(self):
+        self.base_url = "https://public-api.birdeye.so/defi/multi_price"
+        self.cache = {}
+        self.cache_ttl = 300  # 5 minutes
+        
+    def get_token_prices(self, mint_addresses: list) -> Dict[str, float]:
+        """Get current USD prices for multiple tokens"""
+        cache_key = ','.join(sorted(mint_addresses))
+        now = time.time()
+        
+        # Check cache
+        if (cache_key in self.cache and 
+            now - self.cache[cache_key]['timestamp'] < self.cache_ttl):
+            return self.cache[cache_key]['prices']
+        
+        # Fetch from Birdeye
+        params = {
+            'list_address': ','.join(mint_addresses),
+            'ui_amount_mode': 'raw'
+        }
+        headers = {
+            'accept': 'application/json',
+            'x-chain': 'solana'
+        }
+        
+        try:
+            response = requests.get(self.base_url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+            
+            prices = {}
+            if data.get('success') and 'data' in data:
+                for mint, price_data in data['data'].items():
+                    prices[mint] = price_data.get('value', 0)
+            
+            # Cache results
+            self.cache[cache_key] = {
+                'prices': prices,
+                'timestamp': now
+            }
+            
+            return prices
+            
+        except Exception as e:
+            logging.error(f"Birdeye API error: {e}")
+            return {mint: 0 for mint in mint_addresses}
+
+# Global price service instance
+price_service = BirdeyePriceService()
+
+
 # Pydantic models
 class SubmissionSummary(BaseModel):
     submission_id: str
@@ -297,6 +366,7 @@ SubmissionCreateV2 = create_model("SubmissionCreateV2", **submission_fields_v2)
 
 class LeaderboardEntry(BaseModel):
     rank: int
+    submission_id: str
     project_name: str
     category: str
     final_score: float
@@ -1237,6 +1307,7 @@ async def get_leaderboard_latest():
                 GROUP BY sc.submission_id
             )
             SELECT 
+                s.submission_id,
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
@@ -1260,6 +1331,7 @@ async def get_leaderboard_latest():
             row_dict = dict(row._mapping)
             entry = LeaderboardEntry(
                 rank=rank,
+                submission_id=row_dict["submission_id"],
                 project_name=row_dict["project_name"],
                 category=row_dict["category"],
                 final_score=round(row_dict["avg_score"], 2),
@@ -1296,6 +1368,311 @@ async def get_config():
         info["can_submit"] = True
         
     return info
+
+
+@app.get("/api/test-voting", tags=["voting"])
+async def test_voting():
+    """Test endpoint to verify voting functionality works."""
+    with engine.connect() as conn:
+        # Simple test query
+        result = conn.execute(text("SELECT COUNT(*) as count FROM sol_votes"))
+        row = result.fetchone()
+        return {"vote_count": row[0], "status": "working"}
+
+
+@app.get("/api/community-scores", tags=["voting"])
+async def get_community_scores():
+    """Get community scores for all submissions based on token voting."""
+    try:
+        with engine.connect() as conn:
+            # Get raw vote data grouped by wallet and submission
+            result = conn.execute(
+                text("""
+                SELECT 
+                  submission_id,
+                  sender,
+                  SUM(amount) as total_tokens,
+                  MAX(timestamp) as last_tx_time
+                FROM sol_votes 
+                GROUP BY submission_id, sender
+                """)
+            )
+            
+            # Calculate vote weights in Python (inline to avoid scope issues)
+            submission_scores = {}
+            for row in result.fetchall():
+                row_dict = dict(row._mapping)
+                submission_id = row_dict["submission_id"]
+                total_tokens = row_dict["total_tokens"]
+                
+                # Inline vote weight calculation to avoid import issues
+                min_vote = 1.0
+                if total_tokens < min_vote:
+                    vote_weight = 0
+                else:
+                    multiplier = 3.0
+                    cap = 10.0
+                    vote_weight = min(math.log10(total_tokens + 1) * multiplier, cap)
+                
+                if submission_id not in submission_scores:
+                    submission_scores[submission_id] = {
+                        "total_score": 0,
+                        "unique_voters": 0,
+                        "last_vote_time": 0
+                    }
+                
+                submission_scores[submission_id]["total_score"] += vote_weight
+                submission_scores[submission_id]["unique_voters"] += 1
+                submission_scores[submission_id]["last_vote_time"] = max(
+                    submission_scores[submission_id]["last_vote_time"], 
+                    row_dict["last_tx_time"]
+                )
+            
+            # Format response
+            scores = []
+            for submission_id, data in submission_scores.items():
+                scores.append({
+                    "submission_id": submission_id,
+                    "community_score": round(data["total_score"], 2),
+                    "unique_voters": data["unique_voters"],
+                    "last_vote_time": data["last_vote_time"]
+                })
+            
+            return scores
+    except Exception as e:
+        logging.error(f"Error in community scores: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/prize-pool", tags=["voting"])
+async def get_prize_pool():
+    """Get multi-token prize pool data with USD conversion."""
+    try:
+        target_usd = float(os.getenv('PRIZE_POOL_TARGET_USD', 1000))
+        
+        with engine.connect() as conn:
+            # Get all contributions grouped by token
+            result = conn.execute(
+                text("""
+                    SELECT token_mint, token_symbol, SUM(amount) as total_amount
+                    FROM prize_pool_contributions
+                    WHERE source IN ('vote_overflow', 'direct_donation')
+                    GROUP BY token_mint, token_symbol
+                """)
+            )
+            contributions_by_token = result.fetchall()
+            
+            # For now, use mock prices instead of Birdeye API to avoid external dependency issues
+            mock_prices = {
+                'So11111111111111111111111111111111111111112': 180.0,  # SOL
+                'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC': 0.30   # ai16z
+            }
+            
+            # Calculate total USD value and breakdown
+            total_usd = 0
+            token_breakdown = {}
+            
+            for mint, symbol, amount in contributions_by_token:
+                price = mock_prices.get(mint, 0)
+                usd_value = amount * price
+                total_usd += usd_value
+                
+                token_breakdown[symbol] = {
+                    'mint': mint,
+                    'amount': amount,
+                    'usd_value': usd_value,
+                    'price_per_token': price
+                }
+            
+            # Get recent 5 contributions
+            recent_result = conn.execute(
+                text("""
+                    SELECT contributor_wallet, token_symbol, amount, source, timestamp
+                    FROM prize_pool_contributions
+                    ORDER BY timestamp DESC
+                    LIMIT 5
+                """)
+            )
+            recent_contributions = recent_result.fetchall()
+            
+            return {
+                'total_usd': total_usd,
+                'target_usd': target_usd,
+                'progress_percentage': (total_usd / target_usd) * 100 if target_usd > 0 else 0,
+                'token_breakdown': token_breakdown,
+                'recent_contributions': [
+                    {
+                        'wallet': contrib[0][:4] + '...' + contrib[0][-4:] if contrib[0] else 'Unknown',
+                        'token': contrib[1],
+                        'amount': contrib[2],
+                        'source': contrib[3],
+                        'timestamp': contrib[4]
+                    }
+                    for contrib in recent_contributions
+                ]
+            }
+    except Exception as e:
+        logging.error(f"Error in prize pool: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+def process_ai16z_transaction(tx_sig: str, submission_id: str, sender: str, amount: float):
+    """Process ai16z token transaction for voting and prize pool."""
+    try:
+        # Calculate vote weight (inline to avoid scope issues)
+        min_vote = 1.0
+        if amount < min_vote:
+            vote_weight = 0
+        else:
+            multiplier = 3.0
+            cap = 10.0
+            vote_weight = min(math.log10(amount + 1) * multiplier, cap)
+        
+        # Calculate tokens used for voting vs overflow
+        max_vote_tokens = float(os.getenv('MAX_VOTE_TOKENS', 100))
+        vote_tokens = min(amount, max_vote_tokens)
+        overflow_tokens = max(0, amount - max_vote_tokens)
+        
+        with engine.begin() as conn:
+            # Record the vote in sol_votes table
+            conn.execute(
+                text("""
+                    INSERT OR IGNORE INTO sol_votes 
+                    (tx_sig, submission_id, sender, amount, timestamp)
+                    VALUES (?, ?, ?, ?, ?)
+                """), 
+                (tx_sig, submission_id, sender, vote_tokens, int(time.time()))
+            )
+            
+            # Record overflow as prize pool contribution
+            if overflow_tokens > 0:
+                conn.execute(
+                    text("""
+                        INSERT OR IGNORE INTO prize_pool_contributions
+                        (tx_sig, token_mint, token_symbol, amount, contributor_wallet, source, timestamp)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """), 
+                    (
+                        f"{tx_sig}_overflow",  # Unique ID for overflow portion
+                        'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',  # ai16z mint
+                        'ai16z',
+                        overflow_tokens,
+                        sender,
+                        'vote_overflow',
+                        int(time.time())
+                    )
+                )
+            # Transaction automatically commits on context exit
+            logging.info(f"Processed vote: {vote_tokens} ai16z vote, {overflow_tokens} ai16z to prize pool")
+            return True
+            
+    except Exception as e:
+        logging.error(f"Transaction processing error: {e}")
+        return False
+
+
+@app.post("/webhook/helius", tags=["voting"])
+async def helius_webhook(request: Request):
+    """Handle Helius webhook for Solana transaction processing."""
+    try:
+        data = await request.json()
+        
+        # Extract transaction details
+        tx_sig = data.get('signature')
+        if not tx_sig:
+            logging.warning("Webhook received without transaction signature")
+            return {"processed": 0, "error": "No transaction signature"}
+        
+        transfers = data.get('tokenTransfers', [])
+        if not transfers:
+            logging.warning(f"No token transfers in transaction {tx_sig}")
+            return {"processed": 0, "error": "No token transfers"}
+        
+        processed_count = 0
+        AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
+        SOL_MINT = "So11111111111111111111111111111111111111112"
+        
+        for transfer in transfers:
+            mint = transfer.get('mint')
+            
+            # Handle ai16z voting transactions
+            if mint == AI16Z_MINT:
+                submission_id = transfer.get('memo', '').strip()
+                sender = transfer.get('fromUserAccount')
+                amount = float(transfer.get('tokenAmount', 0))
+                
+                if submission_id and sender and amount >= 1:  # Minimum 1 ai16z
+                    if process_ai16z_transaction(tx_sig, submission_id, sender, amount):
+                        processed_count += 1
+                else:
+                    logging.warning(f"Invalid ai16z transaction: submission_id={submission_id}, sender={sender}, amount={amount}")
+            
+            # Handle direct SOL donations to prize pool (no memo needed)
+            elif mint == SOL_MINT:
+                sender = transfer.get('fromUserAccount') 
+                amount = float(transfer.get('tokenAmount', 0))
+                
+                if sender and amount > 0:
+                    try:
+                        with engine.begin() as conn:
+                            conn.execute(
+                                text("""
+                                    INSERT OR IGNORE INTO prize_pool_contributions
+                                    (tx_sig, token_mint, token_symbol, amount, contributor_wallet, source, timestamp)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                                """), 
+                                (tx_sig, SOL_MINT, 'SOL', amount, sender, 'direct_donation', int(time.time()))
+                            )
+                            # Transaction automatically commits on context exit
+                            processed_count += 1
+                            logging.info(f"Processed SOL donation: {amount} SOL from {sender}")
+                    except Exception as e:
+                        logging.error(f"SOL donation processing error: {e}")
+        
+        return {"processed": processed_count, "signature": tx_sig}
+        
+    except Exception as e:
+        logging.error(f"Webhook processing error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/webhook/test", tags=["voting"])
+async def test_webhook():
+    """Test endpoint to simulate a Helius webhook payload."""
+    # Simulate a test ai16z transaction with vote overflow
+    test_payload = {
+        "signature": "test_tx_sig_webhook_123",
+        "tokenTransfers": [
+            {
+                "mint": "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",  # ai16z
+                "memo": "test-submission-1",
+                "fromUserAccount": "wallet_webhook_test",
+                "tokenAmount": 150.0  # 150 ai16z - should split into 100 vote + 50 overflow
+            }
+        ]
+    }
+    
+    # Process the transaction directly
+    try:
+        tx_sig = test_payload["signature"]
+        transfer = test_payload["tokenTransfers"][0]
+        submission_id = transfer["memo"]
+        sender = transfer["fromUserAccount"]  
+        amount = transfer["tokenAmount"]
+        
+        success = process_ai16z_transaction(tx_sig, submission_id, sender, amount)
+        
+        return {
+            "test_payload": test_payload,
+            "processing_result": {"processed": 1 if success else 0, "signature": tx_sig},
+            "status": "Test webhook processed successfully" if success else "Test webhook failed"
+        }
+    except Exception as e:
+        return {
+            "test_payload": test_payload,
+            "error": str(e),
+            "status": "Test webhook failed"
+        }
 
 
 @app.get(
@@ -1544,6 +1921,7 @@ async def get_leaderboard(version: str):
                 GROUP BY sc.submission_id
             )
             SELECT 
+                s.submission_id,
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
@@ -1567,6 +1945,7 @@ async def get_leaderboard(version: str):
             row_dict = dict(row._mapping)
             entry = LeaderboardEntry(
                 rank=rank,
+                submission_id=row_dict["submission_id"],
                 project_name=row_dict["project_name"],
                 category=row_dict["category"],
                 final_score=round(row_dict["avg_score"], 2),

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { SolanaProvider } from './components/SolanaProvider'
 import Header from './components/Header'
 import Dashboard from './pages/Dashboard'
 import Leaderboard from './pages/Leaderboard'
@@ -13,11 +14,12 @@ import DiscordCallback from './pages/DiscordCallback'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <Header />
-          <main className="pt-6">
+    <SolanaProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <Header />
+            <main className="pt-6">
             <Routes>
               <Route path="/" element={<Frontpage />} />
               <Route path="/auth" element={<AuthPage />} />
@@ -42,6 +44,7 @@ function App() {
         </div>
       </Router>
     </AuthProvider>
+  </SolanaProvider>
   )
 }
 

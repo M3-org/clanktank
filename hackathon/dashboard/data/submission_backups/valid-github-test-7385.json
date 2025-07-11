@@ -1,0 +1,20 @@
+{
+  "submission_data": {
+    "project_name": "Valid GitHub Test",
+    "discord_handle": "testuser",
+    "category": "AI/Agents",
+    "description": "Testing valid GitHub URL",
+    "twitter_handle": null,
+    "github_url": "https://github.com/user/repo",
+    "demo_video_url": "https://youtube.com/test",
+    "project_image": null,
+    "problem_solved": null,
+    "favorite_part": null,
+    "solana_address": null,
+    "submission_id": "valid-github-test-7385",
+    "status": "submitted",
+    "created_at": "2025-07-09T17:02:39.391146",
+    "updated_at": "2025-07-09T17:02:39.391146",
+    "owner_discord_id": "1234567890"
+  }
+}

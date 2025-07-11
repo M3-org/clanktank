@@ -1,0 +1,20 @@
+{
+  "submission_data": {
+    "project_name": "Test Project Complete 432c02fd",
+    "discord_handle": "testuser#1234",
+    "category": "AI/Agents",
+    "description": "A complete submission test.",
+    "twitter_handle": null,
+    "github_url": "https://github.com/test/project",
+    "demo_video_url": "https://youtube.com/test",
+    "project_image": null,
+    "problem_solved": null,
+    "favorite_part": null,
+    "solana_address": null,
+    "submission_id": "test-project-complete-432c02fd-3266",
+    "status": "submitted",
+    "created_at": "2025-07-09T13:13:17.159539",
+    "updated_at": "2025-07-09T13:13:17.159539",
+    "owner_discord_id": "1234567890"
+  }
+}

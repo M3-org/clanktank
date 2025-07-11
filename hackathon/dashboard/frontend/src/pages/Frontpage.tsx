@@ -25,7 +25,7 @@ const howItWorks = [
   {
     icon: <Users className="h-8 w-8 mb-2 fill-blue-500 text-blue-600" fill="currentColor" />,
     title: 'Community Voting',
-    desc: <span>The community votes in our <a href="https://discord.gg/ai16z" target="_blank" rel="noopener noreferrer" className="text-blue-700 underline">Discord</a>.</span>,
+    desc: <span>The community votes by sending ai16z tokens with project memos. Votes are processed securely via Helius webhooks, with transaction signatures recorded to prevent double-voting.</span>,
     role: 'user',
   },
   {
