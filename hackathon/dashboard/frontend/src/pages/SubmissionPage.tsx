@@ -309,18 +309,7 @@ export default function SubmissionPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           {submission && (
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
-              {submission.discord_avatar && submission.discord_id ? (
-                <img
-                  src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                  alt="Discord avatar"
-                  className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                />
-              ) : (
-                <span className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <User className="h-6 w-6 text-gray-400" />
-                </span>
-              )}
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {submission.project_name}
               </h1>

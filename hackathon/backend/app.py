@@ -64,12 +64,12 @@ def conditional_rate_limit(rate_limit_str):
             return func
         return no_op_decorator
 
-# Load environment variables
-load_dotenv()
-
 # Configuration
 # Get the repository root directory (3 levels up from hackathon/dashboard/app.py)
 REPO_ROOT = Path(__file__).parent.parent.parent
+
+# Load environment variables from repo root
+load_dotenv(REPO_ROOT / ".env")
 HACKATHON_DB_PATH = os.getenv(
     "HACKATHON_DB_PATH", str(REPO_ROOT / "data" / "hackathon.db")
 )
@@ -81,6 +81,14 @@ LOG_FILE_PATH = REPO_ROOT / "logs" / "hackathon_api.log"
 # Submission window configuration
 SUBMISSION_DEADLINE = os.getenv("SUBMISSION_DEADLINE")  # ISO format datetime string
 
+# Setup logging first
+LOG_FILE_PATH.parent.mkdir(exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler(LOG_FILE_PATH), logging.StreamHandler()],
+)
+
 # Discord OAuth configuration
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
@@ -88,13 +96,11 @@ DISCORD_REDIRECT_URI = os.getenv(
     "DISCORD_REDIRECT_URI", "http://localhost:5173/auth/discord/callback"
 )
 
-# Setup logging
-LOG_FILE_PATH.parent.mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler(LOG_FILE_PATH), logging.StreamHandler()],
-)
+# Debug: Log Discord config status (without exposing secrets)
+if DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET:
+    logging.info(f"Discord OAuth configured: Client ID starts with {DISCORD_CLIENT_ID[:10]}...")
+else:
+    logging.warning("Discord OAuth not configured - missing CLIENT_ID or CLIENT_SECRET")
 
 # Create FastAPI app
 app = FastAPI(
@@ -441,8 +447,26 @@ def create_users_table():
             """
                 )
             )
+            
+            # Create likes_dislikes table
+            conn.execute(
+                text(
+                    """
+                CREATE TABLE IF NOT EXISTS likes_dislikes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    discord_id TEXT NOT NULL,
+                    submission_id TEXT NOT NULL,
+                    action TEXT NOT NULL CHECK (action IN ('like', 'dislike')),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(discord_id, submission_id),
+                    FOREIGN KEY (discord_id) REFERENCES users(discord_id)
+                )
+            """
+                )
+            )
+            
             conn.commit()
-            logging.info("Users table created successfully")
+            logging.info("Users and likes_dislikes tables created successfully")
     except Exception as e:
         logging.error(f"Error creating users table: {e}")
 
@@ -613,6 +637,15 @@ class DiscordAuthResponse(BaseModel):
 class DiscordCallbackRequest(BaseModel):
     code: str
 
+class LikeDislikeRequest(BaseModel):
+    submission_id: str
+    action: str  # "like" or "dislike" or "remove"
+
+class LikeDislikeResponse(BaseModel):
+    likes: int
+    dislikes: int
+    user_action: Optional[str] = None  # "like", "dislike", or None
+
 
 def create_or_update_user(discord_user_data: dict) -> DiscordUser:
     """Create or update user in database."""
@@ -622,7 +655,12 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
             discord_id = str(discord_user_data["id"])
             username = discord_user_data["username"]
             discriminator = discord_user_data.get("discriminator")
-            avatar = discord_user_data.get("avatar")
+            avatar_hash = discord_user_data.get("avatar")
+            
+            # Construct full Discord CDN avatar URL if avatar hash exists
+            avatar = None
+            if avatar_hash:
+                avatar = f"https://cdn.discordapp.com/avatars/{discord_id}/{avatar_hash}.png"
 
             # Insert or update user
             conn.execute(
@@ -838,6 +876,118 @@ async def get_current_user(request: Request):
 async def discord_logout():
     """Logout user (clear session)."""
     return {"message": "Logged out successfully"}
+
+
+@app.post("/api/submissions/{submission_id}/like-dislike", tags=["latest"], response_model=LikeDislikeResponse)
+async def toggle_like_dislike(submission_id: str, like_request: LikeDislikeRequest, request: Request):
+    """Toggle like/dislike for a submission by authenticated Discord user."""
+    # Get authenticated Discord user
+    discord_user = await validate_discord_token(request)
+    if not discord_user:
+        raise HTTPException(status_code=401, detail="Discord authentication required")
+    
+    discord_id = discord_user.discord_id
+    
+    try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+        with engine.connect() as conn:
+            # Check current user action
+            current_action = conn.execute(
+                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
+                {"discord_id": discord_id, "submission_id": submission_id}
+            ).fetchone()
+            
+            if like_request.action == "remove":
+                # Remove any existing like/dislike
+                conn.execute(
+                    text("DELETE FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
+                    {"discord_id": discord_id, "submission_id": submission_id}
+                )
+            else:
+                # Insert or update like/dislike
+                if current_action:
+                    conn.execute(
+                        text("UPDATE likes_dislikes SET action = :action, created_at = CURRENT_TIMESTAMP WHERE discord_id = :discord_id AND submission_id = :submission_id"),
+                        {"action": like_request.action, "discord_id": discord_id, "submission_id": submission_id}
+                    )
+                else:
+                    conn.execute(
+                        text("INSERT INTO likes_dislikes (discord_id, submission_id, action) VALUES (:discord_id, :submission_id, :action)"),
+                        {"discord_id": discord_id, "submission_id": submission_id, "action": like_request.action}
+                    )
+            
+            conn.commit()
+            
+            # Get updated counts
+            result = conn.execute(
+                text("""
+                    SELECT 
+                        SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
+                        SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes
+                    FROM likes_dislikes 
+                    WHERE submission_id = :submission_id
+                """),
+                {"submission_id": submission_id}
+            ).fetchone()
+            
+            # Get user's current action
+            user_action_result = conn.execute(
+                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
+                {"discord_id": discord_id, "submission_id": submission_id}
+            ).fetchone()
+            
+            user_action = user_action_result[0] if user_action_result else None
+            
+            return LikeDislikeResponse(
+                likes=result[0] or 0,
+                dislikes=result[1] or 0,
+                user_action=user_action
+            )
+            
+    except Exception as e:
+        logging.error(f"Error toggling like/dislike: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@app.get("/api/submissions/{submission_id}/like-dislike", tags=["latest"], response_model=LikeDislikeResponse)
+async def get_like_dislike_counts(submission_id: str, request: Request):
+    """Get like/dislike counts for a submission."""
+    # Get authenticated Discord user (optional for viewing counts)
+    discord_user = await validate_discord_token(request)
+    discord_id = discord_user.discord_id if discord_user else None
+    
+    try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+        with engine.connect() as conn:
+            # Get counts
+            result = conn.execute(
+                text("""
+                    SELECT 
+                        SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
+                        SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes
+                    FROM likes_dislikes 
+                    WHERE submission_id = :submission_id
+                """),
+                {"submission_id": submission_id}
+            ).fetchone()
+            
+            # Get user's current action
+            user_action_result = conn.execute(
+                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
+                {"discord_id": discord_id, "submission_id": submission_id}
+            ).fetchone()
+            
+            user_action = user_action_result[0] if user_action_result else None
+            
+            return LikeDislikeResponse(
+                likes=result[0] or 0,
+                dislikes=result[1] or 0,
+                user_action=user_action
+            )
+            
+    except Exception as e:
+        logging.error(f"Error getting like/dislike counts: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get(
