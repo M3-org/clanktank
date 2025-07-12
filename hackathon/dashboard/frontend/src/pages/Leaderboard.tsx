@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { hackathonApi } from '../lib/api'
 import { LeaderboardEntry, CommunityScore } from '../types'
-import { Card, CardContent } from '../components/Card'
-import { DiscordAvatar } from '../components/DiscordAvatar'
-import { Trophy, RefreshCw, Medal } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { Trophy, RefreshCw } from 'lucide-react'
+import PrizePoolBanner from '../components/PrizePoolBanner'
+import { LeaderboardCard } from '../components/LeaderboardCard'
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [, setCommunityScores] = useState<CommunityScore[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Prize pool data - could be fetched from API
+  const prizeTotalEth = 16.42
+  const prizeAddress = "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM" // Prize pool address
 
   useEffect(() => {
     loadLeaderboard()
@@ -44,25 +47,6 @@ export default function Leaderboard() {
   }
 
 
-  const getMedalIcon = (rank: number) => {
-    if (rank === 1) return <Medal className="h-8 w-8 text-yellow-500" />
-    if (rank === 2) return <Medal className="h-8 w-8 text-gray-400" />
-    if (rank === 3) return <Medal className="h-8 w-8 text-orange-600" />
-    return null
-  }
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'scored':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100 border-blue-300 dark:border-blue-700';
-      case 'completed':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700';
-      case 'published':
-        return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 border-purple-300 dark:border-purple-700';
-      default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600';
-    }
-  };
 
   if (loading) {
     return (
@@ -75,108 +59,30 @@ export default function Leaderboard() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <PrizePoolBanner total={prizeTotalEth} goal={25} address={prizeAddress} />
+
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="relative">
-            <Trophy className="h-20 w-20 text-yellow-500" />
-            <div className="absolute -top-2 -right-2 h-8 w-8 bg-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">{entries.length}</span>
-            </div>
-          </div>
+      <div className="text-center mb-12">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 mb-6">
+          <Trophy className="h-8 w-8 text-gray-600 dark:text-gray-400" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Hackathon Leaderboard</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">Top projects as judged by our AI panel</p>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Leaderboard</h1>
+        <p className="text-gray-600 dark:text-gray-400">AI-judged rankings from our expert panel</p>
       </div>
 
       {/* Leaderboard */}
-      <Card className="overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 mb-8">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <h2 className="text-xl font-semibold text-white">Final Rankings</h2>
-        </div>
-        
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
-          {entries.map((entry, index) => (
-            <div
-              key={`${entry.rank}-${entry.project_name}`}
-              className={cn(
-                "px-6 py-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4",
-                statusColor(entry.status || "unknown"),
-                index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-gray-900 dark:to-gray-800",
-                index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-gray-700",
-                index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700"
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {/* Rank */}
-                  <div className="flex-shrink-0 w-16 text-center">
-                    {index < 3 ? (
-                      getMedalIcon(entry.rank)
-                    ) : (
-                      <div className="h-12 w-12 mx-auto rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <span className="font-bold text-lg text-gray-700 dark:text-gray-200">{entry.rank}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Project Info */}
-                  <div className="flex-1 flex items-center gap-3">
-                    <DiscordAvatar
-                      discord_id={entry.discord_id}
-                      discord_avatar={entry.discord_avatar}
-                      discord_handle={entry.discord_handle}
-                      size="md"
-                      className="border border-gray-300 dark:border-gray-700"
-                    />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <a
-                        // TODO: Use submission_id for deep linking if available in LeaderboardEntry
-                        href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
-                        className="hover:underline text-cyan-600 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200"
-                      >
-                        {entry.project_name}
-                      </a>
-                    </h3>
-                  </div>
-                </div>
-                
-                {/* Score and Actions */}
-                <div className="flex items-center gap-6">
-                  {/* AI Score */}
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                      {entry.final_score.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">AI Score</div>
-                  </div>
-                  
-                  {/* Community Score */}
-                  <div className="text-right">
-                    <div className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
-                      {entry.community_score ? entry.community_score.toFixed(1) : "—"}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Community</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
+      <div className="space-y-2">
+        {entries.map(entry => <LeaderboardCard key={entry.submission_id} entry={entry} />)}
+      </div>
 
       {/* Footer */}
-      <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <CardContent className="py-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">About the Scoring</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Projects are evaluated by our panel of AI judges on four criteria: Innovation & Creativity, 
-            Technical Execution, Market Potential, and User Experience. Each judge brings their unique 
-            perspective and expertise to create a balanced assessment.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="mt-16 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+          Projects are evaluated on Innovation, Technical Execution, Market Potential, and User Experience 
+          by our panel of specialized AI judges.
+        </p>
+      </div>
     </div>
   )
 }
