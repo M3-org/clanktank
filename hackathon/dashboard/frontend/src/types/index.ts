@@ -148,3 +148,9 @@ export interface PrizePoolData {
   token_breakdown: Record<string, TokenBreakdown>
   recent_contributions: PrizePoolContribution[]
 }
+
+export interface LikeDislikeResponse {
+  likes: number
+  dislikes: number
+  user_action?: 'like' | 'dislike' | null
+}

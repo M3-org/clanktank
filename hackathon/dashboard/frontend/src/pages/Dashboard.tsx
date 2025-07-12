@@ -6,6 +6,7 @@ import { formatDate } from '../lib/utils'
 import { Card, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
+import { DiscordAvatar } from '../components/DiscordAvatar'
 import { 
   ArrowUpRight, 
   RefreshCw, 
@@ -327,17 +328,13 @@ export default function Dashboard() {
                   <tr key={submission.submission_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {submission.discord_avatar && submission.discord_id ? (
-                          <img
-                            src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                            alt="Discord avatar"
-                            className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                          />
-                        ) : (
-                          <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-gray-400" />
-                          </span>
-                        )}
+                        <DiscordAvatar
+                          discord_id={submission.discord_id}
+                          discord_avatar={submission.discord_avatar}
+                          discord_handle={submission.discord_handle}
+                          size="md"
+                          className="border border-gray-300 dark:border-gray-700"
+                        />
                         <span className="text-sm text-gray-700 dark:text-gray-200">
                           {submission.discord_username || submission.discord_handle || '—'}
                         </span>
@@ -489,17 +486,13 @@ export default function Dashboard() {
               </div>
               <CardContent className="p-4 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-1 min-h-[2.5em]">
-                  {submission.discord_avatar && submission.discord_id ? (
-                    <img
-                      src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                      alt="Discord avatar"
-                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                    />
-                  ) : (
-                    <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-gray-400" />
-                    </span>
-                  )}
+                  <DiscordAvatar
+                    discord_id={submission.discord_id}
+                    discord_avatar={submission.discord_avatar}
+                    discord_handle={submission.discord_handle}
+                    size="md"
+                    className="border border-gray-300 dark:border-gray-700"
+                  />
                   <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 truncate">
                     {submission.project_name}
                   </h3>

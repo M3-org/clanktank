@@ -2,6 +2,7 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from './Button'
+import { DiscordAvatar } from './DiscordAvatar'
 import { LogOut, User } from 'lucide-react'
 
 export default function Header() {
@@ -89,15 +90,14 @@ export default function Header() {
               <div className="flex items-center space-x-3">
                 {/* User Info */}
                 <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  {authState.discordUser?.avatar ? (
-                    <img
-                      src={`https://cdn.discordapp.com/avatars/${authState.discordUser.discord_id}/${authState.discordUser.avatar}.png`}
-                      alt="Discord avatar"
-                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                    />
-                  ) : (
-                    <User className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 p-1" />
-                  )}
+                  <DiscordAvatar
+                    discord_id={authState.discordUser?.discord_id}
+                    discord_avatar={authState.discordUser?.avatar}
+                    discord_handle={authState.discordUser?.username}
+                    size="md"
+                    variant="light"
+                    className="border border-gray-300 dark:border-gray-700"
+                  />
                 </div>
 
                 {/* Quick Actions */}

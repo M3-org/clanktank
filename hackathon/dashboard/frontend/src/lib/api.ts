@@ -159,4 +159,18 @@ export const hackathonApi = {
     const response = await api.get<PrizePoolData>('/prize-pool');
     return response.data;
   },
+
+  // Like/Dislike functionality
+  toggleLikeDislike: async (submissionId: string, action: 'like' | 'dislike' | 'remove') => {
+    const response = await api.post(`/submissions/${submissionId}/like-dislike`, {
+      submission_id: submissionId,
+      action
+    });
+    return response.data;
+  },
+
+  getLikeDislikeCounts: async (submissionId: string) => {
+    const response = await api.get(`/submissions/${submissionId}/like-dislike`);
+    return response.data;
+  },
 }

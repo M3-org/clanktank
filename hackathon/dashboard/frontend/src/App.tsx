@@ -11,6 +11,7 @@ import Frontpage from './pages/Frontpage'
 import AuthPage from './pages/AuthPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import DiscordCallback from './pages/DiscordCallback'
+import VotingPrototypes from './pages/VotingPrototypes'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/submission/:id" element={<SubmissionDetail />} />
+              <Route path="/voting-prototypes" element={<VotingPrototypes />} />
               
               {/* Protected Routes */}
               <Route path="/submit" element={
