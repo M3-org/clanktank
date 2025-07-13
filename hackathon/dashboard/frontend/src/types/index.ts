@@ -128,22 +128,24 @@ export interface CommunityScore {
 
 export interface TokenBreakdown {
   mint: string
+  symbol: string
+  name?: string
   amount: number
-  usd_value: number
-  price_per_token: number
+  decimals: number
+  logo?: string
 }
 
 export interface PrizePoolContribution {
   wallet: string
   token: string
   amount: number
-  source: string
   timestamp: number
+  description?: string
 }
 
 export interface PrizePoolData {
-  total_usd: number
-  target_usd: number
+  total_sol: number
+  target_sol: number
   progress_percentage: number
   token_breakdown: Record<string, TokenBreakdown>
   recent_contributions: PrizePoolContribution[]

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Clock, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
-import { useDeadline } from '../lib/config';
+import { getDeadlineConfig } from '../lib/config';
 
 interface CountdownTimerProps {
   variant?: 'banner' | 'compact' | 'card';
@@ -55,7 +55,7 @@ export function CountdownTimer({
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const config = await useDeadline();
+        const config = await getDeadlineConfig();
         deadlineRef.current = config.deadline;
         epochRef.current = config.epoch;
         

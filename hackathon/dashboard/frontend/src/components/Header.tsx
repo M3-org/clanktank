@@ -30,7 +30,7 @@ export default function Header() {
     navigate('/')
   }
 
-  const isAuthPage = location.pathname === '/auth'  // Unused for now
+  // const isAuthPage = location.pathname === '/auth'  // Unused for now
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
