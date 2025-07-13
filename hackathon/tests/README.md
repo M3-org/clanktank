@@ -22,11 +22,22 @@ This folder contains automated and manual test scripts for the Clank Tank hackat
 - **Purpose:** End-to-end test pipeline for the research, scoring, and leaderboard system.
 - **How to run:**
   ```sh
-  python scripts/hackathon/test/test_hackathon_system.py
+  # Setup test data only
+  python hackathon/tests/test_hackathon_system.py --setup
+  
+  # Check current status
+  python hackathon/tests/test_hackathon_system.py --check
+  
+  # Reset test data
+  python hackathon/tests/test_hackathon_system.py --reset
+  
+  # Full interactive pipeline
+  python hackathon/tests/test_hackathon_system.py
   ```
 - **Notes:**
   - Uses the latest versioned table by default (v2).
   - Inserts, researches, and scores test submissions, then checks results.
+  - **Preferred method for generating test data for frontend testing.**
 
 ### 3. `test_smoke.py`
 - **Purpose:** Minimal smoke test for the entire hackathon pipeline (DB, research, scoring, episode generation).
