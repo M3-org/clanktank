@@ -115,6 +115,42 @@ def create_hackathon_database(db_path):
         """
     )
 
+    # Prize pool contributions table
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS prize_pool_contributions (
+            id INTEGER PRIMARY KEY,
+            tx_sig TEXT UNIQUE,
+            token_mint TEXT NOT NULL,
+            token_symbol TEXT NOT NULL, 
+            amount REAL NOT NULL,
+            usd_value_at_time REAL,
+            contributor_wallet TEXT,
+            source TEXT,
+            timestamp INTEGER NOT NULL
+        )
+        """
+    )
+
+    # Token metadata table for caching Helius DAS API data
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS token_metadata (
+            id INTEGER PRIMARY KEY,
+            token_mint TEXT UNIQUE NOT NULL,
+            symbol TEXT,
+            name TEXT,
+            decimals INTEGER,
+            logo_uri TEXT,
+            cdn_uri TEXT,
+            json_uri TEXT,
+            interface_type TEXT,
+            content_metadata TEXT,
+            last_updated INTEGER NOT NULL
+        )
+        """
+    )
+
     # Users table for Discord authentication
     cursor.execute(
         """
@@ -124,6 +160,21 @@ def create_hackathon_database(db_path):
             discriminator TEXT,
             avatar TEXT,
             last_login TIMESTAMP
+        )
+    """
+    )
+
+    # Likes/dislikes table for community voting
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS likes_dislikes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            discord_id TEXT NOT NULL,
+            submission_id TEXT NOT NULL,
+            action TEXT NOT NULL CHECK (action IN ('like', 'dislike')),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(discord_id, submission_id),
+            FOREIGN KEY (discord_id) REFERENCES users(discord_id)
         )
     """
     )
@@ -150,6 +201,25 @@ def create_hackathon_database(db_path):
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_research_submission_id_unique ON hackathon_research(submission_id)"
     )
     # This unique index is required for ON CONFLICT(submission_id) upserts in research.py
+    
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_prize_pool_source ON prize_pool_contributions(source)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_prize_pool_timestamp ON prize_pool_contributions(timestamp)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_token_metadata_mint ON token_metadata(token_mint)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_token_metadata_updated ON token_metadata(last_updated)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_likes_dislikes_submission ON likes_dislikes(submission_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_likes_dislikes_discord_id ON likes_dislikes(discord_id)"
+    )
 
     conn.commit()
     

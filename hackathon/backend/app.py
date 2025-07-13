@@ -11,17 +11,17 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
-import random
-import secrets
-import hashlib
-import base64
-import urllib.parse
-import aiohttp
+# import random  # CLEANUP: Unused import - commented out for testing
+# import secrets  # CLEANUP: Used only minimally, commented out for testing
+# import hashlib  # CLEANUP: Unused import - commented out for testing
+# import base64   # CLEANUP: Unused import - commented out for testing
+import urllib.parse  # Needed for Discord OAuth URL generation
+import aiohttp  # Needed for Enhanced Transactions API
 from fastapi import Form
 import re
 import math
-import time
-import requests
+import time  # Needed for timestamp handling
+# import requests  # CLEANUP: Imported locally where needed, commented out for testing
 
 from fastapi import (
     FastAPI,
@@ -1594,73 +1594,337 @@ async def get_community_scores():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/prize-pool", tags=["voting"])
-async def get_prize_pool():
-    """Get multi-token prize pool data with USD conversion."""
+async def get_recent_transactions_helius(wallet_address: str, helius_api_key: str, limit: int = 5):
+    """Get recent transactions for wallet using Helius Enhanced Transactions API."""
+    import aiohttp
+    import time
+    
     try:
-        target_usd = float(os.getenv('PRIZE_POOL_TARGET_USD', 1000))
+        # First get recent transaction signatures
+        helius_rpc_url = f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
         
-        with engine.connect() as conn:
-            # Get all contributions grouped by token
-            result = conn.execute(
-                text("""
-                    SELECT token_mint, token_symbol, SUM(amount) as total_amount
-                    FROM prize_pool_contributions
-                    WHERE source IN ('vote_overflow', 'direct_donation')
-                    GROUP BY token_mint, token_symbol
-                """)
-            )
-            contributions_by_token = result.fetchall()
-            
-            # For now, use mock prices instead of Birdeye API to avoid external dependency issues
-            mock_prices = {
-                'So11111111111111111111111111111111111111112': 180.0,  # SOL
-                'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC': 0.30   # ai16z
-            }
-            
-            # Calculate total USD value and breakdown
-            total_usd = 0
-            token_breakdown = {}
-            
-            for mint, symbol, amount in contributions_by_token:
-                price = mock_prices.get(mint, 0)
-                usd_value = amount * price
-                total_usd += usd_value
-                
-                token_breakdown[symbol] = {
-                    'mint': mint,
-                    'amount': amount,
-                    'usd_value': usd_value,
-                    'price_per_token': price
-                }
-            
-            # Get recent 5 contributions
-            recent_result = conn.execute(
-                text("""
-                    SELECT contributor_wallet, token_symbol, amount, source, timestamp
-                    FROM prize_pool_contributions
-                    ORDER BY timestamp DESC
-                    LIMIT 5
-                """)
-            )
-            recent_contributions = recent_result.fetchall()
-            
-            return {
-                'total_usd': total_usd,
-                'target_usd': target_usd,
-                'progress_percentage': (total_usd / target_usd) * 100 if target_usd > 0 else 0,
-                'token_breakdown': token_breakdown,
-                'recent_contributions': [
-                    {
-                        'wallet': contrib[0][:4] + '...' + contrib[0][-4:] if contrib[0] else 'Unknown',
-                        'token': contrib[1],
-                        'amount': contrib[2],
-                        'source': contrib[3],
-                        'timestamp': contrib[4]
-                    }
-                    for contrib in recent_contributions
+        async with aiohttp.ClientSession() as session:
+            # Get recent transaction signatures
+            rpc_payload = {
+                "jsonrpc": "2.0",
+                "id": "get-signatures",
+                "method": "getSignaturesForAddress",
+                "params": [
+                    wallet_address,
+                    {"limit": limit * 2}  # Get more to filter for incoming transfers
                 ]
             }
+            
+            async with session.post(helius_rpc_url, json=rpc_payload) as resp:
+                rpc_data = await resp.json()
+                
+            if 'result' not in rpc_data or not rpc_data['result']:
+                return []
+            
+            # Extract transaction signatures
+            signatures = [tx['signature'] for tx in rpc_data['result'][:limit]]
+            
+            if not signatures:
+                return []
+            
+            # Get enhanced transaction data
+            enhanced_url = f"https://api.helius.xyz/v0/transactions?api-key={helius_api_key}"
+            enhanced_payload = {
+                "transactions": signatures
+            }
+            
+            async with session.post(enhanced_url, json=enhanced_payload) as resp:
+                enhanced_data = await resp.json()
+            
+            # Process enhanced transactions into contributions
+            contributions = []
+            for tx in enhanced_data[:limit]:
+                if not isinstance(tx, dict):
+                    continue
+                    
+                # Look for native (SOL) transfers TO our wallet
+                if 'nativeTransfers' in tx:
+                    for transfer in tx['nativeTransfers']:
+                        if transfer.get('toUserAccount') == wallet_address:
+                            contributions.append({
+                                'wallet': transfer.get('fromUserAccount', 'Unknown')[:4] + '...' + transfer.get('fromUserAccount', 'Unknown')[-4:] if transfer.get('fromUserAccount') else 'Unknown',
+                                'token': 'SOL',
+                                'amount': transfer.get('amount', 0) / 1_000_000_000,  # Convert lamports to SOL
+                                'timestamp': tx.get('timestamp', int(time.time())),
+                                'description': tx.get('description', 'SOL transfer')
+                            })
+                
+                # Look for token transfers TO our wallet
+                if 'tokenTransfers' in tx:
+                    for transfer in tx['tokenTransfers']:
+                        if transfer.get('toUserAccount') == wallet_address:
+                            # Get token symbol from metadata or use mint short form
+                            token_symbol = 'Unknown'
+                            if transfer.get('mint'):
+                                # Try to get symbol from our token metadata cache
+                                try:
+                                    with engine.connect() as conn:
+                                        result = conn.execute(
+                                            text("SELECT symbol FROM token_metadata WHERE token_mint = :token_mint"),
+                                            {'token_mint': transfer['mint']}
+                                        ).fetchone()
+                                        if result:
+                                            token_symbol = result[0]
+                                        else:
+                                            token_symbol = transfer['mint'][:8]
+                                except:
+                                    token_symbol = transfer['mint'][:8]
+                            
+                            contributions.append({
+                                'wallet': transfer.get('fromUserAccount', 'Unknown')[:4] + '...' + transfer.get('fromUserAccount', 'Unknown')[-4:] if transfer.get('fromUserAccount') else 'Unknown',
+                                'token': token_symbol,
+                                'amount': transfer.get('tokenAmount', 0),
+                                'timestamp': tx.get('timestamp', int(time.time())),
+                                'description': tx.get('description', f'{token_symbol} transfer')
+                            })
+            
+            return contributions[:limit]  # Return only the requested number
+            
+    except Exception as e:
+        logging.error(f"Error getting recent transactions: {e}")
+        return []  # Return empty list on error to avoid breaking the API
+
+
+@app.get("/api/prize-pool", tags=["voting"])
+async def get_prize_pool():
+    """Get crypto-native prize pool data using Helius DAS API."""
+    try:
+        helius_api_key = os.getenv('HELIUS_API_KEY')
+        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS', '2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf')
+        target_sol = float(os.getenv('PRIZE_POOL_TARGET_SOL', 10))
+        
+        if not helius_api_key:
+            raise HTTPException(status_code=500, detail="Helius API key not configured")
+        
+        helius_url = f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
+        
+        # Fetch real-time token holdings from Helius DAS API
+        payload = {
+            "jsonrpc": "2.0",
+            "id": "prize-pool-live",
+            "method": "getAssetsByOwner",
+            "params": {
+                "ownerAddress": prize_wallet,
+                "page": 1,
+                "limit": 100,
+                "sortBy": {
+                    "sortBy": "created",
+                    "sortDirection": "desc"
+                },
+                "options": {
+                    "showUnverifiedCollections": False,
+                    "showCollectionMetadata": False,
+                    "showGrandTotal": False,
+                    "showFungible": True,
+                    "showNativeBalance": True,
+                    "showInscription": False,
+                    "showZeroBalance": False
+                }
+            }
+        }
+        
+        import requests
+        import json
+        import time
+        response = requests.post(helius_url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        
+        if 'error' in data:
+            raise HTTPException(status_code=500, detail=f"Helius API error: {data['error']}")
+        
+        if not data.get('result', {}).get('items'):
+            # Return empty but valid structure
+            return {
+                'total_sol': 0,
+                'target_sol': target_sol,
+                'progress_percentage': 0,
+                'token_breakdown': {},
+                'recent_contributions': []
+            }
+        
+        # Process tokens
+        token_breakdown = {}
+        total_sol = 0
+        
+        def get_token_metadata_from_helius(mint_address):
+            """Fetch token metadata from Helius DAS API and cache it"""
+            try:
+                # Check cache first (24 hour cache)
+                with engine.connect() as conn:
+                    result = conn.execute(
+                        text("SELECT * FROM token_metadata WHERE token_mint = :token_mint AND last_updated > :min_time"),
+                        {'token_mint': mint_address, 'min_time': int(time.time()) - 86400}  # 24 hours
+                    )
+                    cached = result.fetchone()
+                    if cached:
+                        return {
+                            'symbol': cached[2],
+                            'name': cached[3], 
+                            'decimals': cached[4],
+                            'logo': cached[6] or cached[5],  # prefer cdn_uri over logo_uri
+                            'interface': cached[8]
+                        }
+                
+                # Fetch from Helius DAS API
+                payload = {
+                    "jsonrpc": "2.0",
+                    "id": f"token-metadata-{mint_address}",
+                    "method": "getAsset",
+                    "params": {
+                        "id": mint_address
+                    }
+                }
+                
+                response = requests.post(helius_url, json=payload)
+                response.raise_for_status()
+                asset_data = response.json()
+                
+                if 'error' in asset_data or not asset_data.get('result'):
+                    return None
+                
+                asset = asset_data['result']
+                
+                # Extract metadata
+                symbol = None
+                name = None
+                decimals = 6  # Default for SPL tokens
+                logo_uri = None
+                cdn_uri = None
+                json_uri = None
+                interface_type = asset.get('interface', 'Unknown')
+                
+                # Get symbol and name from token_info or content
+                if asset.get('token_info'):
+                    symbol = asset['token_info'].get('symbol')
+                    decimals = asset['token_info'].get('decimals', 6)
+                
+                if asset.get('content'):
+                    content = asset['content']
+                    if not symbol and content.get('metadata'):
+                        symbol = content['metadata'].get('symbol')
+                        name = content['metadata'].get('name')
+                    
+                    json_uri = content.get('json_uri')
+                    
+                    # Get image URLs
+                    if content.get('files') and len(content['files']) > 0:
+                        first_file = content['files'][0]
+                        logo_uri = first_file.get('uri')
+                        cdn_uri = first_file.get('cdn_uri')
+                
+                # Cache the metadata
+                with engine.begin() as conn:
+                    conn.execute(
+                        text("""
+                            INSERT OR REPLACE INTO token_metadata 
+                            (token_mint, symbol, name, decimals, logo_uri, cdn_uri, json_uri, interface_type, content_metadata, last_updated)
+                            VALUES (:token_mint, :symbol, :name, :decimals, :logo_uri, :cdn_uri, :json_uri, :interface_type, :content_metadata, :last_updated)
+                        """),
+                        {
+                            'token_mint': mint_address,
+                            'symbol': symbol,
+                            'name': name,
+                            'decimals': decimals,
+                            'logo_uri': logo_uri,
+                            'cdn_uri': cdn_uri,
+                            'json_uri': json_uri,
+                            'interface_type': interface_type,
+                            'content_metadata': json.dumps(asset.get('content', {})),
+                            'last_updated': int(time.time())
+                        }
+                    )
+                
+                return {
+                    'symbol': symbol,
+                    'name': name,
+                    'decimals': decimals,
+                    'logo': cdn_uri or logo_uri,  # prefer CDN
+                    'interface': interface_type
+                }
+                
+            except Exception as e:
+                logging.error(f"Error fetching token metadata for {mint_address}: {e}")
+                return None
+        
+        # Process native SOL balance (special case - always has consistent metadata)
+        native_balance = data['result'].get('nativeBalance', {})
+        if native_balance and native_balance.get('lamports', 0) > 0:
+            sol_amount = native_balance['lamports'] / 1_000_000_000
+            total_sol = sol_amount
+            token_breakdown['SOL'] = {
+                'mint': 'So11111111111111111111111111111111111111112',
+                'symbol': 'SOL',
+                'name': 'Solana',
+                'amount': sol_amount,
+                'decimals': 9,
+                'logo': 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+            }
+        
+        # Process SPL tokens using enhanced metadata
+        for asset in data['result']['items']:
+            if asset.get('token_info') and float(asset['token_info'].get('balance', 0)) > 0:
+                mint_address = asset['id']
+                raw_balance = float(asset['token_info']['balance'])
+                
+                # Get enhanced metadata from Helius
+                metadata = get_token_metadata_from_helius(mint_address)
+                
+                if metadata:
+                    decimals = metadata.get('decimals', 6)
+                    symbol = metadata.get('symbol') or mint_address[:8]
+                    name = metadata.get('name')
+                    logo = metadata.get('logo')
+                else:
+                    # Fallback to basic data from getAssetsByOwner
+                    decimals = asset['token_info'].get('decimals', 6) 
+                    symbol = asset['token_info'].get('symbol') or asset.get('content', {}).get('metadata', {}).get('symbol') or mint_address[:8]
+                    name = asset.get('content', {}).get('metadata', {}).get('name')
+                    logo = None
+                    if asset.get('content', {}).get('files'):
+                        logo = asset['content']['files'][0].get('cdn_uri') or asset['content']['files'][0].get('uri')
+                
+                amount = raw_balance / (10 ** decimals)
+                
+                token_breakdown[symbol] = {
+                    'mint': mint_address,
+                    'symbol': symbol,
+                    'name': name,
+                    'amount': amount,
+                    'decimals': decimals,
+                    'logo': logo
+                }
+        
+        # Sort tokens: SOL, ai16z, USDC first, then by amount
+        priority_tokens = ['SOL', 'ai16z', 'USDC']
+        sorted_tokens = {}
+        
+        # Add priority tokens first
+        for token in priority_tokens:
+            if token in token_breakdown:
+                sorted_tokens[token] = token_breakdown[token]
+        
+        # Add remaining tokens sorted by amount
+        remaining_tokens = {k: v for k, v in token_breakdown.items() if k not in priority_tokens}
+        for token, data in sorted(remaining_tokens.items(), key=lambda x: x[1]['amount'], reverse=True):
+            sorted_tokens[token] = data
+        
+        # Get recent transactions using Helius Enhanced Transactions API
+        recent_contributions = await get_recent_transactions_helius(prize_wallet, helius_api_key)
+        
+        return {
+            'total_sol': total_sol,
+            'target_sol': target_sol,
+            'progress_percentage': (total_sol / target_sol) * 100 if target_sol > 0 else 0,
+            'token_breakdown': sorted_tokens,
+            'recent_contributions': recent_contributions
+        }
+            
     except Exception as e:
         logging.error(f"Error in prize pool: {e}")
         raise HTTPException(status_code=500, detail=str(e))
