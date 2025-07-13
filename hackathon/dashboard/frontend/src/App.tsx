@@ -1,7 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import { SolanaProvider } from './components/SolanaProvider'
 import Header from './components/Header'
+
+// Performance: Move static objects outside component
+const TOAST_OPTIONS = {
+  duration: 2000,
+  style: {
+    background: '#363636',
+    color: '#fff',
+  },
+}
+
 import Dashboard from './pages/Dashboard'
 import Leaderboard from './pages/Leaderboard'
 import SubmissionDetail from './pages/SubmissionDetail'
@@ -43,6 +54,10 @@ function App() {
               } />
             </Routes>
           </main>
+          <Toaster
+            position="bottom-right"
+            toastOptions={TOAST_OPTIONS}
+          />
         </div>
       </Router>
     </AuthProvider>
