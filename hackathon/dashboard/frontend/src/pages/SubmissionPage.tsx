@@ -7,7 +7,7 @@ import { Button } from '../components/Button'
 import { Card, CardContent } from '../components/Card'
 import { useAuth } from '../contexts/AuthContext'
 import ProtectedRoute from '../components/ProtectedRoute'
-import { Download, Upload, User } from 'lucide-react'
+import { Download, Upload } from 'lucide-react'
 import { SubmissionDetail } from '../types';
 
 interface SchemaField {
@@ -39,6 +39,7 @@ export default function SubmissionPage() {
   const [submissionWindowOpen, setSubmissionWindowOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [draftAlreadyRestored, setDraftAlreadyRestored] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -67,23 +68,28 @@ export default function SubmissionPage() {
           setValue('discord_handle', authState.discordUser.username)
         }
         
-        // Load any saved draft
-        const draftKey = 'submission_draft'
-        const savedDraft = localStorage.getItem(draftKey)
-        if (savedDraft) {
-          try {
-            const draft = JSON.parse(savedDraft)
-            
-                         // Populate form with saved data, but override Discord username
-             Object.keys(draft).forEach(key => {
-               if (key !== 'discord_handle') { // Don't override Discord username
-                 setValue(key, draft[key])
-               }
-             })
-            
-            toast.success('Draft restored!', { duration: 2000 })
-          } catch (error) {
-            console.error('Failed to restore draft:', error)
+        // Load any saved draft (only on first load)
+        if (!draftAlreadyRestored) {
+          const draftKey = 'submission_draft'
+          const savedDraft = localStorage.getItem(draftKey)
+          if (savedDraft) {
+            try {
+              const draft = JSON.parse(savedDraft)
+              
+              // Populate form with saved data, but override Discord username
+              Object.keys(draft).forEach(key => {
+                if (key !== 'discord_handle') { // Don't override Discord username
+                  setValue(key, draft[key])
+                }
+              })
+              
+              toast.success('Draft restored!', { duration: 2000 })
+              setDraftAlreadyRestored(true)
+            } catch (error) {
+              console.error('Failed to restore draft:', error)
+            }
+          } else {
+            setDraftAlreadyRestored(true)
           }
         }
         
@@ -121,6 +127,7 @@ export default function SubmissionPage() {
   const clearDraft = () => {
     localStorage.removeItem('submission_draft')
     reset()
+    setDraftAlreadyRestored(true) // Prevent toast on next effect run
     // Re-populate Discord username
     if (authState.discordUser) {
       setValue('discord_handle', authState.discordUser.username)
