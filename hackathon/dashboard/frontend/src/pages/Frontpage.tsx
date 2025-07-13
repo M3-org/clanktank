@@ -170,7 +170,38 @@ export default function Frontpage() {
           <div className="absolute inset-0 bg-black bg-opacity-60" />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 w-full">
-          <img src="/clanktank_white.png" alt="Clank Tank Logo" className="h-38 md:h-80 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
+          <div className="relative inline-block">
+            {/* Left gear - proportionally scaled */}
+            <svg
+              className="absolute left-3 top-1/4 -translate-x-1/2 -translate-y-1/3 h-20 md:h-20 w-30 md:w-30 opacity-90 animate-spin-slow z-0 text-gray-300"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
+            </svg>
+            
+            {/* Main logo */}
+            <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-30 md:h-80 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
+            
+            {/* Right gear - proportionally scaled */}
+            <svg
+              className="absolute right-4 top-1/4 translate-x-1/2 -translate-y-1/2 h-40 md:h-40 w-32 md:w-32 opacity-90 animate-spin-slow z-0 text-gray-300"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
+            </svg>
+          </div>
           <div className="text-2xl md:text-3xl font-extrabold text-indigo-200 tracking-widest uppercase drop-shadow mb-6">hackathon edition</div>
  
           <p className="text-xl md:text-2xl font-semibold text-indigo-100 drop-shadow mb-8 max-w-2xl mx-auto">
