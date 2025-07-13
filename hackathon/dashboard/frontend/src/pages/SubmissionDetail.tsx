@@ -4,7 +4,6 @@ import { hackathonApi } from '../lib/api'
 import { SubmissionDetail as SubmissionDetailType } from '../types'
 import { formatDate } from '../lib/utils'
 import { Card, CardHeader, CardContent } from '../components/Card'
-import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { useAuth } from '../contexts/AuthContext'
 import { LikeDislike } from '../components/LikeDislike'
@@ -43,7 +42,7 @@ export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
   const { authState } = useAuth()
   const [submission, setSubmission] = useState<SubmissionDetailType | null>(null)
-  const [feedback, setFeedback] = useState<any>(null)
+  const [, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [discordData, setDiscordData] = useState<{discord_id?: string, discord_avatar?: string} | null>(null)
 
@@ -148,6 +147,15 @@ export default function SubmissionDetail() {
     'aishaw': '/avatars/aishaw.png',
     'spartan': '/avatars/spartan.png',
     'peepo': '/avatars/peepo.png',
+  }
+
+  // Add mapping for judge specialties (matching Frontpage.tsx)
+  const judgeSpecialtyMap: Record<string, string> = {
+    'aimarc': 'ROI skeptic',
+    'aishaw': 'Code purist', 
+    'peepo': 'UX meme lord',
+    'spartan': 'DeFi maximalist',
+    'eliza': 'AI Judge', // fallback for eliza or unknown judges
   }
 
 
@@ -285,7 +293,9 @@ export default function SubmissionDetail() {
                               <h4 className="font-medium text-gray-900 dark:text-gray-100 capitalize">
                                 {judgeName.replace('ai', 'AI ')}
                               </h4>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">AI Judge</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {judgeSpecialtyMap[judgeKey] || 'AI Judge'}
+                              </p>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2">

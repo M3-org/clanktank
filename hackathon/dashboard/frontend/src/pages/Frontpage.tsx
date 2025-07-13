@@ -1,7 +1,9 @@
 import React from 'react';
-import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3 } from 'lucide-react';
+import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3, Plus } from 'lucide-react';
 import { CountdownTimer } from '../components/CountdownTimer';
-// REMOVE: import metadata from '../../../recordings/metadata.json';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { PrizePoolCard } from '../components/PrizePoolCard';
 
 const howItWorks = [
   {
@@ -73,6 +75,9 @@ const faqs = [
 ];
 
 export default function Frontpage() {
+  const { authState } = useAuth()
+  const navigate = useNavigate()
+
   // Hardcoded video data for all 8 episodes
   const latestEpisodes = [
     {
@@ -172,13 +177,19 @@ export default function Frontpage() {
             AI-Powered Vibe Coding Competition
           </p>
           
-          {/* Countdown Timer */}
-          <div className="mt-8 max-w-md mx-auto">
-            <CountdownTimer variant="banner" showLabel={true} />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* Remove How it works and View Leaderboard buttons */}
+          {/* Countdown and Submit */}
+          <div className="mt-8 flex flex-col items-center gap-6">
+            <div className="max-w-md mx-auto">
+              <CountdownTimer variant="banner" showLabel={true} />
+            </div>
+            
+            <button
+              onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
+              className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="h-5 w-5" />
+              Submit Project
+            </button>
           </div>
         </div>
       </div>
@@ -330,6 +341,13 @@ export default function Frontpage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Prize Pool Section */}
+      <section className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 animate-fade-in">
+        <div className="max-w-6xl mx-auto py-16 px-4">
+          <PrizePoolCard goal={10} />
         </div>
       </section>
 
