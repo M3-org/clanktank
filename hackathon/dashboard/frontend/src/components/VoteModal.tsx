@@ -1,9 +1,9 @@
 import { X, Copy, Smartphone, Check } from 'lucide-react'
 import { Button } from './Button'
 import { LeaderboardEntry, SubmissionSummary } from '../types'
-import { buildVotingLink, isMobile, PRIZE_WALLET } from '../utils/phantomLink'
-import { useCopyToClipboard } from '../hooks/useCopyToClipboard'
-import { TOAST_MESSAGES } from '../lib/constants'
+import { buildVotingLink, isMobile } from '../utils/phantomLink'
+import { useMultipleCopyStates } from '../hooks/useCopyToClipboard'
+import { TOAST_MESSAGES, PRIZE_WALLET } from '../lib/constants'
 
 interface VoteModalProps {
   submission: SubmissionSummary | LeaderboardEntry
@@ -12,15 +12,14 @@ interface VoteModalProps {
 
 export function VoteModal({ submission, onClose }: VoteModalProps) {
   const isOnMobile = isMobile()
-  const { copied: addressCopied, copyToClipboard: copyAddress } = useCopyToClipboard()
-  const { copied: memoCopied, copyToClipboard: copyMemo } = useCopyToClipboard()
+  const { copyToClipboard, isCopied } = useMultipleCopyStates()
 
   // Use submission ID as transaction memo
   const submissionId = submission.submission_id || 0
   const phantomLink = buildVotingLink({ submissionId, amount: 1 })
 
-  const handleCopyAddress = () => copyAddress(PRIZE_WALLET, TOAST_MESSAGES.ADDRESS_COPIED)
-  const handleCopyMemo = () => copyMemo(submissionId.toString())
+  const handleCopyAddress = () => copyToClipboard(PRIZE_WALLET, 'address')
+  const handleCopyMemo = () => copyToClipboard(submissionId.toString(), 'memo', TOAST_MESSAGES.MEMO_COPIED)
   const handlePhantomVote = () => window.open(phantomLink, '_blank')
 
   return (
@@ -104,7 +103,7 @@ export function VoteModal({ submission, onClose }: VoteModalProps) {
                   size="sm"
                   className="flex items-center gap-2 flex-shrink-0"
                 >
-                  {addressCopied ? (
+                  {isCopied('address') ? (
                     <>
                       <Check className="h-4 w-4 text-green-600" />
                       Copied!
@@ -134,7 +133,7 @@ export function VoteModal({ submission, onClose }: VoteModalProps) {
                   size="sm"
                   className="flex items-center gap-2 flex-shrink-0"
                 >
-                  {memoCopied ? (
+                  {isCopied('memo') ? (
                     <>
                       <Check className="h-4 w-4 text-green-600" />
                       Copied!
