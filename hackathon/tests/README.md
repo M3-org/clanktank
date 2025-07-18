@@ -110,6 +110,49 @@ This folder contains automated and manual test scripts for the Clank Tank hackat
 - To test v1, update the `DEFAULT_VERSION` variable in each script to `v1`.
 - The API test suite (`test_api_endpoints.py`) tests both v1 and v2 endpoints automatically.
 
+## Shared Test Utilities
+
+### **Test Infrastructure**
+The test suite now uses shared utilities to reduce code duplication and improve maintainability:
+
+- **`test_utils.py`** - Common functions for database operations, test data generation, and utilities
+- **`test_constants.py`** - Centralized constants for API endpoints, test data, and configuration  
+- **`test_image_factory.py`** - Image creation utilities for upload testing
+- **`test_db_helpers.py`** - Database operation helpers and data insertion utilities
+- **`test_assertions.py`** - Reusable assertion patterns for response validation
+- **`conftest.py`** - Shared fixtures and test environment setup
+
+### **Key Shared Functions**
+
+```python
+# From test_utils.py
+from hackathon.tests.test_utils import (
+    unique_name, unique_submission_id, reset_database,
+    create_test_submission_data, cleanup_test_submissions
+)
+
+# From test_image_factory.py  
+from hackathon.tests.test_image_factory import (
+    create_test_image, create_small_test_image, create_large_test_image
+)
+
+# From test_assertions.py
+from hackathon.tests.test_assertions import (
+    assert_successful_response, assert_valid_submission_structure,
+    assert_valid_leaderboard_structure
+)
+```
+
+### **Shared Fixtures**
+Available in all test files via `conftest.py`:
+
+- `client` - FastAPI test client
+- `test_submission_data` - v2 submission data
+- `test_submission_data_v1` - v1 submission data  
+- `test_image` - Test image for uploads
+- `small_test_image` - Small test image
+- `large_test_image` - Large test image
+
 ## Requirements
 - Python 3.8+
 - All dependencies in `requirements.txt` installed
@@ -133,6 +176,52 @@ python -m hackathon.backend.app
 ```
 
 **Note**: Most test scripts work fine with rate limiting enabled, but disable it if you encounter rate limit errors during rapid testing.
+
+## Migration Guide
+
+### **Updating Existing Tests**
+To use the new shared utilities in existing test files:
+
+1. **Replace duplicate functions** with imports from shared utilities
+2. **Use shared fixtures** instead of defining custom ones
+3. **Use shared constants** instead of hardcoded values
+4. **Use shared assertions** for consistent validation
+
+### **Example Migration**
+
+**Before:**
+```python
+# Old duplicated code
+def unique_name(base):
+    return f"{base}-{uuid.uuid4().hex[:8]}"
+
+@pytest.fixture
+def client():
+    from fastapi.testclient import TestClient
+    from hackathon.backend.app import app
+    return TestClient(app)
+
+def test_submission():
+    data = {
+        "project_name": "Test Project",
+        "team_name": "Test Team",
+        # ... more fields
+    }
+    response = client.post("/api/submissions", json=data)
+    assert response.status_code == 201
+```
+
+**After:**
+```python
+# New shared utilities
+from hackathon.tests.test_utils import create_test_submission_data
+from hackathon.tests.test_constants import API_SUBMISSIONS, HTTP_CREATED
+from hackathon.tests.test_assertions import assert_successful_response
+
+def test_submission(client, test_submission_data):
+    response = client.post(API_SUBMISSIONS, json=test_submission_data)
+    assert_successful_response(response, HTTP_CREATED)
+```
 
 ## See Also
 - [../README.md](../README.md) for main project setup and API usage

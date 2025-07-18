@@ -1,8 +1,14 @@
 from unittest.mock import patch
 import pytest
+from fastapi.testclient import TestClient
+
+from .test_utils import reset_database, create_test_submission_data
+from .test_image_factory import create_test_image
+from .test_db_helpers import cleanup_all_test_data
 
 def noop(*a, **kw):
     return None
+
 class NoOpLimiter:
     def limit(self, *a, **kw):
         def decorator(f):
@@ -48,4 +54,63 @@ def pytest_sessionfinish(session, exitstatus):
         limiter_patch.stop()
     discord_patch = getattr(session.config, '_discord_patch', None)
     if discord_patch:
-        discord_patch.stop() 
+        discord_patch.stop()
+
+
+# Shared Fixtures
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_environment():
+    """Setup test environment once per session"""
+    reset_database()
+    yield
+    # Cleanup after all tests
+    cleanup_all_test_data()
+
+
+@pytest.fixture
+def client():
+    """Shared test client fixture"""
+    from fastapi.testclient import TestClient
+    from hackathon.backend.app import app
+    return TestClient(app)
+
+
+@pytest.fixture
+def test_submission_data():
+    """Fixture for v2 test submission data"""
+    return create_test_submission_data(version="v2")
+
+
+@pytest.fixture
+def test_submission_data_v1():
+    """Fixture for v1 test submission data"""
+    return create_test_submission_data(version="v1")
+
+
+@pytest.fixture
+def test_image():
+    """Fixture for test image"""
+    return create_test_image()
+
+
+@pytest.fixture
+def small_test_image():
+    """Fixture for small test image"""
+    from .test_image_factory import create_small_test_image
+    return create_small_test_image()
+
+
+@pytest.fixture
+def large_test_image():
+    """Fixture for large test image"""
+    from .test_image_factory import create_large_test_image
+    return create_large_test_image()
+
+
+@pytest.fixture(autouse=True)
+def cleanup_test_data():
+    """Auto-cleanup fixture to clean up test data after each test"""
+    yield
+    # This runs after each test
+    cleanup_all_test_data() 

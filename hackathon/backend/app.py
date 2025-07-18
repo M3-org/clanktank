@@ -7,12 +7,13 @@ Serves data from hackathon.db via REST API endpoints.
 import os
 import json
 import argparse
+import sqlite3
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import logging
 # import random  # CLEANUP: Unused import - commented out for testing
-# import secrets  # CLEANUP: Used only minimally, commented out for testing
+import secrets  # Used for submission ID generation
 # import hashlib  # CLEANUP: Unused import - commented out for testing
 # import base64   # CLEANUP: Unused import - commented out for testing
 import urllib.parse  # Needed for Discord OAuth URL generation
@@ -309,7 +310,7 @@ price_service = BirdeyePriceService()
 
 # Pydantic models
 class SubmissionSummary(BaseModel):
-    submission_id: str
+    submission_id: int
     project_name: str
     category: str
     status: str
@@ -328,7 +329,7 @@ class SubmissionSummary(BaseModel):
 
 
 class SubmissionDetail(BaseModel):
-    submission_id: str
+    submission_id: int
     project_name: str
     category: str
     description: str
@@ -372,7 +373,7 @@ SubmissionCreateV2 = create_model("SubmissionCreateV2", **submission_fields_v2)
 
 class LeaderboardEntry(BaseModel):
     rank: int
-    submission_id: str
+    submission_id: int
     project_name: str
     category: str
     final_score: float
@@ -616,7 +617,7 @@ class FeedbackItem(BaseModel):
 
 
 class FeedbackSummary(BaseModel):
-    submission_id: str
+    submission_id: int
     total_votes: int
     feedback: List[FeedbackItem]
 
@@ -638,7 +639,7 @@ class DiscordCallbackRequest(BaseModel):
     code: str
 
 class LikeDislikeRequest(BaseModel):
-    submission_id: str
+    submission_id: int
     action: str  # "like" or "dislike" or "remove"
 
 class LikeDislikeResponse(BaseModel):
@@ -750,50 +751,27 @@ def validate_submission_github_url(data_dict: dict, action: str = "submission"):
         )
 
 
-def sanitize_submission_id(project_name: str) -> str:
+def get_db_connection():
+    """Get database connection."""
+    return sqlite3.connect(HACKATHON_DB_PATH)
+
+
+def get_next_submission_id(conn: sqlite3.Connection, version: str = "v2") -> int:
     """
-    Safely generate submission ID from project name to prevent path traversal attacks.
-    Removes dangerous characters and ensures filename safety.
+    Get the next sequential submission ID for the given version.
+    Uses auto-increment behavior by finding the max ID and adding 1.
     """
-    if not project_name:
-        project_name = "unnamed-project"
+    table_name = f"hackathon_submissions_{version}"
+    cursor = conn.cursor()
     
-    # Remove path traversal characters and dangerous symbols
-    dangerous_chars = ['/', '\\', '..', '.', '~', '$', '&', '|', ';', '`', '!', '*', '?', '[', ']', '{', '}', '<', '>', '"', "'", '\x00']
-    
-    # Start with basic cleanup
-    clean_name = project_name.lower().strip()
-    
-    # Log potential path traversal attempts
-    if any(char in project_name for char in ['/', '\\', '..']):
-        from hackathon.backend.simple_audit import log_security_event
-        log_security_event("path_traversal_attempt", f"input:{project_name}")
-    
-    # Remove dangerous characters
-    for char in dangerous_chars:
-        clean_name = clean_name.replace(char, '')
-    
-    # Replace spaces and remaining special chars with dashes
-    clean_name = re.sub(r'[^a-z0-9\-_]', '-', clean_name)
-    
-    # Remove consecutive dashes and trim
-    clean_name = re.sub(r'-+', '-', clean_name).strip('-')
-    
-    # Ensure minimum length and add randomness for uniqueness
-    if len(clean_name) < 3:
-        clean_name = f"project-{secrets.randbelow(10000):04d}"
-    
-    # Limit length and add entropy suffix
-    clean_name = clean_name[:40]
-    entropy = secrets.randbelow(10000)
-    final_id = f"{clean_name}-{entropy:04d}"
-    
-    # Final validation - must be safe filename
-    if not re.match(r'^[a-z0-9\-_]+$', final_id):
-        # Fallback to completely safe ID
-        final_id = f"safe-project-{secrets.randbelow(100000):05d}"
-    
-    return final_id
+    try:
+        cursor.execute(f"SELECT MAX(submission_id) FROM {table_name}")
+        result = cursor.fetchone()
+        max_id = result[0] if result[0] is not None else 0
+        return max_id + 1
+    except sqlite3.OperationalError:
+        # Table doesn't exist or is empty
+        return 1
 
 
 # API Endpoints
@@ -879,7 +857,7 @@ async def discord_logout():
 
 
 @app.post("/api/submissions/{submission_id}/like-dislike", tags=["latest"], response_model=LikeDislikeResponse)
-async def toggle_like_dislike(submission_id: str, like_request: LikeDislikeRequest, request: Request):
+async def toggle_like_dislike(submission_id: int, like_request: LikeDislikeRequest, request: Request):
     """Toggle like/dislike for a submission by authenticated Discord user."""
     # Get authenticated Discord user
     discord_user = await validate_discord_token(request)
@@ -950,7 +928,7 @@ async def toggle_like_dislike(submission_id: str, like_request: LikeDislikeReque
 
 
 @app.get("/api/submissions/{submission_id}/like-dislike", tags=["latest"], response_model=LikeDislikeResponse)
-async def get_like_dislike_counts(submission_id: str, request: Request):
+async def get_like_dislike_counts(submission_id: int, request: Request):
     """Get like/dislike counts for a submission."""
     # Get authenticated Discord user (optional for viewing counts)
     discord_user = await validate_discord_token(request)
@@ -1005,7 +983,7 @@ async def list_submissions_latest(
     "/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail
 )
 async def get_submission_latest(
-    submission_id: str, request: Request, include: str = "scores,research,community"
+    submission_id: int, request: Request, include: str = "scores,research,community"
 ):
     return await get_submission(
         submission_id=submission_id, version="v2", include=include, request=request
@@ -1067,7 +1045,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             data_dict["project_image"] = None
 
     # Generate submission ID
-    submission_id = sanitize_submission_id(submission.project_name)
+    submission_id = get_next_submission_id(conn, version="v2")
 
     # Basic data preparation
     now = datetime.now().isoformat()
@@ -1126,7 +1104,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
 @app.put("/api/submissions/{submission_id}", tags=["latest"], response_model=dict)
 @conditional_rate_limit("5/minute")
 async def edit_submission_latest(
-    submission_id: str, submission: SubmissionCreateV2, request: Request
+    submission_id: int, submission: SubmissionCreateV2, request: Request
 ):
     """
     Edit an existing submission. Requires Discord authentication and user must be the original creator.
@@ -1239,7 +1217,7 @@ async def edit_submission_latest(
 @app.post("/api/upload-image", tags=["latest"])
 async def upload_image(
     request: Request,
-    submission_id: str = Form(...),
+    submission_id: int = Form(...),
     file: UploadFile = FastAPIFile(...),
 ):
     """Upload project image and return URL."""
@@ -1930,7 +1908,7 @@ async def get_prize_pool():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def process_ai16z_transaction(tx_sig: str, submission_id: str, sender: str, amount: float):
+def process_ai16z_transaction(tx_sig: str, submission_id: int, sender: str, amount: float):
     """Process ai16z token transaction for voting and prize pool."""
     try:
         # Calculate vote weight (inline to avoid scope issues)
@@ -2087,6 +2065,91 @@ async def test_webhook():
             "error": str(e),
             "status": "Test webhook failed"
         }
+
+
+# Community voting endpoints (must be before versioned routes)
+@app.get("/api/community-votes/stats", tags=["voting"])
+async def get_vote_stats():
+    """Get overall community voting statistics."""
+    try:
+        from hackathon.backend.collect_votes import VoteProcessor
+        processor = VoteProcessor(HACKATHON_DB_PATH)
+        stats = processor.get_vote_stats()
+        return stats
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        logging.error(f"Error getting vote stats: {e}\n{error_details}")
+        raise HTTPException(status_code=500, detail=f"Failed to get vote statistics: {str(e)}")
+
+
+@app.get("/api/community-votes/scores", tags=["voting"])
+async def get_community_scores():
+    """Get community scores for all submissions."""
+    try:
+        from hackathon.backend.collect_votes import VoteProcessor
+        processor = VoteProcessor(HACKATHON_DB_PATH)
+        scores = processor.get_community_scores()
+        return scores
+    except Exception as e:
+        logging.error(f"Error getting community scores: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get community scores")
+
+
+@app.get("/api/submissions/{submission_id}/votes", tags=["voting"])
+async def get_submission_votes(submission_id: int):
+    """Get voting details for a specific submission."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT 
+                transaction_signature,
+                sender_address,
+                amount,
+                timestamp,
+                processed_at
+            FROM community_votes 
+            WHERE submission_id = ?
+            ORDER BY timestamp DESC
+            """,
+            (submission_id,)
+        )
+        
+        votes = []
+        for row in cursor.fetchall():
+            sig, sender, amount, timestamp, processed_at = row
+            votes.append({
+                "transaction_signature": sig,
+                "sender_address": sender,
+                "amount": amount,
+                "timestamp": timestamp,
+                "processed_at": processed_at
+            })
+        
+        conn.close()
+        
+        # Calculate summary stats
+        if votes:
+            total_amount = sum(vote["amount"] for vote in votes)
+            unique_voters = len(set(vote["sender_address"] for vote in votes))
+            avg_amount = total_amount / len(votes)
+        else:
+            total_amount = unique_voters = avg_amount = 0
+        
+        return {
+            "submission_id": submission_id,
+            "vote_count": len(votes),
+            "unique_voters": unique_voters,
+            "total_amount": total_amount,
+            "avg_amount": avg_amount,
+            "votes": votes
+        }
+        
+    except Exception as e:
+        logging.error(f"Error getting votes for {submission_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get submission votes")
 
 
 @app.get(
@@ -2281,7 +2344,7 @@ async def list_submissions(
 )
 async def get_submission_versioned(
     version: str,
-    submission_id: str,
+    submission_id: int,
     request: Request,
     include: str = "scores,research,community",
 ):
@@ -2419,7 +2482,7 @@ async def get_stats(version: str):
 @app.get(
     "/api/feedback/{submission_id}", tags=["latest"], response_model=FeedbackSummary
 )
-async def get_feedback_latest(submission_id: str):
+async def get_feedback_latest(submission_id: int):
     return await get_feedback_versioned(version="v2", submission_id=submission_id)
 
 
@@ -2428,7 +2491,7 @@ async def get_feedback_latest(submission_id: str):
     tags=["versioned"],
     response_model=FeedbackSummary,
 )
-async def get_feedback_versioned(version: str, submission_id: str):
+async def get_feedback_versioned(version: str, submission_id: int):
     # Only v2 supported for now
     if version not in ("v1", "v2"):
         raise HTTPException(
@@ -2488,7 +2551,7 @@ async def get_feedback_versioned(version: str, submission_id: str):
 
 # Hide the old feedback endpoint from docs
 @app.get("/api/submission/{submission_id}/feedback", include_in_schema=False)
-async def get_feedback_legacy(submission_id: str):
+async def get_feedback_legacy(submission_id: int):
     return await get_feedback_latest(submission_id=submission_id)
 
 
@@ -2647,6 +2710,7 @@ async def deprecated_post_v2_submissions(request: Request, *args, **kwargs):
     )
 
 
+
 def main():
     """Main function to run the API server or generate static data."""
     parser = argparse.ArgumentParser(description="Hackathon Dashboard API")
@@ -2707,7 +2771,7 @@ def main():
 
 
 async def get_submission(
-    submission_id: str,
+    submission_id: int,
     version: str = "v1",
     include: str = "scores,research,community",
     request: Request = None,

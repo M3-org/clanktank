@@ -27,7 +27,7 @@ def create_hackathon_database(db_path):
 
     static_fields_sql = """
         id INTEGER PRIMARY KEY,
-        submission_id TEXT UNIQUE,
+        submission_id INTEGER UNIQUE,
         status TEXT DEFAULT 'submitted',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -67,7 +67,7 @@ def create_hackathon_database(db_path):
         """
         CREATE TABLE IF NOT EXISTS hackathon_scores (
             id INTEGER PRIMARY KEY,
-            submission_id TEXT,
+            submission_id INTEGER,
             judge_name TEXT,
             round INTEGER,
             innovation REAL,
@@ -79,7 +79,7 @@ def create_hackathon_database(db_path):
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             community_bonus REAL,
             final_verdict TEXT,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
         )
     """
     )
@@ -89,13 +89,13 @@ def create_hackathon_database(db_path):
         """
         CREATE TABLE IF NOT EXISTS community_feedback (
             id INTEGER PRIMARY KEY,
-            submission_id TEXT,
+            submission_id INTEGER,
             discord_user_id TEXT,
             discord_user_nickname TEXT,
             reaction_type TEXT,
             score_adjustment REAL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v1(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
         )
     """
     )
@@ -105,7 +105,7 @@ def create_hackathon_database(db_path):
         """
         CREATE TABLE IF NOT EXISTS hackathon_research (
             id INTEGER PRIMARY KEY,
-            submission_id TEXT,
+            submission_id INTEGER,
             github_analysis TEXT,
             market_research TEXT,
             technical_assessment TEXT,
@@ -179,6 +179,23 @@ def create_hackathon_database(db_path):
     """
     )
 
+    # Community votes table for transaction-based voting
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS community_votes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            submission_id TEXT NOT NULL,
+            transaction_signature TEXT UNIQUE NOT NULL,
+            sender_address TEXT NOT NULL,
+            memo TEXT NOT NULL,
+            amount INTEGER NOT NULL,
+            timestamp INTEGER NOT NULL,
+            processed_at INTEGER DEFAULT (strftime('%s', 'now')),
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
+        )
+    """
+    )
+
     # Create indexes for better performance
     for version in SUBMISSION_VERSIONS:
         table_name = f"hackathon_submissions_{version}"
@@ -219,6 +236,15 @@ def create_hackathon_database(db_path):
     )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_likes_dislikes_discord_id ON likes_dislikes(discord_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_community_votes_submission ON community_votes(submission_id)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_community_votes_signature ON community_votes(transaction_signature)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_community_votes_timestamp ON community_votes(timestamp)"
     )
 
     conn.commit()
