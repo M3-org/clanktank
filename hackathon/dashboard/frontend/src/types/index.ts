@@ -1,5 +1,5 @@
 export interface SubmissionSummary {
-  submission_id: string
+  submission_id: number
   project_name: string
   team_name: string
   category: string
@@ -96,7 +96,7 @@ export interface Research {
 
 export interface LeaderboardEntry {
   rank: number
-  submission_id: string
+  submission_id: number
   project_name: string
   category: string
   final_score: number
@@ -120,7 +120,7 @@ export interface Stats {
 }
 
 export interface CommunityScore {
-  submission_id: string
+  submission_id: number
   community_score: number
   unique_voters: number
   last_vote_time: number

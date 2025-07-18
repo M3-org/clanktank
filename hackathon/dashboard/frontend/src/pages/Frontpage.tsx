@@ -3,7 +3,7 @@ import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3, Plus } fr
 import { CountdownTimer } from '../components/CountdownTimer';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { PrizePoolCard } from '../components/PrizePoolCard';
+import { PrizePool } from '../components/PrizePool';
 
 const howItWorks = [
   {
@@ -376,9 +376,9 @@ export default function Frontpage() {
       </section>
 
       {/* Prize Pool Section */}
-      <section className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 animate-fade-in">
+      <section className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 animate-fade-in">
         <div className="max-w-6xl mx-auto py-16 px-4">
-          <PrizePoolCard goal={10} />
+          <PrizePool goal={10} variant="card" />
         </div>
       </section>
 

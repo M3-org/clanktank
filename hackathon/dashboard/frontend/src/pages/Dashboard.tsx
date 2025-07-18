@@ -7,7 +7,7 @@ import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { DiscordAvatar } from '../components/DiscordAvatar'
 import { VoteModal } from '../components/VoteModal'
-import { PrizePoolCard } from '../components/PrizePoolCard'
+import { PrizePool } from '../components/PrizePool'
 import { 
   RefreshCw, 
   Trophy, 
@@ -109,9 +109,7 @@ export default function Dashboard() {
 
 
       {/* Prize Pool */}
-      <div className="mb-8">
-        <PrizePoolCard goal={10} />
-      </div>
+      <PrizePool goal={10} variant="banner" />
 
       {/* Filters */}
       <Card className="mb-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">

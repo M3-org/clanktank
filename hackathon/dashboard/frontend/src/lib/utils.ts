@@ -50,3 +50,6 @@ export function formatDate(dateString: string) {
     minute: '2-digit'
   })
 }
+
+export const pretty = (n: number) =>
+  n.toLocaleString(undefined, { maximumFractionDigits: 2 })
