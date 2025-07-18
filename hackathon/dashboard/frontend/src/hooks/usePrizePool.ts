@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { toast } from 'react-hot-toast'
 import { hackathonApi } from '../lib/api'
+import type { PrizePoolContribution } from '../types'
 
 interface TokenHolding {
   mint: string
@@ -11,9 +12,11 @@ interface TokenHolding {
   logo?: string
 }
 
+
 export function usePrizePool() {
   const [tokenHoldings, setTokenHoldings] = useState<TokenHolding[]>([])
   const [totalValue, setTotalValue] = useState(0)
+  const [recentContributions, setRecentContributions] = useState<PrizePoolContribution[]>([])
   const [loading, setLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
@@ -69,6 +72,11 @@ export function usePrizePool() {
       
       setTokenHoldings(sortedTokens)
       setTotalValue(totalSol) // Use SOL from prize pool
+      
+      // Process recent contributions from backend
+      const contributions = prizePoolData.recent_contributions || []
+      setRecentContributions(contributions)
+      
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Error fetching prize pool data:', error)
@@ -76,6 +84,7 @@ export function usePrizePool() {
       // Set safe defaults on error
       setTokenHoldings([])
       setTotalValue(0)
+      setRecentContributions([])
     } finally {
       setLoading(false)
     }
@@ -94,6 +103,7 @@ export function usePrizePool() {
     tokenHoldings,
     totalValue,
     totalTokenTypes,
+    recentContributions,
     loading,
     lastUpdated,
     refetch: fetchTokenHoldings
