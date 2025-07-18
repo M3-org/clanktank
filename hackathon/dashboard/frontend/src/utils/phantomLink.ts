@@ -1,6 +1,7 @@
 // Phantom wallet deep-link utilities for Solana transactions
 
-export const PRIZE_WALLET = "2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf"
+import { PRIZE_WALLET } from '../lib/constants'
+
 export const AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
 
 export interface VotingParams {
