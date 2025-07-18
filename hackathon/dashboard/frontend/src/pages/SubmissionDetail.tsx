@@ -90,7 +90,7 @@ export default function SubmissionDetail() {
     try {
       // Get Discord data from submissions list API
       const submissions = await hackathonApi.getSubmissions()
-      const submissionWithDiscord = submissions.find(s => s.submission_id === id)
+      const submissionWithDiscord = submissions.find(s => s.submission_id === parseInt(id || '0'))
       if (submissionWithDiscord) {
         setDiscordData({
           discord_id: submissionWithDiscord.discord_id,
@@ -593,7 +593,7 @@ export default function SubmissionDetail() {
               </h3>
             </CardHeader>
             <CardContent>
-              <LikeDislike submissionId={submission.submission_id} />
+              <LikeDislike submissionId={submission.submission_id.toString()} />
             </CardContent>
           </Card>
         </div>

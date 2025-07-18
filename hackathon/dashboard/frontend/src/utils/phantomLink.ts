@@ -4,7 +4,7 @@ export const PRIZE_WALLET = "2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf"
 export const AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
 
 export interface VotingParams {
-  submissionId: string
+  submissionId: number
   amount: number // in ai16z tokens (not lamports)
 }
 
@@ -18,13 +18,11 @@ export interface SponsorParams {
  * Build Phantom deep-link for voting
  */
 export const buildVotingLink = ({ submissionId, amount }: VotingParams): string => {
-  const memo = submissionId.slice(0, 80) // Ensure memo stays under 80 chars
-  
   return `https://phantom.app/ul/v1/transaction` +
     `?recipient=${PRIZE_WALLET}` +
     `&amount=${amount}` +
     `&spl-token=${AI16Z_MINT}` +
-    `&reference=${encodeURIComponent(memo)}` +
+    `&memo=${submissionId}` +
     `&label=${encodeURIComponent('Clank Tank Vote')}`
 }
 
@@ -55,8 +53,7 @@ export const buildSponsorLink = ({ amount, memo = '', token = 'SOL' }: SponsorPa
  * Generate copy-paste instructions
  */
 export const generateCopyInstructions = ({ submissionId, amount }: VotingParams): string => {
-  const memo = submissionId.slice(0, 80)
-  return `Send ${amount} ai16z to ${PRIZE_WALLET} with memo: ${memo}`
+  return `Send ${amount} ai16z to ${PRIZE_WALLET} with memo: ${submissionId}`
 }
 
 /**

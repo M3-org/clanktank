@@ -1327,7 +1327,7 @@ function CommunityVotingFromLeaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [, setCommunityScores] = useState<CommunityScore[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedProject, setSelectedProject] = useState<string | null>(null)
+  const [selectedProject, setSelectedProject] = useState<number | null>(null)
   useState(true) // Always show for demo - showVoting unused
 
   useEffect(() => {
@@ -1416,7 +1416,7 @@ function CommunityVotingFromLeaderboard() {
           {/* Voting Interface */}
           {selectedProject ? (
             <WalletVoting
-              submissionId={selectedProject}
+              submissionId={selectedProject.toString()}
               projectName={entries.find(e => e.submission_id === selectedProject)?.project_name || 'Unknown Project'}
             />
           ) : (
