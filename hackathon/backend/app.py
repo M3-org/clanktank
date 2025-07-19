@@ -1494,6 +1494,13 @@ async def get_config():
         info["can_submit"] = now < (deadline + timedelta(seconds=grace_period))
     else:
         info["can_submit"] = True
+    
+    # Add wallet and token configuration
+    prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+    if not prize_wallet:
+        raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
+    info["prize_wallet_address"] = prize_wallet
+    info["ai16z_mint"] = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
         
     return info
 
@@ -1673,7 +1680,9 @@ async def get_prize_pool():
     """Get crypto-native prize pool data using Helius DAS API."""
     try:
         helius_api_key = os.getenv('HELIUS_API_KEY')
-        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS', '2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf')
+        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+        if not prize_wallet:
+            raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
         target_sol = float(os.getenv('PRIZE_POOL_TARGET_SOL', 10))
         
         if not helius_api_key:
