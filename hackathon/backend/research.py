@@ -15,14 +15,14 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 import subprocess
 
 # Import GitHub analyzer
 from hackathon.backend.github_analyzer import GitHubAnalyzer
-
-# Load environment variables
-load_dotenv()
 
 # Set up logging
 logging.basicConfig(

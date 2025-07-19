@@ -15,7 +15,10 @@ import re
 import time
 from datetime import datetime
 from typing import Dict, Any, List
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 
 # Import versioned schema helpers
 from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
@@ -26,9 +29,6 @@ from hackathon.prompts.judge_personas import (
     JUDGE_WEIGHTS,
     get_judge_persona,
 )
-
-# Load environment variables
-load_dotenv()
 
 # Set up logging
 logging.basicConfig(

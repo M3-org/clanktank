@@ -1,6 +1,11 @@
-// Prize Pool Constants
-export const PRIZE_WALLET = "2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf"
-export const AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
+// Prize Pool Constants - From environment variables
+export const PRIZE_WALLET = import.meta.env.VITE_PRIZE_WALLET_ADDRESS
+export const AI16Z_MINT = import.meta.env.VITE_AI16Z_MINT || "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
+
+// Validation
+if (!PRIZE_WALLET) {
+  throw new Error("VITE_PRIZE_WALLET_ADDRESS environment variable is required")
+}
 
 // Default Settings
 export const DEFAULT_GOAL_SOL = 10
@@ -11,7 +16,8 @@ export const API_ENDPOINTS = {
   PRIZE_POOL: '/api/prize-pool',
   SUBMISSIONS: '/api/submissions',
   LEADERBOARD: '/api/leaderboard',
-  STATS: '/api/stats'
+  STATS: '/api/stats',
+  CONFIG: '/api/config'
 } as const
 
 // Responsive Breakpoints

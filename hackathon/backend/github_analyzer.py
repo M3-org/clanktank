@@ -10,13 +10,14 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
-from dotenv import load_dotenv
 import re
 import math
 from collections import defaultdict
 
-# Load environment variables
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 
 # Set up logging
 logging.basicConfig(
