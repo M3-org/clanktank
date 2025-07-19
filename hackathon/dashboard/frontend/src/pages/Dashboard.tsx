@@ -20,7 +20,7 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
-import { StatusBadge } from '../components/StatusBadge'
+import { StatusBadge } from '../components/Badge'
 
 
 export default function Dashboard() {

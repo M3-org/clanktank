@@ -4,6 +4,8 @@ import { Button } from './Button'
 import { hackathonApi } from '../lib/api'
 import { LikeDislikeResponse } from '../types'
 import { cn } from '../lib/utils'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 interface LikeDislikeProps {
   submissionId: string
@@ -13,6 +15,10 @@ interface LikeDislikeProps {
 export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
   const [data, setData] = useState<LikeDislikeResponse>({ likes: 0, dislikes: 0, user_action: null })
   const [loading, setLoading] = useState(false)
+  const { authState } = useAuth()
+  
+  // Check if user is authenticated
+  const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
 
   useEffect(() => {
     loadCounts()
@@ -29,6 +35,12 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
 
   const handleAction = async (action: 'like' | 'dislike') => {
     if (loading) return
+    
+    // Check authentication first
+    if (!isAuthenticated) {
+      toast.error('Please sign in to vote on submissions')
+      return
+    }
     
     setLoading(true)
     try {

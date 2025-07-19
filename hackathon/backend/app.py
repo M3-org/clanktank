@@ -2251,11 +2251,15 @@ async def list_submissions(
                     for score_row in scores_result.fetchall():
                         score_dict = dict(score_row._mapping)
                         if "notes" in score_dict:
-                            score_dict["notes"] = (
-                                json.loads(score_dict["notes"])
-                                if score_dict["notes"]
-                                else {}
-                            )
+                            try:
+                                score_dict["notes"] = (
+                                    json.loads(score_dict["notes"])
+                                    if score_dict["notes"]
+                                    else {}
+                                )
+                            except (json.JSONDecodeError, TypeError):
+                                # Handle plain text notes from database seeder
+                                score_dict["notes"] = {"raw": score_dict["notes"]} if score_dict["notes"] else {}
                         scores.append(score_dict)
                     submission_dict["scores"] = scores
                 else:
@@ -2824,11 +2828,15 @@ async def get_submission(
                 for score_row in scores_result.fetchall():
                     score_dict = dict(score_row._mapping)
                     if "notes" in score_dict:
-                        score_dict["notes"] = (
-                            json.loads(score_dict["notes"])
-                            if score_dict["notes"]
-                            else {}
-                        )
+                        try:
+                            score_dict["notes"] = (
+                                json.loads(score_dict["notes"])
+                                if score_dict["notes"]
+                                else {}
+                            )
+                        except (json.JSONDecodeError, TypeError):
+                            # Handle plain text notes from database seeder
+                            score_dict["notes"] = {"raw": score_dict["notes"]} if score_dict["notes"] else {}
                     scores.append(score_dict)
                 submission_dict["scores"] = scores
             else:
