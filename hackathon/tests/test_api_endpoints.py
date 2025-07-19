@@ -303,4 +303,44 @@ def test_get_feedback_legacy(client):
 
 def test_feedback_not_found(client):
     resp = client.get("/api/feedback/doesnotexist123")
-    assert resp.status_code == 200  # Returns empty feedback, not 404 
+    assert resp.status_code == 200  # Returns empty feedback, not 404
+
+def test_prize_pool_endpoint(client):
+    """Test the crypto-native prize pool endpoint returns proper structure"""
+    resp = client.get("/api/prize-pool")
+    assert resp.status_code == 200
+    data = resp.json()
+    
+    # Check required fields (crypto-native structure)
+    assert "total_sol" in data
+    assert "target_sol" in data  
+    assert "progress_percentage" in data
+    assert "token_breakdown" in data
+    assert "recent_contributions" in data
+    
+    # Check data types
+    assert isinstance(data["total_sol"], (int, float))
+    assert isinstance(data["target_sol"], (int, float))
+    assert isinstance(data["progress_percentage"], (int, float))
+    assert isinstance(data["token_breakdown"], dict)
+    assert isinstance(data["recent_contributions"], list)
+    
+    # Check token breakdown structure (Helius DAS format)
+    for symbol, token_data in data["token_breakdown"].items():
+        assert "mint" in token_data
+        assert "symbol" in token_data
+        assert "amount" in token_data
+        assert "decimals" in token_data
+        assert isinstance(token_data["amount"], (int, float))
+        assert isinstance(token_data["decimals"], int)
+        # logo is optional
+        if "logo" in token_data:
+            assert isinstance(token_data["logo"], (str, type(None)))
+    
+    # Check recent contributions structure
+    for contrib in data["recent_contributions"]:
+        assert "wallet" in contrib
+        assert "token" in contrib
+        assert "amount" in contrib
+        assert "source" in contrib
+        assert "timestamp" in contrib 

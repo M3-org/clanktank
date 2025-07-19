@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats } from '../types'
+import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats, CommunityScore, PrizePoolData } from '../types'
 import { SubmissionInputs } from '../types/submission'
 
 const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api'
@@ -146,6 +146,31 @@ export const hackathonApi = {
   // Edit submission
   editSubmission: async (id: string, data: any) => {
     const response = await api.put(`/submissions/${id}`, data);
+    return response.data;
+  },
+
+  // Token voting methods
+  getCommunityScores: async () => {
+    const response = await api.get<CommunityScore[]>('/community-scores');
+    return response.data;
+  },
+
+  getPrizePool: async () => {
+    const response = await api.get<PrizePoolData>('/prize-pool');
+    return response.data;
+  },
+
+  // Like/Dislike functionality
+  toggleLikeDislike: async (submissionId: string, action: 'like' | 'dislike' | 'remove') => {
+    const response = await api.post(`/submissions/${submissionId}/like-dislike`, {
+      submission_id: submissionId,
+      action
+    });
+    return response.data;
+  },
+
+  getLikeDislikeCounts: async (submissionId: string) => {
+    const response = await api.get(`/submissions/${submissionId}/like-dislike`);
     return response.data;
   },
 }

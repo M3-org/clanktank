@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
-import { formatDate } from '../lib/utils'
 import { Card, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
+import { DiscordAvatar } from '../components/DiscordAvatar'
+import { VoteModal } from '../components/VoteModal'
+import { PrizePool } from '../components/PrizePool'
 import { 
-  ArrowUpRight, 
   RefreshCw, 
   Trophy, 
   Code, 
   Users, 
-  Clock,
   Filter,
   ChevronDown,
   LayoutGrid,
@@ -20,18 +20,19 @@ import {
   ArrowUp,
   ArrowDown
 } from 'lucide-react'
-import { StatusBadge } from '../components/StatusBadge'
+import { StatusBadge } from '../components/Badge'
+
 
 export default function Dashboard() {
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([])
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [categoryFilter, setCategoryFilter] = useState<string>('')
-  // const [sortBy, setSortBy] = useState<'created' | 'score'>('created')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at'>('created_at')
+  const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at' | 'discord_username'>('avg_score')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionSummary | null>(null)
 
   useEffect(() => {
     loadData()
@@ -70,6 +71,12 @@ export default function Dashboard() {
     let aVal: any = a[sortField]
     let bVal: any = b[sortField]
     
+    // Handle special cases for submitter field
+    if (sortField === 'discord_username') {
+      aVal = a.discord_username || a.discord_handle || ''
+      bVal = b.discord_username || b.discord_handle || ''
+    }
+    
     // Handle null/undefined values
     if (aVal === null || aVal === undefined) aVal = ''
     if (bVal === null || bVal === undefined) bVal = ''
@@ -99,95 +106,10 @@ export default function Dashboard() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Hackathon Dashboard</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-300">Monitor and manage hackathon submissions</p>
-      </div>
 
-      {/* Stats */}
-      {stats && (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Code className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                      Total Submissions
-                    </dt>
-                    <dd className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stats.total_submissions || 0}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Trophy className="h-6 w-6 text-yellow-500 dark:text-yellow-300" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                      Published
-                    </dt>
-                    <dd className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stats.by_status?.published || 0}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                      Scored
-                    </dt>
-                    <dd className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stats.by_status?.scored || 0}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                      In Progress
-                    </dt>
-                    <dd className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {(stats.by_status?.submitted || 0) + (stats.by_status?.researched || 0)}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Prize Pool */}
+      <PrizePool goal={10} variant="banner" />
 
       {/* Filters */}
       <Card className="mb-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -233,14 +155,12 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
-              <Button
-                onClick={loadData}
-                variant="secondary"
-                size="sm"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {submissions.length} Total
+                </span>
+              </div>
               
               <div className="flex rounded-md shadow-sm" role="group">
                 <Button
@@ -272,8 +192,13 @@ export default function Dashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">
-                    Submitter
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('discord_username')}>
+                    <div className="flex items-center gap-1">
+                      Submitter
+                      {sortField === 'discord_username' && (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      )}
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('project_name')}>
                     <div className="flex items-center gap-1">
@@ -307,16 +232,8 @@ export default function Dashboard() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('created_at')}>
-                    <div className="flex items-center gap-1">
-                      Created
-                      {sortField === 'created_at' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
-                      )}
-                    </div>
-                  </th>
                   <th className="relative px-6 py-3">
-                    <span className="sr-only">View</span>
+                    <span className="sr-only">Vote</span>
                   </th>
                 </tr>
               </thead>
@@ -325,17 +242,13 @@ export default function Dashboard() {
                   <tr key={submission.submission_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {submission.discord_avatar && submission.discord_id ? (
-                          <img
-                            src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                            alt="Discord avatar"
-                            className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                          />
-                        ) : (
-                          <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-gray-400" />
-                          </span>
-                        )}
+                        <DiscordAvatar
+                          discord_id={submission.discord_id}
+                          discord_avatar={submission.discord_avatar}
+                          discord_handle={submission.discord_handle}
+                          size="md"
+                          className="border border-gray-300 dark:border-gray-700"
+                        />
                         <span className="text-sm text-gray-700 dark:text-gray-200">
                           {submission.discord_username || submission.discord_handle || '—'}
                         </span>
@@ -343,9 +256,12 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <Link
+                          to={`/submission/${submission.submission_id}`}
+                          className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200"
+                        >
                           {submission.project_name}
-                        </div>
+                        </Link>
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {submission.team_name}
                         </div>
@@ -376,25 +292,19 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {submission.avg_score ? (
-                        <div>
-                          <div className="font-semibold text-gray-900 dark:text-white">{submission.avg_score.toFixed(2)}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{submission.judge_count} judges</div>
-                        </div>
+                        <div className="font-semibold text-gray-900 dark:text-white">{submission.avg_score.toFixed(2)}</div>
                       ) : (
                         <span className="text-gray-400 dark:text-gray-500">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {formatDate(submission.created_at)}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link
-                        to={`/submission/${submission.submission_id}`}
-                        className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 inline-flex items-center gap-1 font-medium"
+                      <Button
+                        onClick={() => setSelectedSubmission(submission)}
+                        size="sm"
+                        className="bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white"
                       >
-                        View
-                        <ArrowUpRight className="h-3 w-3" />
-                      </Link>
+                        Vote
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -487,20 +397,19 @@ export default function Dashboard() {
               </div>
               <CardContent className="p-4 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-1 min-h-[2.5em]">
-                  {submission.discord_avatar && submission.discord_id ? (
-                    <img
-                      src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                      alt="Discord avatar"
-                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                    />
-                  ) : (
-                    <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-gray-400" />
-                    </span>
-                  )}
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 truncate">
+                  <DiscordAvatar
+                    discord_id={submission.discord_id}
+                    discord_avatar={submission.discord_avatar}
+                    discord_handle={submission.discord_handle}
+                    size="md"
+                    className="border border-gray-300 dark:border-gray-700"
+                  />
+                  <Link
+                    to={`/submission/${submission.submission_id}`}
+                    className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 line-clamp-2 truncate"
+                  >
                     {submission.project_name}
-                  </h3>
+                  </Link>
                   <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.discord_username || submission.discord_handle || '—'}</span>
                 </div>
                 {submission.description && (
@@ -512,6 +421,14 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Vote Modal */}
+      {selectedSubmission && (
+        <VoteModal
+          submission={selectedSubmission}
+          onClose={() => setSelectedSubmission(null)}
+        />
       )}
     </div>
   )

@@ -1,8 +1,18 @@
-import { cn } from '../lib/utils'
+import { cn, getStatusColor, getCategoryColor } from '../lib/utils'
 
 interface BadgeProps {
   children: React.ReactNode
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
+  className?: string
+}
+
+interface StatusBadgeProps {
+  status?: string
+  className?: string
+}
+
+interface CategoryBadgeProps {
+  category?: string
   className?: string
 }
 
@@ -25,6 +35,37 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
       )}
     >
       {children}
+    </span>
+  )
+}
+
+// Specialized badge components using the utility functions
+export function StatusBadge({ status, className }: StatusBadgeProps) {
+  const normalizedStatus = (status || 'unknown').toLowerCase()
+  return (
+    <span
+      className={cn(
+        'ml-2 px-2 py-0.5 rounded text-xs font-semibold border border-opacity-30',
+        getStatusColor(normalizedStatus),
+        className
+      )}
+    >
+      {normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1)}
+    </span>
+  )
+}
+
+export function CategoryBadge({ category, className }: CategoryBadgeProps) {
+  const displayCategory = category || 'Unknown'
+  return (
+    <span
+      className={cn(
+        'ml-2 px-2 py-0.5 rounded text-xs font-semibold border border-opacity-30',
+        getCategoryColor(displayCategory),
+        className
+      )}
+    >
+      {displayCategory}
     </span>
   )
 }

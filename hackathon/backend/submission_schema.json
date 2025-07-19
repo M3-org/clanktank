@@ -183,8 +183,9 @@
         "name": "demo_video_url",
         "label": "Demo Video URL",
         "type": "url",
-        "required": true,
-        "placeholder": "https://youtube.com/..."
+        "required": true,   
+        "placeholder": "https://youtube.com/...",
+        "helperText": "You can use catbox.moe for hosting"
       },
       {
         "name": "project_image",

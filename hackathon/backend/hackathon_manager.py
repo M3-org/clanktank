@@ -826,32 +826,32 @@ RELATIVE POSITIONING:
         conn.close()
 
     def _get_community_feedback_context(self, cursor, project_ids):
-        """Get community feedback data as context for Round 2 synthesis."""
+        """Get community feedback data from unified likes_dislikes table as context for Round 2 synthesis."""
         import statistics
         
         community_data = {}
         all_reaction_counts = []
         
-        # First pass: collect all reaction data and counts for statistical analysis
+        # First pass: collect all like/dislike data and counts for statistical analysis
         for project_id in project_ids:
-            # Get total reactions for this project
+            # Get total votes for this project from likes_dislikes table
             cursor.execute(
-                "SELECT COUNT(*) FROM community_feedback WHERE submission_id = ?",
+                "SELECT COUNT(*) FROM likes_dislikes WHERE submission_id = ?",
                 (project_id,),
             )
             total_reactions = cursor.fetchone()[0]
             all_reaction_counts.append(total_reactions)
             
-            # Get reaction breakdown
+            # Get like/dislike breakdown from likes_dislikes table
             cursor.execute(
-                "SELECT reaction_type, COUNT(*) FROM community_feedback WHERE submission_id = ? GROUP BY reaction_type",
+                "SELECT action, COUNT(*) FROM likes_dislikes WHERE submission_id = ? GROUP BY action",
                 (project_id,),
             )
-            reaction_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
+            vote_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
             
-            # Get unique voters
+            # Get unique voters from likes_dislikes table
             cursor.execute(
-                "SELECT COUNT(DISTINCT discord_user_id) FROM community_feedback WHERE submission_id = ?",
+                "SELECT COUNT(DISTINCT discord_id) FROM likes_dislikes WHERE submission_id = ?",
                 (project_id,),
             )
             unique_voters = cursor.fetchone()[0]
@@ -860,7 +860,7 @@ RELATIVE POSITIONING:
             community_data[project_id] = {
                 "total_reactions": total_reactions,
                 "unique_voters": unique_voters,
-                "reaction_breakdown": reaction_breakdown,
+                "reaction_breakdown": vote_breakdown,  # Now contains 'like' and 'dislike' counts
                 "engagement_level": "pending"  # Will calculate after getting distribution
             }
         
@@ -1008,12 +1008,17 @@ RELATIVE POSITIONING:
         # Get judge persona for context
         persona = get_judge_persona(judge)
 
-        # Format community feedback for context
-        reaction_breakdown = community_context.get("reaction_breakdown", {})
-        feedback_summary = "\n".join([
-            f"- {reaction_type.replace('_', ' ').title()}: {count} votes"
-            for reaction_type, count in reaction_breakdown.items()
-        ]) if reaction_breakdown else "No community votes yet"
+        # Format community feedback for context (now like/dislike votes)
+        vote_breakdown = community_context.get("reaction_breakdown", {})
+        likes = vote_breakdown.get("like", 0)
+        dislikes = vote_breakdown.get("dislike", 0)
+        
+        if likes + dislikes > 0:
+            total_votes = likes + dislikes
+            like_percentage = (likes / total_votes) * 100 if total_votes > 0 else 0
+            feedback_summary = f"- Likes: {likes} ({like_percentage:.0f}%)\n- Dislikes: {dislikes} ({100-like_percentage:.0f}%)"
+        else:
+            feedback_summary = "No community votes yet"
 
         # Find this project's ranking context
         projects = distribution_analysis.get("projects", {})

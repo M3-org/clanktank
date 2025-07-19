@@ -1,178 +1,150 @@
 import { useEffect, useState } from 'react'
 import { hackathonApi } from '../lib/api'
 import { LeaderboardEntry } from '../types'
-import { Card, CardContent } from '../components/Card'
-import { Button } from '../components/Button'
-import { Trophy, Share2, RefreshCw, Medal, User } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { Trophy, RefreshCw } from 'lucide-react'
+import { LeaderboardCard } from '../components/LeaderboardCard'
+import { VoteModal } from '../components/VoteModal'
+
 
 export default function Leaderboard() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedSubmission, setSelectedSubmission] = useState<LeaderboardEntry | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [currentPage, setCurrentPage] = useState(0)
+  
+  const ENTRIES_PER_PAGE = 8
+  const totalPages = Math.ceil(entries.length / ENTRIES_PER_PAGE)
+  const startIndex = currentPage * ENTRIES_PER_PAGE
+  const currentEntries = entries.slice(startIndex, startIndex + ENTRIES_PER_PAGE)
+
+  const loadLeaderboard = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true)
+    
+    try {
+      const leaderboardData = await hackathonApi.getLeaderboard()
+      setEntries(leaderboardData || [])
+    } catch (error) {
+      console.error('Failed to load leaderboard:', error)
+      setEntries([])
+    } finally {
+      setLoading(false)
+      if (isRefresh) setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     loadLeaderboard()
   }, [])
 
-  const loadLeaderboard = async () => {
-    try {
-      const data = await hackathonApi.getLeaderboard()
-      setEntries(data)
-    } catch (error) {
-      console.error('Failed to load leaderboard:', error)
-    } finally {
-      setLoading(false)
-    }
+  const handleRefresh = () => {
+    loadLeaderboard(true)
   }
 
-  const shareLeaderboard = () => {
-    const url = window.location.href
-    const text = `Check out the Clank Tank Hackathon Leaderboard! 🚀`
-    
-    if (navigator.share) {
-      navigator.share({ title: 'Clank Tank Hackathon Leaderboard', text, url })
-    } else {
-      // Fallback to Twitter
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank')
-    }
-  }
 
-  const getMedalIcon = (rank: number) => {
-    if (rank === 1) return <Medal className="h-8 w-8 text-yellow-500" />
-    if (rank === 2) return <Medal className="h-8 w-8 text-gray-400" />
-    if (rank === 3) return <Medal className="h-8 w-8 text-orange-600" />
-    return null
-  }
-
-  const statusColor = (status: string) => {
-    switch (status) {
-      case 'scored':
-        return 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100 border-blue-300 dark:border-blue-700';
-      case 'completed':
-        return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700';
-      case 'published':
-        return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 border-purple-300 dark:border-purple-700';
-      default:
-        return 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-100 border-gray-300 dark:border-gray-600';
-    }
-  };
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center h-64">
-          <RefreshCw className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-blue-950/20 dark:to-indigo-950/20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <Trophy className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Leaderboard</h1>
+            <p className="text-gray-600 dark:text-gray-400">Loading submissions...</p>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex justify-center mb-4">
-          <div className="relative">
-            <Trophy className="h-20 w-20 text-yellow-500" />
-            <div className="absolute -top-2 -right-2 h-8 w-8 bg-yellow-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">{entries.length}</span>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-blue-950/20 dark:to-indigo-950/20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-4 shadow-lg">
+            <Trophy className="h-8 w-8 text-white" />
           </div>
-        </div>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">Hackathon Leaderboard</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300">Top projects as judged by our AI panel</p>
-        
-        <Button
-          onClick={shareLeaderboard}
-          className="mt-6"
-        >
-          <Share2 className="h-4 w-4 mr-2" />
-          Share Leaderboard
-        </Button>
-      </div>
-
-      {/* Leaderboard */}
-      <Card className="overflow-hidden bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 mb-8">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <h2 className="text-xl font-semibold text-white">Final Rankings</h2>
-        </div>
-        
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
-          {entries.map((entry, index) => (
-            <div
-              key={`${entry.rank}-${entry.project_name}`}
-              className={cn(
-                "px-6 py-6 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4",
-                statusColor(entry.status || "unknown"),
-                index === 0 && "bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-gray-900 dark:to-gray-800",
-                index === 1 && "bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-800 dark:to-gray-700",
-                index === 2 && "bg-gradient-to-r from-orange-50 to-amber-50 dark:from-gray-800 dark:to-gray-700"
-              )}
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              Leaderboard
+            </h1>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="p-2 rounded-lg bg-white dark:bg-gray-800 shadow text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              aria-label="Refresh leaderboard"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {/* Rank */}
-                  <div className="flex-shrink-0 w-16 text-center">
-                    {index < 3 ? (
-                      getMedalIcon(entry.rank)
-                    ) : (
-                      <div className="h-12 w-12 mx-auto rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                        <span className="font-bold text-lg text-gray-700 dark:text-gray-200">{entry.rank}</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Project Info */}
-                  <div className="flex-1 flex items-center gap-3">
-                    {entry.discord_avatar && entry.discord_id ? (
-                      <img
-                        src={`https://cdn.discordapp.com/avatars/${entry.discord_id}/${entry.discord_avatar}.png`}
-                        alt="Discord avatar"
-                        className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                      />
-                    ) : (
-                      <span className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                        <User className="h-5 w-5 text-gray-400" />
-                      </span>
-                    )}
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      <a
-                        // TODO: Use submission_id for deep linking if available in LeaderboardEntry
-                        href={`/submission/${entry.project_name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-]/g, '')}`}
-                        className="hover:underline text-cyan-600 dark:text-cyan-300 hover:text-cyan-800 dark:hover:text-cyan-200"
-                      >
-                        {entry.project_name}
-                      </a>
-                    </h3>
-                  </div>
-                </div>
-                
-                {/* Score and Link */}
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                      {entry.final_score.toFixed(2)}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Score</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Footer */}
-      <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <CardContent className="py-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">About the Scoring</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Projects are evaluated by our panel of AI judges on four criteria: Innovation & Creativity, 
-            Technical Execution, Market Potential, and User Experience. Each judge brings their unique 
-            perspective and expertise to create a balanced assessment.
+              <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+          <p className="text-lg text-gray-600 dark:text-gray-400">
+            Ranked by AI judges · Powered by your votes
           </p>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Leaderboard */}
+        {entries.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            No submissions found
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {currentEntries.map((entry) => (
+                <LeaderboardCard 
+                  key={entry.submission_id}
+                  entry={entry} 
+                  onVoteClick={() => setSelectedSubmission(entry)}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                  disabled={currentPage === 0}
+                  className="px-3 py-1 rounded bg-white dark:bg-gray-800 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`px-3 py-1 rounded text-sm ${
+                      currentPage === i 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                  disabled={currentPage === totalPages - 1}
+                  className="px-3 py-1 rounded bg-white dark:bg-gray-800 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Vote Modal */}
+        {selectedSubmission && (
+          <VoteModal
+            submission={selectedSubmission}
+            onClose={() => setSelectedSubmission(null)}
+          />
+        )}
+      </div>
     </div>
   )
 }

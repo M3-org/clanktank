@@ -3,17 +3,29 @@ import { cn } from '../lib/utils'
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode
   className?: string
-  variant?: 'default' | 'ghost'
+  variant?: 'default' | 'ghost' | 'highlight' | 'skeleton'
+  interactive?: boolean
 }
 
 const variantStyles = {
-  default: 'rounded-lg shadow-md bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100',
-  ghost: 'border-0 bg-transparent shadow-none text-gray-900 dark:text-gray-100'
+  default: 'rounded-xl border border-gray-200/60 dark:border-gray-700/60 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm',
+  ghost: 'border-0 bg-transparent shadow-none text-gray-900 dark:text-gray-100',
+  highlight: 'rounded-2xl border border-amber-200/60 dark:border-amber-800/60 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 shadow-lg shadow-amber-500/10 dark:shadow-amber-500/5',
+  skeleton: 'rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 animate-pulse'
 }
 
-export function Card({ children, className, variant = 'default', ...props }: CardProps) {
+const interactiveStyles = 'transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg cursor-pointer'
+
+export function Card({ children, className, variant = 'default', interactive = false, ...props }: CardProps) {
   return (
-    <div className={cn(variantStyles[variant], className)} {...props}>
+    <div 
+      className={cn(
+        variantStyles[variant], 
+        interactive && interactiveStyles,
+        className
+      )} 
+      {...props}
+    >
       {children}
     </div>
   )

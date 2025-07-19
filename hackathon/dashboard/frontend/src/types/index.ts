@@ -1,5 +1,5 @@
 export interface SubmissionSummary {
-  submission_id: string
+  submission_id: number
   project_name: string
   team_name: string
   category: string
@@ -96,9 +96,11 @@ export interface Research {
 
 export interface LeaderboardEntry {
   rank: number
+  submission_id: number
   project_name: string
   category: string
   final_score: number
+  community_score?: number  // Community voting score
   youtube_url?: string
   status: string
   discord_handle?: string
@@ -115,4 +117,42 @@ export interface Stats {
   by_status: Record<string, number>
   by_category: Record<string, number>
   updated_at: string
+}
+
+export interface CommunityScore {
+  submission_id: number
+  community_score: number
+  unique_voters: number
+  last_vote_time: number
+}
+
+export interface TokenBreakdown {
+  mint: string
+  symbol: string
+  name?: string
+  amount: number
+  decimals: number
+  logo?: string
+}
+
+export interface PrizePoolContribution {
+  wallet: string
+  token: string
+  amount: number
+  timestamp: number
+  description?: string
+}
+
+export interface PrizePoolData {
+  total_sol: number
+  target_sol: number
+  progress_percentage: number
+  token_breakdown: Record<string, TokenBreakdown>
+  recent_contributions: PrizePoolContribution[]
+}
+
+export interface LikeDislikeResponse {
+  likes: number
+  dislikes: number
+  user_action?: 'like' | 'dislike' | null
 }

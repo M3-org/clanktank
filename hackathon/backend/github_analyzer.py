@@ -24,6 +24,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Enable debug logging if needed
+if os.getenv("DEBUG", "").lower() in ["true", "1", "yes"]:
+    logger.setLevel(logging.DEBUG)
+    logger.debug("Debug logging enabled")
+
 
 class GitHubAnalyzer:
     def __init__(self, github_token=None):
@@ -386,11 +391,13 @@ Output only valid JSON."""
         
         try:
             logger.info("Requesting agentic GitIngest config recommendation from LLM...")
+            logger.debug(f"Request payload: {json.dumps(payload, indent=2)}")
             response = requests.post(BASE_URL, json=payload, headers=headers)
             response.raise_for_status()
             result = response.json()
             content = result["choices"][0]["message"]["content"]
-            logger.info(f"Agentic GitIngest config recommendation:\n{content}")
+            logger.info(f"LLM Response status: {response.status_code}")
+            logger.info(f"Raw LLM response content:\n{content}")
             
             # Try to parse JSON from response
             import re
@@ -398,23 +405,36 @@ Output only valid JSON."""
             match = re.search(r'\{.*\}', content, re.DOTALL)
             if match:
                 try:
-                    parsed_json = pyjson.loads(match.group(0))
+                    json_content = match.group(0)
+                    logger.debug(f"Extracted JSON content: {json_content}")
+                    parsed_json = pyjson.loads(json_content)
+                    
+                    # Handle rationale field - convert array to string if needed
+                    if isinstance(parsed_json.get("rationale"), list):
+                        parsed_json["rationale"] = " • ".join(parsed_json["rationale"])
+                    
                     # Validate against schema
                     jsonschema.validate(parsed_json, schema)
                     logger.info("JSON schema validation passed")
+                    logger.info(f"Parsed GitIngest config: {json.dumps(parsed_json, indent=2)}")
                     return parsed_json
                 except jsonschema.ValidationError as e:
-                    logger.warning(f"JSON schema validation failed: {e}, falling back to heuristics")
+                    logger.warning(f"JSON schema validation failed: {e}")
+                    logger.warning(f"Failed JSON: {json_content}")
                     return self._get_heuristic_fallback(repo_analysis)
                 except Exception as e:
-                    logger.warning(f"JSON parsing failed: {e}, falling back to heuristics")
+                    logger.warning(f"JSON parsing failed: {e}")
+                    logger.warning(f"Failed to parse: {json_content}")
                     return self._get_heuristic_fallback(repo_analysis)
             else:
                 logger.warning("No JSON found in response, falling back to heuristics")
+                logger.warning(f"Response content: {content}")
                 return self._get_heuristic_fallback(repo_analysis)
                 
         except Exception as e:
-            logger.error(f"Agentic config step failed: {e}, falling back to heuristics")
+            logger.error(f"Agentic config step failed: {e}")
+            logger.error(f"Request URL: {BASE_URL}")
+            logger.error(f"Request headers: {headers}")
             return self._get_heuristic_fallback(repo_analysis)
 
     def _get_heuristic_fallback(self, repo_analysis):
@@ -428,26 +448,9 @@ Output only valid JSON."""
             "rationale": "• Heuristic fallback used due to LLM failure • Focus on source code and docs • Exclude build artifacts and logs"
         }
 
-    def run_repomix(self, repo_url, output_path="repomix-output.md", style="markdown", compress=True):
-        """Run Repomix on the remote repo and return the output file path (or None on failure)."""
-        import subprocess
-        args = [
-            "npx", "repomix", "--remote", repo_url,
-            "-o", output_path,
-            "--style", style,
-        ]
-        if compress:
-            args.append("--compress")
-        try:
-            logger.info(f"Running Repomix: {' '.join(args)}")
-            subprocess.run(args, check=True)
-            return output_path
-        except Exception as e:
-            logger.error(f"Repomix failed: {e}")
-            return None
 
-    def summarize_repo(self, repo_url, max_files=200, readme_lines=40, repomix=False, repomix_output="repomix-output.md"):  # added repomix args
-        """Produce a holistic, objective summary of the repo for AI analysis. Optionally run Repomix."""
+    def summarize_repo(self, repo_url, max_files=200, readme_lines=40):
+        """Produce a holistic, objective summary of the repo for AI analysis."""
         owner, repo = self.extract_repo_info(repo_url)
         if not owner or not repo:
             return {"error": "Invalid GitHub URL", "url": repo_url}
@@ -506,10 +509,6 @@ Output only valid JSON."""
         except Exception as e:
             logger.error(f"Error fetching topics: {e}")
             topics = []
-        # Repomix integration
-        repomix_path = None
-        if repomix:
-            repomix_path = self.run_repomix(repo_url, output_path=repomix_output)
         # Compose summary
         summary = {
             "url": repo_url,
@@ -531,44 +530,64 @@ Output only valid JSON."""
             "contributors": contributors,
             "summarized_at": datetime.now().isoformat(),
         }
-        if repomix_path:
-            summary["repomix_output_path"] = repomix_path
         return summary
 
-    def run_gitingest(self, repo_url, output_path, settings=None):
-        """Run GitIngest on the remote repo and return the output file path (or None on failure)."""
-        import subprocess
-        
-        args = ["gitingest", repo_url, "-o", output_path]
-        
-        if settings:
-            # Add tiered max size settings if available
-            if settings.get("core_code_max") and settings.get("other_file_max"):
-                # Use core_code_max as default, other_file_max for specific patterns
-                args.extend(["-s", str(settings["core_code_max"])])
-            elif settings.get("max_size"):
-                args.extend(["-s", str(settings["max_size"])])
-            
-            # Add exclude patterns
-            for pattern in settings.get("exclude_patterns", []):
-                args.extend(["-e", pattern])
-            
-            # Add include patterns
-            for pattern in settings.get("include_patterns", []):
-                args.extend(["-i", pattern])
+    def run_gitingest_secure(self, repo_url, output_path=None, settings=None):
+        """Secure GitIngest using Python library instead of subprocess."""
+        # Validate GitHub URL to prevent SSRF
+        if not self._validate_github_url(repo_url):
+            logger.error(f"Invalid GitHub URL rejected: {repo_url}")
+            return None
         
         try:
-            logger.info(f"Running GitIngest: {' '.join(args)}")
-            result = subprocess.run(args, check=True, capture_output=True, text=True)
-            logger.info(f"GitIngest completed successfully: {result.stdout}")
-            return output_path
-        except subprocess.CalledProcessError as e:
-            logger.error(f"GitIngest failed: {e}")
-            logger.error(f"GitIngest stderr: {e.stderr}")
-            return None
+            # Use GitIngest Python library instead of subprocess
+            from gitingest import ingest
+            
+            # Get GitHub token for private repos
+            github_token = os.getenv("GITHUB_TOKEN")
+            
+            logger.info(f"Running GitIngest (Python library) for {repo_url}")
+            
+            # Note: Python library may not support all CLI settings
+            # For now, use default behavior - settings can be enhanced later
+            if settings and settings.get("rationale"):
+                logger.info(f"GitIngest rationale: {settings['rationale']}")
+            
+            summary, tree, content = ingest(repo_url, token=github_token)
+            
+            # Save to output file if specified
+            if output_path:
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                logger.info(f"GitIngest completed: {output_path}")
+                return output_path
+            else:
+                # Return content directly if no output path specified
+                return content
+                
         except Exception as e:
-            logger.error(f"Unexpected error running GitIngest: {e}")
+            logger.error(f"GitIngest failed: {e}")
             return None
+
+    def _validate_github_url(self, url: str) -> bool:
+        """Validate that URL is a legitimate GitHub repository URL."""
+        from urllib.parse import urlparse
+        
+        try:
+            parsed = urlparse(url)
+            # Only allow GitHub domains
+            if parsed.hostname not in ['github.com']:
+                return False
+            # Must be HTTPS
+            if parsed.scheme != 'https':
+                return False
+            # Must match GitHub repo pattern
+            if not re.match(r'^/[\w.-]+/[\w.-]+/?$', parsed.path):
+                return False
+            return True
+        except:
+            return False
 
     def analyze_repository(self, repo_url):
         """Perform repository analysis for hackathon vibe check with two-stage file selection."""
@@ -581,22 +600,31 @@ Output only valid JSON."""
             return repo_data
         
         # Get file structure for GitIngest optimization
+        logger.info("Getting file structure...")
         file_structure = self.get_file_structure(owner, repo)
         if "error" in file_structure:
+            logger.error(f"File structure error: {file_structure}")
             return file_structure
         
         # Stage-1 critic: label file relevance
         files = file_structure.get("files", [])
+        logger.info(f"Found {len(files)} files in repository")
         manifest = self.label_file_relevance(files)
         logger.info(f"Generated file manifest with {len(manifest)} files")
         
         # Extract additional repo signals
+        logger.info("Extracting dependency info...")
         deps_info = self.extract_dependency_info(owner, repo, manifest)
+        logger.info(f"Extracted dependency info for {len(deps_info)} files")
+        
+        logger.info("Generating LOC histogram...")
         loc_histogram = self.get_loc_histogram(manifest)
+        logger.info(f"LOC histogram: {loc_histogram}")
         
         # Calculate token budget
         total_bytes = sum(f["bytes"] for f in manifest)
         token_budget = 50000 - int(total_bytes / 4)
+        logger.info(f"Repository analysis: {total_bytes} bytes, {token_budget} token budget remaining")
         
         analysis = {
             "url": repo_url,
@@ -625,11 +653,15 @@ Output only valid JSON."""
         analysis["gitingest_settings"] = self.get_gitingest_settings(file_structure)
         
         # Stage-2 architect: get LLM recommendation for GitIngest config
+        logger.info("Getting agentic GitIngest recommendation...")
         agentic_recommendation = self.get_gitingest_agentic_recommendation(
             analysis, manifest, deps_info, loc_histogram
         )
         if agentic_recommendation:
+            logger.info("Agentic recommendation obtained successfully")
             analysis["gitingest_agentic_recommendation"] = agentic_recommendation
+        else:
+            logger.warning("Agentic recommendation failed - using heuristic fallback")
         
         return analysis
 
@@ -643,20 +675,14 @@ def main():
     parser.add_argument("--token", help="GitHub personal access token")
     parser.add_argument("--output", help="Output file for results (JSON)")
     parser.add_argument("--summary", action="store_true", help="Output holistic repo summary instead of old analysis")
-    parser.add_argument("--repomix", action="store_true", help="Run Repomix and include output path in summary")
-    parser.add_argument("--repomix-output", default="repomix-output.md", help="Path for Repomix output file (default: repomix-output.md)")
     parser.add_argument("--gitingest", action="store_true", help="Run GitIngest and include output path in analysis")
-    parser.add_argument("--gitingest-output", help="Path for GitIngest output file (default: gitingest-output-{repo}.txt)")
+    parser.add_argument("--gitingest-output", help="Path for GitIngest output file (default: gitingest-{repo}.txt)")
 
     args = parser.parse_args()
 
     analyzer = GitHubAnalyzer(github_token=args.token)
     if args.summary:
-        results = analyzer.summarize_repo(
-            args.repo_url,
-            repomix=args.repomix,
-            repomix_output=args.repomix_output,
-        )
+        results = analyzer.summarize_repo(args.repo_url)
     else:
         results = analyzer.analyze_repository(args.repo_url)
         
@@ -664,9 +690,9 @@ def main():
         if args.gitingest:
             owner, repo = analyzer.extract_repo_info(args.repo_url)
             if owner and repo:
-                gitingest_output = args.gitingest_output or f"gitingest-output-{repo}.txt"
+                gitingest_output = args.gitingest_output or f"gitingest-{repo}.txt"
                 gitingest_settings = results.get("gitingest_settings", {})
-                gitingest_path = analyzer.run_gitingest(args.repo_url, gitingest_output, gitingest_settings)
+                gitingest_path = analyzer.run_gitingest_secure(args.repo_url, gitingest_output, gitingest_settings)
                 if gitingest_path:
                     results["gitingest_output_path"] = gitingest_path
                     print(f"GitIngest output saved to: {gitingest_path}")
