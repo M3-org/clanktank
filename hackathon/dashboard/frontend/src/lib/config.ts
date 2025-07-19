@@ -18,7 +18,7 @@ interface DeadlineConfig {
 }
 
 // Use anywhere without providers
-export async function useDeadline(): Promise<DeadlineConfig> {
+export async function getDeadlineConfig(): Promise<DeadlineConfig> {
   try {
     const config: ConfigData = await configPromise;
     

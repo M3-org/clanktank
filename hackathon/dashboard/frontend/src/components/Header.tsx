@@ -2,19 +2,35 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from './Button'
-import { LogOut, User } from 'lucide-react'
+import { DiscordAvatar } from './DiscordAvatar'
+import { LogOut, ChevronDown, Plus } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { CountdownTimer } from './CountdownTimer'
 
 export default function Header() {
   const { authState, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = () => {
     logout()
     navigate('/')
   }
 
-  const isAuthPage = location.pathname === '/auth'
+  // const isAuthPage = location.pathname === '/auth'  // Unused for now
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -65,6 +81,16 @@ export default function Header() {
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <button
+              onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
+              className={`flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
+              }`}
+            >
+              Submit
+              <CountdownTimer variant="compact" showLabel={false} />
+            </button>
+
+            <button
               onClick={() => navigate('/dashboard')}
               className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
                 location.pathname === '/dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
@@ -86,56 +112,48 @@ export default function Header() {
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
             {authState.isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                {/* User Info */}
-                <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                  {authState.discordUser?.avatar ? (
-                    <img
-                      src={`https://cdn.discordapp.com/avatars/${authState.discordUser.discord_id}/${authState.discordUser.avatar}.png`}
-                      alt="Discord avatar"
-                      className="h-8 w-8 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                    />
-                  ) : (
-                    <User className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 p-1" />
-                  )}
-                </div>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  <DiscordAvatar
+                    discord_id={authState.discordUser?.discord_id}
+                    discord_avatar={authState.discordUser?.avatar}
+                    discord_handle={authState.discordUser?.username}
+                    size="md"
+                    variant="light"
+                    className="border border-gray-300 dark:border-gray-700"
+                  />
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                </button>
 
-                {/* Quick Actions */}
-                {!isAuthPage && (
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      onClick={() => navigate('/submit')}
-                      variant="primary"
-                      size="sm"
+                {userDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+                    <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                      {authState.discordUser?.username}
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleLogout()
+                        setUserDropdownOpen(false)
+                      }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
-                      Submit Project
-                    </Button>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </button>
                   </div>
                 )}
-
-                {/* Logout */}
-                <Button
-                  onClick={handleLogout}
-                  variant="secondary"
-                  size="sm"
-                  className="flex items-center gap-1"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Logout</span>
-                </Button>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
-                {!isAuthPage && (
-                  <Button
-                    onClick={() => navigate('/submit')}
-                    size="sm"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white border-none"
-                  >
-                    Submit Project
-                  </Button>
-                )}
-              </div>
+              <Button
+                onClick={() => navigate('/auth')}
+                size="sm"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white border-none"
+              >
+                Connect
+              </Button>
             )}
           </div>
         </div>
@@ -144,6 +162,15 @@ export default function Header() {
       {/* Mobile Navigation */}
       <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
         <div className="px-4 py-3 space-y-1">
+          <button
+            onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
+            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+              location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
+            }`}
+          >
+            <Plus className="h-4 w-4" />
+            Submit
+          </button>
           <button
             onClick={() => navigate('/dashboard')}
             className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${

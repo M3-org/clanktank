@@ -23,7 +23,6 @@ TEST_SUBMISSIONS = [
         "project_name": "DeFi Yield Aggregator",
         "description": "A platform that aggregates DeFi yields across multiple protocols for optimal returns.",
         "category": "DeFi",
-        "team_name": "Yield Wizards",
         "discord_handle": "yieldwizard#1234",
         "twitter_handle": "@yieldwizards",
         "demo_video_url": "https://youtu.be/defiyielddemo",
@@ -42,7 +41,6 @@ TEST_SUBMISSIONS = [
         "project_name": "AI Code Review Bot",
         "description": "GitHub bot that uses LLMs to provide intelligent code reviews with security analysis",
         "category": "AI/Agents",
-        "team_name": "CodeGuardians",
         "discord_handle": "@codeguard",
         "twitter_handle": "@codeguardai",
         "demo_video_url": "https://youtube.com/watch?v=demo2",
@@ -102,15 +100,25 @@ def insert_test_submissions():
     cursor = conn.cursor()
     
     try:
+        # Get an existing user to link test submissions to (required for leaderboard)
+        cursor.execute("SELECT discord_id FROM users LIMIT 1")
+        user_result = cursor.fetchone()
+        owner_discord_id = user_result[0] if user_result else None
+        
         for submission in TEST_SUBMISSIONS:
-            # Only include fields present in v2 schema
+            # Only include fields present in v2 schema (verified from actual schema)
             v2_fields = [
-                "submission_id", "project_name", "description", "category", "team_name",
-                "discord_handle", "twitter_handle", "demo_video_url", "github_url", "live_demo_url",
-                "how_it_works", "problem_solved", "tech_stack", "image_url",
-                "favorite_part", "test_field"
+                "submission_id", "project_name", "description", "category",
+                "discord_handle", "twitter_handle", "demo_video_url", "github_url",
+                "problem_solved", "favorite_part"
             ]
             insert_data = {k: submission.get(k, "") for k in v2_fields}
+            # Map some fields if needed
+            if "image_url" in submission:
+                insert_data["project_image"] = submission["image_url"]
+            # Link to existing user for leaderboard display
+            if owner_discord_id:
+                insert_data["owner_discord_id"] = owner_discord_id
             columns = ", ".join(insert_data.keys())
             placeholders = ", ".join(["?" for _ in insert_data])
             cursor.execute(f"INSERT INTO {DEFAULT_TABLE} ({columns}) VALUES ({placeholders})", tuple(insert_data.values()))

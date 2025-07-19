@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Clock, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
-import { useDeadline } from '../lib/config';
+import { getDeadlineConfig } from '../lib/config';
 
 interface CountdownTimerProps {
   variant?: 'banner' | 'compact' | 'card';
@@ -55,7 +55,7 @@ export function CountdownTimer({
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const config = await useDeadline();
+        const config = await getDeadlineConfig();
         deadlineRef.current = config.deadline;
         epochRef.current = config.epoch;
         
@@ -99,11 +99,16 @@ export function CountdownTimer({
   const compactFormat = useMemo(() => {
     if (!totalSeconds) return 'Expired';
     
-    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-    
-    if (totalSeconds > SECONDS_PER_DAY) return rtf.format(Math.ceil(totalSeconds / SECONDS_PER_DAY), 'day');
-    if (totalSeconds > SECONDS_PER_HOUR) return rtf.format(Math.ceil(totalSeconds / SECONDS_PER_HOUR), 'hour');
-    return rtf.format(Math.ceil(totalSeconds / SECONDS_PER_MINUTE), 'minute');
+    if (totalSeconds > SECONDS_PER_DAY) {
+      const daysLeft = Math.ceil(totalSeconds / SECONDS_PER_DAY);
+      return `${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`;
+    }
+    if (totalSeconds > SECONDS_PER_HOUR) {
+      const hoursLeft = Math.ceil(totalSeconds / SECONDS_PER_HOUR);
+      return `${hoursLeft} ${hoursLeft === 1 ? 'hour' : 'hours'}`;
+    }
+    const minutesLeft = Math.ceil(totalSeconds / SECONDS_PER_MINUTE);
+    return `${minutesLeft} ${minutesLeft === 1 ? 'minute' : 'minutes'}`;
   }, [totalSeconds]);
 
   useTicker(calculateTime);

@@ -41,8 +41,8 @@ def setup_db():
     # Insert a test record
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, team_name, description, category, status) VALUES (?, ?, ?, ?, ?, ?)",
-                   (TEST_ID, "Smoke Test Project", "Smoke Testers", "A test submission for smoke testing.", "test", "submitted"))
+    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, discord_handle, description, category, github_url, demo_video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                   (TEST_ID, "Smoke Test Project", "smoketest#1234", "A test submission for smoke testing.", "Infrastructure", "https://github.com/test/smoke", "https://youtube.com/smoke", "submitted"))
     conn.commit()
     conn.close()
     print(f"Inserted test submission with ID {TEST_ID}")

@@ -295,3 +295,9 @@ Submissions progress: **submitted** → **researched** → **scored** → **comm
 - **GitHub analysis**: `github_analyzer.log`
 - **Research logs**: `research.log`
 - **Scoring logs**: `score_all.log`
+
+## Memory
+
+### Backend Management
+- I will start / stop the backend app.py, just let me know when I need to
+- Update todo.md after completing each task

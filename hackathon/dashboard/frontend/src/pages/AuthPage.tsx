@@ -35,7 +35,7 @@ export default function AuthPage() {
             Welcome to Clank Tank Hackathon
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Sign in with Discord to participate
+            Connect with Discord to participate
           </p>
         </CardHeader>
         <CardContent className="space-y-6">

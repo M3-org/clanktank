@@ -31,13 +31,10 @@ DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 DISCORD_CHANNEL_ID = int(os.getenv('DISCORD_VOTING_CHANNEL_ID') or '0')
 HACKATHON_DB_PATH = os.getenv('HACKATHON_DB_PATH', 'data/hackathon.db')
 
-# Reaction to category mapping (🔥 first for general hype)
-REACTION_TO_CATEGORY = {
-    '🔥': 'hype',                      # General "I like this"
-    '💡': 'innovation_creativity',      # Innovation & Creativity
-    '💻': 'technical_execution',        # Technical Execution
-    '📈': 'market_potential',          # Market Potential
-    '😍': 'user_experience'            # User Experience
+# Simple like/dislike reaction mapping (unified with web interface)
+REACTION_TO_ACTION = {
+    '👍': 'like',      # Thumbs up
+    '👎': 'dislike'    # Thumbs down
 }
 
 # Bot setup
@@ -153,16 +150,10 @@ class HackathonDiscordBot:
         if links:
             embed.add_field(name="Links", value=" • ".join(links), inline=False)
         
-        # Add voting instructions
+        # Add voting instructions  
         embed.add_field(
             name="Vote with Reactions",
-            value=(
-                "🔥 General Hype\n"
-                "💡 Innovation & Creativity\n"
-                "💻 Technical Execution\n"
-                "📈 Market Potential\n"
-                "😍 User Experience"
-            ),
+            value="👍 Like this project  •  👎 Not impressed\n\n💡 **Tip:** Your vote syncs with the website - no double voting!",
             inline=False
         )
         
@@ -179,8 +170,8 @@ class HackathonDiscordBot:
         # Send the message
         message = await channel.send(embed=embed)
         
-        # Add reactions in order
-        for emoji in REACTION_TO_CATEGORY.keys():
+        # Add simple like/dislike reactions
+        for emoji in REACTION_TO_ACTION.keys():
             await message.add_reaction(emoji)
             await asyncio.sleep(0.5)  # Small delay to prevent rate limiting
         
@@ -205,32 +196,42 @@ class HackathonDiscordBot:
         conn.commit()
         conn.close()
     
-    def record_vote(self, submission_id: str, discord_username: str, 
-                   discord_user_nickname: str, vote_category: str):
-        """Record a vote in the community_feedback table."""
+    def record_vote(self, submission_id: str, discord_user_id: str, 
+                   discord_user_nickname: str, action: str):
+        """Record a like/dislike vote in the unified likes_dislikes table."""
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
         try:
-            # Check if vote already exists (using username instead of user ID)
+            # Check if vote already exists in likes_dislikes table
             cursor.execute("""
-                SELECT id FROM community_feedback
-                WHERE submission_id = ? AND discord_user_id = ? AND reaction_type = ?
-            """, (submission_id, discord_username, vote_category))
+                SELECT action FROM likes_dislikes
+                WHERE submission_id = ? AND discord_id = ?
+            """, (submission_id, discord_user_id))
             
-            if cursor.fetchone():
-                logger.info(f"Vote already exists for {discord_user_nickname} (@{discord_username}) on {submission_id} - {vote_category}")
-                return
+            existing_vote = cursor.fetchone()
             
-            # Insert new vote (using username in discord_user_id field for now)
-            cursor.execute("""
-                INSERT INTO community_feedback 
-                (submission_id, discord_user_id, discord_user_nickname, reaction_type, score_adjustment)
-                VALUES (?, ?, ?, ?, ?)
-            """, (submission_id, discord_username, discord_user_nickname, vote_category, 1.0))
+            if existing_vote:
+                if existing_vote[0] == action:
+                    logger.info(f"Vote already exists: {discord_user_nickname} already {action}d {submission_id}")
+                    return
+                else:
+                    # Update existing vote
+                    cursor.execute("""
+                        UPDATE likes_dislikes 
+                        SET action = ?, created_at = CURRENT_TIMESTAMP
+                        WHERE submission_id = ? AND discord_id = ?
+                    """, (action, submission_id, discord_user_id))
+                    logger.info(f"Updated vote: {discord_user_nickname} changed from {existing_vote[0]} to {action} for {submission_id}")
+            else:
+                # Insert new vote
+                cursor.execute("""
+                    INSERT INTO likes_dislikes (discord_id, submission_id, action)
+                    VALUES (?, ?, ?)
+                """, (discord_user_id, submission_id, action))
+                logger.info(f"Recorded vote: {discord_user_nickname} voted {action} for {submission_id}")
             
             conn.commit()
-            logger.info(f"Recorded vote: {discord_user_nickname} (@{discord_username}) voted {vote_category} for {submission_id}")
             
         except Exception as e:
             logger.error(f"Error recording vote: {e}")
@@ -238,23 +239,23 @@ class HackathonDiscordBot:
         finally:
             conn.close()
 
-    def remove_vote(self, submission_id: str, discord_username: str, vote_category: str):
-        """Remove a vote from the community_feedback table."""
+    def remove_vote(self, submission_id: str, discord_user_id: str, discord_user_nickname: str):
+        """Remove a vote from the likes_dislikes table."""
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
         try:
             # Delete the vote
             cursor.execute("""
-                DELETE FROM community_feedback
-                WHERE submission_id = ? AND discord_user_id = ? AND reaction_type = ?
-            """, (submission_id, discord_username, vote_category))
+                DELETE FROM likes_dislikes
+                WHERE submission_id = ? AND discord_id = ?
+            """, (submission_id, discord_user_id))
             
             if cursor.rowcount > 0:
                 conn.commit()
-                logger.info(f"Removed vote: @{discord_username} removed {vote_category} vote for {submission_id}")
+                logger.info(f"Removed vote: {discord_user_nickname} removed vote for {submission_id}")
             else:
-                logger.info(f"No vote found to remove: @{discord_username} - {vote_category} for {submission_id}")
+                logger.info(f"No vote found to remove: {discord_user_nickname} for {submission_id}")
             
         except Exception as e:
             logger.error(f"Error removing vote: {e}")
@@ -270,7 +271,7 @@ hackathon_bot = None
     
 @bot.event
 async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
-    """Handle reaction additions."""
+    """Handle reaction additions for like/dislike voting."""
     # Ignore bot's own reactions
     if user.bot:
         return
@@ -281,7 +282,7 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     
     # Check if this is a valid voting emoji
     emoji_str = str(reaction.emoji)
-    if emoji_str not in REACTION_TO_CATEGORY:
+    if emoji_str not in REACTION_TO_ACTION:
         return
     
     # Extract submission ID from the embed
@@ -298,24 +299,24 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
         logger.warning(f"Could not find submission ID in message {reaction.message.id}")
         return
     
-    vote_category = REACTION_TO_CATEGORY[emoji_str]
+    action = REACTION_TO_ACTION[emoji_str]
     
-    # Get user nickname (fallback to username)
-    member = reaction.message.guild.get_member(user.id)
-    nickname = member.nick if member and member.nick else user.name
-    username = user.name  # Discord username (more readable than ID)
+    # Get user info using actual Discord user ID
+    member = reaction.message.guild.get_member(user.id) if reaction.message.guild else None
+    nickname = member.nick if member and member.nick else user.display_name
+    discord_user_id = str(user.id)  # Use actual Discord user ID
     
     # Record the vote
     hackathon_bot.record_vote(
         submission_id=submission_id,
-        discord_username=username,
+        discord_user_id=discord_user_id,
         discord_user_nickname=nickname,
-        vote_category=vote_category
+        action=action
     )
 
 @bot.event
 async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
-    """Handle reaction removals."""
+    """Handle reaction removals for like/dislike voting."""
     # Ignore bot's own reactions
     if user.bot:
         return
@@ -326,7 +327,7 @@ async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
     
     # Check if this is a valid voting emoji
     emoji_str = str(reaction.emoji)
-    if emoji_str not in REACTION_TO_CATEGORY:
+    if emoji_str not in REACTION_TO_ACTION:
         return
     
     # Extract submission ID from the embed
@@ -343,14 +344,16 @@ async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
         logger.warning(f"Could not find submission ID in message {reaction.message.id}")
         return
     
-    vote_category = REACTION_TO_CATEGORY[emoji_str]
-    username = user.name  # Discord username (more readable than ID)
+    # Get user info using actual Discord user ID
+    member = reaction.message.guild.get_member(user.id) if reaction.message.guild else None
+    nickname = member.nick if member and member.nick else user.display_name
+    discord_user_id = str(user.id)  # Use actual Discord user ID
     
     # Remove the vote
     hackathon_bot.remove_vote(
         submission_id=submission_id,
-        discord_username=username,
-        vote_category=vote_category
+        discord_user_id=discord_user_id,
+        discord_user_nickname=nickname
     )
 
 async def post_submissions(submission_ids: List[str] = None, post_all: bool = False):

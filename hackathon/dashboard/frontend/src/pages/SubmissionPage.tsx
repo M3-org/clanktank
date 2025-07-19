@@ -7,7 +7,7 @@ import { Button } from '../components/Button'
 import { Card, CardContent } from '../components/Card'
 import { useAuth } from '../contexts/AuthContext'
 import ProtectedRoute from '../components/ProtectedRoute'
-import { Download, Upload, User } from 'lucide-react'
+import { Download, Upload } from 'lucide-react'
 import { SubmissionDetail } from '../types';
 
 interface SchemaField {
@@ -39,6 +39,7 @@ export default function SubmissionPage() {
   const [submissionWindowOpen, setSubmissionWindowOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [draftAlreadyRestored, setDraftAlreadyRestored] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -67,23 +68,28 @@ export default function SubmissionPage() {
           setValue('discord_handle', authState.discordUser.username)
         }
         
-        // Load any saved draft
-        const draftKey = 'submission_draft'
-        const savedDraft = localStorage.getItem(draftKey)
-        if (savedDraft) {
-          try {
-            const draft = JSON.parse(savedDraft)
-            
-                         // Populate form with saved data, but override Discord username
-             Object.keys(draft).forEach(key => {
-               if (key !== 'discord_handle') { // Don't override Discord username
-                 setValue(key, draft[key])
-               }
-             })
-            
-            toast.success('Draft restored!', { duration: 2000 })
-          } catch (error) {
-            console.error('Failed to restore draft:', error)
+        // Load any saved draft (only on first load)
+        if (!draftAlreadyRestored) {
+          const draftKey = 'submission_draft'
+          const savedDraft = localStorage.getItem(draftKey)
+          if (savedDraft) {
+            try {
+              const draft = JSON.parse(savedDraft)
+              
+              // Populate form with saved data, but override Discord username
+              Object.keys(draft).forEach(key => {
+                if (key !== 'discord_handle') { // Don't override Discord username
+                  setValue(key, draft[key])
+                }
+              })
+              
+              toast.success('Draft restored!', { duration: 2000 })
+              setDraftAlreadyRestored(true)
+            } catch (error) {
+              console.error('Failed to restore draft:', error)
+            }
+          } else {
+            setDraftAlreadyRestored(true)
           }
         }
         
@@ -121,6 +127,7 @@ export default function SubmissionPage() {
   const clearDraft = () => {
     localStorage.removeItem('submission_draft')
     reset()
+    setDraftAlreadyRestored(true) // Prevent toast on next effect run
     // Re-populate Discord username
     if (authState.discordUser) {
       setValue('discord_handle', authState.discordUser.username)
@@ -309,18 +316,7 @@ export default function SubmissionPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           {submission && (
-            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-4">
-              {submission.discord_avatar && submission.discord_id ? (
-                <img
-                  src={`https://cdn.discordapp.com/avatars/${submission.discord_id}/${submission.discord_avatar}.png`}
-                  alt="Discord avatar"
-                  className="h-10 w-10 rounded-full object-cover border border-gray-300 dark:border-gray-700"
-                />
-              ) : (
-                <span className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                  <User className="h-6 w-6 text-gray-400" />
-                </span>
-              )}
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {submission.project_name}
               </h1>
@@ -368,7 +364,7 @@ export default function SubmissionPage() {
                 <div className="flex items-center">
                   <span className="text-blue-600 dark:text-blue-400 text-xl mr-2">📝</span>
                   <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                    Use JSON to save/load your draft offline.
+                    Save/Load template for faster form filling.
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -400,9 +396,6 @@ export default function SubmissionPage() {
                     Clear Draft
                   </Button>
                 </div>
-              </div>
-              <div className="text-xs text-gray-500 mt-1 mb-4">
-                <strong>Instructions:</strong> For <code>category</code>, pick one of: <code>DeFi</code>, <code>AI/Agents</code>, <code>Gaming</code>, <code>Infrastructure</code>, <code>Social</code>, <code>Other</code>. For <code>project_image</code>, leave blank if not uploaded, or use the image URL after uploading.
               </div>
             </>
           )}
