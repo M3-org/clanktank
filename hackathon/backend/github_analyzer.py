@@ -324,7 +324,8 @@ class GitHubAnalyzer:
             return self._get_heuristic_fallback(repo_analysis)
         
         BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-        MODEL = "openrouter/cypher-alpha:free"
+        AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "moonshotai/kimi-k2:free")
+        MODEL = AI_MODEL_NAME
         
         # Calculate token budget
         total_bytes = sum(f["bytes"] for f in manifest)
@@ -348,17 +349,17 @@ Remaining budget: {token_budget} tokens.
 3. Output strict JSON with keys: `include_patterns`, `exclude_patterns`, `core_code_max`, `other_file_max`, `rationale`.
 4. Rationale should be ≤120 words, bullet format, ranked by impact.
 
-### FILE_MANIFEST (showing first 400 entries by relevance)
-{json.dumps(manifest[:400], indent=2)}
+### FILE_MANIFEST (showing first 50 high-relevance entries)
+{json.dumps([f for f in manifest[:100] if f.get('relevance') in ['high', 'medium-high']][:50], indent=2)}
 
 ### DEPENDENCY_INFO
-{json.dumps(deps_info, indent=2)}
+{json.dumps({k: v for k, v in deps_info.items() if k in ['package_managers', 'primary_language', 'frameworks']}, indent=2)}
 
 ### LOC_HISTOGRAM
 {json.dumps(loc_histogram, indent=2)}
 
 ### REPO_STATS
-{json.dumps(repo_analysis, indent=2)}
+{json.dumps({k: v for k, v in repo_analysis.items() if k in ['total_files', 'total_bytes', 'primary_language']}, indent=2)}
 
 Output only valid JSON."""
 
@@ -371,6 +372,11 @@ Output only valid JSON."""
             "temperature": 0.2,
             "max_tokens": 800,
         }
+        
+        # Debug logging for payload size
+        payload_size = len(json.dumps(payload))
+        logger.info(f"GitIngest agentic recommendation payload size: {payload_size:,} chars (~{payload_size//4:,} tokens)")
+        logger.info(f"Using model: {MODEL} for agentic recommendation")
         
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -441,12 +447,34 @@ Output only valid JSON."""
     def _get_heuristic_fallback(self, repo_analysis):
         """Fallback heuristic config when LLM fails."""
         base_settings = self.get_gitingest_settings(repo_analysis)
+        
+        # Get comprehensive exclusion patterns for media and binary files
+        exclude_patterns = base_settings.get("exclude_patterns", [])
+        exclude_patterns.extend([
+            # Media files (images, videos, audio)
+            "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg", "**/*.webp",
+            "**/*.mp4", "**/*.avi", "**/*.mov", "**/*.wmv", "**/*.flv", "**/*.webm",
+            "**/*.mp3", "**/*.wav", "**/*.flac", "**/*.aac", "**/*.ogg",
+            # 3D models and assets
+            "**/*.glb", "**/*.gltf", "**/*.obj", "**/*.fbx", "**/*.dae",
+            # Archives and binaries
+            "**/*.zip", "**/*.rar", "**/*.tar", "**/*.gz", "**/*.7z",
+            "**/*.exe", "**/*.bin", "**/*.dll", "**/*.so", "**/*.dylib",
+            # Build outputs and caches
+            "node_modules/**", "build/**", "dist/**", ".next/**", 
+            "__pycache__/**", ".git/**", ".cache/**", "*.log", "*.tmp",
+            # Large data files
+            "**/*.db", "**/*.sqlite", "**/*.sqlite3", "**/*.csv",
+            # Documentation images (often large)
+            "**/docs/**/*.png", "**/docs/**/*.jpg", "**/assets/**/*.png", "**/assets/**/*.jpg"
+        ])
+        
         return {
-            "include_patterns": base_settings.get("include_patterns", ["**/*.md", "**/*.py", "**/*.js", "**/*.ts"]),
-            "exclude_patterns": base_settings.get("exclude_patterns", ["node_modules/**", "*.log", "*.tmp"]),
-            "core_code_max": 150000,  # 150KB for core code
-            "other_file_max": 50000,   # 50KB for other files
-            "rationale": "• Heuristic fallback used due to LLM failure • Focus on source code and docs • Exclude build artifacts and logs"
+            "include_patterns": ["**/*.md", "**/*.py", "**/*.js", "**/*.ts", "**/*.json"],  # Focus on key files only
+            "exclude_patterns": exclude_patterns,
+            "core_code_max": 2000,    # 2K tokens for core code (~8KB text)
+            "other_file_max": 1000,   # 1K tokens for other files (~4KB text)
+            "rationale": "• Ultra-conservative token limits to prevent 413 errors • Focus only on essential documentation and source code • Exclude all media and large files"
         }
 
 
@@ -534,14 +562,14 @@ Output only valid JSON."""
         return summary
 
     def run_gitingest_secure(self, repo_url, output_path=None, settings=None):
-        """Secure GitIngest using Python library instead of subprocess."""
+        """Secure GitIngest using Python library - matches original implementation."""
         # Validate GitHub URL to prevent SSRF
         if not self._validate_github_url(repo_url):
             logger.error(f"Invalid GitHub URL rejected: {repo_url}")
             return None
         
         try:
-            # Use GitIngest Python library instead of subprocess
+            # Use GitIngest Python library (original simple approach)
             from gitingest import ingest
             
             # Get GitHub token for private repos
@@ -549,22 +577,78 @@ Output only valid JSON."""
             
             logger.info(f"Running GitIngest (Python library) for {repo_url}")
             
-            # Note: Python library may not support all CLI settings
-            # For now, use default behavior - settings can be enhanced later
+            # Log settings for debugging but let GitIngest handle filtering internally
             if settings and settings.get("rationale"):
                 logger.info(f"GitIngest rationale: {settings['rationale']}")
             
+            # Use GitIngest's built-in intelligence (as in original implementation)
             summary, tree, content = ingest(repo_url, token=github_token)
+            
+            # Post-process to ensure reasonable size for AI research (dynamic scaling)
+            # Based on original implementation: small repos (~13k tokens), large repos (~144k tokens)
+            
+            # Get repository analysis from GitHub data
+            owner, repo = self.extract_repo_info(repo_url)
+            if owner and repo:
+                try:
+                    repo_data = self.get_repo_data(owner, repo)
+                    file_structure = self.get_file_structure(owner, repo)
+                    total_files = file_structure.get("total_files", 0)
+                    is_large_repo = file_structure.get("is_large_repo", False)
+                except:
+                    total_files = 0
+                    is_large_repo = False
+            else:
+                total_files = 0
+                is_large_repo = False
+            
+            # Dynamic token limits based on repository characteristics
+            if total_files > 1000:
+                max_chars = 800000  # ~170k tokens for very large repos
+                reason = f"very large repo ({total_files} files)"
+            elif is_large_repo or total_files > 500:
+                max_chars = 700000  # ~150k tokens for large repos
+                reason = f"large repo ({total_files} files)"
+            elif total_files > 100:
+                max_chars = 400000  # ~85k tokens for medium repos
+                reason = f"medium repo ({total_files} files)"
+            else:
+                max_chars = 300000  # ~64k tokens for small repos
+                reason = f"small repo ({total_files} files)"
+            
+            logger.info(f"Using dynamic token limit: {max_chars:,} chars for {reason}")
+            
+            # Calculate actual token count for better metrics
+            try:
+                import tiktoken
+                enc = tiktoken.get_encoding('cl100k_base')
+                original_tokens = len(enc.encode(content))
+                logger.info(f"Original GitIngest output: {len(content):,} chars, {original_tokens:,} tokens")
+                
+                if len(content) > max_chars:
+                    logger.info(f"Truncating GitIngest output: {len(content):,} chars -> {max_chars:,} chars")
+                    content = content[:max_chars] + "\n\n[Content truncated due to size limits for AI analysis]"
+                    final_tokens = len(enc.encode(content))
+                    logger.info(f"Final GitIngest output: {len(content):,} chars, {final_tokens:,} tokens")
+                else:
+                    logger.info(f"No truncation needed - within {max_chars:,} char limit")
+                    
+            except ImportError:
+                logger.warning("tiktoken not available - using character count estimation")
+                if len(content) > max_chars:
+                    logger.info(f"Truncating GitIngest output: {len(content):,} chars -> {max_chars:,} chars")
+                    content = content[:max_chars] + "\n\n[Content truncated due to size limits for AI analysis]"
             
             # Save to output file if specified
             if output_path:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 with open(output_path, 'w', encoding='utf-8') as f:
                     f.write(content)
-                logger.info(f"GitIngest completed: {output_path}")
+                logger.info(f"GitIngest saved to: {output_path}")
                 return output_path
             else:
                 # Return content directly if no output path specified
+                logger.info(f"GitIngest completed successfully")
                 return content
                 
         except Exception as e:

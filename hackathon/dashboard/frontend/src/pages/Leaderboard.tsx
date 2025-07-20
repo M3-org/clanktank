@@ -79,9 +79,6 @@ export default function Leaderboard() {
               <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Ranked by AI judges · Powered by your votes
-          </p>
         </div>
 
         {/* Prize Pool */}

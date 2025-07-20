@@ -44,7 +44,9 @@ RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv("RESEARCH_CACHE_EXPIRY_HOURS", "24")
 
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "perplexity/sonar-reasoning-pro:online"
+AI_MODEL_PROVIDER = os.getenv("AI_MODEL_PROVIDER", "openrouter")
+AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3.5-sonnet")
+MODEL = AI_MODEL_NAME
 
 # Import versioned schema helpers
 try:
@@ -130,17 +132,18 @@ class HackathonResearcher:
         self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
     ) -> str:
         """Build comprehensive research prompt for AI analysis."""
-        # Load GitIngest output if available
+        # Load GitIngest output if available - let prompt handle any reduction
         gitingest_content = ""
         if gitingest_path and os.path.exists(gitingest_path):
             try:
                 with open(gitingest_path, 'r', encoding='utf-8') as f:
                     gitingest_content = f.read()
+                logger.info(f"Loaded GitIngest content: {len(gitingest_content):,} chars for AI research")
             except Exception as e:
                 logger.warning(f"Could not read GitIngest output {gitingest_path}: {e}")
                 gitingest_content = f"Error reading GitIngest output: {e}"
         
-        # Use centralized prompt
+        # Use centralized prompt (handles any necessary content reduction)
         from hackathon.prompts.research_prompts import create_research_prompt
         return create_research_prompt(project_data, github_analysis, gitingest_content)
 
@@ -162,6 +165,11 @@ class HackathonResearcher:
             "temperature": 0.3,
             "max_tokens": 4000,
         }
+        
+        # Debug logging for payload size
+        payload_size = len(json.dumps(payload))
+        logger.info(f"OpenRouter payload size: {payload_size:,} chars (~{payload_size//4:,} tokens)")
+        logger.info(f"Using model: {MODEL}")
 
         try:
             logger.info(f"Conducting AI research for {project_data['project_name']}")
@@ -316,7 +324,7 @@ class HackathonResearcher:
 
         # Extract Market Analysis section for dedicated column
         ai_research = research_data.get("ai_research", {})
-        market_research_section = ai_research.get("Market Analysis", {})
+        market_research_section = ai_research.get("market_analysis", {})
         market_research = json.dumps(market_research_section)
         technical_assessment = json.dumps(ai_research)
         github_analysis = json.dumps(research_data.get("github_analysis", {}))

@@ -7,7 +7,6 @@ import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { DiscordAvatar } from '../components/DiscordAvatar'
 // Lazy load modal components to reduce initial bundle
-const VoteModal = lazy(() => import('../components/VoteModal').then(module => ({ default: module.VoteModal })))
 const SubmissionModal = lazy(() => import('../components/SubmissionModal').then(module => ({ default: module.SubmissionModal })))
 import { 
   RefreshCw, 
@@ -36,7 +35,6 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'list')
   const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at' | 'discord_username'>((searchParams.get('sort') as any) || 'avg_score')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>((searchParams.get('dir') as 'asc' | 'desc') || 'desc')
-  const [selectedSubmission, setSelectedSubmission] = useState<SubmissionSummary | null>(null)
   const [viewingSubmissionId, setViewingSubmissionId] = useState<number | null>(
     searchParams.get('submission') ? parseInt(searchParams.get('submission')!) : null
   )
@@ -305,7 +303,7 @@ export default function Dashboard() {
                     </div>
                   </th>
                   <th className="relative px-3 sm:px-6 py-3">
-                    <span className="sr-only">Vote</span>
+                    <span className="sr-only">View</span>
                   </th>
                 </tr>
               </thead>
@@ -372,12 +370,12 @@ export default function Dashboard() {
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
                       <Button
-                        onClick={() => setSelectedSubmission(submission)}
+                        onClick={() => handleViewSubmission(submission.submission_id)}
                         size="sm"
                         className="bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white text-xs sm:text-sm px-2 sm:px-3"
                       >
-                        <span className="sm:hidden">V</span>
-                        <span className="hidden sm:inline">Vote</span>
+                        <span className="sm:hidden">View</span>
+                        <span className="hidden sm:inline">View</span>
                       </Button>
                     </td>
                   </tr>
@@ -486,20 +484,6 @@ export default function Dashboard() {
             </Card>
           ))}
         </div>
-      )}
-
-      {/* Vote Modal */}
-      {selectedSubmission && (
-        <Suspense fallback={
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          </div>
-        }>
-          <VoteModal
-            submission={selectedSubmission}
-            onClose={() => setSelectedSubmission(null)}
-          />
-        </Suspense>
       )}
 
       {/* Submission Detail Modal */}

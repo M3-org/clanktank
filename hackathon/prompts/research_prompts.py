@@ -5,6 +5,57 @@ Contains prompts for AI-powered research and evaluation.
 
 import json
 
+def _reduce_github_analysis_for_prompt(github_analysis):
+    """Reduce GitHub analysis data for prompt to prevent 413 payload errors."""
+    # Create a streamlined version with key data but without massive file lists
+    reduced = {
+        "url": github_analysis.get("url"),
+        "owner": github_analysis.get("owner"),
+        "name": github_analysis.get("name"),
+        "description": github_analysis.get("description"),
+        "created_at": github_analysis.get("created_at"),
+        "updated_at": github_analysis.get("updated_at"),
+        "license": github_analysis.get("license"),
+        "readme_analysis": github_analysis.get("readme_analysis"),
+        "commit_activity": github_analysis.get("commit_activity"),
+    }
+    
+    # Include file structure summary but limit file lists
+    file_structure = github_analysis.get("file_structure", {})
+    reduced["file_structure"] = {
+        "total_files": file_structure.get("total_files"),
+        "file_extensions": file_structure.get("file_extensions"),
+        "config_files": file_structure.get("config_files", []),
+        "is_large_repo": file_structure.get("is_large_repo"),
+        "is_mono_repo": file_structure.get("is_mono_repo"),
+        "has_docs": file_structure.get("has_docs"),
+        "has_tests": file_structure.get("has_tests"),
+        # Truncate the massive files array
+        "sample_files": file_structure.get("files", [])[:20]  # Only first 20 files
+    }
+    
+    # Include file manifest summary but limit entries
+    file_manifest = github_analysis.get("file_manifest", [])
+    reduced["file_manifest_summary"] = {
+        "total_files": len(file_manifest),
+        "high_relevance": len([f for f in file_manifest if f.get("relevance") == "high"]),
+        "medium_relevance": len([f for f in file_manifest if f.get("relevance") == "medium"]),
+        "low_relevance": len([f for f in file_manifest if f.get("relevance") == "low"]),
+        "sample_high_relevance": [f for f in file_manifest if f.get("relevance") == "high"][:10],
+        "sample_config_files": [f for f in file_manifest if f.get("path").split("/")[-1].lower() in 
+                               ["package.json", "requirements.txt", "cargo.toml", "go.mod", "readme.md"]][:5]
+    }
+    
+    # Include other important analysis data
+    if "loc_histogram" in github_analysis:
+        reduced["loc_histogram"] = github_analysis["loc_histogram"]
+    if "token_budget" in github_analysis:
+        reduced["token_budget"] = github_analysis["token_budget"]
+    if "total_bytes" in github_analysis:
+        reduced["total_bytes"] = github_analysis["total_bytes"]
+    
+    return reduced
+
 def create_research_prompt(project_data, github_analysis, gitingest_content=""):
     """Build comprehensive research prompt for AI analysis."""
     
@@ -40,9 +91,9 @@ def create_research_prompt(project_data, github_analysis, gitingest_content=""):
 {chr(10).join(f"• {flag}" for flag in penalty_flags)}
 """
     
-    # Truncate GitIngest content if too long
-    if gitingest_content and len(gitingest_content) > 20000:  # ~15k tokens
-        gitingest_content = gitingest_content[:20000] + "\n... [content truncated for length]"
+    # Truncate GitIngest content for OpenRouter API limits (more restrictive than direct Claude)
+    if gitingest_content and len(gitingest_content) > 300000:  # ~75k tokens for OpenRouter compatibility
+        gitingest_content = gitingest_content[:300000] + "\n... [content truncated for OpenRouter API limits]"
     
     return f"""
 You are a meticulous and fair hackathon judge. Your goal is to analyze this submission for originality, effort, and potential. Use the provided data to form a comprehensive evaluation.
@@ -60,7 +111,7 @@ Pretend you must defend your score in front of a panel of senior engineers tryin
 {penalty_section}
 **Automated GitHub Analysis:**
 ```json
-{json.dumps(github_analysis, indent=2)}
+{json.dumps(_reduce_github_analysis_for_prompt(github_analysis), indent=2)}
 ```
 
 **Repository Code Context (GitIngest):**

@@ -1,8 +1,6 @@
 import React from 'react';
-import { Upload, Users, PlayCircle, FlaskConical, Sparkles, BarChart3, Plus } from 'lucide-react';
+import { Upload, Users, PlayCircle, FlaskConical } from 'lucide-react';
 import { CountdownTimer } from '../components/CountdownTimer';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { PrizePool } from '../components/PrizePool';
 
 const howItWorks = [
@@ -65,8 +63,6 @@ const faqs = [
 ];
 
 export default function Frontpage() {
-  const { authState } = useAuth()
-  const navigate = useNavigate()
 
   // Hardcoded video data for all 8 episodes
   const latestEpisodes = [
