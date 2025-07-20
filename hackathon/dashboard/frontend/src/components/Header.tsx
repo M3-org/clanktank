@@ -69,7 +69,7 @@ export default function Header() {
                   src="/clanktank_white.png" 
                   alt="Clank Tank Logo" 
                   className="relative z-10 h-full w-auto max-w-[6rem] drop-shadow-lg mx-auto"
-                  fetchPriority="high"
+                  {...({ fetchpriority: "high" } as any)}
                   width="96"
                   height="48"
                 />
