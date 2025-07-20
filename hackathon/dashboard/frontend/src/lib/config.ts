@@ -1,8 +1,14 @@
-// Dead-simple singleton cache for configuration
-export const configPromise = fetch('/api/config').then(r => {
-  if (!r.ok) throw new Error(`Config fetch failed: ${r.status}`);
-  return r.json();
-});
+import { hackathonApi } from './api'
+
+// Cache config data globally with proper axios caching  
+let configPromise: Promise<any> | null = null
+
+export function getConfigPromise() {
+  if (!configPromise) {
+    configPromise = hackathonApi.getConfig()
+  }
+  return configPromise
+}
 
 interface ConfigData {
   submission_deadline: string | null;
@@ -20,7 +26,7 @@ interface DeadlineConfig {
 // Use anywhere without providers
 export async function getDeadlineConfig(): Promise<DeadlineConfig> {
   try {
-    const config: ConfigData = await configPromise;
+    const config: ConfigData = await getConfigPromise();
     
     // Calculate server epoch once for monotonic time
     const serverTime = new Date(config.current_time).getTime();

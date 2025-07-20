@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionDetail as SubmissionDetailType } from '../types'
 import { formatDate } from '../lib/utils'
@@ -40,7 +40,13 @@ function truncateSolanaAddress(address: string) {
 
 export default function SubmissionDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { authState } = useAuth()
+  
+  // Check if displayed in modal
+  const isModal = searchParams.get('modal') === 'true'
   const [submission, setSubmission] = useState<SubmissionDetailType | null>(null)
   const [, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -49,56 +55,69 @@ export default function SubmissionDetail() {
   // Check if user is authenticated
   const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
 
+  // Handle back navigation
+  const handleBack = () => {
+    // If the user came from the dashboard (has state or referrer), go back
+    if (location.state?.from === 'dashboard' || document.referrer.includes('/dashboard')) {
+      navigate(-1)
+    } else {
+      // Otherwise go to dashboard
+      navigate('/dashboard')
+    }
+  }
+
   useEffect(() => {
     if (id) {
-      loadSubmission()
-      loadFeedback()
-      loadDiscordData()
+      // Load all data in parallel to avoid blocking the UI
+      loadAllData()
     }
   }, [id])
 
-  const loadSubmission = async () => {
+  const loadAllData = async () => {
     if (!id) return
     
     try {
-      const data = await hackathonApi.getSubmission(id)
-      setSubmission(data)
+      // Make all API calls in parallel instead of sequential
+      const [submissionData, feedbackData, discordDataResult] = await Promise.allSettled([
+        hackathonApi.getSubmission(id),
+        hackathonApi.getSubmissionFeedback(id),
+        loadDiscordDataAsync()
+      ])
+      
+      // Handle submission data
+      if (submissionData.status === 'fulfilled') {
+        setSubmission(submissionData.value)
+      } else {
+        console.error('Failed to load submission:', submissionData.reason)
+      }
+      
+      // Handle feedback data
+      if (feedbackData.status === 'fulfilled' && feedbackData.value) {
+        setFeedback(feedbackData.value)
+      }
+      
+      // Handle discord data
+      if (discordDataResult.status === 'fulfilled') {
+        setDiscordData(discordDataResult.value)
+      }
+      
     } catch (error) {
-      console.error('Failed to load submission:', error)
+      console.error('Failed to load data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const loadFeedback = async () => {
-    if (!id) return
+  const loadDiscordDataAsync = async () => {
+    if (!id) return null
     
     try {
-      const response = await fetch(`/api/submission/${id}/feedback`)
-      if (response.ok) {
-        const data = await response.json()
-        setFeedback(data)
-      }
-    } catch (error) {
-      console.error('Failed to load feedback:', error)
-    }
-  }
-
-  const loadDiscordData = async () => {
-    if (!id) return
-    
-    try {
-      // Get Discord data from submissions list API
-      const submissions = await hackathonApi.getSubmissions()
-      const submissionWithDiscord = submissions.find(s => s.submission_id === parseInt(id || '0'))
-      if (submissionWithDiscord) {
-        setDiscordData({
-          discord_id: submissionWithDiscord.discord_id,
-          discord_avatar: submissionWithDiscord.discord_avatar
-        })
-      }
+      // Only get Discord data from cache or skip it
+      // The submission detail already contains user info
+      return null
     } catch (error) {
       console.error('Failed to load Discord data:', error)
+      return null
     }
   }
 
@@ -119,12 +138,12 @@ export default function SubmissionDetail() {
               <Code className="h-8 w-8 text-gray-400" />
             </div>
             <p className="text-gray-500 mb-6">Submission not found</p>
-            <Link to="/dashboard">
-              <Button variant="secondary" size="sm">
+            {!isModal && (
+              <Button variant="secondary" size="sm" onClick={handleBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
-            </Link>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -196,24 +215,24 @@ export default function SubmissionDetail() {
       </div>
 
       {/* The rest of the page content follows here, in normal flow */}
-      {/* Action Buttons */}
-      <div className="flex justify-between items-center mb-6 px-4 sm:px-6 lg:px-8">
-        <Link to="/dashboard">
-          <Button variant="ghost" size="sm" className="dark:text-gray-200 dark:hover:text-white">
+      {/* Action Buttons - Hide back button in modal */}
+      {!isModal && (
+        <div className="flex justify-between items-center mb-6 px-4 sm:px-6 lg:px-8">
+          <Button variant="ghost" size="sm" className="dark:text-gray-200 dark:hover:text-white" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
-        </Link>
         
-        {submission?.can_edit && isAuthenticated && (
-          <Link to={`/submission/${id}/edit`}>
-            <Button variant="secondary" size="sm">
-              <Edit3 className="h-4 w-4 mr-2" />
-              Edit Submission
-            </Button>
-          </Link>
-        )}
-      </div>
+          {submission?.can_edit && isAuthenticated && (
+            <Link to={`/submission/${id}/edit`}>
+              <Button variant="secondary" size="sm">
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Submission
+              </Button>
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
         {/* Main Content */}
@@ -593,7 +612,7 @@ export default function SubmissionDetail() {
               </h3>
             </CardHeader>
             <CardContent>
-              <LikeDislike submissionId={submission.submission_id.toString()} />
+              {!isModal && <LikeDislike submissionId={submission.submission_id.toString()} />}
             </CardContent>
           </Card>
         </div>
