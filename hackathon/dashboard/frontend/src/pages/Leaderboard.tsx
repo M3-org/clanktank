@@ -4,6 +4,7 @@ import { LeaderboardEntry } from '../types'
 import { Trophy, RefreshCw } from 'lucide-react'
 import { LeaderboardCard } from '../components/LeaderboardCard'
 import { VoteModal } from '../components/VoteModal'
+import { PrizePool } from '../components/PrizePool'
 
 
 export default function Leaderboard() {
@@ -81,6 +82,11 @@ export default function Leaderboard() {
           <p className="text-lg text-gray-600 dark:text-gray-400">
             Ranked by AI judges · Powered by your votes
           </p>
+        </div>
+
+        {/* Prize Pool */}
+        <div className="mb-8">
+          <PrizePool goal={10} variant="banner" />
         </div>
 
         {/* Leaderboard */}

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from './Button'
 import { DiscordAvatar } from './DiscordAvatar'
-import { LogOut, ChevronDown, Plus } from 'lucide-react'
+import { LogOut, ChevronDown, Plus, Menu, X } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { CountdownTimer } from './CountdownTimer'
 
@@ -12,6 +12,7 @@ export default function Header() {
   const navigate = useNavigate()
   const location = useLocation()
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -24,6 +25,11 @@ export default function Header() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
   const handleLogout = () => {
     logout()
@@ -109,6 +115,21 @@ export default function Header() {
             </button>
           </nav>
 
+          {/* Mobile menu button */}
+          <div className="flex items-center md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+              aria-expanded="false"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="h-6 w-6" aria-hidden="true" />
+              )}
+            </button>
+          </div>
+
           {/* Auth Section */}
           <div className="flex items-center space-x-4">
             {authState.isAuthenticated ? (
@@ -159,36 +180,38 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200 dark:border-gray-700">
-        <div className="px-4 py-3 space-y-1">
-          <button
-            onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
-            className={`flex items-center gap-2 w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-              location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
-            }`}
-          >
-            <Plus className="h-4 w-4" />
-            Submit
-          </button>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-              location.pathname === '/dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
-            }`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => navigate('/leaderboard')}
-            className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-              location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
-            }`}
-          >
-            Leaderboard
-          </button>
+      {/* Mobile Navigation - Only show when menu is open */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="px-4 py-3 space-y-1">
+            <button
+              onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
+              className={`flex items-center gap-2 w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
+              }`}
+            >
+              <Plus className="h-4 w-4" />
+              Submit
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                location.pathname === '/dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
+              }`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
+              }`}
+            >
+              Leaderboard
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   )
 } 
