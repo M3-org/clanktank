@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
@@ -6,8 +6,9 @@ import { Card, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
 import { DiscordAvatar } from '../components/DiscordAvatar'
-import { VoteModal } from '../components/VoteModal'
-import { SubmissionModal } from '../components/SubmissionModal'
+// Lazy load modal components to reduce initial bundle
+const VoteModal = lazy(() => import('../components/VoteModal').then(module => ({ default: module.VoteModal })))
+const SubmissionModal = lazy(() => import('../components/SubmissionModal').then(module => ({ default: module.SubmissionModal })))
 import { 
   RefreshCw, 
   Trophy, 
@@ -489,20 +490,32 @@ export default function Dashboard() {
 
       {/* Vote Modal */}
       {selectedSubmission && (
-        <VoteModal
-          submission={selectedSubmission}
-          onClose={() => setSelectedSubmission(null)}
-        />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        }>
+          <VoteModal
+            submission={selectedSubmission}
+            onClose={() => setSelectedSubmission(null)}
+          />
+        </Suspense>
       )}
 
       {/* Submission Detail Modal */}
       {viewingSubmissionId && (
-        <SubmissionModal
-          submissionId={viewingSubmissionId}
-          onClose={handleCloseModal}
-          onNavigate={handleNavigateSubmission}
-          allSubmissionIds={sortedSubmissions.map(s => s.submission_id)}
-        />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        }>
+          <SubmissionModal
+            submissionId={viewingSubmissionId}
+            onClose={handleCloseModal}
+            onNavigate={handleNavigateSubmission}
+            allSubmissionIds={sortedSubmissions.map(s => s.submission_id)}
+          />
+        </Suspense>
       )}
     </div>
   )

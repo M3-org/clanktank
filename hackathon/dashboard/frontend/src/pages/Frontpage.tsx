@@ -171,9 +171,9 @@ export default function Frontpage() {
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center text-center px-4 w-full">
           <div className="relative inline-block">
-            {/* Left gear - proportionally scaled */}
+            {/* Left gear - adjusted for smaller logo */}
             <svg
-              className="absolute left-3 top-1/4 -translate-x-1/2 -translate-y-1/3 h-20 md:h-20 w-30 md:w-30 opacity-90 animate-spin-slow z-0 text-gray-300"
+              className="absolute -left-8 -top-2 -translate-x-1/3 -translate-y-1/2 h-16 md:h-20 w-16 md:w-20 opacity-90 animate-spin-slow z-0 text-gray-300"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -186,11 +186,11 @@ export default function Frontpage() {
             </svg>
             
             {/* Main logo */}
-            <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-30 md:h-80 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
+            <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-20 md:h-32 w-auto mx-auto mb-2 drop-shadow-lg" style={{ maxWidth: '90vw' }} />
             
-            {/* Right gear - proportionally scaled */}
+            {/* Right gear - adjusted for smaller logo */}
             <svg
-              className="absolute right-4 top-1/4 translate-x-1/2 -translate-y-1/2 h-40 md:h-40 w-32 md:w-32 opacity-90 animate-spin-slow z-0 text-gray-300"
+              className="absolute -right-8 top-1/4 translate-x-1/2 -translate-y-1/3 h-16 md:h-20 w-16 md:w-20 opacity-90 animate-spin-slow z-0 text-gray-300"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -366,7 +366,14 @@ export default function Frontpage() {
           <div className="flex flex-wrap justify-center gap-8">
             {judges.map(j => (
               <div key={j.name} className="flex flex-col items-center">
-                <img src={j.avatar} alt={j.name} className="h-28 w-28 rounded-full border border-gray-200 dark:border-gray-700 mb-2 bg-white dark:bg-gray-900 object-cover" />
+                <img 
+                  src={j.avatar} 
+                  alt={j.name} 
+                  className="h-28 w-28 rounded-full border border-gray-200 dark:border-gray-700 mb-2 bg-white dark:bg-gray-900 object-cover"
+                  width="112"
+                  height="112"
+                  loading="lazy"
+                />
                 <span className="font-bold text-xl text-gray-800 dark:text-gray-100 mt-1">{j.name}</span>
                 <span className="text-xs text-indigo-600 dark:text-indigo-300 mt-1" style={{ height: 32 }}>{j.tag}</span>
               </div>

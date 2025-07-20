@@ -50,9 +50,9 @@ export default function Header() {
               className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors h-12 md:h-14"
               style={{ alignItems: 'center' }}
             >
-              <span className="relative inline-block h-10 md:h-12 w-10 md:w-12 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
+              <span className="relative inline-block h-10 md:h-12 w-6 md:w-8 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
                 <svg
-                  className="absolute left-14 -translate-x-1/3 -translate-y-2 h-1/3 w-1/3 opacity-60 animate-spin-slow z-0 top-[8px]"
+                  className="absolute left-10 -translate-x-1/3 -translate-y-1 h-8 w-8 opacity-60 animate-spin-slow z-0 top-[-1px]"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -64,12 +64,19 @@ export default function Header() {
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
                 </svg>
               </span>
-              <span className="relative inline-block h-10 md:h-12 w-10 md:w-12 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
-                <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-full w-auto max-w-[6rem] drop-shadow-lg mx-auto" />
+              <span className="relative inline-block h-10 md:h-12 w-24 md:w-28 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
+                <img 
+                  src="/clanktank_white.png" 
+                  alt="Clank Tank Logo" 
+                  className="relative z-10 h-full w-auto max-w-[6rem] drop-shadow-lg mx-auto"
+                  fetchPriority="high"
+                  width="96"
+                  height="48"
+                />
               </span>
-              <span className="relative inline-block h-10 md:h-12 w-10 md:w-12 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
+              <span className="relative inline-block h-10 md:h-12 w-6 md:w-8 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
                 <svg
-                  className="absolute -translate-x-1/2 -translate-y-16 h-2/3 w-1/2 opacity-60 animate-spin-slow z-0 top-[10px]"
+                  className="absolute right-8 -translate-x-full -translate-y-4 h-8 w-8 opacity-60 animate-spin-slow z-0 top-[12px]"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"

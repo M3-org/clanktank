@@ -307,6 +307,9 @@ export default function SubmissionDetail() {
                               alt={judgeName + ' avatar'}
                               className="h-8 w-8 rounded-full border border-gray-200 dark:border-gray-700 object-cover bg-white dark:bg-gray-800"
                               style={{ minWidth: 32, minHeight: 32 }}
+                              width="32"
+                              height="32"
+                              loading="lazy"
                             />
                             <div>
                               <h4 className="font-medium text-gray-900 dark:text-gray-100 capitalize">
