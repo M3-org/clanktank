@@ -18,7 +18,8 @@ import {
   LayoutGrid,
   LayoutList,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Search
 } from 'lucide-react'
 import { StatusBadge } from '../components/Badge'
 
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   
   // Initialize state from URL parameters
+  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '')
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '')
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || '')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'list')
@@ -134,11 +136,31 @@ export default function Dashboard() {
     updateSearchParams({ submission: newSubmissionId.toString() })
   }
 
-  // Memoize sorted submissions to avoid unnecessary re-sorting
+  // Get unique categories for filter dropdown
+  const uniqueCategories = useMemo(() => {
+    const categories = [...new Set(submissions.map(s => s.category).filter(Boolean))]
+    return categories.sort()
+  }, [submissions])
+
+  // Memoize filtered and sorted submissions
   const sortedSubmissions = useMemo(() => {
     if (submissions.length === 0) return []
     
-    return submissions.slice().sort((a, b) => {
+    // Apply search and filters first
+    let filtered = submissions
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(submission => 
+        submission.project_name?.toLowerCase().includes(searchLower) ||
+        submission.team_name?.toLowerCase().includes(searchLower) ||
+        submission.description?.toLowerCase().includes(searchLower) ||
+        submission.discord_username?.toLowerCase().includes(searchLower) ||
+        submission.discord_handle?.toLowerCase().includes(searchLower)
+      )
+    }
+    
+    return filtered.slice().sort((a, b) => {
       let aVal: any, bVal: any
       
       // Pre-compute values instead of doing it in comparison
@@ -164,7 +186,7 @@ export default function Dashboard() {
       if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  }, [submissions, sortField, sortDirection])
+  }, [submissions, searchTerm, sortField, sortDirection])
 
   if (loading) {
     return (
@@ -184,6 +206,23 @@ export default function Dashboard() {
       <Card className="mb-4 sm:mb-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <CardContent className="p-3 sm:p-6">
           <div className="flex flex-wrap gap-2 sm:gap-4 items-center">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search projects, teams, descriptions..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    updateSearchParams({ search: e.target.value || null })
+                  }}
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Filters:</span>
@@ -261,44 +300,74 @@ export default function Dashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('discord_username')}>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('discord_username')}
+                    title="Click to sort by submitter"
+                  >
                     <div className="flex items-center gap-1">
                       <span className="hidden sm:inline">Submitter</span>
                       <span className="sm:hidden">User</span>
-                      {sortField === 'discord_username' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      {sortField === 'discord_username' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
                       )}
                     </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('project_name')}>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('project_name')}
+                    title="Click to sort by project name"
+                  >
                     <div className="flex items-center gap-1">
                       Project
-                      {sortField === 'project_name' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      {sortField === 'project_name' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
                       )}
                     </div>
                   </th>
-                  <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('category')}>
+                  <th 
+                    className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('category')}
+                    title="Click to sort by category"
+                  >
                     <div className="flex items-center gap-1">
                       Category
-                      {sortField === 'category' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      {sortField === 'category' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
                       )}
                     </div>
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('status')}>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('status')}
+                    title="Click to sort by status"
+                  >
                     <div className="flex items-center gap-1">
                       Status
-                      {sortField === 'status' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      {sortField === 'status' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
                       )}
                     </div>
                   </th>
-                  <th className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" onClick={() => handleSort('avg_score')}>
+                  <th 
+                    className="hidden sm:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('avg_score')}
+                    title="Click to sort by score"
+                  >
                     <div className="flex items-center gap-1">
                       Score
-                      {sortField === 'avg_score' && (
-                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                      {sortField === 'avg_score' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
                       )}
                     </div>
                   </th>
