@@ -41,7 +41,7 @@ export default function Header() {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center h-16">
           
           {/* Logo/Brand */}
           <div className="flex items-center">
@@ -91,98 +91,104 @@ export default function Header() {
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <button
-              onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
-              className={`flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
-              }`}
-            >
-              Submit
-              <CountdownTimer variant="compact" showLabel={false} />
-            </button>
+          {/* Spacer to push navigation right */}
+          <div className="flex-grow"></div>
 
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                location.pathname === '/dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
-              }`}
-            >
-              Dashboard
-            </button>
-
-            <button
-              onClick={() => navigate('/leaderboard')}
-              className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
-              }`}
-            >
-              Leaderboard
-            </button>
-          </nav>
-
-          {/* Mobile menu button */}
-          <div className="flex items-center md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
-              aria-expanded="false"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-
-          {/* Auth Section */}
-          <div className="flex items-center space-x-4">
-            {authState.isAuthenticated ? (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                  className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  <DiscordAvatar
-                    discord_id={authState.discordUser?.discord_id}
-                    discord_avatar={authState.discordUser?.avatar}
-                    discord_handle={authState.discordUser?.username}
-                    size="md"
-                    variant="light"
-                    className="border border-gray-300 dark:border-gray-700"
-                  />
-                  <ChevronDown className="h-4 w-4 text-gray-500" />
-                </button>
-
-                {userDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
-                    <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
-                      {authState.discordUser?.username}
-                    </div>
-                    <button
-                      onClick={() => {
-                        handleLogout()
-                        setUserDropdownOpen(false)
-                      }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Button
-                onClick={() => navigate('/auth')}
-                size="sm"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white border-none"
+          {/* Navigation and Auth - aligned right */}
+          <div className="flex items-center space-x-8">
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <button
+                onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
+                className={`flex items-center gap-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                  location.pathname === '/submit' || location.pathname === '/auth' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
+                }`}
               >
-                Connect
-              </Button>
-            )}
+                Submit
+                <CountdownTimer variant="compact" showLabel={false} />
+              </button>
+
+              <button
+                onClick={() => navigate('/dashboard')}
+                className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                  location.pathname === '/dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
+                }`}
+              >
+                Dashboard
+              </button>
+
+              <button
+                onClick={() => navigate('/leaderboard')}
+                className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                  location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
+                }`}
+              >
+                Leaderboard
+              </button>
+            </nav>
+
+            {/* Auth Section */}
+            <div className="hidden md:block">
+              {authState.isAuthenticated ? (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    className="flex items-center space-x-2 text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  >
+                    <DiscordAvatar
+                      discord_id={authState.discordUser?.discord_id}
+                      discord_avatar={authState.discordUser?.avatar}
+                      discord_handle={authState.discordUser?.username}
+                      size="md"
+                      variant="light"
+                      className="border border-gray-300 dark:border-gray-700"
+                    />
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  </button>
+
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
+                      <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                        {authState.discordUser?.username}
+                      </div>
+                      <button
+                        onClick={() => {
+                          handleLogout()
+                          setUserDropdownOpen(false)
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  onClick={() => navigate('/auth')}
+                  size="sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white border-none"
+                >
+                  Connect
+                </Button>
+              )}
+            </div>
+
+            {/* Mobile menu button - positioned on far right */}
+            <div className="flex items-center md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                aria-expanded="false"
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-6 w-6" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-6 w-6" aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -216,6 +222,42 @@ export default function Header() {
             >
               Leaderboard
             </button>
+            
+            {/* Mobile Auth Section */}
+            {authState.isAuthenticated ? (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                <div className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300">
+                  <DiscordAvatar
+                    discord_id={authState.discordUser?.discord_id}
+                    discord_avatar={authState.discordUser?.avatar}
+                    discord_handle={authState.discordUser?.username}
+                    size="sm"
+                    variant="light"
+                    className="border border-gray-300 dark:border-gray-700 mr-2"
+                  />
+                  <span className="text-sm">{authState.discordUser?.username}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="flex items-center w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="w-full text-left px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition-colors"
+                >
+                  Connect
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

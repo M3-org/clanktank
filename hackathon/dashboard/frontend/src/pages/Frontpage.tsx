@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { PrizePool } from '../components/PrizePool';
 
 const howItWorks = [
+  // Round 1
   {
     icon: <Upload className="h-8 w-8 mb-2 fill-blue-500 text-blue-600" fill="currentColor" />,
     title: 'Submit Project',
@@ -14,16 +15,11 @@ const howItWorks = [
   },
   {
     icon: <FlaskConical className="h-8 w-8 mb-2 text-emerald-600" strokeWidth={2.2} />,
-    title: 'AI Research',
-    desc: 'Clank Tank AI analyzes your project.',
+    title: 'AI Research & Scoring',
+    desc: 'AI analyzes and scores your project.',
     role: 'auto',
   },
-  {
-    icon: <BarChart3 className="h-8 w-8 mb-2 text-emerald-600" strokeWidth={2.2} />,
-    title: 'AI Scoring',
-    desc: 'AI judges score your project.',
-    role: 'auto',
-  },
+  // Round 2
   {
     icon: <Users className="h-8 w-8 mb-2 fill-blue-500 text-blue-600" fill="currentColor" />,
     title: 'Community Voting',
@@ -31,15 +27,9 @@ const howItWorks = [
     role: 'user',
   },
   {
-    icon: <Sparkles className="h-8 w-8 mb-2 text-emerald-600" strokeWidth={2.2} />,
-    title: 'Synthesis',
-    desc: 'Final verdict and synthesis.',
-    role: 'auto',
-  },
-  {
     icon: <PlayCircle className="h-8 w-8 mb-2 text-emerald-600" strokeWidth={2.2} />,
-    title: 'Watch Episodes',
-    desc: 'See results in leaderboard & episodes.',
+    title: 'Synthesis Episode',
+    desc: 'Final verdict synthesized into new episode.',
     role: 'auto',
   },
 ];
@@ -208,19 +198,19 @@ export default function Frontpage() {
             AI-Powered Vibe Coding Competition
           </p>
           
-          {/* Countdown and Submit */}
-          <div className="mt-8 flex flex-col items-center gap-6">
+          {/* Play Button and Countdown */}
+          <div className="flex flex-col items-center gap-6">
+            <button
+              onClick={() => setOpenVideo('gLlIs-a1nkw')}
+              className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
+            >
+              <PlayCircle className="h-5 w-5" />
+              Watch Trailer
+            </button>
+            
             <div className="max-w-md mx-auto">
               <CountdownTimer variant="banner" showLabel={true} />
             </div>
-            
-            <button
-              onClick={() => authState.isAuthenticated ? navigate('/submit') : navigate('/auth')}
-              className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="h-5 w-5" />
-              Submit Project
-            </button>
           </div>
         </div>
       </div>
@@ -291,7 +281,7 @@ export default function Frontpage() {
       {/* How it Works Section */}
       <section id="how-it-works" className="bg-slate-50 dark:bg-gray-950 animate-fade-in">
         <div className="max-w-5xl mx-auto py-16 px-4">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 text-center md:text-left">How the Hackathon Works</h2>
             {/* Pill badge legend */}
             <div className="flex gap-2 items-center text-sm">
@@ -299,21 +289,19 @@ export default function Frontpage() {
               <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-100 font-semibold">● Automated</span>
             </div>
           </div>
-          <div className="relative">
-            {/* Dashed timeline for each row */}
-            <div className="absolute inset-x-0 top-[23%] md:top-[22%] h-0.5 border-t border-dashed border-muted/40 z-0" style={{zIndex:0}} />
-            <div className="absolute inset-x-0 top-[72%] md:top-[72%] h-0.5 border-t border-dashed border-muted/40 z-0" style={{zIndex:0}} />
-            <div className="relative grid grid-rows-2 grid-cols-3 gap-8 z-10">
-              {/* First row: Submit Project, AI Research, AI Scoring */}
-              <div className="row-start-1 col-start-1">
+          
+          {/* Round 1 */}
+          <div className="mb-12">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Round 1</h3>
+            <div className="relative">
+              <div className="absolute inset-x-0 top-1/2 h-0.5 border-t border-dashed border-muted/40 z-0" />
+              <div className="relative grid grid-cols-1 md:grid-cols-2 gap-8 z-10">
                 <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 dark:bg-blue-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-blue-200/80 text-blue-700">1</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[0].icon, { strokeWidth: 2, className: `h-10 w-10 text-blue-600` })}</div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[0].title}</h3>
                   <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[0].desc}</p>
                 </div>
-              </div>
-              <div className="row-start-1 col-start-2">
                 <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
                   <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">2</div>
                   <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[1].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
@@ -321,37 +309,26 @@ export default function Frontpage() {
                   <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[1].desc}</p>
                 </div>
               </div>
-              <div className="row-start-1 col-start-3">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
-                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">3</div>
-                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[2].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
+            </div>
+          </div>
+
+          {/* Round 2 */}
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 text-center">Round 2</h3>
+            <div className="relative">
+              <div className="absolute inset-x-0 top-1/2 h-0.5 border-t border-dashed border-muted/40 z-0" />
+              <div className="relative grid grid-cols-1 md:grid-cols-2 gap-8 z-10">
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 dark:bg-blue-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-blue-200/80 text-blue-700">3</div>
+                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[2].icon, { strokeWidth: 2, className: `h-10 w-10 text-blue-600` })}</div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[2].title}</h3>
                   <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[2].desc}</p>
                 </div>
-              </div>
-              {/* Second row: Community Voting, Synthesis, Watch Episodes */}
-              <div className="row-start-2 col-start-1">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-blue-50 dark:bg-blue-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
-                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-blue-200/80 text-blue-700">4</div>
-                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[3].icon, { strokeWidth: 2, className: `h-10 w-10 text-blue-600` })}</div>
+                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
+                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">4</div>
+                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[3].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[3].title}</h3>
                   <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[3].desc}</p>
-                </div>
-              </div>
-              <div className="row-start-2 col-start-2">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
-                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">5</div>
-                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[4].icon, { strokeWidth: 2, className: `h-10 w-10 text-emerald-600` })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[4].title}</h3>
-                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[4].desc}</p>
-                </div>
-              </div>
-              <div className="row-start-2 col-start-3">
-                <div className="relative flex flex-col items-center text-center p-6 h-48 md:h-56 bg-emerald-50 dark:bg-emerald-900 rounded-xl shadow-sm justify-center gap-3 hover:-translate-y-1 hover:shadow-lg transition">
-                  <div className="absolute left-3 top-3 w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold bg-emerald-200/80 text-emerald-700">6</div>
-                  <div className="mb-2 flex items-center justify-center">{React.cloneElement(howItWorks[5].icon, { strokeWidth: 2, className: 'h-10 w-10 text-emerald-600' })}</div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 mt-2">{howItWorks[5].title}</h3>
-                  <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed max-w-[18ch] mx-auto font-medium">{howItWorks[5].desc}</p>
                 </div>
               </div>
             </div>
