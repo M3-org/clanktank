@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, Check, ExternalLink, TrendingUp, Eye, X } from 'lucide-react'
 import { Card } from './Card'
 import { usePrizePool } from '../hooks/usePrizePool'
@@ -14,6 +14,8 @@ interface PrizePoolProps {
 
 export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   const [showTokenModal, setShowTokenModal] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   
   // Prize pool data
   const prizePoolData = usePrizePool()
@@ -40,6 +42,38 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   // Destructure for easier access
   const { tokenHoldings, totalValue, loading, lastUpdated } = prizePoolData
 
+  // Auto-hide/show logic for marquee
+  useEffect(() => {
+    if (variant !== 'marquee') return
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+      
+      // Show if scrolled down at least 200px or near bottom of page
+      const shouldShow = scrollY > 200 || (scrollY + windowHeight > documentHeight - 100)
+      setIsVisible(shouldShow)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Show if mouse is near bottom 100px of screen
+      const nearBottom = e.clientY > window.innerHeight - 100
+      setIsHovering(nearBottom)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('mousemove', handleMouseMove)
+    
+    // Initial check
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [variant])
+
   if (variant === 'marquee') {
     if (loading) {
       return (
@@ -53,7 +87,9 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
     }
 
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 shadow-2xl backdrop-blur-sm">
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 shadow-2xl backdrop-blur-sm transition-transform duration-300 ${
+        isVisible || isHovering ? 'translate-y-0' : 'translate-y-full'
+      }`}>
         {/* Progress Bar at Top */}
         <div className="relative h-1 bg-slate-700/50">
           <div 
