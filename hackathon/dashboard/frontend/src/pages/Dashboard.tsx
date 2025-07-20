@@ -35,7 +35,7 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '')
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || '')
   const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'list')
-  const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at' | 'discord_username'>((searchParams.get('sort') as any) || 'avg_score')
+  const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at' | 'discord_username' | 'submission_id'>((searchParams.get('sort') as any) || 'avg_score')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>((searchParams.get('dir') as 'asc' | 'desc') || 'desc')
   const [viewingSubmissionId, setViewingSubmissionId] = useState<number | null>(
     searchParams.get('submission') ? parseInt(searchParams.get('submission')!) : null
@@ -177,6 +177,10 @@ export default function Dashboard() {
           aVal = new Date(a.created_at).getTime()
           bVal = new Date(b.created_at).getTime()
           break
+        case 'submission_id':
+          aVal = a.submission_id || 0
+          bVal = b.submission_id || 0
+          break
         default:
           aVal = a[sortField] || ''
           bVal = b[sortField] || ''
@@ -250,14 +254,12 @@ export default function Dashboard() {
                 onChange={(e) => handleCategoryFilterChange(e.target.value)}
                 className="appearance-none block w-full rounded-md border-0 py-1.5 pl-3 pr-8 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-indigo-600"
               >
-                {/* Note: Most browsers do not support custom styles for <option> dropdowns. This only works in some browsers (e.g., Firefox). */}
                 <option value="" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">All Categories</option>
-                <option value="DeFi" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">DeFi</option>
-                <option value="Gaming" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Gaming</option>
-                <option value="AI/Agents" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">AI/Agents</option>
-                <option value="Infrastructure" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Infrastructure</option>
-                <option value="Social" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Social</option>
-                <option value="Other" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Other</option>
+                {uniqueCategories.map(category => (
+                  <option key={category} value={category} className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                    {category}
+                  </option>
+                ))}
               </select>
               <ChevronDown className="pointer-events-none absolute right-3 top-2 h-4 w-4 text-gray-400" />
             </div>
@@ -300,6 +302,21 @@ export default function Dashboard() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
                 <tr>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
+                    onClick={() => handleSort('submission_id' as any)}
+                    title="Click to sort by submission ID"
+                  >
+                    <div className="flex items-center gap-1">
+                      <span className="hidden sm:inline">ID</span>
+                      <span className="sm:hidden">#</span>
+                      {sortField === 'submission_id' ? (
+                        sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" /> : <ArrowDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                      ) : (
+                        <div className="h-3 w-3 opacity-0 group-hover:opacity-50">↕</div>
+                      )}
+                    </div>
+                  </th>
                   <th 
                     className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 select-none" 
                     onClick={() => handleSort('discord_username')}
@@ -371,14 +388,20 @@ export default function Dashboard() {
                       )}
                     </div>
                   </th>
-                  <th className="relative px-3 sm:px-6 py-3">
-                    <span className="sr-only">View</span>
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {sortedSubmissions.map((submission) => (
-                  <tr key={submission.submission_id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <tr 
+                    key={submission.submission_id} 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    onClick={() => handleViewSubmission(submission.submission_id)}
+                  >
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        #{submission.submission_id}
+                      </div>
+                    </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <DiscordAvatar
@@ -395,12 +418,9 @@ export default function Dashboard() {
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div>
-                        <button
-                          onClick={() => handleViewSubmission(submission.submission_id)}
-                          className="text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 text-left line-clamp-2"
-                        >
+                        <div className="text-xs sm:text-sm font-medium text-indigo-600 dark:text-indigo-400 text-left line-clamp-2">
                           {submission.project_name}
-                        </button>
+                        </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate sm:block hidden">
                           {submission.team_name}
                         </div>
@@ -436,16 +456,6 @@ export default function Dashboard() {
                       ) : (
                         <span className="text-gray-400 dark:text-gray-500">-</span>
                       )}
-                    </td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Button
-                        onClick={() => handleViewSubmission(submission.submission_id)}
-                        size="sm"
-                        className="bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white text-xs sm:text-sm px-2 sm:px-3"
-                      >
-                        <span className="sm:hidden">View</span>
-                        <span className="hidden sm:inline">View</span>
-                      </Button>
                     </td>
                   </tr>
                 ))}
