@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check } from 'lucide-react';
-import { PrizePool } from '../components/PrizePool';
 import { VoteModal } from '../components/VoteModal';
 import { SubmissionModal } from '../components/SubmissionModal';
 import { hackathonApi } from '../lib/api';
@@ -665,8 +664,6 @@ export default function Frontpage() {
       </section>
 
 
-      {/* Prize Pool Section */}
-      <PrizePool goal={10} variant="marquee" />
 
       {/* FAQ Section */}
       <section className="bg-gradient-to-t from-slate-100 via-gray-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 animate-fade-in">

@@ -18,6 +18,7 @@ const Toaster = lazy(() => import('react-hot-toast').then(module => ({ default: 
 // Critical routes - load immediately
 import Dashboard from './pages/Dashboard'
 import Frontpage from './pages/Frontpage'
+import Footer from './components/Footer'
 
 // Non-critical routes - lazy load
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
@@ -40,9 +41,9 @@ function AppContent() {
   const isModal = searchParams.get('modal') === 'true'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {!isModal && <Header />}
-      <main className={isModal ? "" : "pt-6"}>
+      <main className={`flex-1 ${isModal ? "" : "pt-6"}`}>
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -80,6 +81,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </main>
+      {!isModal && <Footer />}
     </div>
   )
 }

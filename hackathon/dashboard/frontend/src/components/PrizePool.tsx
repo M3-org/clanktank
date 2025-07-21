@@ -178,78 +178,65 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   if (variant === 'banner') {
     if (loading) {
       return (
-        <div className="bg-gradient-to-br from-brand-dark via-brand-mid to-brand-dark border border-brand-accent/20 rounded-lg p-3 mb-6">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-brand-accent border-t-transparent mr-2"></div>
-            <span className="text-sm text-brand-accent/80">Loading prize pool...</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-400 border-t-transparent"></div>
+          <span className="text-sm text-gray-500 dark:text-gray-400">Loading prize pool...</span>
         </div>
       )
     }
 
     return (
-      <div className="bg-gradient-to-br from-brand-dark via-brand-mid to-brand-dark border border-brand-accent/20 rounded-lg p-3 mb-6">
-        <div className="flex items-center justify-between">
-          {/* Left: Prize Pool Info */}
-          <div className="flex items-center gap-3">
-            <div className="h-6 w-6 rounded bg-gradient-to-br from-brand-accent to-cyan-500 flex items-center justify-center text-sm">
-              💎
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-brand-accent/80">
-                  PRIZE POOL
-                </span>
-                <span className="text-lg font-black text-white">
-                  {pretty(totalValue)} SOL
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-brand-accent/70">
-                <TrendingUp className="h-3 w-3" />
-                <span>{progress.toFixed(0)}% of {goal} SOL goal</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Contribute Button */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCopy}
-              className="flex items-center gap-1 px-3 py-1.5 bg-brand-mid/60 hover:bg-brand-mid/80 rounded border border-brand-accent/20 hover:border-brand-accent/40 transition-all duration-200 group text-xs"
-            >
-              <span className="text-slate-300 font-mono hidden sm:block">
-                {PRIZE_WALLET.slice(0, 8)}...{PRIZE_WALLET.slice(-6)}
-              </span>
-              <span className="text-slate-300 font-mono sm:hidden">
-                {PRIZE_WALLET.slice(0, 6)}...{PRIZE_WALLET.slice(-4)}
-              </span>
-              {copied ? (
-                <Check className="h-3 w-3 text-green-400" />
-              ) : (
-                <Copy className="h-3 w-3 text-brand-accent group-hover:text-cyan-300" />
-              )}
-            </button>
-            
-            <a
-              href={solscanUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded text-brand-accent hover:text-cyan-300 bg-brand-mid/60 hover:bg-brand-mid/80 border border-brand-accent/20 hover:border-brand-accent/40 transition-all duration-200"
-              title="View on Solscan"
-            >
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+        {/* Prize Pool Info - Inline with footer links */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Prize Pool:
+          </span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {pretty(totalValue)} SOL
+          </span>
+        </div>
+        
+        {/* Progress Indicator - Simple text */}
+        <div className="hidden sm:flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <span>({progress.toFixed(0)}% of {goal})</span>
         </div>
 
-        {/* Progress Bar */}
-        <div className="mt-2">
-          <div className="relative h-1.5 bg-brand-mid/40 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-brand-accent rounded-full transition-all duration-1000 ease-out"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
+        {/* Actions - With address preview */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors font-mono text-xs"
+            title="Copy wallet address"
+          >
+            <span className="hidden 2xl:inline">
+              {PRIZE_WALLET}
+            </span>
+            <span className="hidden xl:inline 2xl:hidden">
+              {PRIZE_WALLET.slice(0, 12)}...{PRIZE_WALLET.slice(-8)}
+            </span>
+            <span className="hidden lg:inline xl:hidden">
+              {PRIZE_WALLET.slice(0, 8)}...{PRIZE_WALLET.slice(-6)}
+            </span>
+            <span className="hidden md:inline lg:hidden">
+              {PRIZE_WALLET.slice(0, 6)}...{PRIZE_WALLET.slice(-4)}
+            </span>
+            {copied ? (
+              <Check className="h-3 w-3 text-green-500" />
+            ) : (
+              <Copy className="h-3 w-3" />
+            )}
+          </button>
+          
+          <a
+            href={solscanUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
+            title="View on Solscan"
+          >
+            <ExternalLink className="h-3 w-3" />
+          </a>
         </div>
       </div>
     )
