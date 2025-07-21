@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, PlayCircle, FlaskConical, Copy, Check } from 'lucide-react';
+import { Upload, Users, PlayCircle, FlaskConical, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VoteModal } from '../components/VoteModal';
 import { SubmissionModal } from '../components/SubmissionModal';
 import { hackathonApi } from '../lib/api';
@@ -197,6 +197,86 @@ export default function Frontpage() {
 
   // Lightbox state
   const [openVideo, setOpenVideo] = React.useState<string | null>(null);
+
+  // Episodes pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const episodesPerPage = 6;
+
+  // Touch state for lightbox navigation
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  // Video navigation functions
+  const getCurrentVideoIndex = () => {
+    return latestEpisodes.findIndex(ep => ep.id === openVideo);
+  };
+
+  const navigateToVideo = (index: number) => {
+    if (index >= 0 && index < latestEpisodes.length) {
+      setOpenVideo(latestEpisodes[index].id);
+    }
+  };
+
+  const goToPreviousVideo = () => {
+    const currentIndex = getCurrentVideoIndex();
+    if (currentIndex > 0) {
+      navigateToVideo(currentIndex - 1);
+    }
+  };
+
+  const goToNextVideo = () => {
+    const currentIndex = getCurrentVideoIndex();
+    if (currentIndex < latestEpisodes.length - 1) {
+      navigateToVideo(currentIndex + 1);
+    }
+  };
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!openVideo) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPreviousVideo();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextVideo();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpenVideo(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [openVideo]);
+
+  // Touch handlers for lightbox swipe
+  const handleLightboxTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleLightboxTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      goToNextVideo();
+    } else if (isRightSwipe) {
+      goToPreviousVideo();
+    }
+
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -517,14 +597,18 @@ export default function Frontpage() {
 
       {/* Latest Episodes Section */}
       <section className="bg-gradient-to-b from-slate-800 via-slate-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 py-12 animate-fade-in">
-        <div className="max-w-5xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">Latest Episodes</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {latestEpisodes.map((ep) => (
+          
+          {/* Episodes Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {latestEpisodes
+              .slice((currentPage - 1) * episodesPerPage, currentPage * episodesPerPage)
+              .map((ep) => (
               <div
                 key={ep.id}
                 onClick={() => setOpenVideo(ep.id)}
-                className="group rounded-xl overflow-hidden shadow-lg bg-slate-50 dark:bg-gray-800 hover:shadow-2xl transition border border-gray-200 dark:border-gray-700 cursor-pointer"
+                className="group rounded-xl overflow-hidden shadow-lg bg-slate-50 dark:bg-gray-800 hover:shadow-2xl transition-all duration-200 border border-gray-200 dark:border-gray-700 cursor-pointer"
                 role="button"
                 tabIndex={0}
                 onKeyPress={e => { if (e.key === 'Enter') setOpenVideo(ep.id); }}
@@ -539,6 +623,10 @@ export default function Frontpage() {
                   <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
                     {Math.floor(ep.duration / 60)}:{(ep.duration % 60).toString().padStart(2, '0')}
                   </div>
+                  {/* Play button overlay */}
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <PlayCircle className="h-16 w-16 text-white drop-shadow-lg" />
+                  </div>
                 </div>
                 <div className="p-4">
                   <div className="font-semibold text-base text-gray-900 dark:text-gray-100 mb-1 line-clamp-2 min-h-[2.5em]">{ep.title}</div>
@@ -547,6 +635,41 @@ export default function Frontpage() {
               </div>
             ))}
           </div>
+
+          {/* Pagination */}
+          {Math.ceil(latestEpisodes.length / episodesPerPage) > 1 && (
+            <div className="flex justify-center items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Prev
+              </button>
+              
+              {Array.from({ length: Math.ceil(latestEpisodes.length / episodesPerPage) }).map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`px-3 py-1 rounded font-semibold transition-colors ${
+                    currentPage === index + 1
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(latestEpisodes.length / episodesPerPage), prev + 1))}
+                disabled={currentPage === Math.ceil(latestEpisodes.length / episodesPerPage)}
+                className="px-3 py-1 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -555,11 +678,42 @@ export default function Frontpage() {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
           onClick={() => setOpenVideo(null)}
+          onTouchStart={handleLightboxTouchStart}
+          onTouchMove={handleLightboxTouchMove}
+          onTouchEnd={handleLightboxTouchEnd}
         >
+          {/* Navigation Arrows */}
+          {getCurrentVideoIndex() > 0 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPreviousVideo();
+              }}
+              className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 md:p-3 rounded-full transition-all duration-200 z-10"
+              aria-label="Previous video"
+            >
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          )}
+          
+          {getCurrentVideoIndex() < latestEpisodes.length - 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNextVideo();
+              }}
+              className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 md:p-3 rounded-full transition-all duration-200 z-10"
+              aria-label="Next video"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+          )}
+
           <div
-            className="relative w-full max-w-3xl aspect-video"
+            className="relative w-full max-w-3xl mx-2 md:mx-0"
             onClick={e => e.stopPropagation()}
           >
+            {/* Close Button */}
             <button
               onClick={() => setOpenVideo(null)}
               className="absolute top-2 right-2 text-white text-2xl z-10 bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-80 transition"
@@ -567,13 +721,48 @@ export default function Frontpage() {
             >
               ×
             </button>
-            <iframe
-              src={`https://www.youtube.com/embed/${openVideo}?autoplay=1`}
-              title="Clank Tank Video"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              className="w-full h-full rounded-lg"
-            />
+
+            {/* Video Counter */}
+            <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded z-10">
+              {getCurrentVideoIndex() + 1} of {latestEpisodes.length}
+            </div>
+
+            {/* Video Container */}
+            <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+              <iframe
+                src={`https://www.youtube.com/embed/${openVideo}?autoplay=1&rel=0&modestbranding=1`}
+                title="Clank Tank Video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            </div>
+
+            {/* Video Title */}
+            {(() => {
+              const currentEpisode = latestEpisodes.find(ep => ep.id === openVideo);
+              return currentEpisode ? (
+                <div className="mt-4 text-center">
+                  <h3 className="text-white text-lg font-semibold mb-2">{currentEpisode.title}</h3>
+                  <div className="text-gray-300 text-sm flex items-center justify-center gap-4">
+                    <span>{currentEpisode.view_count} views</span>
+                    <span>{Math.floor(currentEpisode.duration / 60)}:{(currentEpisode.duration % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Keyboard Navigation Hint */}
+            <div className="hidden md:block absolute -bottom-12 left-1/2 transform -translate-x-1/2 text-gray-400 text-xs text-center">
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 bg-gray-800 rounded border text-xs">←</kbd>
+                <span>Previous</span>
+                <kbd className="px-2 py-1 bg-gray-800 rounded border text-xs">→</kbd>
+                <span>Next</span>
+                <kbd className="px-2 py-1 bg-gray-800 rounded border text-xs">ESC</kbd>
+                <span>Close</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
