@@ -94,13 +94,6 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        
-        {/* Copyright - Minimal bottom section */}
-        <div className="py-3 text-center border-t border-gray-200 dark:border-gray-800">
-          <p className="text-xs text-gray-500 dark:text-gray-500">
-            © 2025 Clank Tank • AI-powered Game Show
-          </p>
-        </div>
       </div>
     </footer>
   )
