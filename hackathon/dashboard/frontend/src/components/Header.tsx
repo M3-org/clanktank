@@ -117,14 +117,6 @@ export default function Header() {
                 Dashboard
               </button>
 
-              <button
-                onClick={() => navigate('/leaderboard')}
-                className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                  location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
-                }`}
-              >
-                Leaderboard
-              </button>
             </nav>
 
             {/* Auth Section */}
@@ -213,14 +205,6 @@ export default function Header() {
               }`}
             >
               Dashboard
-            </button>
-            <button
-              onClick={() => navigate('/leaderboard')}
-              className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
-                location.pathname === '/leaderboard' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
-              }`}
-            >
-              Leaderboard
             </button>
             
             {/* Mobile Auth Section */}

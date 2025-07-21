@@ -111,14 +111,9 @@ export default function SubmissionDetail() {
   const loadDiscordDataAsync = async () => {
     if (!id) return null
     
-    try {
-      // Only get Discord data from cache or skip it
-      // The submission detail already contains user info
-      return null
-    } catch (error) {
-      console.error('Failed to load Discord data:', error)
-      return null
-    }
+    // Only get Discord data from cache or skip it
+    // The submission detail already contains user info
+    return null
   }
 
   if (loading) {

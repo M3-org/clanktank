@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import { Card, CardHeader, CardContent } from '../components/Card'
-import { Button } from '../components/Button'
-import { WalletVoting } from '../components/WalletVoting'
-import { DiscordAvatar } from '../components/DiscordAvatar'
-import { hackathonApi } from '../lib/api'
-import { LeaderboardEntry, CommunityScore, PrizePoolData, TokenBreakdown } from '../types'
+import { Card, CardHeader, CardContent } from '../../components/Card'
+import { Button } from '../../components/Button'
+import { WalletVoting } from '../../components/WalletVoting'
+import { DiscordAvatar } from '../../components/DiscordAvatar'
+import { hackathonApi } from '../../lib/api'
+import { LeaderboardEntry, CommunityScore, PrizePoolData, TokenBreakdown } from '../../types'
 import { 
   Coins, 
   Zap, 
@@ -28,7 +28,7 @@ import {
   Vote,
   Medal
 } from 'lucide-react'
-import { cn } from '../lib/utils'
+import { cn } from '../../lib/utils'
 
 // Mock data for prototyping
 const mockSubmission = {
@@ -271,7 +271,7 @@ function VotingSlider({ submissionId, projectName, className }: VotingSliderProp
                   Mobile Voting (Recommended)
                 </span>
               </div>
-              <Button onClick={openPhantom} className="w-full" style={{ backgroundColor: '#AB9FF2', color: '#FFFDF8' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9A8FF0'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#AB9FF2'}>
+              <Button onClick={openPhantom} className="w-full" style={{ backgroundColor: '#AB9FF2', color: '#FFFDF8' }} onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#9A8FF0'} onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#AB9FF2'}>
                 <PhantomLogo className="h-4 w-4 mr-2" />
                 Vote with Phantom Mobile
               </Button>
@@ -490,8 +490,8 @@ function ActionButtonsPrototype() {
                 <Button 
                   className="w-full"
                   style={{ backgroundColor: '#AB9FF2', color: '#FFFDF8' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9A8FF0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#AB9FF2'}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#9A8FF0'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#AB9FF2'}
                   onClick={() => window.open(`phantom://transfer?mint=HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC&amount=1&recipient=AiMarcWallet123&memo=${encodeURIComponent(`vote:${mockSubmission.submission_id}`)}`)}
                 >
                   <PhantomLogo className="h-4 w-4 mr-2" />
@@ -588,8 +588,8 @@ function ActionButtonsPrototype() {
                 <Button 
                   className="w-full"
                   style={{ backgroundColor: '#AB9FF2', color: '#FFFDF8' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#9A8FF0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#AB9FF2'}
+                  onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#9A8FF0'}
+                  onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => e.currentTarget.style.backgroundColor = '#AB9FF2'}
                   onClick={() => window.open(`phantom://transfer?mint=HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC&amount=10&recipient=AiMarcWallet123&memo=${encodeURIComponent(`superchat:${mockSubmission.submission_id}`)}`)}
                 >
                   <PhantomLogo className="h-4 w-4 mr-2" />
@@ -1277,7 +1277,7 @@ function PrizePoolWidgetInline({ className, showContributions = true }: { classN
               </div>
               
               <div className="space-y-2 max-h-32 overflow-y-auto">
-                {prizePoolData.recent_contributions.slice(0, 5).map((contribution, index) => (
+                {prizePoolData.recent_contributions.slice(0, 5).map((contribution: any, index: number) => (
                   <div 
                     key={index}
                     className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs"
@@ -1343,12 +1343,12 @@ function CommunityVotingFromLeaderboard() {
       
       // Create a map of community scores by submission_id
       const communityScoreMap = new Map()
-      communityData.forEach(score => {
+      communityData.forEach((score: any) => {
         communityScoreMap.set(score.submission_id, score.community_score)
       })
       
       // Merge community scores into leaderboard entries using submission_id
-      const entriesWithCommunity = leaderboardData.map(entry => ({
+      const entriesWithCommunity = leaderboardData.map((entry: any) => ({
         ...entry,
         community_score: communityScoreMap.get(entry.submission_id) || undefined
       }))

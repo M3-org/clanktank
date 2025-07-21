@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { Card, CardContent } from '../components/Card'
@@ -32,6 +32,7 @@ export default function SubmissionEdit() {
   const { id } = useParams<{ id: string }>()
   const { authState } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams();
   const [schema, setSchema] = useState<SchemaField[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -47,7 +48,48 @@ export default function SubmissionEdit() {
     reset,
     watch,
     setValue
-  } = useForm<SubmissionInputs>()
+  } = useForm<SubmissionInputs>({
+    mode: 'onChange' // Enable real-time validation and state tracking
+  })
+
+  // Real-time URL state management using React Hook Form's watch
+  const watchedValues = watch();
+  useEffect(() => {
+    if (schema.length > 0 && watchedValues) {
+      const timeoutId = setTimeout(() => {
+        try {
+          // Real-time URL updates for collaborative editing
+          const cleanValues = Object.fromEntries(
+            Object.entries(watchedValues).filter(([, value]) => 
+              value !== null && 
+              value !== undefined && 
+              value !== '' && 
+              !(typeof value === 'string' && value.trim() === '')
+            )
+          );
+          
+          // Only update URL if we have meaningful data or need to clear it
+          const currentDraft = searchParams.get('draft');
+          const hasCleanData = Object.keys(cleanValues).length > 0;
+          
+          if (hasCleanData) {
+            const encodedState = encodeURIComponent(JSON.stringify(cleanValues));
+            // Only update if the encoded state actually changed
+            if (currentDraft !== encodedState) {
+              setSearchParams({ draft: encodedState }, { replace: true });
+            }
+          } else if (currentDraft) {
+            // Only clear URL if there was previously a draft parameter
+            setSearchParams({}, { replace: true });
+          }
+        } catch (error) {
+          console.error('Failed to update URL state:', error)
+        }
+      }, 1000)
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [watchedValues, schema, setSearchParams, searchParams]);
 
   // Load submission data and schema
   useEffect(() => {
@@ -67,20 +109,40 @@ export default function SubmissionEdit() {
         const schemaFields = schemaResponse.fields || []
         setSchema(schemaFields)
 
-        // Pre-populate form with existing data
-        const formData: any = {}
+        // Initialize form with proper defaultValues
+        const defaultFormValues: any = {};
         
-        // Populate all fields from submission
+        // Start with existing submission data
         schemaFields.forEach((field: SchemaField) => {
-          formData[field.name] = (submission as any)[field.name] || ''
-        })
+          defaultFormValues[field.name] = (submission as any)[field.name] || '';
+        });
 
-        // Auto-populate Discord username if Discord authenticated
+        // Auto-populate Discord username if authenticated
         if (authState.discordUser) {
-          formData.discord_handle = authState.discordUser.username
+          defaultFormValues.discord_handle = authState.discordUser.username;
         }
 
-        reset(formData)
+        // Check for URL state override (for collaborative editing)
+        const urlState = searchParams.get('draft');
+        if (urlState) {
+          try {
+            const urlData = JSON.parse(decodeURIComponent(urlState));
+            
+            // Merge URL data with existing submission, preserving Discord username
+            Object.keys(urlData).forEach(key => {
+              if (key !== 'discord_handle' && schemaFields.some((f: SchemaField) => f.name === key)) {
+                defaultFormValues[key] = urlData[key];
+              }
+            });
+            
+            toast.success('Form state loaded from URL!', { duration: 2000 });
+          } catch (error) {
+            console.error('Failed to restore from URL:', error);
+          }
+        }
+
+        // Use React Hook Form's reset with proper defaultValues
+        reset(defaultFormValues);
         
       } catch (err: any) {
         console.error('Failed to load submission:', err)
@@ -91,7 +153,7 @@ export default function SubmissionEdit() {
     }
 
     loadSubmission()
-  }, [id, reset, authState.discordUser])
+  }, [id, reset, authState.discordUser, searchParams])
 
   // If project_image is a URL, set preview
   useEffect(() => {
@@ -178,12 +240,22 @@ export default function SubmissionEdit() {
   }
 
   function handleDownloadTemplate() {
-    const template = generateTemplate(schema)
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+    // Get current form values instead of generating template
+    const currentValues = watchedValues || {};
+    
+    // If form is empty, generate template; otherwise download current state
+    const dataToDownload = Object.keys(currentValues).length > 0 && 
+      Object.values(currentValues).some(val => val && val.toString().trim() !== '')
+      ? currentValues
+      : generateTemplate(schema);
+    
+    const blob = new Blob([JSON.stringify(dataToDownload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'hackathon_submission_template.json'
+    a.download = Object.keys(currentValues).length > 0 
+      ? 'my_hackathon_submission.json'
+      : 'hackathon_submission_template.json'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -199,12 +271,25 @@ export default function SubmissionEdit() {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string)
-        // Only allow schema fields (except discord_handle)
+        // Get current form values and merge with uploaded data
+        const currentValues = watchedValues || {};
+        const mergedData = { ...currentValues };
+        
+        // Apply uploaded fields (only valid schema fields, except discord_handle)
         Object.keys(data).forEach(key => {
           if (schema.some(f => f.name === key && key !== 'discord_handle')) {
-            reset((prev: any) => ({ ...prev, [key]: data[key] }))
+            mergedData[key] = data[key];
           }
-        })
+        });
+        
+        // Preserve Discord username
+        if (authState.discordUser) {
+          mergedData.discord_handle = authState.discordUser.username;
+        }
+        
+        // Use reset to properly update all form state
+        reset(mergedData);
+        
         toast.success('Form auto-filled from JSON!')
       } catch {
         toast.error('Invalid JSON file')
@@ -262,7 +347,7 @@ export default function SubmissionEdit() {
               </h1>
               <div className="flex flex-col items-end md:col-span-1">
                 <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  💡 Tip: Download a JSON template to fill in offline and upload later.
+                  💡 Tip: Download your current form state as JSON to save or share.
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
@@ -396,6 +481,11 @@ export default function SubmissionEdit() {
                     {field.helperText && (
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {field.helperText}
+                      </p>
+                    )}
+                    {field.name === 'demo_video_url' && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        💡 Try catbox.moe, gyazo, or sharex for free hosting
                       </p>
                     )}
                     {errors[field.name] && (

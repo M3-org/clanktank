@@ -28,6 +28,12 @@ const AuthPage = lazy(() => import('./pages/AuthPage'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'))
 
+// Experimental routes - development only
+const LeaderboardV1 = lazy(() => import('./pages/experimental/LeaderboardV1'))
+const LeaderboardV2 = lazy(() => import('./pages/experimental/LeaderboardV2'))
+const VotingPrototypes = lazy(() => import('./pages/experimental/VotingPrototypes'))
+const Templates = lazy(() => import('./pages/experimental/Templates'))
+
 function AppContent() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
@@ -50,16 +56,14 @@ function AppContent() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/submission/:id" element={<SubmissionDetail />} />
           
-          {/* Dev-only route - wallet functionality only in development */}
+          {/* Experimental routes - development only */}
           {import.meta.env.DEV && (
-            <Route path="/voting-prototypes" element={
-              <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-lg text-gray-900 dark:text-gray-100 mb-2">Dev Only: Voting Prototypes</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Wallet functionality available in development</div>
-                </div>
-              </div>
-            } />
+            <>
+              <Route path="/experimental/voting-prototypes" element={<VotingPrototypes />} />
+              <Route path="/experimental/leaderboard-v1" element={<LeaderboardV1 />} />
+              <Route path="/experimental/leaderboard-v2" element={<LeaderboardV2 />} />
+              <Route path="/experimental/templates" element={<Templates />} />
+            </>
           )}
           
           {/* Protected Routes */}

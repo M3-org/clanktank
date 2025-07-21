@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-hot-toast'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { Button } from '../components/Button'
 import { Card, CardContent } from '../components/Card'
@@ -32,6 +32,7 @@ export default function SubmissionPage() {
   const { authState } = useAuth()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [submission, setSubmission] = useState<SubmissionDetail | null>(null);
   const [schema, setSchema] = useState<SchemaField[]>([])
   const [schemaLoaded, setSchemaLoaded] = useState(false)
@@ -49,7 +50,9 @@ export default function SubmissionPage() {
     setValue,
     watch,
     reset
-  } = useForm<SubmissionInputs>()
+  } = useForm<SubmissionInputs>({
+    mode: 'onChange' // Enable real-time validation and state tracking
+  })
 
   // Load schema on component mount
   useEffect(() => {
@@ -68,29 +71,63 @@ export default function SubmissionPage() {
           setValue('discord_handle', authState.discordUser.username)
         }
         
-        // Load any saved draft (only on first load)
+        // Initialize form with proper defaultValues from URL or localStorage
         if (!draftAlreadyRestored) {
-          const draftKey = 'submission_draft'
-          const savedDraft = localStorage.getItem(draftKey)
+          const defaultFormValues: any = {};
+          
+          // Set Discord username first
+          if (authState.discordUser) {
+            defaultFormValues.discord_handle = authState.discordUser.username;
+          }
+          
+          // Try URL state first (for collaborative sharing)
+          const urlState = searchParams.get('draft');
+          if (urlState) {
+            try {
+              const urlData = JSON.parse(decodeURIComponent(urlState));
+              
+              // Merge URL data, preserving Discord username
+              Object.keys(urlData).forEach(key => {
+                if (key !== 'discord_handle') {
+                  defaultFormValues[key] = urlData[key];
+                }
+              });
+              
+              // Use React Hook Form's reset with new defaultValues
+              reset(defaultFormValues);
+              toast.success('Form state loaded from URL!', { duration: 2000 });
+              setDraftAlreadyRestored(true);
+              return;
+            } catch (error) {
+              console.error('Failed to restore from URL:', error);
+            }
+          }
+          
+          // Fall back to localStorage
+          const savedDraft = localStorage.getItem('submission_draft');
           if (savedDraft) {
             try {
-              const draft = JSON.parse(savedDraft)
+              const draftData = JSON.parse(savedDraft);
               
-              // Populate form with saved data, but override Discord username
-              Object.keys(draft).forEach(key => {
-                if (key !== 'discord_handle') { // Don't override Discord username
-                  setValue(key, draft[key])
+              // Merge localStorage data, preserving Discord username
+              Object.keys(draftData).forEach(key => {
+                if (key !== 'discord_handle') {
+                  defaultFormValues[key] = draftData[key];
                 }
-              })
+              });
               
-              toast.success('Draft restored!', { duration: 2000 })
-              setDraftAlreadyRestored(true)
+              // Use React Hook Form's reset with new defaultValues
+              reset(defaultFormValues);
+              toast.success('Draft restored!', { duration: 2000 });
             } catch (error) {
-              console.error('Failed to restore draft:', error)
+              console.error('Failed to restore draft:', error);
             }
           } else {
-            setDraftAlreadyRestored(true)
+            // Just set Discord username if no draft data
+            reset(defaultFormValues);
           }
+          
+          setDraftAlreadyRestored(true);
         }
         
       } catch (error) {
@@ -100,15 +137,43 @@ export default function SubmissionPage() {
     }
 
     loadSchema()
-  }, [setValue, authState.discordUser])
+  }, [setValue, authState.discordUser, searchParams])
 
-  // Auto-save draft
-  const formData = watch()
+  // Real-time URL state management using React Hook Form's watch
+  const watchedValues = watch();
   useEffect(() => {
-    if (schemaLoaded && Object.keys(formData).length > 0) {
+    if (schemaLoaded && watchedValues) {
       const timeoutId = setTimeout(() => {
         try {
-          localStorage.setItem('submission_draft', JSON.stringify(formData))
+          // Save to localStorage (existing functionality)
+          if (Object.keys(watchedValues).length > 0) {
+            localStorage.setItem('submission_draft', JSON.stringify(watchedValues))
+          }
+          
+          // Real-time URL updates for collaborative sharing
+          const cleanValues = Object.fromEntries(
+            Object.entries(watchedValues).filter(([, value]) => 
+              value !== null && 
+              value !== undefined && 
+              value !== '' && 
+              !(typeof value === 'string' && value.trim() === '')
+            )
+          );
+          
+          // Only update URL if we have meaningful data or need to clear it
+          const currentDraft = searchParams.get('draft');
+          const hasCleanData = Object.keys(cleanValues).length > 0;
+          
+          if (hasCleanData) {
+            const encodedState = encodeURIComponent(JSON.stringify(cleanValues));
+            // Only update if the encoded state actually changed
+            if (currentDraft !== encodedState) {
+              setSearchParams({ draft: encodedState }, { replace: true });
+            }
+          } else if (currentDraft) {
+            // Only clear URL if there was previously a draft parameter
+            setSearchParams({}, { replace: true });
+          }
         } catch (error) {
           console.error('Failed to save draft:', error)
         }
@@ -116,7 +181,7 @@ export default function SubmissionPage() {
 
       return () => clearTimeout(timeoutId)
     }
-  }, [formData, schemaLoaded])
+  }, [watchedValues, schemaLoaded, setSearchParams, searchParams])
 
   useEffect(() => {
     if (id) {
@@ -125,13 +190,18 @@ export default function SubmissionPage() {
   }, [id]);
 
   const clearDraft = () => {
-    localStorage.removeItem('submission_draft')
-    reset()
-    setDraftAlreadyRestored(true) // Prevent toast on next effect run
-    // Re-populate Discord username
-    if (authState.discordUser) {
-      setValue('discord_handle', authState.discordUser.username)
-    }
+    localStorage.removeItem('submission_draft');
+    
+    // Clear URL state
+    setSearchParams({}, { replace: true });
+    
+    // Reset form to initial state with only Discord username
+    const cleanDefaults = authState.discordUser 
+      ? { discord_handle: authState.discordUser.username }
+      : {};
+    
+    reset(cleanDefaults);
+    setDraftAlreadyRestored(true);
   }
 
   const onSubmit = async (data: SubmissionInputs) => {
@@ -228,12 +298,22 @@ export default function SubmissionPage() {
   }
 
   function handleDownloadTemplate() {
-    const template = generateTemplate(schema)
-    const blob = new Blob([JSON.stringify(template, null, 2)], { type: 'application/json' })
+    // Get current form values instead of generating template
+    const currentValues = watchedValues || {};
+    
+    // If form is empty, generate template; otherwise download current state
+    const dataToDownload = Object.keys(currentValues).length > 0 && 
+      Object.values(currentValues).some(val => val && val.toString().trim() !== '')
+      ? currentValues
+      : generateTemplate(schema);
+    
+    const blob = new Blob([JSON.stringify(dataToDownload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'hackathon_submission_template.json'
+    a.download = Object.keys(currentValues).length > 0 
+      ? 'my_hackathon_submission.json'
+      : 'hackathon_submission_template.json'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -258,7 +338,23 @@ export default function SubmissionPage() {
         if (appliedFields.length === 0) {
           toast.error('No valid fields found in uploaded JSON.');
         } else {
-          appliedFields.forEach(key => setValue(key, data[key]));
+          // Get current form values and merge with uploaded data
+          const currentValues = watchedValues || {};
+          const mergedData = { ...currentValues };
+          
+          // Apply uploaded fields
+          appliedFields.forEach(key => {
+            mergedData[key] = data[key];
+          });
+          
+          // Preserve Discord username
+          if (authState.discordUser) {
+            mergedData.discord_handle = authState.discordUser.username;
+          }
+          
+          // Use reset to properly update all form state
+          reset(mergedData);
+          
           toast.success(`Form auto-filled from JSON!${unknownFields.length ? ` Ignored: ${unknownFields.join(', ')}` : ''}`);
         }
         if (unknownFields.length > 0) {
@@ -322,7 +418,7 @@ export default function SubmissionPage() {
               </h1>
               <div className="flex flex-col items-end md:col-span-1">
                 <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  💡 Tip: Download a JSON template to fill in offline and upload later.
+                  💡 Tip: Download your current form state as JSON to save or share.
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
@@ -364,7 +460,7 @@ export default function SubmissionPage() {
                 <div className="flex items-center">
                   <span className="text-blue-600 dark:text-blue-400 text-xl mr-2">📝</span>
                   <span className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                    Save/Load template for faster form filling.
+                    Save/Load your form state for faster filling.
                   </span>
                 </div>
                 <div className="flex gap-2">
@@ -505,6 +601,11 @@ export default function SubmissionPage() {
                     {field.helperText && (
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {field.helperText}
+                      </p>
+                    )}
+                    {field.name === 'demo_video_url' && (
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        💡 Try catbox.moe, gyazo, or sharex for free hosting
                       </p>
                     )}
                     {errors[field.name] && (

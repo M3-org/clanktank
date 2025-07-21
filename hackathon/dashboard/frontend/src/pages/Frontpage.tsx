@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check } from 'lucide-react';
-import { CountdownTimer } from '../components/CountdownTimer';
 import { PrizePool } from '../components/PrizePool';
+import { VoteModal } from '../components/VoteModal';
+import { SubmissionModal } from '../components/SubmissionModal';
 import { hackathonApi } from '../lib/api';
 import { LeaderboardEntry } from '../types';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
@@ -69,16 +70,37 @@ const faqs = [
 const VOTING_WALLET = '7ErPek9uyReCBwiLkTi3DbqNDRf2Kmz4BShGhXmWLebx'
 
 export default function Frontpage() {
+  // Phase-based logic using SUBMISSION_DEADLINE
+  const submissionDeadline = import.meta.env.VITE_SUBMISSION_DEADLINE
+  const isAfterDeadline = submissionDeadline ? new Date() > new Date(submissionDeadline) : false
+  const showLeaderboard = isAfterDeadline
+  
+  // Format deadline for display
+  const deadlineDisplay = submissionDeadline 
+    ? new Date(submissionDeadline).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric'
+      })
+    : 'TBD'
+
+  // Leaderboard state and modals
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([])
-  const [leaderboardLoading, setLeaderboardLoading] = useState(true)
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false)
+  const [selectedSubmission, setSelectedSubmission] = useState<LeaderboardEntry | null>(null)
+  const [votingSubmission, setVotingSubmission] = useState<LeaderboardEntry | null>(null)
   const { copied, copyToClipboard } = useCopyToClipboard()
 
-  // Load leaderboard data
+  // Load leaderboard data only after deadline
   useEffect(() => {
+    if (!showLeaderboard) return
+    
     const loadLeaderboard = async () => {
+      setLeaderboardLoading(true)
       try {
         const data = await hackathonApi.getLeaderboard()
-        setLeaderboardEntries(data?.slice(0, 5) || []) // Top 5 only
+        setLeaderboardEntries(data?.slice(0, 10) || []) // Top 10 for side-by-side tables
       } catch (error) {
         console.error('Failed to load leaderboard:', error)
         setLeaderboardEntries([])
@@ -87,7 +109,7 @@ export default function Frontpage() {
       }
     }
     loadLeaderboard()
-  }, [])
+  }, [showLeaderboard])
 
   const handleCopyVotingWallet = () => {
     copyToClipboard(VOTING_WALLET, TOAST_MESSAGES.ADDRESS_COPIED)
@@ -95,15 +117,16 @@ export default function Frontpage() {
 
   const getRankBadge = (rank: number) => {
     if (rank === 1) {
-      return <div className="h-6 w-6 rounded-full bg-yellow-400 text-slate-900 font-bold flex items-center justify-center text-xs">1</div>
+      return <div className="h-8 w-8 rounded-full bg-yellow-400 text-slate-900 font-bold flex items-center justify-center text-sm">1</div>
     } else if (rank === 2) {
-      return <div className="h-6 w-6 rounded-full bg-gray-400 text-slate-900 font-bold flex items-center justify-center text-xs">2</div>
+      return <div className="h-8 w-8 rounded-full bg-gray-400 text-slate-900 font-bold flex items-center justify-center text-sm">2</div>
     } else if (rank === 3) {
-      return <div className="h-6 w-6 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-xs">3</div>
+      return <div className="h-8 w-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-sm">3</div>
     } else {
-      return <div className="h-6 w-6 rounded-full bg-slate-600 text-slate-300 font-bold flex items-center justify-center text-xs">{rank}</div>
+      return <div className="h-8 w-8 rounded-full bg-slate-600 text-slate-300 font-bold flex items-center justify-center text-sm">{rank}</div>
     }
   }
+
 
   // Hardcoded video data for all 8 episodes
   const latestEpisodes = [
@@ -190,12 +213,6 @@ export default function Frontpage() {
               muted
               playsInline
               className="w-full h-full object-cover"
-              style={{ 
-                width: '100%', 
-                height: '100%',
-                maxWidth: '100vw',
-                maxHeight: '100vh'
-              }}
             />
             {/* 
             Future YouTube embed structure (commented for reference):
@@ -215,65 +232,289 @@ export default function Frontpage() {
             */}
           </div>
           
-          {/* Overlay content */}
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <div className="text-center px-4 max-w-4xl mx-auto">
-              <div className="relative inline-block mb-6">
-                {/* Left gear */}
-                <svg
-                  className="absolute -left-8 -top-2 -translate-x-1/3 -translate-y-1/2 h-12 md:h-16 w-12 md:w-16 opacity-90 animate-spin-slow z-0 text-gray-300"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
-                </svg>
-                
-                {/* Main logo */}
-                <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-16 md:h-24 w-auto mx-auto drop-shadow-lg" />
-                
-                {/* Right gear */}
-                <svg
-                  className="absolute -right-8 top-1/4 translate-x-1/2 -translate-y-1/3 h-12 md:h-16 w-12 md:w-16 opacity-90 animate-spin-slow z-0 text-gray-300"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
-                </svg>
-              </div>
-              
-              <div className="text-xl md:text-2xl font-extrabold text-indigo-200 tracking-widest uppercase drop-shadow mb-4">hackathon edition</div>
-              
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                AI-Powered Vibe Coding Competition
-              </h1>
-              
-              <div className="flex flex-col items-center gap-4 mt-6">
-                <button
-                  onClick={() => setOpenVideo('gLlIs-a1nkw')}
-                  className="flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105"
-                >
-                  <PlayCircle className="h-5 w-5" />
-                  Watch Trailer
-                </button>
-                
-                <div className="max-w-md mx-auto">
-                  <CountdownTimer variant="banner" showLabel={true} />
-                </div>
-              </div>
+          {/* Overlay content - Phase-based - Constrained to video bounds */}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center overflow-hidden">
+            <div className="text-center px-4 sm:px-6 max-w-4xl mx-auto w-full h-full flex flex-col justify-center items-center">
+              {showLeaderboard ? (
+                /* After deadline - Watch & Vote */
+                <>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
+                    Watch & Vote
+                  </h1>
+                  <p className="text-base sm:text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+                    AI judges have scored the submissions. Now it's your turn to vote!
+                  </p>
+                </>
+              ) : (
+                /* Before deadline - Original content */
+                <>
+                  <div className="relative inline-block mb-4 sm:mb-6">
+                    {/* Left gear */}
+                    <svg
+                      className="absolute -left-4 sm:-left-6 md:-left-8 -top-1 sm:-top-2 -translate-x-1/4 sm:-translate-x-1/3 -translate-y-1/2 h-8 sm:h-10 md:h-12 lg:h-16 w-8 sm:w-10 md:w-12 lg:w-16 opacity-90 animate-spin-slow z-0 text-gray-300"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
+                    </svg>
+                    
+                    {/* Main logo */}
+                    <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-12 sm:h-16 md:h-20 lg:h-24 w-auto mx-auto drop-shadow-lg" />
+                    
+                    {/* Right gear */}
+                    <svg
+                      className="absolute -right-4 sm:-right-6 md:-right-8 top-1/4 translate-x-1/4 sm:translate-x-1/2 -translate-y-1/3 h-8 sm:h-10 md:h-12 lg:h-16 w-8 sm:w-10 md:w-12 lg:w-16 opacity-90 animate-spin-slow z-0 text-gray-300"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09c0 .66.38 1.26 1 1.51a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.66 0 1.26.38 1.51 1H21a2 2 0 0 1 0 4h-.09c-.25 0-.49.09-.68.26z" />
+                    </svg>
+                  </div>
+                  
+                  <div className="text-sm sm:text-base md:text-xl lg:text-2xl font-extrabold text-indigo-200 tracking-widest uppercase drop-shadow-lg mb-3 sm:mb-4" style={{ textShadow: '2px 2px 8px rgba(0,0,0,0.7)' }}>AI-powered Game Show</div>
+                  
+                  <div className="flex flex-col items-center gap-3 sm:gap-4 mt-2 sm:mt-4">
+                    <button
+                      onClick={() => setOpenVideo('gLlIs-a1nkw')}
+                      className="flex items-center justify-center p-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white rounded-full transition-all duration-200 hover:scale-110"
+                      title="Watch Trailer"
+                    >
+                      <PlayCircle className="h-8 w-8 sm:h-10 sm:w-10" />
+                    </button>
+                    
+                    <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-medium text-white/90 leading-tight px-2 sm:px-0" style={{ WebkitTextStroke: '1px rgba(255,255,255,0.3)', textShadow: '0 0 10px rgba(255,255,255,0.3), 2px 2px 8px rgba(0,0,0,0.8)' }}>
+                      Submission Deadline: {deadlineDisplay}
+                    </h2>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
+
+      {/* Conditional Leaderboard Section - Only show after deadline - Position 2 */}
+      {showLeaderboard && (
+        <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-gray-100 py-12 animate-fade-in relative overflow-hidden">
+          {/* Subtle geometric background pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)] dark:bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.1),transparent_50%)]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.2),transparent_50%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.05),transparent_50%)]"></div>
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
+            {/* Header with voting instructions */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4 mb-6 border-b border-slate-800 pb-4">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Top 10 Leaderboard</h2>
+              
+              <div className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700 lg:bg-transparent lg:border-0 lg:p-0">
+                <div className="flex flex-col sm:flex-row sm:items-center lg:flex-row lg:items-center gap-2 text-sm lg:flex-wrap lg:justify-end">
+                  <div className="flex items-center gap-1 flex-wrap lg:whitespace-nowrap">
+                    <span className="font-semibold text-indigo-400">Vote:</span>
+                    <span>Send</span>
+                    <span className="font-semibold text-indigo-400">ai16z</span>
+                    <span>to</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={handleCopyVotingWallet}
+                      className="flex items-center gap-1 px-2 py-1 bg-slate-700/80 hover:bg-slate-600/80 rounded border border-slate-600 hover:border-indigo-400 transition-all duration-200 group"
+                      title="Copy wallet address"
+                    >
+                      <span className="text-slate-300 font-mono text-xs">
+                        <span className="hidden md:inline">{VOTING_WALLET.slice(0, 8)}…{VOTING_WALLET.slice(-8)}</span>
+                        <span className="md:hidden">{VOTING_WALLET.slice(0, 6)}…{VOTING_WALLET.slice(-6)}</span>
+                      </span>
+                      {copied ? (
+                        <Check className="w-3 h-3 text-green-400" />
+                      ) : (
+                        <Copy className="w-3 h-3 text-indigo-400 group-hover:text-indigo-300" />
+                      )}
+                    </button>
+                    <span className="whitespace-nowrap">with Memo <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs font-mono">ID</kbd></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {leaderboardLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
+              </div>
+            ) : leaderboardEntries.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">
+                No submissions found
+              </div>
+            ) : (
+              /* Single leaderboard table */
+              <div className="bg-slate-800/30 rounded-lg border border-slate-700 overflow-hidden">
+                {/* Table Header - Hidden on mobile */}
+                <div className="hidden md:grid grid-cols-[64px_1fr_100px_100px_280px] gap-4 px-4 py-3 text-xs font-semibold text-gray-400 bg-slate-800/50 border-b border-slate-700">
+                  <span className="text-center">#</span>
+                  <span>Project</span>
+                  <span className="text-center">AI Score</span>
+                  <span className="text-center">Human Score</span>
+                  <span className="text-center">Vote Instructions</span>
+                </div>
+
+                {/* Table Rows */}
+                <div className="divide-y divide-slate-700">
+                  {leaderboardEntries.map((entry, index) => {
+                    const rank = index + 1
+                    return (
+                      <div
+                        key={entry.submission_id}
+                        className="grid grid-cols-1 md:grid-cols-[64px_1fr_100px_100px_280px] gap-4 hover:bg-slate-700/30 transition-colors cursor-pointer"
+                        onClick={() => setSelectedSubmission(entry)}
+                      >
+                        {/* Mobile: Card-style layout */}
+                        <div className="md:hidden p-4 space-y-4">
+                          {/* Header with rank, avatar, project info */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0">
+                              {getRankBadge(rank)}
+                            </div>
+                            <img 
+                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                              alt="Profile"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-white text-base leading-tight mb-1">
+                                {entry.project_name}
+                              </h3>
+                              <p className="text-sm text-slate-300 mb-1">{entry.category}</p>
+                              <p className="text-xs text-slate-400">
+                                @{entry.discord_username || entry.discord_handle || 'Unknown'}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Scores Row */}
+                          <div className="flex items-center justify-center gap-6 py-2">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-white mb-1">
+                                {entry.final_score?.toFixed(1) || '—'}
+                              </div>
+                              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">AI Score</div>
+                            </div>
+                            <div className="w-px h-8 bg-slate-600"></div>
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-white mb-1">
+                                {entry.community_score?.toFixed(1) || '—'}
+                              </div>
+                              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Community</div>
+                            </div>
+                          </div>
+
+                          {/* Vote Button */}
+                          <button
+                            className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-indigo-400 rounded-lg p-3 transition-all duration-200 active:scale-[0.98]"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setVotingSubmission(entry)
+                            }}
+                          >
+                            <div className="text-sm text-center space-y-1">
+                              <div className="text-slate-200">
+                                Send <span className="font-semibold text-indigo-400">ai16z</span> to vote
+                              </div>
+                              <div className="flex items-center justify-center gap-2 text-xs text-slate-300">
+                                <span>Memo:</span>
+                                <kbd className="px-2 py-1 bg-slate-700 rounded font-mono text-indigo-300 font-semibold">
+                                  {entry.submission_id}
+                                </kbd>
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+
+                        {/* Desktop: Table layout */}
+                        <div className="hidden md:flex items-center justify-center px-4 py-4">
+                          {getRankBadge(rank)}
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-3 min-w-0 px-4 py-4">
+                          <img 
+                            src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                            className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                            alt="Profile"
+                          />
+                          <div className="min-w-0">
+                            <h3 className="font-medium truncate text-white">{entry.project_name}</h3>
+                            <p className="text-sm text-gray-400 truncate">{entry.category}</p>
+                          </div>
+                        </div>
+
+                        <div className="hidden md:flex items-center justify-center px-4 py-4">
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-white">
+                              {entry.final_score?.toFixed(1) || '—'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="hidden md:flex items-center justify-center px-4 py-4">
+                          <div className="text-center">
+                            <div className="text-lg font-semibold text-white">
+                              {entry.community_score?.toFixed(1) || '—'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div 
+                          className="hidden md:flex items-center justify-center cursor-pointer hover:bg-slate-700/20 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setVotingSubmission(entry)
+                          }}
+                        >
+                          <div className="text-xs bg-slate-800/50 hover:bg-slate-700/50 transition-colors w-full h-full flex items-center justify-center border-l border-slate-700">
+                            <div className="flex items-center gap-1 flex-wrap justify-center">
+                              <span>Send</span>
+                              <span className="font-semibold text-indigo-400">ai16z</span>
+                              <span>→</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCopyVotingWallet()
+                                }}
+                                className="font-mono text-indigo-400 hover:text-indigo-300 underline decoration-dotted"
+                              >
+                                {VOTING_WALLET.slice(0, 6)}…{VOTING_WALLET.slice(-6)}
+                              </button>
+                              <span>with Memo</span>
+                              <kbd className="bg-slate-700 rounded font-mono px-1 py-0.5">{entry.submission_id}</kbd>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                
+                {/* View All Link - subtle, right-aligned */}
+                <div className="border-t border-slate-700 px-4 py-2 text-right">
+                  <a 
+                    href="/dashboard" 
+                    className="text-xs text-slate-400 hover:text-indigo-400 transition-colors"
+                  >
+                    View all →
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Latest Episodes Section */}
       <section className="bg-gradient-to-b from-slate-800 via-slate-50 to-white dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 py-12 animate-fade-in">
@@ -423,188 +664,6 @@ export default function Frontpage() {
         </div>
       </section>
 
-      {/* Leaderboard Section */}
-      <section className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-gray-100 py-12 animate-fade-in relative overflow-hidden">
-        {/* Subtle geometric background pattern */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.3),transparent_50%)] dark:bg-[radial-gradient(circle_at_30%_40%,rgba(120,119,198,0.1),transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.2),transparent_50%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.05),transparent_50%)]"></div>
-        <div className="max-w-6xl mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 lg:gap-4 mb-6 border-b border-slate-800 pb-4">
-            <h2 className="text-2xl md:text-3xl font-bold text-white">Current Leaderboard</h2>
-            
-            {/* Voting Instructions - Same Row on Desktop */}
-            <div className="bg-slate-800/30 rounded-lg p-2.5 border border-slate-700 lg:bg-transparent lg:border-0 lg:p-0">
-              <div className="flex flex-col sm:flex-row sm:items-center lg:flex-row lg:items-center gap-2 text-sm lg:flex-wrap lg:justify-end">
-                <div className="flex items-center gap-1 flex-wrap lg:whitespace-nowrap">
-                  <span className="font-semibold text-indigo-400">Vote:</span>
-                  <span>Send</span>
-                  <span className="font-semibold text-indigo-400">ai16z</span>
-                  <span>to</span>
-                </div>
-                
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    onClick={handleCopyVotingWallet}
-                    className="flex items-center gap-1 px-2 py-1 bg-slate-700/80 hover:bg-slate-600/80 rounded border border-slate-600 hover:border-indigo-400 transition-all duration-200 group"
-                    title="Copy wallet address"
-                  >
-                    <span className="text-slate-300 font-mono text-xs">
-                      <span className="hidden md:inline">{VOTING_WALLET.slice(0, 8)}…{VOTING_WALLET.slice(-8)}</span>
-                      <span className="md:hidden">{VOTING_WALLET.slice(0, 6)}…{VOTING_WALLET.slice(-6)}</span>
-                    </span>
-                    {copied ? (
-                      <Check className="w-3 h-3 text-green-400" />
-                    ) : (
-                      <Copy className="w-3 h-3 text-indigo-400 group-hover:text-indigo-300" />
-                    )}
-                  </button>
-                  <span className="whitespace-nowrap">with Memo <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs font-mono">ID</kbd></span>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between mb-6">
-            <div></div>
-            <a 
-              href="/leaderboard" 
-              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium flex items-center gap-1"
-            >
-              View Full Leaderboard →
-            </a>
-          </div>
-          
-          {leaderboardLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mx-auto"></div>
-            </div>
-          ) : leaderboardEntries.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              No submissions found
-            </div>
-          ) : (
-            <div className="bg-slate-800/30 rounded-lg border border-slate-700 overflow-hidden">
-              {/* Table Header */}
-              <div className="hidden md:grid grid-cols-[64px_1fr_100px_100px_280px] gap-4 px-4 py-3 text-xs font-semibold text-gray-400 bg-slate-800/50 border-b border-slate-700">
-                <span className="text-center">#</span>
-                <span>Project</span>
-                <span className="text-center">AI Score</span>
-                <span className="text-center">Human Score</span>
-                <span className="text-center">Vote Instructions</span>
-              </div>
-              
-              {/* Table Rows */}
-              <div className="divide-y divide-slate-700">
-                {leaderboardEntries.map((entry, index) => {
-                  const rank = index + 1
-                  return (
-                    <div key={entry.submission_id} className="px-4 py-4 hover:bg-slate-700/30 transition-colors">
-                      {/* Mobile: All info stacked */}
-                      <div className="md:hidden space-y-3">
-                        <div className="flex items-center gap-3">
-                          {getRankBadge(rank)}
-                          <img 
-                            src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                            className="h-8 w-8 rounded-full object-cover"
-                            alt="Profile"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium truncate text-white">{entry.project_name}</h3>
-                            <p className="text-sm text-gray-400 truncate">{entry.category}</p>
-                          </div>
-                          <div className="text-right">
-                            <div className="grid grid-cols-2 gap-2 text-center">
-                              <div>
-                                <div className="text-sm font-semibold text-white">
-                                  {entry.final_score?.toFixed(1) || '—'}
-                                </div>
-                                <div className="text-xs text-gray-400">AI</div>
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-white">
-                                  {entry.community_score?.toFixed(1) || '—'}
-                                </div>
-                                <div className="text-xs text-gray-400">Human</div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-center bg-slate-800/50 rounded-lg p-3 border border-slate-700 cursor-pointer hover:bg-slate-700/50 transition-colors w-full">
-                          <span>Send </span><span className="font-semibold text-indigo-400">ai16z</span> →{' '}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleCopyVotingWallet()
-                            }}
-                            className="font-mono text-indigo-400 hover:text-indigo-300"
-                          >
-                            {VOTING_WALLET.slice(0, 6)}…{VOTING_WALLET.slice(-6)}
-                          </button>
-                          {' '}with Memo <kbd className="px-1.5 py-0.5 bg-slate-700 rounded text-xs font-mono">{entry.submission_id}</kbd>
-                        </div>
-                      </div>
-
-                      {/* Desktop: Table layout */}
-                      <div className="hidden md:grid grid-cols-[64px_1fr_100px_100px_280px] gap-4 items-center">
-                        <div className="flex items-center justify-center px-4 py-4">
-                          {getRankBadge(rank)}
-                        </div>
-
-                        <div className="flex items-center gap-3 min-w-0 px-4 py-4">
-                          <img 
-                            src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                            className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                            alt="Profile"
-                          />
-                          <div className="min-w-0">
-                            <h3 className="font-medium truncate text-white">{entry.project_name}</h3>
-                            <p className="text-sm text-gray-400 truncate">{entry.category}</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center px-4 py-4">
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-white">
-                              {entry.final_score?.toFixed(1) || '—'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-center px-4 py-4">
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-white">
-                              {entry.community_score?.toFixed(1) || '—'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-xs bg-slate-800/50 hover:bg-slate-700/50 transition-colors w-full h-full flex items-center justify-center border-l border-slate-700">
-                          <div className="flex items-center gap-1 flex-wrap justify-center">
-                            <span>Send</span>
-                            <span className="font-semibold text-indigo-400">ai16z</span>
-                            <span>→</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCopyVotingWallet()
-                              }}
-                              className="font-mono text-indigo-400 hover:text-indigo-300 underline decoration-dotted"
-                            >
-                              {VOTING_WALLET.slice(0, 6)}…{VOTING_WALLET.slice(-6)}
-                            </button>
-                            <span>with Memo</span>
-                            <kbd className="bg-slate-700 rounded font-mono px-1 py-0.5">{entry.submission_id}</kbd>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Prize Pool Section */}
       <PrizePool goal={10} variant="marquee" />
@@ -623,6 +682,23 @@ export default function Frontpage() {
           </div>
         </div>
       </section>
+
+      {/* Submission Detail Modal */}
+      {selectedSubmission && (
+        <SubmissionModal
+          submissionId={selectedSubmission.submission_id}
+          onClose={() => setSelectedSubmission(null)}
+          allSubmissionIds={leaderboardEntries.map(e => e.submission_id)}
+        />
+      )}
+
+      {/* Vote Modal */}
+      {votingSubmission && (
+        <VoteModal
+          submission={votingSubmission}
+          onClose={() => setVotingSubmission(null)}
+        />
+      )}
 
     </div>
   );
