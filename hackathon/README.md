@@ -179,8 +179,7 @@ python -m hackathon.scripts.migrate_schema add-field <field_name> --version v2
 
 ### Backend API
 ```bash
-# Start FastAPI server
-cd hackathon/backend
+# Start FastAPI server (from project root)
 uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 
 # Generate static data files

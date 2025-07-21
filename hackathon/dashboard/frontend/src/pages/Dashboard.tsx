@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
+import { useAuth } from '../contexts/AuthContext'
 import { Card, CardContent } from '../components/Card'
 import { Badge } from '../components/Badge'
 import { Button } from '../components/Button'
@@ -12,7 +13,6 @@ import {
   RefreshCw, 
   Trophy, 
   Code, 
-  Users, 
   Filter,
   ChevronDown,
   LayoutGrid,
@@ -26,6 +26,7 @@ import { StatusBadge } from '../components/Badge'
 
 export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const { authState } = useAuth()
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([])
   const [, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -34,7 +35,8 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '')
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || '')
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || '')
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('view') as 'list' | 'grid') || 'list')
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>((searchParams.get('display') as 'list' | 'grid') || 'list')
+  const [projectView, setProjectView] = useState<'mine' | 'all'>((searchParams.get('view') as 'mine' | 'all') || 'mine')
   const [sortField, setSortField] = useState<'project_name' | 'category' | 'status' | 'avg_score' | 'created_at' | 'discord_username' | 'submission_id'>((searchParams.get('sort') as any) || 'avg_score')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>((searchParams.get('dir') as 'asc' | 'desc') || 'desc')
   const [viewingSubmissionId, setViewingSubmissionId] = useState<number | null>(
@@ -105,7 +107,12 @@ export default function Dashboard() {
 
   const handleViewModeChange = (mode: 'list' | 'grid') => {
     setViewMode(mode)
-    updateSearchParams({ view: mode })
+    updateSearchParams({ display: mode })
+  }
+
+  const handleProjectViewChange = (view: 'mine' | 'all') => {
+    setProjectView(view)
+    updateSearchParams({ view: view })
   }
 
   const handleViewSubmission = (submissionId: number) => {
@@ -149,6 +156,15 @@ export default function Dashboard() {
     // Apply search and filters first
     let filtered = submissions
     
+    // Apply project view filter
+    if (projectView === 'mine' && authState.discordUser) {
+      filtered = filtered.filter(submission => 
+        submission.discord_username === authState.discordUser?.username ||
+        submission.discord_handle === authState.discordUser?.username ||
+        submission.discord_id === authState.discordUser?.discord_id
+      )
+    }
+    
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter(submission => 
@@ -190,7 +206,7 @@ export default function Dashboard() {
       if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  }, [submissions, searchTerm, sortField, sortDirection])
+  }, [submissions, searchTerm, sortField, sortDirection, projectView, authState.discordUser])
 
   if (loading) {
     return (
@@ -265,13 +281,28 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
-              <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {submissions.length} Total
-                </span>
+              {/* Project View Toggle */}
+              <div className="flex rounded-md shadow-sm" role="group">
+                <Button
+                  onClick={() => handleProjectViewChange('mine')}
+                  variant={projectView === 'mine' ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="rounded-r-none"
+                >
+                  My Projects
+                </Button>
+                <Button
+                  onClick={() => handleProjectViewChange('all')}
+                  variant={projectView === 'all' ? 'primary' : 'secondary'}
+                  size="sm"
+                  className="rounded-l-none border-l-0"
+                >
+                  All Projects
+                </Button>
               </div>
+
               
+              {/* Display Mode Toggle */}
               <div className="flex rounded-md shadow-sm" role="group">
                 <Button
                   onClick={() => handleViewModeChange('list')}

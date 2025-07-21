@@ -18,6 +18,7 @@ const Toaster = lazy(() => import('react-hot-toast').then(module => ({ default: 
 // Critical routes - load immediately
 import Dashboard from './pages/Dashboard'
 import Frontpage from './pages/Frontpage'
+import Footer from './components/Footer'
 
 // Non-critical routes - lazy load
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
@@ -28,15 +29,21 @@ const AuthPage = lazy(() => import('./pages/AuthPage'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'))
 
+// Experimental routes - development only
+const LeaderboardV1 = lazy(() => import('./pages/experimental/LeaderboardV1'))
+const LeaderboardV2 = lazy(() => import('./pages/experimental/LeaderboardV2'))
+const VotingPrototypes = lazy(() => import('./pages/experimental/VotingPrototypes'))
+const Templates = lazy(() => import('./pages/experimental/Templates'))
+
 function AppContent() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
   const isModal = searchParams.get('modal') === 'true'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {!isModal && <Header />}
-      <main className={isModal ? "" : "pt-6"}>
+      <main className={`flex-1 ${isModal ? "" : "pt-6"}`}>
         <Suspense fallback={
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -50,16 +57,14 @@ function AppContent() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/submission/:id" element={<SubmissionDetail />} />
           
-          {/* Dev-only route - wallet functionality only in development */}
+          {/* Experimental routes - development only */}
           {import.meta.env.DEV && (
-            <Route path="/voting-prototypes" element={
-              <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-lg text-gray-900 dark:text-gray-100 mb-2">Dev Only: Voting Prototypes</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Wallet functionality available in development</div>
-                </div>
-              </div>
-            } />
+            <>
+              <Route path="/experimental/voting-prototypes" element={<VotingPrototypes />} />
+              <Route path="/experimental/leaderboard-v1" element={<LeaderboardV1 />} />
+              <Route path="/experimental/leaderboard-v2" element={<LeaderboardV2 />} />
+              <Route path="/experimental/templates" element={<Templates />} />
+            </>
           )}
           
           {/* Protected Routes */}
@@ -76,6 +81,7 @@ function AppContent() {
           </Routes>
         </Suspense>
       </main>
+      {!isModal && <Footer />}
     </div>
   )
 }

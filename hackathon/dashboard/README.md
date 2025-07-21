@@ -34,13 +34,14 @@ A web-based admin dashboard and public leaderboard for the Clank Tank Hackathon 
 
 1. Install Python dependencies:
 ```bash
-cd scripts/hackathon/dashboard
+cd hackathon/dashboard
 pip install -r requirements.txt
 ```
 
 2. Start the API server:
 ```bash
-python app.py
+# From the project root (clanktank/)
+uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 ```
 
 The API will be available at `http://localhost:8000`
@@ -50,7 +51,7 @@ API documentation at `http://localhost:8000/docs`
 
 1. Install Node dependencies:
 ```bash
-cd scripts/hackathon/dashboard/frontend
+cd hackathon/dashboard/frontend
 npm install
 ```
 
@@ -70,7 +71,7 @@ The submission form fields are defined by a versioned schema:
 - The form renders fields, validation, and defaults based on the loaded schema.
 
 #### Updating the Schema
-- **Backend is the source of truth:** Update the schema in `scripts/hackathon/schema.py` (`SUBMISSION_SCHEMA_V2`).
+- **Backend is the source of truth:** Update the schema in `hackathon/backend/submission_schema.json`.
 - The frontend manifest (`src/types/submission_manifest.ts`) should be kept in sync for fallback.
 - After updating the backend schema, restart the backend server to serve the new schema.
 - The frontend will automatically use the new schema on next load.
@@ -113,7 +114,7 @@ python app.py --generate-static-data
 
 2. Build the frontend with static mode:
 ```bash
-cd frontend
+cd hackathon/dashboard/frontend
 VITE_USE_STATIC=true npm run build
 ```
 
@@ -184,6 +185,7 @@ Part of the Clank Tank Hackathon system.
 - The canonical submission schema is defined in `hackathon/backend/submission_schema.json`.
 - After any schema change, run:
   ```bash
+  cd hackathon/dashboard/frontend
   npm run sync-schema
   ```
   This copies the schema to `frontend/public/submission_schema.json` and generates TypeScript types in `frontend/src/types/submissionSchema.ts`.
@@ -209,7 +211,7 @@ Part of the Clank Tank Hackathon system.
 ## Sysadmin & Troubleshooting Notes
 
 - Ensure the backend API is running and accessible at the configured base URL (see `src/lib/api.ts`).
-- The frontend expects the schema and static data in `frontend/public/`.
+- The frontend expects the schema and static data in `hackathon/dashboard/frontend/public/`.
 - If you see schema mismatch errors, rerun `npm run sync-schema` and rebuild.
 - For CORS or API errors, check proxy settings in `vite.config.ts` and backend CORS config.
 - For DB issues, ensure `data/hackathon.db` is present and permissions are correct.
