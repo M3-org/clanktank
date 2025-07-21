@@ -15,7 +15,10 @@ import re
 import time
 from datetime import datetime
 from typing import Dict, Any, List
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 
 # Import versioned schema helpers
 from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
@@ -26,9 +29,6 @@ from hackathon.prompts.judge_personas import (
     JUDGE_WEIGHTS,
     get_judge_persona,
 )
-
-# Load environment variables
-load_dotenv()
 
 # Set up logging
 logging.basicConfig(
@@ -696,7 +696,7 @@ RANKING CONTEXT:
 - Judge consensus: {'High' if target_project['score_variance'] < 2 else 'Low'} (variance: {target_project['score_variance']:.1f})
 
 COMPETITIVE LANDSCAPE:
-- {len(better_projects)} projects scored higher (avg gap: {(sum(p['avg_score'] for p in better_projects) / len(better_projects) - target_score):.1f} points)
+- {len(better_projects)} projects scored higher{f" (avg gap: {(sum(p['avg_score'] for p in better_projects) / len(better_projects) - target_score):.1f} points)" if better_projects else ""}
 - {len(worse_projects)} projects scored lower
 - {len(similar_projects)} projects in similar score range (±2 points)
 

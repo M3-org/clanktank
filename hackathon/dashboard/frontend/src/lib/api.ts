@@ -9,6 +9,10 @@ const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
 
 const api = axios.create({
   baseURL: API_BASE,
+  // Enable caching for GET requests
+  headers: {
+    'Cache-Control': 'max-age=300', // 5 minutes cache
+  }
 })
 
 // Add Discord token to requests if available
@@ -19,6 +23,109 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Simple in-memory response cache for GET requests
+const responseCache = new Map<string, { data: any; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes for better caching
+
+// Request deduplication - prevent multiple identical requests
+const pendingRequests = new Map<string, Promise<any>>()
+
+// Extended config interface for deduplication
+interface ExtendedAxiosConfig {
+  _resolveDedup?: (data: any) => void
+  _rejectDedup?: (error: any) => void  
+  _cacheKey?: string
+}
+
+api.interceptors.request.use((config) => {
+  // Only cache GET requests
+  if (config.method?.toLowerCase() === 'get') {
+    const cacheKey = `${config.baseURL}${config.url}${JSON.stringify(config.params || {})}`
+    
+    // Check cache first
+    const cached = responseCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      // Return cached response immediately
+      return Promise.reject({
+        isAxiosError: false,
+        isCached: true,
+        data: cached.data
+      })
+    }
+    
+    // Check if identical request is already in flight (deduplication)
+    if (pendingRequests.has(cacheKey)) {
+      // Wait for the existing request instead of making a new one
+      return Promise.reject({
+        isAxiosError: false,
+        isPending: true,
+        cacheKey: cacheKey
+      })
+    }
+    
+    // Mark this request as pending
+    const extendedConfig = config as ExtendedAxiosConfig
+    const requestPromise = new Promise((resolve, reject) => {
+      // This promise will be resolved by the response interceptor
+      extendedConfig._resolveDedup = resolve
+      extendedConfig._rejectDedup = reject
+      extendedConfig._cacheKey = cacheKey
+    })
+    pendingRequests.set(cacheKey, requestPromise)
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => {
+    // Cache successful GET responses and resolve pending requests
+    if (response.config.method?.toLowerCase() === 'get') {
+      const cacheKey = `${response.config.baseURL}${response.config.url}${JSON.stringify(response.config.params || {})}`
+      
+      // Cache the response
+      responseCache.set(cacheKey, {
+        data: response.data,
+        timestamp: Date.now()
+      })
+      
+      // Resolve any pending duplicate requests
+      const pendingRequest = pendingRequests.get(cacheKey)
+      const extendedConfig = response.config as ExtendedAxiosConfig
+      if (pendingRequest && extendedConfig._resolveDedup) {
+        extendedConfig._resolveDedup(response.data)
+      }
+      pendingRequests.delete(cacheKey)
+    }
+    return response
+  },
+  (error) => {
+    // Handle cached responses
+    if (error.isCached) {
+      return Promise.resolve({ data: error.data })
+    }
+    
+    // Handle pending duplicate requests
+    if (error.isPending) {
+      const pendingRequest = pendingRequests.get(error.cacheKey)
+      if (pendingRequest) {
+        return pendingRequest.then((data: any) => ({ data }))
+      }
+    }
+    
+    // Clean up failed requests
+    const extendedConfig = error.config as ExtendedAxiosConfig
+    if (extendedConfig?._cacheKey) {
+      const cacheKey = extendedConfig._cacheKey
+      if (extendedConfig._rejectDedup) {
+        extendedConfig._rejectDedup(error)
+      }
+      pendingRequests.delete(cacheKey)
+    }
+    
+    return Promise.reject(error)
+  }
+)
 
 // Post a new submission (latest)
 export const postSubmission = async (data: SubmissionInputs) => {
@@ -171,6 +278,18 @@ export const hackathonApi = {
 
   getLikeDislikeCounts: async (submissionId: string) => {
     const response = await api.get(`/submissions/${submissionId}/like-dislike`);
+    return response.data;
+  },
+
+  // Get submission feedback (goes through axios cache)
+  getSubmissionFeedback: async (submissionId: string) => {
+    const response = await api.get(`/submission/${submissionId}/feedback`);
+    return response.data;
+  },
+
+  // Get config (cached properly through axios)
+  getConfig: async () => {
+    const response = await api.get('/config');
     return response.data;
   },
 }

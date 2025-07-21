@@ -37,8 +37,10 @@ from dotenv import load_dotenv
 repo_root = Path(__file__).parent.parent.parent
 load_dotenv(repo_root / ".env")
 
-# Constants
-PRIZE_WALLET = "2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf"
+# Constants from environment
+PRIZE_WALLET = os.getenv('PRIZE_WALLET_ADDRESS')
+if not PRIZE_WALLET:
+    raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
 AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
 HELIUS_BASE_URL = "https://api.helius.xyz/v0"
 DEFAULT_DB_PATH = repo_root / "data" / "hackathon.db"

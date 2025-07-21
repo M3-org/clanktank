@@ -337,9 +337,9 @@ def main():
     
     args = parser.parse_args()
     
-    # Load environment variables
-    from dotenv import load_dotenv
-    load_dotenv()
+    # Load environment variables (automatically finds .env in parent directories)
+    from dotenv import load_dotenv, find_dotenv
+    load_dotenv(find_dotenv())
     
     if args.reset:
         reset_test_environment()

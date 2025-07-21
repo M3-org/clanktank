@@ -17,8 +17,10 @@ sys.path.append(str(project_root))
 from hackathon.backend.app import engine
 from sqlalchemy import text
 
-# Prize wallet address
-PRIZE_WALLET_ADDRESS = "2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf"
+# Prize wallet address from environment
+PRIZE_WALLET_ADDRESS = os.getenv('PRIZE_WALLET_ADDRESS')
+if not PRIZE_WALLET_ADDRESS:
+    raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
 
 def fetch_real_token_holdings():
     """Fetch real token holdings from Helius API"""

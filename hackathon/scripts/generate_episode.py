@@ -23,8 +23,10 @@ from hackathon.prompts.judge_personas import JUDGE_PERSONAS
 # Import versioned schema helpers
 from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields, get_schema
 
-# Load environment variables
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 
 # Set up logging
 logging.basicConfig(

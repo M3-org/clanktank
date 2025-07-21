@@ -168,6 +168,176 @@ All working tests have been updated for v2 schema compliance:
 
 ## Test Execution
 
+### **🎯 Full Pipeline Testing Guide**
+
+Follow these steps to test the complete hackathon system end-to-end:
+
+#### **Phase 1: Clean Environment Setup**
+```bash
+# 1. Reset database to clean state
+python -m hackathon.backend.create_db
+
+# 2. Verify environment
+python -m hackathon.tests.test_discord_bot
+
+# 3. Quick system health check
+python -m hackathon.tests.test_smoke
+```
+
+#### **Phase 2: Manual Submission Testing**
+```bash
+# 1. Start the backend (Terminal 1)
+cd hackathon/backend
+python app.py --host 0.0.0.0 --port 8000
+
+# 2. Start the frontend (Terminal 2) 
+cd hackathon/dashboard/frontend
+npm run dev
+
+# 3. Submit 2-3 real projects via frontend
+#    - Use actual GitHub repos
+#    - Fill out complete forms
+#    - Note submission IDs from success messages
+
+# 4. Verify submissions in database
+python -c "
+from hackathon.backend.app import get_db_connection
+conn = get_db_connection()
+cursor = conn.execute('SELECT submission_id, project_name, status FROM hackathon_submissions ORDER BY created_at DESC LIMIT 5')
+for row in cursor: print(f'{row[0]}: {row[1]} [{row[2]}]')
+conn.close()
+"
+```
+
+#### **Phase 3: AI Research Pipeline**
+```bash
+# Research each submission (replace with actual IDs)
+python -m hackathon.backend.research --submission-id YOUR_SUBMISSION_ID_1
+python -m hackathon.backend.research --submission-id YOUR_SUBMISSION_ID_2
+
+# Check research status
+python -c "
+from hackathon.backend.app import get_db_connection
+conn = get_db_connection()
+cursor = conn.execute('SELECT submission_id, project_name, status FROM hackathon_submissions WHERE status != \"submitted\" ORDER BY created_at DESC')
+for row in cursor: print(f'{row[0]}: {row[1]} [{row[2]}]')
+conn.close()
+"
+```
+
+#### **Phase 4: AI Judge Scoring**
+```bash
+# Score each researched submission
+python -m hackathon.backend.hackathon_manager --score --submission-id YOUR_SUBMISSION_ID_1 --version v2
+python -m hackathon.backend.hackathon_manager --score --submission-id YOUR_SUBMISSION_ID_2 --version v2
+
+# Or score all researched submissions at once
+python -m hackathon.backend.hackathon_manager --score --all --version v2
+
+# Check scoring results
+python -c "
+from hackathon.backend.app import get_db_connection
+conn = get_db_connection()
+cursor = conn.execute('SELECT s.submission_id, s.project_name, COUNT(sc.judge_name) as judge_count, ROUND(AVG(sc.weighted_total), 2) as avg_score FROM hackathon_submissions s LEFT JOIN hackathon_scores sc ON s.submission_id = sc.submission_id WHERE sc.round = 1 GROUP BY s.submission_id ORDER BY avg_score DESC')
+for row in cursor: print(f'{row[0]}: {row[1]} - {row[2]} judges, avg: {row[3]}')
+conn.close()
+"
+```
+
+#### **Phase 5: Frontend Testing**
+```bash
+# 1. Test Dashboard (with auth)
+# Visit: http://localhost:5173/dashboard
+# - Should see your submissions
+# - Should see "View" buttons (no more "Vote" buttons)
+# - Test filters and sorting
+
+# 2. Test Leaderboard (public)  
+# Visit: http://localhost:5173/leaderboard
+# - Should see scored submissions ranked
+# - Should see "Vote" buttons on each entry
+# - Test vote modal functionality
+# - Verify prize pool display
+
+# 3. Test API endpoints directly
+curl http://localhost:8000/api/v2/leaderboard | jq
+curl http://localhost:8000/api/v2/stats | jq
+```
+
+#### **Phase 6: Community Features (Optional)**
+```bash
+# Test Round 2 synthesis (if implementing community voting)
+python -m hackathon.backend.hackathon_manager --synthesize --submission-id YOUR_SUBMISSION_ID_1 --version v2
+
+# Generate episodes (if desired)
+python -m hackathon.scripts.generate_episode --submission-id YOUR_SUBMISSION_ID_1 --version v2
+```
+
+#### **Phase 7: Load Testing**
+```bash
+# Generate realistic test data for stress testing
+python hackathon/tests/generate_test_leaderboard_data.py
+
+# Run comprehensive API tests with populated data
+export TEST_AUTH_TOKEN="test-dev-token-12345"
+ENABLE_RATE_LIMITING=false python -m pytest hackathon/tests/test_api_endpoints.py -v
+
+# Test rate limiting (production mode)
+python -m pytest hackathon/tests/test_api_endpoints.py::test_post_submission_v1 -v
+```
+
+### **🔧 Troubleshooting Guide**
+
+#### **Common Issues & Solutions**
+
+**1. "Repository not found" during research**
+```bash
+# Check if GitHub repo is public and URL is correct
+# Research will still complete with limited analysis
+```
+
+**2. "401 Unauthorized" in tests**  
+```bash
+# For scripts: Set TEST_AUTH_TOKEN
+export TEST_AUTH_TOKEN="test-dev-token-12345"
+
+# For pytest: Authentication is auto-mocked in conftest.py
+```
+
+**3. "Rate limit exceeded" errors**
+```bash
+# Disable rate limiting for testing
+ENABLE_RATE_LIMITING=false python script.py
+```
+
+**4. Database connection errors**
+```bash
+# Reset database
+python -m hackathon.scripts.create_db
+
+# Check database path
+echo $HACKATHON_DB_PATH  # Should show: data/hackathon.db
+```
+
+**5. Frontend not showing new data**
+```bash
+# Hard refresh browser (Ctrl+F5)
+# Check API endpoints directly:
+curl http://localhost:8000/api/v2/leaderboard
+```
+
+### **🎯 Success Criteria**
+
+After completing the full pipeline test, you should have:
+
+✅ **Submissions**: 2-3 real projects in database  
+✅ **Research**: Each submission researched with AI analysis  
+✅ **Scores**: Each submission scored by all 4 AI judges  
+✅ **Dashboard**: Shows submissions with "View" buttons (no "Vote")  
+✅ **Leaderboard**: Shows ranked submissions with "Vote" buttons  
+✅ **API**: All endpoints returning real data  
+✅ **Performance**: No rate limit issues in normal usage
+
 ### **Quick Test Commands**
 ```bash
 # Core system verification
@@ -177,14 +347,15 @@ python -m hackathon.tests.test_smoke
 python -m hackathon.tests.test_hackathon_system --setup
 python -m hackathon.tests.test_hackathon_system --check
 
-# API testing (partial functionality)
-python -m pytest hackathon/tests/test_api_endpoints.py -v
+# API testing (with proper auth)
+export TEST_AUTH_TOKEN="test-dev-token-12345"
+ENABLE_RATE_LIMITING=false python -m pytest hackathon/tests/test_api_endpoints.py -v
 
 # Environment validation
 python -m hackathon.tests.test_discord_bot
 
 # Run all pytest tests
-python -m pytest hackathon/tests/ -v
+ENABLE_RATE_LIMITING=false python -m pytest hackathon/tests/ -v
 ```
 
 ### **Test Suite Status**

@@ -756,20 +756,30 @@ def get_db_connection():
     return sqlite3.connect(HACKATHON_DB_PATH)
 
 
-def get_next_submission_id(conn: sqlite3.Connection, version: str = "v2") -> int:
+def get_next_submission_id(conn, version: str = "v2") -> int:
     """
     Get the next sequential submission ID for the given version.
     Uses auto-increment behavior by finding the max ID and adding 1.
+    Works with both SQLite and SQLAlchemy connections.
     """
     table_name = f"hackathon_submissions_{version}"
-    cursor = conn.cursor()
     
     try:
-        cursor.execute(f"SELECT MAX(submission_id) FROM {table_name}")
-        result = cursor.fetchone()
-        max_id = result[0] if result[0] is not None else 0
+        # Check if this is a raw SQLite connection or SQLAlchemy connection
+        if hasattr(conn, 'cursor'):
+            # Raw SQLite connection
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT MAX(submission_id) FROM {table_name}")
+            result = cursor.fetchone()
+        else:
+            # SQLAlchemy connection
+            from sqlalchemy import text
+            result = conn.execute(text(f"SELECT MAX(submission_id) FROM {table_name}"))
+            result = result.fetchone()
+        
+        max_id = result[0] if result and result[0] is not None else 0
         return max_id + 1
-    except sqlite3.OperationalError:
+    except Exception:
         # Table doesn't exist or is empty
         return 1
 
@@ -1044,29 +1054,30 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             print(f"⚠️  Invalid project_image URL detected, removing: {project_image}")
             data_dict["project_image"] = None
 
-    # Generate submission ID
-    submission_id = get_next_submission_id(conn, version="v2")
-
-    # Basic data preparation
-    now = datetime.now().isoformat()
-    data = data_dict.copy()
-    data["submission_id"] = submission_id
-    data["status"] = "submitted"
-    data["created_at"] = now
-    data["updated_at"] = now
-    # Set owner_discord_id to the Discord user's ID
-    data["owner_discord_id"] = discord_user.discord_id
-
     # Log Discord submission
     print(f"🔵 Discord submission: {discord_user.username} ({discord_user.discord_id})")
 
-    # Database insertion
-    table = "hackathon_submissions_v2"
-    columns = ", ".join(data.keys())
-    placeholders = ", ".join([f":{key}" for key in data.keys()])
-
+    # Database operations
     try:
+        engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
         with engine.connect() as conn:
+            # Generate submission ID
+            submission_id = get_next_submission_id(conn, version="v2")
+
+            # Basic data preparation
+            now = datetime.now().isoformat()
+            data = data_dict.copy()
+            data["submission_id"] = submission_id
+            data["status"] = "submitted"
+            data["created_at"] = now
+            data["updated_at"] = now
+            # Set owner_discord_id to the Discord user's ID
+            data["owner_discord_id"] = discord_user.discord_id
+
+            # Database insertion
+            table = "hackathon_submissions_v2"
+            columns = ", ".join(data.keys())
+            placeholders = ", ".join([f":{key}" for key in data.keys()])
             conn.execute(
                 text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data
             )
@@ -1095,9 +1106,13 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
 
     except Exception as e:
         print(f"❌ Database error: {e}")
+        # Only include submission_id if it was successfully generated
+        error_content = {"success": False, "error": "Internal server error. Please try again later."}
+        if 'submission_id' in locals():
+            error_content["submission_id"] = submission_id
         return JSONResponse(
             status_code=500,
-            content={"success": False, "error": "Internal server error. Please try again later.", "submission_id": submission_id},
+            content=error_content,
         )
 
 
@@ -1494,6 +1509,13 @@ async def get_config():
         info["can_submit"] = now < (deadline + timedelta(seconds=grace_period))
     else:
         info["can_submit"] = True
+    
+    # Add wallet and token configuration
+    prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+    if not prize_wallet:
+        raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
+    info["prize_wallet_address"] = prize_wallet
+    info["ai16z_mint"] = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
         
     return info
 
@@ -1673,7 +1695,9 @@ async def get_prize_pool():
     """Get crypto-native prize pool data using Helius DAS API."""
     try:
         helius_api_key = os.getenv('HELIUS_API_KEY')
-        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS', '2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf')
+        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+        if not prize_wallet:
+            raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
         target_sol = float(os.getenv('PRIZE_POOL_TARGET_SOL', 10))
         
         if not helius_api_key:

@@ -31,8 +31,10 @@ except ImportError:
     )
     sys.exit(1)
 
-# Load environment variables
-load_dotenv()
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
 
 # Set up logging
 logging.basicConfig(

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Copy, Check, ExternalLink, TrendingUp, Eye, X } from 'lucide-react'
 import { Card } from './Card'
 import { usePrizePool } from '../hooks/usePrizePool'
@@ -9,11 +9,13 @@ import { pretty } from '../lib/utils'
 
 interface PrizePoolProps {
   goal?: number
-  variant?: 'card' | 'banner'
+  variant?: 'card' | 'banner' | 'marquee'
 }
 
 export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   const [showTokenModal, setShowTokenModal] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   
   // Prize pool data
   const prizePoolData = usePrizePool()
@@ -39,6 +41,139 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   
   // Destructure for easier access
   const { tokenHoldings, totalValue, loading, lastUpdated } = prizePoolData
+
+  // Auto-hide/show logic for marquee
+  useEffect(() => {
+    if (variant !== 'marquee') return
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+      
+      // Show if scrolled down at least 200px or near bottom of page
+      const shouldShow = scrollY > 200 || (scrollY + windowHeight > documentHeight - 100)
+      setIsVisible(shouldShow)
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Show if mouse is near bottom 100px of screen
+      const nearBottom = e.clientY > window.innerHeight - 100
+      setIsHovering(nearBottom)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('mousemove', handleMouseMove)
+    
+    // Initial check
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [variant])
+
+  if (variant === 'marquee') {
+    if (loading) {
+      return (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 backdrop-blur-sm">
+          <div className="flex items-center justify-center h-16 px-4">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-cyan-400 border-t-transparent mr-2"></div>
+            <span className="text-sm text-cyan-400">Loading prize pool...</span>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className={`fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 shadow-2xl backdrop-blur-sm transition-transform duration-300 ${
+        isVisible || isHovering ? 'translate-y-0' : 'translate-y-full'
+      }`}>
+        {/* Progress Bar at Top */}
+        <div className="relative h-1 bg-slate-700/50">
+          <div 
+            className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-1000 ease-out"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          />
+        </div>
+        
+        {/* Music Player UI */}
+        <div className="h-16 px-4 flex items-center justify-between">
+          {/* Left: Album Art + Track Info */}
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0">
+              💎
+            </div>
+            
+            <div className="min-w-0 flex-1">
+              <div className="text-white font-semibold text-sm truncate">
+                Prize Pool • {pretty(totalValue)} SOL
+              </div>
+              <div className="text-slate-400 text-xs truncate">
+                {progress.toFixed(1)}% of {goal} SOL goal • 
+                {tokenHoldings.length > 0 && (
+                  <span className="ml-1">
+                    {tokenHoldings.slice(0, 3).map((token, i) => (
+                      <span key={token.mint}>
+                        {i > 0 && ' • '}
+                        {token.symbol}: {pretty(parseFloat(token.amount))}
+                      </span>
+                    ))}
+                    {tokenHoldings.length > 3 && ` • +${tokenHoldings.length - 3} more`}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Center: Transport Controls */}
+          <div className="flex items-center gap-2 mx-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+            
+            <a
+              href={solscanUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-cyan-400 hover:text-cyan-300 transition-all duration-200"
+              title="View on Solscan"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </div>
+
+          {/* Right: Volume/Wallet Controls */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-700/80 hover:bg-slate-600/80 rounded-full border border-slate-600 hover:border-cyan-400 transition-all duration-200 group"
+              title="Copy wallet address"
+            >
+              <span className="text-slate-300 font-mono text-xs hidden lg:block">
+                {PRIZE_WALLET}
+              </span>
+              <span className="text-slate-300 font-mono text-xs hidden md:block lg:hidden">
+                {PRIZE_WALLET.slice(0, 16)}...{PRIZE_WALLET.slice(-8)}
+              </span>
+              <span className="text-slate-300 font-mono text-xs hidden sm:block md:hidden">
+                {PRIZE_WALLET.slice(0, 8)}...{PRIZE_WALLET.slice(-6)}
+              </span>
+              <span className="text-slate-300 font-mono text-xs sm:hidden">
+                {PRIZE_WALLET.slice(0, 4)}...{PRIZE_WALLET.slice(-4)}
+              </span>
+              {copied ? (
+                <Check className="w-3 h-3 text-green-400" />
+              ) : (
+                <Copy className="w-3 h-3 text-cyan-400 group-hover:text-cyan-300" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (variant === 'banner') {
     if (loading) {
@@ -293,3 +428,4 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
 // Legacy exports for backward compatibility
 export const PrizePoolCard = (props: PrizePoolProps) => <PrizePool {...props} variant="card" />
 export const PrizePoolBanner = (props: PrizePoolProps) => <PrizePool {...props} variant="banner" />
+export const PrizePoolMarquee = (props: PrizePoolProps) => <PrizePool {...props} variant="marquee" />

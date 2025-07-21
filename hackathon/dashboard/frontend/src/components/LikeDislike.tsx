@@ -21,7 +21,12 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
   const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
 
   useEffect(() => {
-    loadCounts()
+    // Debounce loading to prevent rapid calls during navigation
+    const timeoutId = setTimeout(() => {
+      loadCounts()
+    }, 100)
+    
+    return () => clearTimeout(timeoutId)
   }, [submissionId])
 
   const loadCounts = async () => {
