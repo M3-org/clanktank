@@ -35,7 +35,7 @@ export default function AuthPage() {
             Welcome to Clank Tank Hackathon
           </h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Sign in with Discord to participate
+            Connect with Discord to participate
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -58,20 +58,10 @@ export default function AuthPage() {
 
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
             <p className="mb-4">
-              By continuing, you agree to participate in the Clank Tank Hackathon and allow us to use your Discord username for submissions.
+              By continuing, you agree to participate in the hackathon and allow us to use your Discord username for submissions.
             </p>
             
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                Why Discord?
-              </h3>
-              <ul className="text-blue-800 dark:text-blue-200 text-sm space-y-1">
-                <li>• Simple one-click authentication</li>
-                <li>• Your username is automatically populated</li>
-                <li>• Easy to track your submissions</li>
-                <li>• Connected to our Discord community</li>
-              </ul>
-            </div>
+
           </div>
         </CardContent>
       </Card>

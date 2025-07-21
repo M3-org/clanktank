@@ -295,3 +295,61 @@ Submissions progress: **submitted** → **researched** → **scored** → **comm
 - **GitHub analysis**: `github_analyzer.log`
 - **Research logs**: `research.log`
 - **Scoring logs**: `score_all.log`
+
+## Memory
+
+## Environment Variables
+
+### Required Environment Variables
+All components now use environment variables instead of hardcoded constants:
+
+**Backend Variables:**
+```bash
+# Required: Prize wallet address for hackathon
+export PRIZE_WALLET_ADDRESS=2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf
+
+# Required: Helius API key for blockchain data
+export HELIUS_API_KEY=your_helius_api_key_here
+
+# Optional: Database path (default: data/hackathon.db)  
+export HACKATHON_DB_PATH=data/hackathon.db
+
+# Optional: Prize pool target (default: 10 SOL)
+export PRIZE_POOL_TARGET_SOL=10
+```
+
+**Frontend Variables (Vite requires VITE_ prefix):**
+```bash
+# Required: Prize wallet address for frontend
+export VITE_PRIZE_WALLET_ADDRESS=2K1reedtyDUQigdaLoHLEyugkH88iVGNE2BQemiGx6xf
+
+# Optional: AI16Z mint address
+export VITE_AI16Z_MINT=HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC
+```
+
+### Environment Variable Management
+
+The codebase uses a **single consolidated `.env` file** at the project root to eliminate configuration duplication. All hackathon components load environment variables via:
+
+```python
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+```
+
+This approach provides:
+- **Single source of truth**: One `.env` file for entire project
+- **Automatic discovery**: `find_dotenv()` searches parent directories for `.env` file
+- **Native python-dotenv**: Uses built-in functionality, no custom modules
+- **Clean and simple**: Just 2 lines to load environment variables from anywhere
+
+### Setup
+1. Copy `.env.example` to `.env`
+2. Fill in required values
+3. All Python modules use `load_dotenv(find_dotenv())` to automatically find the project `.env`
+4. Frontend uses Vite's `envDir` configuration to load from project root
+
+**Important**: Scripts will fail with clear error messages if required environment variables are missing.
+
+### Backend Management
+- I will start / stop the backend app.py, just let me know when I need to
+- Update todo.md after completing each task

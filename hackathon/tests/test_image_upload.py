@@ -34,8 +34,23 @@ def test_image_upload(client):
     img_bytes = io.BytesIO()
     img.save(img_bytes, format='PNG')
     img_bytes.seek(0)
+    submission_id = unique_name('imgtest')
+    # Create a valid submission first
+    submission_payload = {
+        "submission_id": submission_id,
+        "project_name": submission_id,
+        "description": "Image upload test.",
+        "category": "AI/Agents",
+        "discord_handle": "testuser#1234",
+        "github_url": "https://github.com/test/project",
+        "demo_video_url": "https://youtube.com/test"
+    }
+    create_response = client.post('/api/submissions', json=submission_payload)
+    assert create_response.status_code == 201, f"Submission creation failed: {create_response.text}"
+    # Now upload the image
     files = {'file': ('test_image.png', img_bytes, 'image/png')}
-    response = client.post('/api/upload-image', files=files)
+    data = {'submission_id': submission_id}
+    response = client.post('/api/upload-image', files=files, data=data)
     assert response.status_code == 200, f"Image upload failed: {response.text}"
     assert 'url' in response.json(), "No URL in upload response"
     image_url = response.json()['url']

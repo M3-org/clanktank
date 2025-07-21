@@ -1,40 +1,42 @@
-# Hackathon Scripts Requirements
+# Hackathon Scripts Requirements  – generated 2025-07-19
 
-# Core dependencies
-python-dotenv>=1.0.0
-requests>=2.31.0
+# ── Core dependencies ─────────────────────────────────────────
+python-dotenv==1.1.1
+requests==2.32.4
 
-# Database
-# sqlite3 is included in Python standard library
+# ── Database ──────────────────────────────────────────────────
+sqlalchemy==2.0.41           # uses SQLAlchemy 2.x API
 
-# Google Sheets integration
-gspread>=5.12.0
-google-auth>=2.23.0
+# ── Google Sheets integration ─────────────────────────────────
+gspread==6.2.1
+google-auth==2.40.3
 
-# Discord bot
-discord.py>=2.3.2
+# ── Discord bot ───────────────────────────────────────────────
+discord.py==2.5.2
 
-# AI/ML tools (for judge scoring)
-openai>=1.3.0  # If using OpenAI directly
-anthropic>=0.5.0  # If using Claude directly
+# ── AI/ML tools (judge scoring) ───────────────────────────────
+openai==1.97.0
+anthropic==0.58.2
 
-# GitHub analysis
-PyGithub>=2.1.1  # Optional, if not using requests directly
+# ── GitHub analysis ───────────────────────────────────────────
+PyGithub==2.6.1
 
-# Web dashboard (FastAPI backend)
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.4.0
+# ── Web dashboard (FastAPI backend) ───────────────────────────
+fastapi==0.116.1
+uvicorn==0.35.0
+pydantic==2.11.7
+python-multipart==0.0.20
 
-# YouTube upload
-google-api-python-client>=2.108.0
-google-auth-httplib2>=0.1.1
-google-auth-oauthlib>=1.1.0
+# ── YouTube upload / Google APIs ──────────────────────────────
+google-api-python-client==2.176.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.2
 
-# Development tools
-pytest>=7.4.0  # For running tests
-black>=23.9.0  # Code formatter
-flake8>=6.1.0  # Linter
+# ── Development tools (install with `pip install -r requirements.txt --extra-index-url dev`) ──
+pytest==8.4.1
+black==25.1.0
+flake8==7.3.0
 
-# Image processing
-Pillow
+# ── Image processing & logging ────────────────────────────────
+Pillow==11.3.0
+structlog==25.4.0

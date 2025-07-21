@@ -74,8 +74,8 @@ This directory contains all scripts and tools for the **Clank Tank Hackathon Edi
    - **Frontend Dashboard**: React development server
    - **Run:**
      ```bash
-     # Backend (from hackathon/backend/)
-     python app.py --host 0.0.0.0 --port 8000
+     # Backend (from the root of the repo)
+     uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
      
      # Frontend (from hackathon/dashboard/frontend/)
      npm install
@@ -92,15 +92,18 @@ This directory contains all scripts and tools for the **Clank Tank Hackathon Edi
      ```
 
 5. **Research & Analysis**
-   - `github_analyzer.py`: Analyzes GitHub repos for code quality, structure, and activity.
+   - `github_analyzer.py`: Analyzes GitHub repos for code quality, structure, and activity. Now includes GitIngest integration for comprehensive code analysis.
+   - `research.py`: AI-powered research pipeline that uses GitIngest output as context for judge analysis.
    - **Run:**
      ```bash
-     python hackathon/backend/github_analyzer.py <repo_url>
-     ```
-   - `research.py`: AI-powered research on technical, market, and innovation aspects.
-   - **Run:**
-     ```bash
-     python -m hackathon.backend.research --submission-id <id>
+     # GitHub analysis with GitIngest
+     python hackathon/backend/github_analyzer.py <repo_url> --gitingest
+     
+     # Full research pipeline for a submission
+     python -m hackathon.backend.research --submission-id <id> --version v2
+     
+     # Research all pending submissions
+     python -m hackathon.backend.research --all --version v2
      ```
 
 6. **Scoring & Judging**
@@ -176,12 +179,11 @@ python -m hackathon.scripts.migrate_schema add-field <field_name> --version v2
 
 ### Backend API
 ```bash
-# Start FastAPI server
-cd hackathon/backend
-python app.py --host 0.0.0.0 --port 8000
+# Start FastAPI server (from project root)
+uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 
 # Generate static data files
-python app.py --generate-static-data
+python -m hackathon.backend.app --generate-static-data
 
 # API documentation available at http://127.0.0.1:8000/docs
 ```
@@ -269,6 +271,80 @@ python -m hackathon.scripts.upload_youtube
 
 ---
 
+## GitIngest Integration
+
+The Clank Tank hackathon system now uses **GitIngest** as the primary method for generating comprehensive code context for AI research and judging. GitIngest replaces the legacy `quality_score` system with dynamic, prompt-ready repository digests.
+
+### Installation
+
+```bash
+# Install GitIngest
+pip install gitingest
+
+# Verify installation
+gitingest --help
+```
+
+### How It Works
+
+1. **Repository Analysis**: The `github_analyzer.py` script first analyzes the repository structure, languages, and file types
+2. **Dynamic Configuration**: Based on the analysis, optimal GitIngest settings are automatically determined:
+   - **File size limits**: Adjusted based on repository size (50KB for large repos, 100KB for smaller ones)
+   - **Include patterns**: Important files like README, config files, and documentation
+   - **Exclude patterns**: Build artifacts, dependencies, logs based on detected tech stack
+3. **Context Generation**: GitIngest generates a comprehensive, LLM-friendly digest of the repository
+4. **AI Research**: The digest is used as primary context for judge evaluation and market research
+
+### Usage Examples
+
+```bash
+# GitHub analysis with automatic GitIngest integration
+python hackathon/backend/github_analyzer.py https://github.com/user/repo --gitingest
+
+# Full research pipeline (includes GitIngest automatically)
+python -m hackathon.backend.research --submission-id ABC123 --version v2
+
+# Research all pending submissions with GitIngest
+python -m hackathon.backend.research --all --version v2
+```
+
+### Dynamic Settings Example
+
+For a JavaScript React project, GitIngest might use:
+```bash
+gitingest https://github.com/user/react-app \
+  -s 100000 \
+  -e "node_modules/**" -e "build/**" -e "dist/**" \
+  -i "**/*.md" -i "package.json" -i "src/**/*.js" -i "src/**/*.jsx"
+```
+
+For a Python project:
+```bash
+gitingest https://github.com/user/python-app \
+  -s 100000 \
+  -e "__pycache__/**" -e "*.pyc" -e ".venv/**" \
+  -i "**/*.md" -i "requirements.txt" -i "**/*.py"
+```
+
+### Benefits Over Legacy Quality Score
+
+- **Comprehensive Code Analysis**: Full repository context instead of simple metrics
+- **Dynamic Adaptation**: Settings automatically optimized per project type
+- **LLM-Ready Output**: Formatted specifically for AI consumption
+- **Judge Context**: Provides rich technical context for evaluation
+- **Token-Aware**: Respects LLM context limits with intelligent truncation
+
+### Output Files
+
+GitIngest outputs are saved as `gitingest-output-{submission_id}.txt` and include:
+- Repository structure
+- Key source files
+- Documentation and README content
+- Configuration files
+- Filtered to exclude build artifacts and dependencies
+
+---
+
 ## File Organization
 
 ### Core Structure
@@ -313,7 +389,7 @@ python -m hackathon.scripts.upload_youtube
 
 ### Optional Configuration
 - `AI_MODEL_PROVIDER`: AI provider (default: `openrouter`)
-- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-3-opus`)
+- `AI_MODEL_NAME`: AI model name (default: `anthropic/claude-4-opus`)
 - `STATIC_DATA_DIR`: Static data directory for frontend
 - `SUBMISSION_DEADLINE`: ISO datetime string to close submissions (e.g., `2024-01-31T23:59:59`)
 - `GOOGLE_APPLICATION_CREDENTIALS`: Google Sheets API credentials
@@ -339,7 +415,7 @@ python -m hackathon.scripts.upload_youtube
 ### Development Workflow
 1. **Database Setup**: `python -m hackathon.scripts.create_db`
 2. **Schema Migration**: `python -m hackathon.scripts.migrate_schema`
-3. **Backend Development**: Start FastAPI server (`python backend/app.py`)
+3. **Backend Development**: Start FastAPI server (`uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000`)
 4. **Frontend Development**: Start React dev server (`npm run dev`)
 5. **Testing**: Run test suite (`pytest hackathon/tests/`)
 
@@ -404,7 +480,7 @@ python -m hackathon.tests.test_robust_pipeline
 3. **Start Development Environment:**
    ```bash
    # Backend
-   cd hackathon/backend && python app.py
+   uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
    
    # Frontend (new terminal)
    cd hackathon/dashboard/frontend && npm run dev
@@ -441,17 +517,56 @@ python -m hackathon.tests.test_robust_pipeline
     ```bash
     python -m hackathon.scripts.generate_episode --submission-id <id> --version v2
     ```
-11. **Record Episodes:**
+
+### Security & Audit Logging
+
+The system now includes comprehensive security and audit logging:
+
+11. **Security Monitoring:**
+    ```bash
+    # View audit logs (requires database access)
+    sqlite3 data/hackathon.db "SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT 10"
+    
+    # Check security events in logs
+    tail -f logs/hackathon_api.log | grep "security"
+    ```
+
+12. **Dependency Security Scanning:**
+    ```bash
+    # Python dependencies
+    pip-audit --requirement hackathon/requirements.txt
+    
+    # Frontend dependencies  
+    cd hackathon/dashboard/frontend && npm audit
+    ```
+
+**Audit Events Logged:**
+- ✅ **Submission creation** - All new submissions with user tracking
+- ✅ **Submission edits** - Changes with old/new value comparison
+- ✅ **File uploads** - Image uploads with metadata
+- ✅ **Authentication attempts** - Success/failure with IP tracking
+- ✅ **Research completion** - AI research and GitHub analysis
+- ✅ **Scoring operations** - AI judge scoring and status changes
+- ✅ **Security events** - Path traversal attempts and suspicious activity
+
+**Security Features:**
+- 🛡️ **Structured security logging** with JSON output
+- 🔒 **Complete audit trail** for all administrative actions
+- 🚨 **Attack detection** for path traversal and malicious inputs
+- 📊 **Automated security scanning** in CI/CD pipeline
+- 🔐 **Secure dependency management** with version pinning
+
+13. **Record Episodes:**
     ```bash
     ./hackathon/record_episodes.sh batch
     # or
     ./hackathon/record_episodes.sh single <episode_file>
     ```
-12. **Upload to YouTube:**
+14. **Upload to YouTube:**
     ```bash
     python -m hackathon.scripts.upload_youtube
     ```
-13. **Run Tests:**
+15. **Run Tests:**
     ```bash
     pytest hackathon/tests/test_api_endpoints.py
     python -m hackathon.tests.test_hackathon_system
@@ -597,3 +712,166 @@ python -m hackathon.tests.test_robust_pipeline
     python -m hackathon.tests.test_smoke
     python -m hackathon.tests.test_discord_bot
     ```
+
+## Backend Management Scripts
+
+The following scripts are now located in `hackathon/backend/`:
+
+- `create_db.py`: Creates the hackathon database using the latest schema.
+- `migrate_schema.py`: Handles schema migrations and updates.
+- `sync_schema_to_frontend.py`: Syncs the backend schema to the frontend and generates TypeScript types.
+
+### Usage Examples
+
+```bash
+# Create the database
+python -m hackathon.backend.create_db
+
+# Migrate the schema
+python -m hackathon.backend.migrate_schema
+
+# Sync schema to frontend and generate types
+python -m hackathon.backend.sync_schema_to_frontend
+```
+
+---
+
+## Quick Example: Schema-Driven Pipeline & Frontend Sync
+
+1. **Update the Schema**
+   - Edit `hackathon/backend/submission_schema.json` to add, remove, or modify fields.
+
+2. **Migrate the Database (if needed)**
+   ```bash
+   python -m hackathon.backend.migrate_schema
+   # Or, to add a new field:
+   python -m hackathon.backend.migrate_schema add-field <field_name> --version v2
+   ```
+
+3. **Sync Schema to Frontend & Generate Types**
+   ```bash
+   python -m hackathon.backend.sync_schema_to_frontend
+   # Or from the frontend directory:
+   npm run sync-schema
+   ```
+   - This copies the schema to `dashboard/frontend/public/submission_schema.json` and generates TypeScript types in `dashboard/frontend/src/types/submissionSchema.ts`.
+
+4. **Use the Generated Types in Frontend**
+   - Import and use the canonical type from `src/types/submission.ts`:
+     ```ts
+     import { SubmissionSchemaV2 } from './submission';
+     ```
+
+5. **Restart Backend & Frontend**
+   - Restart servers to pick up schema/type changes.
+
+---
+
+## How to Run (Canonical Commands)
+
+### 1. Database Setup
+```bash
+python -m hackathon.backend.create_db
+```
+
+### 2. Schema Migration (if you change the schema)
+```bash
+python -m hackathon.backend.migrate_schema
+# To add a new field:
+python -m hackathon.backend.migrate_schema add-field <field_name> --version v2
+```
+
+### 3. Sync Schema to Frontend (after schema changes)
+```bash
+python -m hackathon.backend.sync_schema_to_frontend
+# Or from the frontend directory:
+npm run sync-schema
+```
+
+### 4. Start the Backend API Server
+```bash
+uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
+```
+
+### 5. Frontend Development
+```bash
+cd hackathon/dashboard/frontend
+npm install
+npm run dev
+```
+
+### 6. Frontend Production Build
+```bash
+npm run build
+```
+
+---
+
+## Notes
+- Always use `python -m ...` for backend scripts to avoid import errors.
+- Only run schema migration and sync if you change the schema.
+- The API server should be started with `uvicorn`, not by running `app.py` directly.
+- See the updated README sections for more details on each step.
+
+---
+
+## Deployment & Sysadmin Notes
+
+- **Schema-Driven Pipeline:** All backend and frontend code is driven by `hackathon/backend/submission_schema.json`. Any schema change must be migrated (see below) and synced to the frontend.
+- **Backend Management Scripts:** All DB and schema management scripts are now in `hackathon/backend/` (not `hackathon/scripts/`).
+- **Schema Sync:** Always run `python3 hackathon/backend/sync_schema_to_frontend.py` (or `npm run sync-schema` in the frontend) after schema changes to keep frontend types and forms in sync.
+- **Testing:** Run `pytest hackathon/tests/` after any backend or schema change. All tests must pass before deploying.
+- **Environment:** Ensure all required environment variables are set (see ENV section above). Use `.env` files for local/dev, and secure secrets for production.
+- **Static Data:** Frontend static data (leaderboard, stats, etc.) is generated by backend endpoints/scripts and synced to `dashboard/frontend/public/data/`.
+- **Production Build:**
+  - Backend: Use a production WSGI server (e.g., uvicorn/gunicorn) to run `hackathon/backend/app.py`.
+  - Frontend: Build with `npm run build` and serve the static files from a CDN or web server.
+- **Backups:** Regularly back up `data/hackathon.db` and `data/submission_backups/`.
+- **Discord/AI Keys:** Store all API keys and secrets securely. Never commit them to git.
+
+---
+
+## GitIngest Integration for Submission Analysis
+
+We use [GitIngest](https://gitingest.com/llm.txt) to generate objective, context-rich digests of each submission's codebase. This output is used as the main context for AI-powered research and for judges to review submissions.
+
+### Installation
+
+GitIngest is required for research and judging:
+
+```bash
+pipx install gitingest
+# or
+pip install gitingest
+```
+
+### Usage
+
+- **CLI:**
+  ```bash
+  gitingest https://github.com/user/repo -o output.txt
+  # Stream to LLM:
+  gitingest https://github.com/user/repo -o - | your_llm_processor
+  # Filtering:
+  gitingest https://github.com/user/repo -i "*.py" -e "node_modules/*" -s 102400 -o -
+  ```
+- **Python integration:**
+  ```python
+  from gitingest import ingest
+  summary, tree, content = ingest("https://github.com/user/repo")
+  full_context = f"{summary}\n\n{tree}\n\n{content}"
+  ```
+
+### Usage in Pipeline
+
+- The backend research pipeline runs GitIngest on each submission repo and saves the output as `gitingest-output-{submission_id}.txt`.
+- This file is used as the main context for AI research and for judges.
+- The deprecated `quality_score` field is no longer used or displayed.
+
+### Best Practices
+- Use `--max-size`/`-s` to limit file size for large repos
+- Use `--include-pattern`/`-i` and `--exclude-pattern`/`-e` for focused analysis
+- For private repos, set `GITHUB_TOKEN` env var
+- For batch/async processing, use `ingest_async` in Python
+
+See [gitingest.com/llm.txt](https://gitingest.com/llm.txt) for the full integration guide and advanced usage.

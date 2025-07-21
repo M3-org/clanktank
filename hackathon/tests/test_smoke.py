@@ -16,11 +16,14 @@ DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
 
 
 def run(script_path, *args, check=True):
-    cmd = ["python3", "-m"]
-    # Convert path to module syntax
-    module = script_path.replace("/", ".").replace(".py", "")
-    cmd.append(module)
-    cmd.extend(args)
+    if script_path.endswith("create_db.py"):
+        cmd = ["python3", "-m", "hackathon.backend.create_db"]
+        cmd.extend(args)
+    else:
+        cmd = ["python3", "-m"]
+        module = script_path.replace("/", ".").replace(".py", "")
+        cmd.append(module)
+        cmd.extend(args)
     result = subprocess.run(cmd, capture_output=True)
     print("STDOUT:\n" + result.stdout.decode())
     print("STDERR:\n" + result.stderr.decode())
@@ -34,12 +37,12 @@ def setup_db():
     # Recreate the database
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
-    run("hackathon/scripts/create_db.py")
+    run("hackathon/backend/create_db.py")
     # Insert a test record
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, team_name, description, category, status) VALUES (?, ?, ?, ?, ?, ?)",
-                   (TEST_ID, "Smoke Test Project", "Smoke Testers", "A test submission for smoke testing.", "test", "submitted"))
+    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, discord_handle, description, category, github_url, demo_video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                   (TEST_ID, "Smoke Test Project", "smoketest#1234", "A test submission for smoke testing.", "Infrastructure", "https://github.com/test/smoke", "https://youtube.com/smoke", "submitted"))
     conn.commit()
     conn.close()
     print(f"Inserted test submission with ID {TEST_ID}")

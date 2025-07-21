@@ -15,37 +15,45 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
+import subprocess
 
 # Import GitHub analyzer
 from hackathon.backend.github_analyzer import GitHubAnalyzer
 
-# Load environment variables
-load_dotenv()
-
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+# Enable debug logging if needed
+if os.getenv("DEBUG", "").lower() in ["true", "1", "yes"]:
+    logger.setLevel(logging.DEBUG)
+    logger.debug("Debug logging enabled")
+
 # Configuration from environment
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', '')
-HACKATHON_DB_PATH = os.getenv('HACKATHON_DB_PATH', 'data/hackathon.db')
-RESEARCH_CACHE_DIR = os.getenv('RESEARCH_CACHE_DIR', '.cache/research')
-RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv('RESEARCH_CACHE_EXPIRY_HOURS', '24'))
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
+RESEARCH_CACHE_DIR = os.getenv("RESEARCH_CACHE_DIR", ".cache/research")
+RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv("RESEARCH_CACHE_EXPIRY_HOURS", "24"))
 
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-MODEL = "perplexity/sonar-reasoning-pro:online"
+AI_MODEL_PROVIDER = os.getenv("AI_MODEL_PROVIDER", "openrouter")
+AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3.5-sonnet")
+MODEL = AI_MODEL_NAME
 
 # Import versioned schema helpers
 try:
     from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 except ModuleNotFoundError:
     import importlib.util
+
     schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
     spec = importlib.util.spec_from_file_location("schema", schema_path)
     schema = importlib.util.module_from_spec(spec)
@@ -53,9 +61,22 @@ except ModuleNotFoundError:
     LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
     get_fields = schema.get_fields
 
+# In all research prompt and logic, use get_v2_fields_from_schema() for field access and validation.
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
+
+
+def get_v2_fields_from_schema():
+    with open(SCHEMA_PATH) as f:
+        schema = json.load(f)
+    return [f["name"] for f in schema["schemas"]["v2"]]
+
+
+
+
+
 class HackathonResearcher:
-    def __init__(self, db_path=None, version=None):
-        """Initialize researcher with API keys, cache directory, DB path, and version."""
+    def __init__(self, db_path=None, version=None, force=False):
+        """Initialize researcher with API keys, cache directory, DB path, version, and force flag."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
         self.github_analyzer = GitHubAnalyzer(GITHUB_TOKEN)
@@ -65,140 +86,99 @@ class HackathonResearcher:
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)
+        self.force = force
         # API headers
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/m3-org/clanktank",
-            "X-Title": "Clank Tank Hackathon Research"
+            "X-Title": "Clank Tank Hackathon Research",
         }
-    
+
     def _get_cache_path(self, submission_id: str) -> Path:
         """Get cache file path for a submission."""
         return self.cache_dir / f"{submission_id}_research.json"
-    
+
     def _is_cache_valid(self, cache_path: Path) -> bool:
         """Check if cache file exists and is still valid."""
         if not cache_path.exists():
             return False
-        
+
         # Check if cache is expired
         cache_age = datetime.now() - datetime.fromtimestamp(cache_path.stat().st_mtime)
         return cache_age < timedelta(hours=RESEARCH_CACHE_EXPIRY_HOURS)
-    
+
     def _load_from_cache(self, submission_id: str) -> Optional[Dict[str, Any]]:
         """Load research results from cache if valid."""
         cache_path = self._get_cache_path(submission_id)
-        
+
         if self._is_cache_valid(cache_path):
             logger.info(f"Loading research from cache for {submission_id}")
-            with open(cache_path, 'r') as f:
+            with open(cache_path, "r") as f:
                 return json.load(f)
-        
+
         return None
-    
+
     def _save_to_cache(self, submission_id: str, research_data: Dict[str, Any]):
         """Save research results to cache."""
         cache_path = self._get_cache_path(submission_id)
-        
-        with open(cache_path, 'w') as f:
+
+        with open(cache_path, "w") as f:
             json.dump(research_data, f, indent=2)
-        
+
         logger.info(f"Saved research to cache for {submission_id}")
-    
-    def build_research_prompt(self, project_data: Dict[str, Any], github_analysis: Dict[str, Any]) -> str:
+
+    def build_research_prompt(
+        self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
+    ) -> str:
         """Build comprehensive research prompt for AI analysis."""
-        return f"""
-You are a meticulous and fair hackathon judge. Your goal is to analyze this submission for originality, effort, and potential. Use the provided data to form a comprehensive evaluation.
-
-**Hackathon Submission Details:**
-- Project: {project_data['project_name']}
-- Description: {project_data['description']}
-- Team: {project_data['team_name']}
-- Category: {project_data['category']}
-- Tech Stack: {project_data.get('tech_stack', 'Not specified')}
-- Problem Solved: {project_data.get('problem_solved', 'Not specified')}
-- How It Works: {project_data.get('how_it_works', 'Not specified')}
-
-**Automated GitHub Analysis:**
-```json
-{json.dumps(github_analysis, indent=2)}
-```
-
-**Your Judging Task (provide a structured JSON response):**
-
-1. **Technical Implementation Assessment**:
-   - Based on the GitHub analysis, how technically sophisticated is this project?
-   - Is the code structure clean and well-organized?
-   - Does it show evidence of being built during the hackathon timeline?
-   - Are there proper tests, documentation, and deployment configurations?
-   - Rate technical complexity from 1-10 with justification.
-
-2. **Originality & Effort Analysis**:
-   - Is this a fork? If yes, what significant work was added beyond the original?
-   - Does the commit history suggest authentic hackathon work or pre-existing code?
-   - How many contributors are there and does it match the team size?
-   - Are there any red flags (single massive commit, repo created long ago, etc.)?
-   - Rate originality from 1-10 with justification.
-
-3. **Market Analysis**:
-   - Search for 2-3 direct competitors or similar existing projects.
-   - How does this solution differentiate itself?
-   - What is the addressable market size?
-   - Is there genuine demand for this solution?
-   - Rate market potential from 1-10 with justification.
-
-4. **Viability Assessment**:
-   - Can this project realistically be maintained and scaled?
-   - What are the main technical and business challenges?
-   - Is the team likely to continue working on this post-hackathon?
-   - What would it take to make this production-ready?
-   - Rate viability from 1-10 with justification.
-
-5. **Innovation Rating**:
-   - How novel is the core concept?
-   - Are they using cutting-edge technologies in creative ways?
-   - Does it solve the problem in a unique manner?
-   - Could this inspire other developers?
-   - Rate innovation from 1-10 with justification.
-
-6. **Judge-Specific Insights**:
-   - Marc's Take: Focus on the business potential and go-to-market strategy.
-   - Shaw's Take: Analyze the technical architecture and scalability.
-   - Spartan's Take: Evaluate blockchain/crypto aspects if applicable.
-   - Peepo's Take: Comment on user experience and community appeal.
-
-Provide your response as a valid JSON object with clear sections for each assessment area. Include specific examples and evidence from the GitHub analysis to support your ratings.
-"""
-    
-    def conduct_ai_research(self, project_data: Dict[str, Any], github_analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Conduct AI-powered research using OpenRouter/Perplexity."""
-        prompt = self.build_research_prompt(project_data, github_analysis)
+        # Load GitIngest output if available - let prompt handle any reduction
+        gitingest_content = ""
+        if gitingest_path and os.path.exists(gitingest_path):
+            try:
+                with open(gitingest_path, 'r', encoding='utf-8') as f:
+                    gitingest_content = f.read()
+                logger.info(f"Loaded GitIngest content: {len(gitingest_content):,} chars for AI research")
+            except Exception as e:
+                logger.warning(f"Could not read GitIngest output {gitingest_path}: {e}")
+                gitingest_content = f"Error reading GitIngest output: {e}"
         
+        # Use centralized prompt (handles any necessary content reduction)
+        from hackathon.prompts.research_prompts import create_research_prompt
+        return create_research_prompt(project_data, github_analysis, gitingest_content)
+
+    def conduct_ai_research(
+        self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
+    ) -> Dict[str, Any]:
+        """Conduct AI-powered research using OpenRouter/Perplexity."""
+        prompt = self.build_research_prompt(project_data, github_analysis, gitingest_path)
+
         payload = {
             "model": MODEL,
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are an expert hackathon judge with deep technical knowledge and market insights. Provide thorough, evidence-based analysis."
+                    "content": "You are an expert hackathon judge with deep technical knowledge and market insights. Provide thorough, evidence-based analysis.",
                 },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "max_tokens": 4000
+            "max_tokens": 4000,
         }
         
+        # Debug logging for payload size
+        payload_size = len(json.dumps(payload))
+        logger.info(f"OpenRouter payload size: {payload_size:,} chars (~{payload_size//4:,} tokens)")
+        logger.info(f"Using model: {MODEL}")
+
         try:
             logger.info(f"Conducting AI research for {project_data['project_name']}")
             response = requests.post(BASE_URL, json=payload, headers=self.headers)
             response.raise_for_status()
-            
+
             result = response.json()
-            content = result['choices'][0]['message']['content']
-            
+            content = result["choices"][0]["message"]["content"]
+
             # Try to parse as JSON, fallback to raw content
             try:
                 # Extract JSON from markdown code blocks if present
@@ -206,140 +186,214 @@ Provide your response as a valid JSON object with clear sections for each assess
                     json_start = content.find("```json") + 7
                     json_end = content.find("```", json_start)
                     content = content[json_start:json_end].strip()
-                
+
                 return json.loads(content)
             except json.JSONDecodeError:
-                logger.warning("Could not parse AI response as JSON, returning raw content")
+                logger.warning(
+                    "Could not parse AI response as JSON, returning raw content"
+                )
                 return {"raw_response": content}
-                
+
         except Exception as e:
             logger.error(f"AI research failed: {e}")
             return {"error": str(e)}
-    
+
     def research_submission(self, submission_id: str) -> Dict[str, Any]:
-        """Research a single hackathon submission."""
-        cached_research = self._load_from_cache(submission_id)
-        if cached_research:
-            return cached_research
+        """Research a single submission with GitHub analysis and GitIngest."""
+        logger.info(f"Starting research for submission {submission_id}")
+        
+        # Check cache first (unless force flag is set)
+        if not self.force:
+            cached_results = self._load_from_cache(submission_id)
+            if cached_results:
+                return cached_results
+        else:
+            logger.info(f"Force flag set - bypassing cache for {submission_id}")
+        
+        # Get submission data from database
         conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"""
-            SELECT * FROM {self.table} 
-            WHERE submission_id = ?
-        """, (submission_id,))
+        
+        query = f"SELECT * FROM {self.table} WHERE submission_id = ?"
+        cursor.execute(query, (submission_id,))
         row = cursor.fetchone()
+        conn.close()
+        
         if not row:
-            conn.close()
-            raise ValueError(f"Submission {submission_id} not found in {self.table}")
-        columns = [desc[0] for desc in cursor.description]
-        project_data = dict(zip(columns, row))
-        github_url = project_data.get('github_url')
+            raise ValueError(f"Submission {submission_id} not found")
+        
+        project_data = dict(row)
+        github_url = project_data.get("github_url")
+        
         if not github_url:
             logger.warning(f"No GitHub URL for submission {submission_id}")
             github_analysis = {"error": "No GitHub URL provided"}
+            gitingest_path = None
         else:
+            # Perform GitHub analysis
             logger.info(f"Analyzing GitHub repository: {github_url}")
             github_analysis = self.github_analyzer.analyze_repository(github_url)
-        ai_research = self.conduct_ai_research(project_data, github_analysis)
+            
+            # Log analysis summary
+            if "error" in github_analysis:
+                logger.error(f"GitHub analysis failed: {github_analysis['error']}")
+            else:
+                logger.info(f"GitHub analysis completed for {github_analysis.get('name', 'unknown')}")
+                logger.info(f"File count: {github_analysis.get('file_structure', {}).get('total_files', 0)}")
+                logger.info(f"Languages: {list(github_analysis.get('file_structure', {}).get('file_extensions', {}).keys())}")
+            
+            # Run GitIngest with dynamic settings - prefer agentic recommendation
+            gitingest_settings = github_analysis.get("gitingest_agentic_recommendation")
+            if not gitingest_settings:
+                logger.info("No agentic recommendation available, falling back to basic settings")
+                gitingest_settings = github_analysis.get("gitingest_settings", {})
+            else:
+                logger.info(f"Using agentic recommendation: {gitingest_settings.get('rationale', 'No rationale')}")
+            
+            # Use GitHubAnalyzer's secure GitIngest method
+            output_file = f"gitingest-{submission_id}.txt"
+            cache_path = Path(RESEARCH_CACHE_DIR) / output_file
+            logger.info(f"Running GitIngest with settings: {gitingest_settings}")
+            gitingest_path = self.github_analyzer.run_gitingest_secure(github_url, str(cache_path), gitingest_settings)
+            
+            if gitingest_path:
+                logger.info(f"GitIngest completed successfully: {gitingest_path}")
+            else:
+                logger.error("GitIngest failed")
+        
+        # Conduct AI research
+        ai_research = self.conduct_ai_research(project_data, github_analysis, gitingest_path)
+        
+        # Compile final results
         research_results = {
             "submission_id": submission_id,
-            "project_name": project_data.get('project_name', ''),
-            "research_timestamp": datetime.now().isoformat(),
             "github_analysis": github_analysis,
             "ai_research": ai_research,
-            "quality_score": github_analysis.get("quality_score", 0) if isinstance(github_analysis, dict) else 0
+            "gitingest_output_path": gitingest_path,
+            "researched_at": datetime.now().isoformat(),
         }
-        try:
-            cursor.execute("""
-                INSERT OR REPLACE INTO hackathon_research 
-                (submission_id, github_analysis, market_research, technical_assessment, created_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (
-                submission_id,
-                json.dumps(github_analysis),
-                json.dumps(ai_research.get("market_analysis", {})),
-                json.dumps(ai_research.get("technical_assessment", {})),
-                datetime.now().isoformat()
-            ))
-            cursor.execute(f"""
-                UPDATE {self.table} 
-                SET status = 'researched', updated_at = ?
-                WHERE submission_id = ?
-            """, (datetime.now().isoformat(), submission_id))
-            conn.commit()
-            logger.info(f"Research completed and saved for {submission_id}")
-        except Exception as e:
-            logger.error(f"Failed to save research to database: {e}")
-            conn.rollback()
-        finally:
-            conn.close()
+        
+        # Update database
+        self._update_submission_research(submission_id, research_results)
+        
+        # Save to cache
         self._save_to_cache(submission_id, research_results)
+        
+        # Simple audit logging
+        from hackathon.backend.simple_audit import log_system_action
+        log_system_action("research_completed", submission_id)
+        
+        logger.info(f"Research completed for submission {submission_id}")
         return research_results
-    
+
     def research_all_pending(self) -> List[Dict[str, Any]]:
-        """Research all submissions with status 'submitted'."""
+        """Research all submissions that don't have research data yet."""
         conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"""
-            SELECT submission_id, project_name 
-            FROM {self.table} 
-            WHERE status = 'submitted'
-            ORDER BY created_at
-        """)
-        pending_submissions = cursor.fetchall()
+        
+        # Find submissions without research
+        query = f"SELECT submission_id FROM {self.table} WHERE research IS NULL OR research = ''"
+        cursor.execute(query)
+        pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()
-        if not pending_submissions:
-            logger.info("No pending submissions to research")
-            return []
-        logger.info(f"Found {len(pending_submissions)} submissions to research")
+        
+        logger.info(f"Found {len(pending_ids)} submissions pending research")
+        
         results = []
-        for submission_id, project_name in pending_submissions:
+        for submission_id in pending_ids:
             try:
-                logger.info(f"Researching: {project_name} ({submission_id})")
                 result = self.research_submission(submission_id)
                 results.append(result)
-                time.sleep(2)
             except Exception as e:
-                logger.error(f"Failed to research {submission_id}: {e}")
-                continue
+                logger.error(f"Failed to research submission {submission_id}: {e}")
+                results.append({
+                    "submission_id": submission_id,
+                    "error": str(e)
+                })
+        
         return results
+
+    def _update_submission_research(self, submission_id: str, research_data: Dict[str, Any]):
+        """Insert or update research results in hackathon_research table."""
+        import sqlite3
+        from datetime import datetime
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+
+        # Extract Market Analysis section for dedicated column
+        ai_research = research_data.get("ai_research", {})
+        market_research_section = ai_research.get("market_analysis", {})
+        market_research = json.dumps(market_research_section)
+        technical_assessment = json.dumps(ai_research)
+        github_analysis = json.dumps(research_data.get("github_analysis", {}))
+
+        # Upsert into hackathon_research
+        cursor.execute(
+            """
+            INSERT INTO hackathon_research (submission_id, github_analysis, market_research, technical_assessment, created_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(submission_id) DO UPDATE SET
+                github_analysis=excluded.github_analysis,
+                market_research=excluded.market_research,
+                technical_assessment=excluded.technical_assessment,
+                created_at=excluded.created_at
+            """,
+            (
+                submission_id,
+                github_analysis,
+                market_research,
+                technical_assessment,
+                datetime.now().isoformat(),
+            ),
+        )
+
+        # Update submission status to 'researched'
+        cursor.execute(
+            f"UPDATE {self.table} SET status = 'researched', updated_at = ? WHERE submission_id = ?",
+            (datetime.now().isoformat(), submission_id),
+        )
+
+        conn.commit()
+        conn.close()
+        logger.info(f"Updated hackathon_research for submission {submission_id}")
 
 
 def main():
     """Main function with CLI interface."""
-    parser = argparse.ArgumentParser(description="AI-powered hackathon project research")
-    parser.add_argument(
-        "--submission-id",
-        help="Research a specific submission by ID"
+    parser = argparse.ArgumentParser(
+        description="AI-powered hackathon project research"
     )
+    parser.add_argument("--submission-id", help="Research a specific submission by ID")
     parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Research all pending submissions"
+        "--all", action="store_true", help="Research all pending submissions"
     )
-    parser.add_argument(
-        "--output",
-        help="Output file for research results (JSON)"
-    )
+    parser.add_argument("--output", help="Output file for research results (JSON)")
     parser.add_argument(
         "--version",
         type=str,
         default="v2",
         choices=["v1", "v2"],
-        help="Submission schema version to use (default: v2)"
+        help="Submission schema version to use (default: v2)",
     )
     parser.add_argument(
         "--db-file",
         type=str,
         default=None,
-        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)"
+        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
+    )
+    parser.add_argument(
+        "--force", "-f",
+        action="store_true",
+        help="Force re-research even if cached results exist",
     )
     args = parser.parse_args()
     if not args.submission_id and not args.all:
         parser.print_help()
         return
     try:
-        researcher = HackathonResearcher(db_path=args.db_file, version=args.version)
+        researcher = HackathonResearcher(db_path=args.db_file, version=args.version, force=args.force)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")
@@ -348,7 +402,7 @@ def main():
         try:
             results = researcher.research_submission(args.submission_id)
             if args.output:
-                with open(args.output, 'w') as f:
+                with open(args.output, "w") as f:
                     json.dump(results, f, indent=2)
                 logger.info(f"Results saved to {args.output}")
             else:
@@ -359,7 +413,7 @@ def main():
         results = researcher.research_all_pending()
         logger.info(f"Researched {len(results)} submissions")
         if args.output:
-            with open(args.output, 'w') as f:
+            with open(args.output, "w") as f:
                 json.dump(results, f, indent=2)
             logger.info(f"Results saved to {args.output}")
 

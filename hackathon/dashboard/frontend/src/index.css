@@ -2,27 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar */
-@layer utilities {
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: rgb(156 163 175) transparent;
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes fadeIn {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  100% { 
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgb(156 163 175);
-    border-radius: 20px;
-  }
-  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgb(55 65 81); /* gray-700 for dark mode */
-  }
+}
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
 }

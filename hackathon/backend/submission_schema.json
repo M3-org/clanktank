@@ -56,7 +56,8 @@
         "label": "X (Twitter) Handle",
         "type": "text",
         "required": false,
-        "placeholder": "@username"
+        "placeholder": "@username",
+        "helperText": "Enter your X (Twitter) username, e.g. @yourhandle"
       },
       {
         "name": "github_url",
@@ -133,12 +134,13 @@
         "maxLength": 100
       },
       {
-        "name": "team_name",
-        "label": "Team Name",
+        "name": "discord_handle",
+        "label": "Discord Handle",
         "type": "text",
         "required": true,
-        "placeholder": "The A-Team",
-        "maxLength": 100
+        "placeholder": "username#1234",
+        "pattern": "^.+#\\d{4}$|^.+$",
+        "helperText": "Format: username#1234 or just username"
       },
       {
         "name": "category",
@@ -164,15 +166,6 @@
         "maxLength": 2000
       },
       {
-        "name": "discord_handle",
-        "label": "Discord Handle",
-        "type": "text",
-        "required": true,
-        "placeholder": "username#1234",
-        "pattern": "^.+#\\d{4}$|^.+$",
-        "helperText": "Format: username#1234 or just username"
-      },
-      {
         "name": "twitter_handle",
         "label": "X (Twitter) Handle",
         "type": "text",
@@ -190,15 +183,9 @@
         "name": "demo_video_url",
         "label": "Demo Video URL",
         "type": "url",
-        "required": true,
-        "placeholder": "https://youtube.com/..."
-      },
-      {
-        "name": "live_demo_url",
-        "label": "Live Demo URL",
-        "type": "url",
-        "required": false,
-        "placeholder": "https://my-project.com"
+        "required": true,   
+        "placeholder": "https://youtube.com/...",
+        "helperText": "You can use catbox.moe for hosting"
       },
       {
         "name": "project_image",
@@ -209,20 +196,6 @@
         "accept": "image/*",
         "maxSize": 2097152,
         "helperText": "Upload an image that represents your project (JPG, PNG, GIF - max 2MB)"
-      },
-      {
-        "name": "tech_stack",
-        "label": "Tech Stack",
-        "type": "textarea",
-        "required": false,
-        "placeholder": "e.g., React, Python, Solidity,..."
-      },
-      {
-        "name": "how_it_works",
-        "label": "How It Works",
-        "type": "textarea",
-        "required": false,
-        "placeholder": "Explain the technical architecture and how the components work together."
       },
       {
         "name": "problem_solved",

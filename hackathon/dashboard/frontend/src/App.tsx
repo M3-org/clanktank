@@ -1,45 +1,104 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Header from './components/Header'
+import { lazy, Suspense } from 'react'
+
+// Performance: Move static objects outside component
+const TOAST_OPTIONS = {
+  duration: 2000,
+  style: {
+    background: '#363636',
+    color: '#fff',
+  },
+}
+
+// Lazy load toast library to save 135ms execution time
+const Toaster = lazy(() => import('react-hot-toast').then(module => ({ default: module.Toaster })))
+
+// Critical routes - load immediately
 import Dashboard from './pages/Dashboard'
-import Leaderboard from './pages/Leaderboard'
-import SubmissionDetail from './pages/SubmissionDetail'
-import SubmissionPage from './pages/SubmissionPage'
-import SubmissionEdit from './pages/SubmissionEdit'
 import Frontpage from './pages/Frontpage'
-import AuthPage from './pages/AuthPage'
-import ProtectedRoute from './components/ProtectedRoute'
-import DiscordCallback from './pages/DiscordCallback'
+import Footer from './components/Footer'
+
+// Non-critical routes - lazy load
+const Leaderboard = lazy(() => import('./pages/Leaderboard'))
+const SubmissionDetail = lazy(() => import('./pages/SubmissionDetail'))
+const SubmissionPage = lazy(() => import('./pages/SubmissionPage'))
+const SubmissionEdit = lazy(() => import('./pages/SubmissionEdit'))
+const AuthPage = lazy(() => import('./pages/AuthPage'))
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
+const DiscordCallback = lazy(() => import('./pages/DiscordCallback'))
+const Gallery = lazy(() => import('./pages/Gallery'))
+
+// Experimental routes - development only
+const LeaderboardV1 = lazy(() => import('./pages/experimental/LeaderboardV1'))
+const LeaderboardV2 = lazy(() => import('./pages/experimental/LeaderboardV2'))
+const VotingPrototypes = lazy(() => import('./pages/experimental/VotingPrototypes'))
+const Templates = lazy(() => import('./pages/experimental/Templates'))
+
+function AppContent() {
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
+  const isModal = searchParams.get('modal') === 'true'
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      {!isModal && <Header />}
+      <main className={`flex-1 ${isModal ? "" : "pt-6"}`}>
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          </div>
+        }>
+          <Routes>
+          <Route path="/" element={<Frontpage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/discord/callback" element={<DiscordCallback />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/submission/:id" element={<SubmissionDetail />} />
+          
+          {/* Experimental routes - development only */}
+          {import.meta.env.DEV && (
+            <>
+              <Route path="/experimental/voting-prototypes" element={<VotingPrototypes />} />
+              <Route path="/experimental/leaderboard-v1" element={<LeaderboardV1 />} />
+              <Route path="/experimental/leaderboard-v2" element={<LeaderboardV2 />} />
+              <Route path="/experimental/templates" element={<Templates />} />
+            </>
+          )}
+          
+          {/* Protected Routes */}
+          <Route path="/submit" element={
+            <ProtectedRoute>
+              <SubmissionPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/submission/:id/edit" element={
+            <ProtectedRoute>
+              <SubmissionEdit />
+            </ProtectedRoute>
+          } />
+          </Routes>
+        </Suspense>
+      </main>
+      {!isModal && <Footer />}
+    </div>
+  )
+}
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <Header />
-          <main className="pt-6">
-            <Routes>
-              <Route path="/" element={<Frontpage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/auth/discord/callback" element={<DiscordCallback />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/submission/:id" element={<SubmissionDetail />} />
-              
-              {/* Protected Routes */}
-              <Route path="/submit" element={
-                <ProtectedRoute>
-                  <SubmissionPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/submission/:id/edit" element={
-                <ProtectedRoute>
-                  <SubmissionEdit />
-                </ProtectedRoute>
-              } />
-            </Routes>
-          </main>
-        </div>
+        <AppContent />
+        <Suspense fallback={null}>
+          <Toaster
+            position="bottom-right"
+            toastOptions={TOAST_OPTIONS}
+          />
+        </Suspense>
       </Router>
     </AuthProvider>
   )

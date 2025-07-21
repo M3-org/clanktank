@@ -6,11 +6,11 @@ Test script for Discord bot functionality.
 import os
 import sys
 import sqlite3
-from dotenv import load_dotenv
-import uuid
+from dotenv import load_dotenv, find_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (automatically finds .env in parent directories)
+load_dotenv(find_dotenv())
+import uuid
 
 DEFAULT_VERSION = "v2"
 DEFAULT_TABLE = f"hackathon_submissions_{DEFAULT_VERSION}"
