@@ -202,6 +202,102 @@ npm run test        # Run test suite (if configured)
 - **Responsive design** with mobile-first approach
 - **Accessibility** considerations with ARIA attributes
 
+## Experimental UI/UX Framework
+
+The project includes a self-contained experimental framework for UI/UX prototypes and design iterations. This framework is **development-only** and provides a safe space for testing new ideas without affecting production code.
+
+### Framework Overview
+
+**Location:** `/src/pages/experimental/`
+**Access:** Development environment only (`import.meta.env.DEV`)
+**Purpose:** UI prototypes, archived versions, and experimental features
+**Isolation:** Self-contained components with no imports to production code
+
+### Available Experimental Pages
+
+#### **LeaderboardV1.tsx** (312 lines)
+- **Purpose:** Archived original leaderboard with full voting interface
+- **Route:** `/experimental/leaderboard-v1`
+- **Status:** Archived - preserved for reference
+
+#### **LeaderboardV2.tsx** (258 lines)  
+- **Purpose:** Enhanced prototype with side-by-side tables
+- **Route:** `/experimental/leaderboard-v2`
+- **Status:** Dropped approach - preserved for learning
+
+#### **VotingPrototypes.tsx** (1564 lines)
+- **Purpose:** Voting UI experiments and wallet integration tests
+- **Route:** `/experimental/voting-prototypes`
+- **Status:** Active experimentation - largest experimental component
+
+#### **Templates.tsx** (421 lines)
+- **Purpose:** Real-time URL state management with form templates
+- **Route:** `/experimental/templates`
+- **Status:** Active experimentation
+
+### Framework Guidelines
+
+#### **Development-Only Access**
+```typescript
+// Experimental routes are only available in development
+if (import.meta.env.DEV) {
+  // Experimental components loaded
+}
+```
+
+#### **Self-Contained Components**
+- **Relative imports only:** `../../lib`, `../../hooks`, `../../components`
+- **No exports:** `index.ts` exports nothing to prevent accidental imports
+- **Isolated routing:** Experimental routes are separate from production routes
+
+#### **Safe Experimentation**
+- **No production impact:** Experimental code cannot affect production builds
+- **Preserved iterations:** Archived versions kept for reference and learning
+- **Clear boundaries:** Explicit separation between experimental and production code
+
+### Usage for Developers
+
+#### **Creating New Experiments**
+1. Add new component to `/src/pages/experimental/`
+2. Update `/src/pages/experimental/index.ts` with description
+3. Add route to `App.tsx` with development-only gating
+4. Use relative imports only for dependencies
+
+#### **Accessing Experiments**
+```bash
+# Start development server
+npm run dev
+
+# Visit experimental routes:
+# http://localhost:5173/experimental/voting-prototypes
+# http://localhost:5173/experimental/leaderboard-v1
+# http://localhost:5173/experimental/leaderboard-v2
+# http://localhost:5173/experimental/templates
+```
+
+#### **Best Practices**
+- **Keep experiments self-contained** - no dependencies on production code
+- **Document purpose** - update `index.ts` with clear descriptions
+- **Archive iterations** - preserve learning from failed approaches
+- **Test thoroughly** - experimental code should still be functional
+
+### Framework Benefits
+
+#### **Safe Innovation**
+- **Risk-free experimentation** without affecting production
+- **Preserved learning** from failed approaches
+- **Clear boundaries** between experimental and production code
+
+#### **Design Iteration**
+- **Rapid prototyping** of new UI patterns
+- **A/B testing** of different approaches
+- **Reference material** for design decisions
+
+#### **Developer Experience**
+- **Isolated development** environment for new features
+- **Clear documentation** of experimental purpose
+- **Easy cleanup** - experiments can be safely removed
+
 ## Architecture Philosophy
 
 ### Minimal Viable Abstractions
