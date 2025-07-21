@@ -24,7 +24,7 @@ const FOOTER_LINKS = {
   ],
   projects: [
     {
-      name: 'Eliza OS',
+      name: 'Eliza News',
       url: 'https://elizaos.news',
     },
     {
