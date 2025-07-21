@@ -106,7 +106,7 @@ const GALLERY_FILENAMES = [
 // Memoized gallery images to prevent recreation
 const createGalleryImages = () => GALLERY_FILENAMES.map(filename => ({
   filename,
-  path: `/gallery/${filename}`,
+  path: `/media/${filename}`,
 }));
 
 export default function Gallery() {
@@ -116,6 +116,51 @@ export default function Gallery() {
   
   // Memoize gallery images to prevent recreation on every render
   const galleryImages = useMemo(() => createGalleryImages(), []);
+
+  // Update meta tags for gallery page
+  useEffect(() => {
+    const originalTitle = document.title;
+    const originalDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
+    const originalOgTitle = document.querySelector('meta[property="og:title"]')?.getAttribute('content') || '';
+    const originalOgDescription = document.querySelector('meta[property="og:description"]')?.getAttribute('content') || '';
+    const originalOgImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || '';
+    const originalTwitterTitle = document.querySelector('meta[property="twitter:title"]')?.getAttribute('content') || '';
+    const originalTwitterDescription = document.querySelector('meta[property="twitter:description"]')?.getAttribute('content') || '';
+    const originalTwitterImage = document.querySelector('meta[property="twitter:image"]')?.getAttribute('content') || '';
+
+    // Gallery page meta data
+    const galleryTitle = 'Clank Tank Dev Gallery';
+    const galleryDescription = 'Visual journey through Clank Tank\'s development.';
+    const galleryImage = '/media/clanktank-set.jpg'; // Use a representative image
+
+    // Update meta tags
+    document.title = galleryTitle;
+    
+    const updateMetaContent = (selector: string, content: string) => {
+      const meta = document.querySelector(selector);
+      if (meta) meta.setAttribute('content', content);
+    };
+
+    updateMetaContent('meta[name="description"]', galleryDescription);
+    updateMetaContent('meta[property="og:title"]', galleryTitle);
+    updateMetaContent('meta[property="og:description"]', galleryDescription);
+    updateMetaContent('meta[property="og:image"]', galleryImage);
+    updateMetaContent('meta[property="twitter:title"]', galleryTitle);
+    updateMetaContent('meta[property="twitter:description"]', galleryDescription);
+    updateMetaContent('meta[property="twitter:image"]', galleryImage);
+
+    // Cleanup function to restore original meta tags
+    return () => {
+      document.title = originalTitle;
+      updateMetaContent('meta[name="description"]', originalDescription);
+      updateMetaContent('meta[property="og:title"]', originalOgTitle);
+      updateMetaContent('meta[property="og:description"]', originalOgDescription);
+      updateMetaContent('meta[property="og:image"]', originalOgImage);
+      updateMetaContent('meta[property="twitter:title"]', originalTwitterTitle);
+      updateMetaContent('meta[property="twitter:description"]', originalTwitterDescription);
+      updateMetaContent('meta[property="twitter:image"]', originalTwitterImage);
+    };
+  }, []);
 
   // Navigation functions
   const getCurrentImageIndex = () => {
