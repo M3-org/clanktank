@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, X, Calendar, Camera } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Camera } from 'lucide-react';
 
 // Auto-generated from gallery directory - moved outside component for performance
 const GALLERY_FILENAMES = [
