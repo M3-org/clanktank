@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, PlayCircle, FlaskConical, Trophy, Copy, Check } from 'lucide-react';
+import { Upload, Users, PlayCircle, FlaskConical, Copy, Check } from 'lucide-react';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { PrizePool } from '../components/PrizePool';
 import { hackathonApi } from '../lib/api';
@@ -46,7 +46,7 @@ const judges = [
 const faqs = [
   {
     q: 'How many rounds are there?',
-    a: 'There are two main rounds: Round 1 (AI judge scoring) and Round 2 (community voting + judge synthesis).'
+    a: 'There are two main rounds: Round 1 (AI judge scoring) and Round 2 (community voting + judge synthesis). Then the top 5 projects are featured on Clank Tank.'
   },
   {
     q: 'How does community voting work?',
