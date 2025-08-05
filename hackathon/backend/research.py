@@ -294,7 +294,12 @@ class HackathonResearcher:
         cursor = conn.cursor()
         
         # Find submissions without research
-        query = f"SELECT submission_id FROM {self.table} WHERE research IS NULL OR research = ''"
+        query = f"""
+        SELECT s.submission_id 
+        FROM {self.table} s 
+        LEFT JOIN hackathon_research r ON s.submission_id = r.submission_id 
+        WHERE r.submission_id IS NULL
+        """
         cursor.execute(query)
         pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()
