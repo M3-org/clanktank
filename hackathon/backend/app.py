@@ -734,8 +734,8 @@ def validate_github_url(url: str) -> bool:
     """Validate GitHub URL format for security."""
     if not url:
         return False
-    # Pattern: https://github.com/username/repo (with optional trailing slash)
-    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+/?$'
+    # Pattern: https://github.com/username/repo (with optional additional paths)
+    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+(/.*)?$'
     return bool(re.match(pattern, url))
 
 

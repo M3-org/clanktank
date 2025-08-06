@@ -667,8 +667,8 @@ Output only valid JSON."""
             # Must be HTTPS
             if parsed.scheme != 'https':
                 return False
-            # Must match GitHub repo pattern
-            if not re.match(r'^/[\w.-]+/[\w.-]+/?$', parsed.path):
+            # Must match GitHub repo pattern (owner/repo with optional additional paths)
+            if not re.match(r'^/[\w.-]+/[\w.-]+(/.*)?$', parsed.path):
                 return False
             return True
         except:
