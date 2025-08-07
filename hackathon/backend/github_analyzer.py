@@ -93,19 +93,62 @@ class GitHubAnalyzer:
             logger.error(f"Error fetching languages: {e}")
             return {}
 
-    def get_recent_commits(self, owner, repo, days=3):
-        """Get commit activity for the past N days (default 3 for vibe check)."""
+    def get_commit_data(self, owner, repo):
+        """Collect raw commit data for analysis."""
         try:
-            since = (datetime.now() - timedelta(days=days)).isoformat()
+            # Get submission deadline from environment
+            deadline_str = os.getenv("SUBMISSION_DEADLINE")
+            if not deadline_str:
+                logger.warning("SUBMISSION_DEADLINE not configured in environment")
+                return {"error": "submission_deadline_not_configured"}
+            
+            deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+            month_ago = deadline - timedelta(days=30)
+            
             url = f"{self.base_url}/repos/{owner}/{repo}/commits"
-            params = {"since": since, "per_page": 100}
+            params = {"since": month_ago.isoformat(), "per_page": 50}
             resp = requests.get(url, headers=self.headers, params=params)
             resp.raise_for_status()
             commits = resp.json()
-            return {"commits_in_last_72h": len(commits)}
+            
+            if not commits:
+                return {"total_commits": 0}
+            
+            # Extract raw data
+            commit_messages = [c.get('commit', {}).get('message', '') for c in commits]
+            commit_dates = [c.get('commit', {}).get('author', {}).get('date', '') for c in commits]
+            commit_authors = [c.get('commit', {}).get('author', {}).get('name', '') for c in commits]
+            
+            # Filter out empty dates
+            valid_dates = [d for d in commit_dates if d]
+            
+            # Build result with only relevant data
+            result = {
+                "total_commits": len(commits),
+                "commit_messages": commit_messages,
+                "commit_dates": valid_dates,
+                "commit_authors": list(set(commit_authors)),
+                "days_with_commits": len(set(d[:10] for d in valid_dates if d))
+            }
+            
+            # Only include web uploads if they exist
+            web_upload_commits = sum(1 for msg in commit_messages if 'Add files via upload' in msg)
+            if web_upload_commits > 0:
+                result["web_upload_commits"] = web_upload_commits
+            
+            # Add timing data if available
+            if valid_dates:
+                result["first_commit_date"] = valid_dates[-1]
+                result["last_commit_date"] = valid_dates[0]
+                
+                last_date = datetime.fromisoformat(valid_dates[0].replace('Z', '+00:00'))
+                result["days_before_deadline"] = (deadline - last_date).days
+            
+            return result
+            
         except Exception as e:
-            logger.error(f"Error fetching commits: {e}")
-            return {"commits_in_last_72h": 0}
+            logger.error(f"Error collecting commit data: {e}")
+            return {"error": f"commit_data_collection_failed: {str(e)}"}
 
     def get_readme(self, owner, repo):
         """Get README content and analyze its structure."""
@@ -516,8 +559,8 @@ Output only valid JSON."""
             readme_head = ""
         # Languages
         languages = self.get_languages(owner, repo)
-        # Recent commits (last 3 days)
-        commit_activity = self.get_recent_commits(owner, repo)
+        # Recent commit data for analysis
+        commit_data = self.get_commit_data(owner, repo)
         # Contributors (top 3 by commit count)
         contributors = []
         try:
@@ -555,7 +598,7 @@ Output only valid JSON."""
             "file_count": len(file_list),
             "file_list": file_list,
             "readme_head": readme_head,
-            "commit_activity": commit_activity,
+            "commit_data": commit_data,
             "contributors": contributors,
             "summarized_at": datetime.now().isoformat(),
         }
@@ -725,7 +768,7 @@ Output only valid JSON."""
             ),
             "readme_analysis": self.get_readme(owner, repo),
             "file_structure": file_structure,
-            "commit_activity": self.get_recent_commits(owner, repo),
+            "commit_activity": self.get_commit_data(owner, repo),
             "file_manifest": manifest,
             "dependency_info": deps_info,
             "loc_histogram": loc_histogram,

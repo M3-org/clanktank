@@ -47,6 +47,50 @@ BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
 
+def get_judge_recent_evaluations(db_path, judge_name, limit=3):
+    """Get judge's recent evaluation notes for variety checking."""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        # Get last N evaluations by this judge, ordered by most recent
+        cursor.execute("""
+            SELECT notes FROM hackathon_scores 
+            WHERE judge_name = ? AND notes IS NOT NULL 
+            ORDER BY created_at DESC 
+            LIMIT ?
+        """, (judge_name, limit))
+        
+        results = cursor.fetchall()
+        recent_notes = [row[0] for row in results if row[0]]
+        return recent_notes
+        
+    except sqlite3.Error as e:
+        logger.warning(f"Could not fetch recent evaluations for {judge_name}: {e}")
+        return []
+    finally:
+        conn.close()
+
+def add_variety_instruction(db_path, judge_name, base_prompt):
+    """Add variety instruction based on judge's recent database evaluations."""
+    recent_notes = get_judge_recent_evaluations(db_path, judge_name)
+    
+    if recent_notes:
+        # Show judge their recent evaluation patterns to encourage variety
+        recent_summary = "\n".join([f"• {note[:100]}..." if len(note) > 100 else f"• {note}" 
+                                   for note in recent_notes])
+        
+        variety_instruction = f"""
+EVALUATION VARIETY REMINDER:
+Your last {len(recent_notes)} evaluation(s) for reference (avoid repeating similar patterns):
+{recent_summary}
+
+When evaluating this project, vary your language, sentence structure, and critical angles to keep your assessments fresh and distinctive.
+"""
+        return base_prompt + variety_instruction
+    
+    return base_prompt
+
 
 def get_v2_fields_from_schema():
     with open(SCHEMA_PATH) as f:
@@ -58,7 +102,7 @@ def get_v2_fields_from_schema():
 
 
 class HackathonManager:
-    def __init__(self, db_path=None, version=None):
+    def __init__(self, db_path=None, version=None, force=False):
         """Initialize the hackathon manager."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
@@ -67,6 +111,7 @@ class HackathonManager:
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)
+        self.force = force
 
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -179,7 +224,9 @@ EXPERIENCE_REASON: [Your reasoning - must include at least one criticism or conc
 
 OVERALL_COMMENT: [One punchy line summarizing your view of this project in your unique style]"""
 
-        return prompt
+        # Add variety instruction based on recent evaluations
+        prompt_with_variety = add_variety_instruction(self.db_path, judge_name, prompt)
+        return prompt_with_variety
 
     def parse_scoring_response(self, response_text: str) -> Dict[str, Any]:
         """Parse the AI's scoring response into structured data."""
@@ -400,10 +447,10 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                 judge_scores["submission_id"] = submission_id
                 judge_scores["round"] = round_num
 
-                # Save to database
+                # Save to database (UPSERT: replace existing score for same submission/judge/round)
                 cursor.execute(
                     """
-                    INSERT INTO hackathon_scores 
+                    INSERT OR REPLACE INTO hackathon_scores 
                     (submission_id, judge_name, round, innovation, technical_execution,
                      market_potential, user_experience, weighted_total, notes, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -455,18 +502,31 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
             conn.close()
 
     def score_all_researched(self, round_num: int = 1) -> Dict[str, Any]:
-        """Score all submissions with status 'researched'."""
+        """Score all submissions with research data (or force re-score all if force=True)."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute(
-            f"""
-            SELECT submission_id, project_name 
-            FROM {self.table} 
-            WHERE status = 'researched'
-            ORDER BY created_at
-        """
-        )
+        if self.force:
+            # Force mode: score all submissions that have research data, regardless of existing scores
+            cursor.execute(
+                f"""
+                SELECT s.submission_id, s.project_name 
+                FROM {self.table} s 
+                INNER JOIN hackathon_research r ON s.submission_id = r.submission_id
+                ORDER BY s.created_at
+                """
+            )
+            logger.info("Force flag enabled - will re-score all submissions with research data")
+        else:
+            # Normal mode: only score submissions with status 'researched'
+            cursor.execute(
+                f"""
+                SELECT submission_id, project_name 
+                FROM {self.table} 
+                WHERE status = 'researched'
+                ORDER BY created_at
+                """
+            )
 
         pending_submissions = cursor.fetchall()
         conn.close()
@@ -777,10 +837,10 @@ RELATIVE POSITIONING:
                     judge, r1_scores[judge]["score"], round2_response, community_data[project_id]
                 )
 
-                # Store Round 2 data with flattened, logical structure
+                # Store Round 2 data with flattened, logical structure (UPSERT)
                 cursor.execute(
                     """
-                    INSERT INTO hackathon_scores 
+                    INSERT OR REPLACE INTO hackathon_scores 
                     (submission_id, judge_name, round, weighted_total, notes, created_at)
                     VALUES (?, ?, 2, ?, ?, ?)
                 """,
@@ -1148,6 +1208,11 @@ def main():
         default=None,
         help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
     )
+    parser.add_argument(
+        "--force", "-f",
+        action="store_true",
+        help="Force re-score all submissions, even if they already have scores",
+    )
 
     args = parser.parse_args()
 
@@ -1157,7 +1222,7 @@ def main():
 
     # Initialize manager
     try:
-        manager = HackathonManager(db_path=args.db_file, version=args.version)
+        manager = HackathonManager(db_path=args.db_file, version=args.version, force=args.force)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")

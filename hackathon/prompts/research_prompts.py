@@ -4,6 +4,27 @@ Contains prompts for AI-powered research and evaluation.
 """
 
 import json
+import os
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+load_dotenv()
+
+def get_time_context():
+    """Generate time context for research prompts using existing submission deadline."""
+    submission_deadline = os.getenv('SUBMISSION_DEADLINE', '2025-08-09T23:00:00+00:00')
+    
+    # Parse the deadline and calculate hackathon start (1 month before)
+    deadline_date = datetime.fromisoformat(submission_deadline.replace('Z', '+00:00'))
+    hackathon_start = deadline_date - timedelta(days=30)
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    return f"""**TIMING CONTEXT:**
+Current Date: {current_date}
+Hackathon Window: {hackathon_start.strftime('%Y-%m-%d')} to {deadline_date.strftime('%Y-%m-%d')}
+Evaluate freshness and development timeline within this context.
+
+"""
 
 def _reduce_github_analysis_for_prompt(github_analysis):
     """Reduce GitHub analysis data for prompt to prevent 413 payload errors."""
@@ -62,32 +83,42 @@ def create_research_prompt(project_data, github_analysis, gitingest_content=""):
     # Generate automated penalty flags
     penalty_flags = []
     
-    # Check for stale repo
-    commit_activity = github_analysis.get("commit_activity", {})
-    if commit_activity.get("commits_in_last_72h", 0) == 0:
-        penalty_flags.append("[RED FLAG] No activity in last 3 days - potential pre-existing project")
+    # Check for potentially stale repo - use repo creation vs update dates
+    created_at = github_analysis.get("created_at")
+    updated_at = github_analysis.get("updated_at") 
+    if created_at and updated_at:
+        try:
+            created = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            updated = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            # If repo is old and hasn't been updated in a while, investigate
+            days_since_creation = (datetime.now().replace(tzinfo=created.tzinfo) - created).days
+            days_since_update = (datetime.now().replace(tzinfo=updated.tzinfo) - updated).days
+            if days_since_creation > 30 and days_since_update > 7:
+                penalty_flags.append("[INVESTIGATE] Repository created long ago with no recent updates - possible pre-existing project")
+        except (ValueError, TypeError):
+            pass  # Skip if can't parse dates
     
     # Check for dependency-heavy projects
     file_structure = github_analysis.get("file_structure", {})
     loc_histogram = github_analysis.get("loc_histogram", {})
     if loc_histogram.get("xlarge (>50KB)", 0) > 0 and loc_histogram.get("small (<1KB)", 0) > loc_histogram.get("medium (1-10KB)", 0):
-        penalty_flags.append("[RED FLAG] Large files present with many small files - possible dependency bloat")
+        penalty_flags.append("[CONSIDER] Large files detected with many small files - possible dependency bloat, investigate further")
     
-    # Check file manifest for red flags
+    # Check file manifest for potential issues
     manifest = github_analysis.get("file_manifest", [])
     total_source_files = len([f for f in manifest if f.get("relevance") in ["high", "medium-high"]])
     total_low_relevance = len([f for f in manifest if f.get("relevance") == "low"])
     if total_low_relevance > total_source_files * 2:
-        penalty_flags.append("[RED FLAG] High ratio of generated/boilerplate files to source code")
+        penalty_flags.append("[INVESTIGATE] High ratio of generated/boilerplate files to source code - verify original work")
     
-    # Check for monolithic structure
+    # Check for minimal implementation
     if file_structure.get("total_files", 0) < 10:
-        penalty_flags.append("[RED FLAG] Very few files - may indicate minimal implementation")
+        penalty_flags.append("[CONSIDER] Very few files detected - may indicate minimal implementation, assess scope")
     
     penalty_section = ""
     if penalty_flags:
         penalty_section = f"""
-**AUTOMATED RED FLAGS DETECTED:**
+**AUTOMATED ANALYSIS NOTES:**
 {chr(10).join(f"• {flag}" for flag in penalty_flags)}
 """
     
@@ -96,7 +127,7 @@ def create_research_prompt(project_data, github_analysis, gitingest_content=""):
         gitingest_content = gitingest_content[:300000] + "\n... [content truncated for OpenRouter API limits]"
     
     return f"""
-You are a meticulous and fair hackathon judge. Your goal is to analyze this submission for originality, effort, and potential. Use the provided data to form a comprehensive evaluation.
+{get_time_context()}You are a meticulous and fair hackathon judge. Your goal is to analyze this submission for originality, effort, and potential. Use the provided data to form a comprehensive evaluation.
 
 **Critical Analysis Requirement**
 Pretend you must defend your score in front of a panel of senior engineers trying to poke holes in your reasoning. For every positive claim you list, identify at least one concrete risk, flaw, or unanswered question drawn from the repo data. Flag anything that looks copy-pasted, auto-generated, or stale.
@@ -172,7 +203,7 @@ Provide your response as a valid JSON object with clear sections for each assess
 def create_github_analysis_prompt(project_data, github_analysis):
     """Create prompt for GitHub-only analysis without AI research."""
     return f"""
-Analyze this GitHub repository for hackathon project: {project_data['project_name']}
+{get_time_context()}Analyze this GitHub repository for hackathon project: {project_data['project_name']}
 
 **Repository Analysis:**
 {json.dumps(github_analysis, indent=2)}
