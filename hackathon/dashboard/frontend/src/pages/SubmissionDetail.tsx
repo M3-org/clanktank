@@ -406,47 +406,123 @@ export default function SubmissionDetail() {
                             </div>
                             {round1 ? (
                               <>
-                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                {/* Category Overview Cards */}
+                                <div className="grid grid-cols-2 gap-3 mb-4">
                                   {[
-                                    ['innovation', round1.innovation],
-                                    ['technical_execution', round1.technical_execution],
-                                    ['market_potential', round1.market_potential],
-                                    ['user_experience', round1.user_experience],
-                                  ].map(([key, value]) => {
+                                    ['innovation', round1.innovation, 'Innovation'],
+                                    ['technical_execution', round1.technical_execution, 'Technical Execution'],
+                                    ['market_potential', round1.market_potential, 'Market Potential'],
+                                    ['user_experience', round1.user_experience, 'User Experience'],
+                                  ].map(([key, value, displayName]) => {
                                     const Icon = scoreIcons[key as keyof typeof scoreIcons]
-                                    const label = (key as string).replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                                     const numValue = value as number
+                                    
                                     return (
-                                      <div key={key as string} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                        <div className="flex items-center gap-2">
-                                          <Icon className={`h-4 w-4 ${
-                                            numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
-                                            numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
-                                            'text-gray-400 dark:text-gray-500'
-                                          }`} />
-                                          <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">{label}</span>
-                                        </div>
-                                        <div className={`px-2 py-1 rounded-md text-xs font-bold ${
-                                          numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
-                                          numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                                          numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
-                                          'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                                        }`}>
-                                          {value !== null && value !== undefined ? value : '-'}
+                                      <div key={key as string} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-2">
+                                            <Icon className={`h-4 w-4 ${
+                                              numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
+                                              numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
+                                              numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
+                                              'text-red-600 dark:text-red-400'
+                                            }`} />
+                                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                              {displayName as string}
+                                            </span>
+                                          </div>
+                                          <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                            numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
+                                            numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                                            numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
+                                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                          }`}>
+                                            {numValue}/10
+                                          </div>
                                         </div>
                                       </div>
                                     )
                                   })}
                                 </div>
+
+                                {/* Overall Comment */}
                                 {round1.notes?.overall_comment ? (
-                                  <div className={`mt-2`}> 
+                                  <div className={`mt-4`}> 
                                     <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic ${round1Total >= 8 ? 'bg-indigo-50 dark:bg-indigo-900' : 'bg-gray-50 dark:bg-gray-800'} border-l-4 ${round1Total >= 8 ? 'border-indigo-500 dark:border-indigo-400' : 'border-gray-200 dark:border-gray-700'}`}> 
                                       <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute left-2 top-2" />
                                       <span className="pl-6 text-gray-900 dark:text-gray-100">"{round1.notes.overall_comment}"</span>
                                     </div>
                                   </div>
                                 ) : (
-                                  <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">– no comment –</div>
+                                  <div className="mt-4 text-xs text-gray-400 dark:text-gray-500 italic">– no comment –</div>
+                                )}
+
+                                {/* Single Expandable Score Breakdown */}
+                                {round1.notes && (Object.keys(round1.notes).some(key => key.includes('_reasoning')) || round1.notes.reasons) && (
+                                  <div className="mb-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                    <button
+                                      onClick={() => toggleSection(`${judgeName}-round1-breakdown`)}
+                                      className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                    >
+                                      {expandedSections[`${judgeName}-round1-breakdown`] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                      <span>View detailed reasoning</span>
+                                    </button>
+                                    {expandedSections[`${judgeName}-round1-breakdown`] && (
+                                      <div className="mt-3 space-y-4 p-4 bg-gradient-to-r from-indigo-50/50 to-transparent dark:from-indigo-900/10 dark:to-transparent border border-indigo-100 dark:border-indigo-800 rounded-lg">
+                                        {[
+                                          ['innovation', round1.innovation, 'Innovation'],
+                                          ['technical_execution', round1.technical_execution, 'Technical Execution'],
+                                          ['market_potential', round1.market_potential, 'Market Potential'],
+                                          ['user_experience', round1.user_experience, 'User Experience'],
+                                        ].map(([key, score, displayName]) => {
+                                          const getReasoningKey = (key: string) => {
+                                            switch (key) {
+                                              case 'technical_execution': return 'technical'
+                                              case 'market_potential': return 'market'
+                                              case 'user_experience': return 'experience'
+                                              default: return key
+                                            }
+                                          }
+                                          const reasoning = round1.notes?.[`${key}_reasoning` as keyof typeof round1.notes] as string ||
+                                                          (round1.notes?.reasons as any)?.[getReasoningKey(key as string)] as string
+                                          if (!reasoning) return null
+                                          
+                                          const Icon = scoreIcons[key as keyof typeof scoreIcons]
+                                          const numValue = score as number
+                                          
+                                          return (
+                                            <div key={key as string} className="border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+                                              <div className="flex items-center gap-3 mb-3">
+                                                <Icon className={`h-5 w-5 ${
+                                                  numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
+                                                  numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
+                                                  numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
+                                                  'text-red-600 dark:text-red-400'
+                                                }`} />
+                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                                  {displayName as string}
+                                                </h4>
+                                                <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                                  numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
+                                                  numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                                                  numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
+                                                  'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                                }`}>
+                                                  {numValue}/10
+                                                </div>
+                                              </div>
+                                              <div className="relative">
+                                                <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute -left-1 -top-1" />
+                                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-6 italic">
+                                                  "{reasoning}"
+                                                </p>
+                                              </div>
+                                            </div>
+                                          )
+                                        }).filter(Boolean)}
+                                      </div>
+                                    )}
+                                  </div>
                                 )}
                               </>
                             ) : (
@@ -470,6 +546,74 @@ export default function SubmissionDetail() {
                                   </div>
                                 ) : (
                                   <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">– no final verdict –</div>
+                                )}
+
+                                {/* Expandable Round 2 Details */}
+                                {(round2.notes?.round2_reasoning || round2.notes?.score_revision || round2.notes?.community_influence || round2.notes?.confidence) && (
+                                  <div className="mt-3">
+                                    <button
+                                      onClick={() => toggleSection(`${judgeName}-round2-details`)}
+                                      className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors"
+                                    >
+                                      {expandedSections[`${judgeName}-round2-details`] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                      View Analysis Details
+                                    </button>
+                                    {expandedSections[`${judgeName}-round2-details`] && (
+                                      <div className="mt-2 space-y-2 pl-4 border-l-2 border-green-200 dark:border-green-700">
+                                        {round2.notes.round2_reasoning && (
+                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                              Judge Reasoning
+                                            </div>
+                                            <div className="text-green-700 dark:text-green-300">
+                                              {round2.notes.round2_reasoning}
+                                            </div>
+                                          </div>
+                                        )}
+                                        
+                                        {round2.notes.score_revision && typeof round2.notes.score_revision === 'object' && (
+                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                              Score Revision: {round2.notes.score_revision.type || 'none'}
+                                            </div>
+                                            <div className="text-green-700 dark:text-green-300">
+                                              {round2.notes.score_revision.reason && (
+                                                <div className="mb-1">{round2.notes.score_revision.reason}</div>
+                                              )}
+                                              {round2.notes.score_revision.adjustment && (
+                                                <div>Adjustment: {round2.notes.score_revision.adjustment > 0 ? '+' : ''}{round2.notes.score_revision.adjustment}</div>
+                                              )}
+                                              {round2.notes.score_revision.new_score && (
+                                                <div>New Score: {round2.notes.score_revision.new_score}/40</div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {round2.notes.community_influence && (
+                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                              Community Influence
+                                            </div>
+                                            <div className="text-green-700 dark:text-green-300 capitalize">
+                                              {round2.notes.community_influence}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {round2.notes.confidence && (
+                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                              Judge Confidence
+                                            </div>
+                                            <div className="text-green-700 dark:text-green-300 capitalize">
+                                              {round2.notes.confidence}
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
                                 )}
                               </>
                             ) : (
