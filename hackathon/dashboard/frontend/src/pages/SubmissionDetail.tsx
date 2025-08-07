@@ -374,7 +374,7 @@ export default function SubmissionDetail() {
                                   round1Total >= 16 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
                                   'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                                 }`}>
-                                  {round1Total.toFixed(1)}
+                                  {(round1Total / 4).toFixed(1)}/10
                                 </div>
                               </div>
                             )}
@@ -392,7 +392,7 @@ export default function SubmissionDetail() {
                                   round2Total >= 16 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
                                   'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                                 }`}>
-                                  {round2Total.toFixed(1)}
+                                  {(round2Total / 4).toFixed(1)}/10
                                 </div>
                               </div>
                             )}
@@ -416,8 +416,8 @@ export default function SubmissionDetail() {
                                     </p>
                                   </div>
                                 )}
-                                {/* Category Score Cards */}
-                                <div className="grid grid-cols-2 gap-3 mb-6">
+                                {/* Combined Category Scores & Detailed Reasoning */}
+                                <div className="space-y-2">
                                   {[
                                     ['innovation', round1.innovation, 'Innovation'],
                                     ['technical_execution', round1.technical_execution, 'Technical Execution'],
@@ -426,97 +426,111 @@ export default function SubmissionDetail() {
                                   ].map(([key, value, displayName]) => {
                                     const Icon = scoreIcons[key as keyof typeof scoreIcons]
                                     const numValue = value as number
+                                    const percentage = (numValue / 10) * 100
+                                    const sectionKey = `${judgeName}-${key}-reasoning`
+                                    
+                                    const getReasoningKey = (key: string) => {
+                                      switch (key) {
+                                        case 'technical_execution': return 'technical'
+                                        case 'market_potential': return 'market'
+                                        case 'user_experience': return 'experience'
+                                        default: return key
+                                      }
+                                    }
+                                    
+                                    const reasoningKey = `${getReasoningKey(key as string)}_reasoning`
+                                    const reasoningText = round1.notes?.[reasoningKey] as string || 
+                                                         (round1.notes?.reasons as any)?.[getReasoningKey(key as string)] as string
+                                    const hasReasoning = Boolean(reasoningText)
                                     
                                     return (
-                                      <div key={key as string} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50/50 dark:bg-gray-800/50">
-                                        <div className="flex items-center justify-between">
-                                          <div className="flex items-center gap-2">
-                                            <Icon className={`h-4 w-4 ${
+                                      <div key={key as string}>
+                                        <button
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            if (hasReasoning) {
+                                              toggleSection(sectionKey)
+                                            }
+                                          }}
+                                          type="button"
+                                          className={`w-full grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${
+                                            hasReasoning ? 'cursor-pointer' : 'cursor-default'
+                                          }`}
+                                          disabled={!hasReasoning}
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <Icon className={`h-4 w-4 flex-shrink-0 ${
                                               numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
                                               numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
                                               numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
                                               'text-red-600 dark:text-red-400'
                                             }`} />
-                                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                               {displayName as string}
                                             </span>
                                           </div>
-                                          <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${
-                                            numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
-                                            numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                                            numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
-                                            'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                          <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                            <div 
+                                              className={`h-full rounded-full transition-all duration-500 ${
+                                                numValue >= 8 ? 'bg-emerald-500' :
+                                                numValue >= 6 ? 'bg-amber-500' :
+                                                numValue >= 4 ? 'bg-orange-500' :
+                                                'bg-red-500'
+                                              }`}
+                                              style={{ width: `${percentage}%` }}
+                                            />
+                                          </div>
+                                          <span className={`text-sm font-semibold text-right w-12 ${
+                                            numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
+                                            numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
+                                            numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
+                                            'text-red-600 dark:text-red-400'
                                           }`}>
                                             {numValue}/10
+                                          </span>
+                                          <div className="w-4">
+                                            {hasReasoning && (
+                                              expandedSections[sectionKey] ? 
+                                                <ChevronDown className="h-4 w-4 text-gray-400" /> : 
+                                                <ChevronRight className="h-4 w-4 text-gray-400" />
+                                            )}
                                           </div>
-                                        </div>
+                                        </button>
+                                        
+                                        {hasReasoning && expandedSections[sectionKey] && (
+                                          <div className="ml-6 mt-2 mb-3 p-3 bg-gray-50/50 dark:bg-gray-800/30 rounded border-l-4 border-gray-200 dark:border-gray-600">
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                                              "{reasoningText}"
+                                            </p>
+                                          </div>
+                                        )}
                                       </div>
                                     )
                                   })}
                                 </div>
-                                {/* Expandable Detailed Reasoning */}
+                                
+                                {/* Global reasoning toggle if needed */}
                                 {round1.notes && (Object.keys(round1.notes).some(key => key.includes('_reasoning')) || round1.notes.reasons) && (
-                                  <div>
+                                  <div className="mt-3">
                                     <button
-                                      onClick={() => toggleSection(`${judgeName}-round1-breakdown`)}
-                                      className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-4"
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        const allKeys = ['innovation', 'technical_execution', 'market_potential', 'user_experience']
+                                          .map(key => `${judgeName}-${key}-reasoning`)
+                                        const allExpanded = allKeys.every(key => expandedSections[key])
+                                        allKeys.forEach(key => {
+                                          setExpandedSections(prev => ({...prev, [key]: !allExpanded}))
+                                        })
+                                      }}
+                                      type="button"
+                                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                     >
-                                      {expandedSections[`${judgeName}-round1-breakdown`] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                      <span>View detailed reasoning</span>
+                                      {['innovation', 'technical_execution', 'market_potential', 'user_experience']
+                                        .map(key => `${judgeName}-${key}-reasoning`)
+                                        .every(key => expandedSections[key]) ? 'Collapse all reasoning' : 'Expand all reasoning'}
                                     </button>
-                                    
-                                    {expandedSections[`${judgeName}-round1-breakdown`] && (
-                                      <div className="space-y-6">
-                                        {[
-                                          ['innovation', round1.innovation, 'Innovation'],
-                                          ['technical_execution', round1.technical_execution, 'Technical Execution'],
-                                          ['market_potential', round1.market_potential, 'Market Potential'],
-                                          ['user_experience', round1.user_experience, 'User Experience'],
-                                        ].map(([key, score, displayName]) => {
-                                          const getReasoningKey = (key: string) => {
-                                            switch (key) {
-                                              case 'technical_execution': return 'technical'
-                                              case 'market_potential': return 'market'
-                                              case 'user_experience': return 'experience'
-                                              default: return key
-                                            }
-                                          }
-                                          const reasoning = round1.notes?.[`${key}_reasoning` as keyof typeof round1.notes] as string ||
-                                                          (round1.notes?.reasons as any)?.[getReasoningKey(key as string)] as string
-                                          if (!reasoning) return null
-                                          
-                                          const Icon = scoreIcons[key as keyof typeof scoreIcons]
-                                          const numValue = score as number
-                                          
-                                          return (
-                                            <div key={key as string} className="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
-                                              <div className="flex items-center gap-3 mb-3">
-                                                <Icon className={`h-5 w-5 ${
-                                                  numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
-                                                  numValue >= 6 ? 'text-amber-600 dark:text-amber-400' :
-                                                  numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
-                                                  'text-red-600 dark:text-red-400'
-                                                }`} />
-                                                <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                                                  {displayName as string}
-                                                </h4>
-                                                <div className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                                                  numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
-                                                  numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                                                  numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
-                                                  'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                                                }`}>
-                                                  {numValue}/10
-                                                </div>
-                                              </div>
-                                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
-                                                {reasoning}
-                                              </p>
-                                            </div>
-                                          )
-                                        }).filter(Boolean)}
-                                      </div>
-                                    )}
                                   </div>
                                 )}
                               </>
