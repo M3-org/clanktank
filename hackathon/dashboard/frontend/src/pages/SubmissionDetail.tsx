@@ -442,7 +442,7 @@ export default function SubmissionDetail() {
                                     }
                                     
                                     const reasoningKey = `${getReasoningKey(key as string)}_reasoning`
-                                    const reasoningText = round1.notes?.[reasoningKey] as string || 
+                                    const reasoningText = (round1.notes as any)?.[reasoningKey] as string || 
                                                          (round1.notes?.reasons as any)?.[getReasoningKey(key as string)] as string
                                     const hasReasoning = Boolean(reasoningText)
                                     
@@ -738,7 +738,6 @@ export default function SubmissionDetail() {
                     )
                   }
 
-                  const sections = []
                   let sectionIndex = 0
 
                   return (
