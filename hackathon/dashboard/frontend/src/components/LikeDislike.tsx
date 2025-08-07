@@ -66,16 +66,16 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
   return (
     <div className={cn("", className)}>
       {/* Simple Vote Buttons */}
-      <div className="flex gap-3 justify-center">
+      <div className="flex gap-0 w-full">
         <Button
           variant="ghost"
           onClick={() => handleAction('like')}
           disabled={loading}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 h-auto transition-all duration-200 rounded-lg border",
+            "flex-1 flex items-center justify-center gap-2 px-4 py-3 h-auto transition-all duration-200 rounded-l-lg rounded-r-none border-r border-gray-200 dark:border-gray-600",
             data.user_action === 'like' 
               ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-300 shadow-sm" 
-              : "hover:bg-green-50 dark:hover:bg-green-900/20 border-transparent hover:border-green-200"
+              : "hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-200"
           )}
         >
           <ThumbsUp className={cn(
@@ -91,10 +91,10 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
           onClick={() => handleAction('dislike')}
           disabled={loading}
           className={cn(
-            "flex items-center gap-2 px-4 py-3 h-auto transition-all duration-200 rounded-lg border",
+            "flex-1 flex items-center justify-center gap-2 px-4 py-3 h-auto transition-all duration-200 rounded-r-lg rounded-l-none border-l border-gray-200 dark:border-gray-600",
             data.user_action === 'dislike' 
               ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-300 shadow-sm" 
-              : "hover:bg-red-50 dark:hover:bg-red-900/20 border-transparent hover:border-red-200"
+              : "hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200"
           )}
         >
           <ThumbsDown className={cn(

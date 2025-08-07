@@ -321,9 +321,9 @@ export default function SubmissionDetail() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Judge Scores</h2>
               </CardHeader>
               <CardContent>
-                {/* Judge-centric cards */}
-                <div className="space-y-6">
-                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey) => {
+                {/* Judge sections with separators */}
+                <div className="space-y-8">
+                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey, index) => {
                     const round1 = (submission.scores || []).find(s => s.judge_name && s.round === 1 && s.judge_name.trim().toLowerCase() === judgeKey)
                     const round2 = (submission.scores || []).find(s => s.judge_name && s.round === 2 && s.judge_name.trim().toLowerCase() === judgeKey)
                     
@@ -335,7 +335,9 @@ export default function SubmissionDetail() {
                     const judgeName = round1?.judge_name || round2?.judge_name || judgeKey
                     const avatarSrc = judgeAvatarMap[judgeKey] || '/avatars/default.png';
                                     return (
-                      <div key={judgeName} className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors bg-white dark:bg-gray-900">
+                      <div key={judgeName}>
+                        {index > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-8"></div>}
+                        <div className="pb-2">
                         {/* Judge header */}
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-3">
@@ -361,15 +363,15 @@ export default function SubmissionDetail() {
                             {round1 && (
                               <div className="flex items-center gap-2">
                                 <span className={`text-xs font-semibold ${
-                                  round1Total >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
-                                  round1Total >= 6 ? 'text-amber-600 dark:text-amber-400' :
-                                  round1Total >= 4 ? 'text-orange-600 dark:text-orange-400' :
+                                  round1Total >= 32 ? 'text-emerald-600 dark:text-emerald-400' :
+                                  round1Total >= 24 ? 'text-amber-600 dark:text-amber-400' :
+                                  round1Total >= 16 ? 'text-orange-600 dark:text-orange-400' :
                                   'text-red-600 dark:text-red-400'
                                 }`}>R1</span>
                                 <div className={`px-3 py-1 rounded-full text-sm font-bold ${
-                                  round1Total >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
-                                  round1Total >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                                  round1Total >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
+                                  round1Total >= 32 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
+                                  round1Total >= 24 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                                  round1Total >= 16 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
                                   'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                                 }`}>
                                   {round1Total.toFixed(1)}
@@ -379,15 +381,15 @@ export default function SubmissionDetail() {
                             {round2 && (
                               <div className="flex items-center gap-2">
                                 <span className={`text-xs font-semibold ${
-                                  round2Total >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
-                                  round2Total >= 6 ? 'text-amber-600 dark:text-amber-400' :
-                                  round2Total >= 4 ? 'text-orange-600 dark:text-orange-400' :
+                                  round2Total >= 32 ? 'text-emerald-600 dark:text-emerald-400' :
+                                  round2Total >= 24 ? 'text-amber-600 dark:text-amber-400' :
+                                  round2Total >= 16 ? 'text-orange-600 dark:text-orange-400' :
                                   'text-red-600 dark:text-red-400'
                                 }`}>R2</span>
                                 <div className={`px-3 py-1 rounded-full text-sm font-bold ${
-                                  round2Total >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
-                                  round2Total >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
-                                  round2Total >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
+                                  round2Total >= 32 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
+                                  round2Total >= 24 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                                  round2Total >= 16 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
                                   'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
                                 }`}>
                                   {round2Total.toFixed(1)}
@@ -406,8 +408,16 @@ export default function SubmissionDetail() {
                             </div>
                             {round1 ? (
                               <>
-                                {/* Category Overview Cards */}
-                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                {/* Overall Comment */}
+                                {round1.notes?.overall_comment && (
+                                  <div className="mb-4 pl-4 border-l-2 border-gray-300 dark:border-gray-600">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                                      "{round1.notes.overall_comment}"
+                                    </p>
+                                  </div>
+                                )}
+                                {/* Category Score Cards */}
+                                <div className="grid grid-cols-2 gap-3 mb-6">
                                   {[
                                     ['innovation', round1.innovation, 'Innovation'],
                                     ['technical_execution', round1.technical_execution, 'Technical Execution'],
@@ -418,7 +428,7 @@ export default function SubmissionDetail() {
                                     const numValue = value as number
                                     
                                     return (
-                                      <div key={key as string} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900">
+                                      <div key={key as string} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-gray-50/50 dark:bg-gray-800/50">
                                         <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-2">
                                             <Icon className={`h-4 w-4 ${
@@ -431,7 +441,7 @@ export default function SubmissionDetail() {
                                               {displayName as string}
                                             </span>
                                           </div>
-                                          <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                          <div className={`px-3 py-1.5 rounded-full text-sm font-semibold ${
                                             numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
                                             numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
                                             numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
@@ -444,31 +454,19 @@ export default function SubmissionDetail() {
                                     )
                                   })}
                                 </div>
-
-                                {/* Overall Comment */}
-                                {round1.notes?.overall_comment ? (
-                                  <div className={`mt-4`}> 
-                                    <div className={`relative flex items-start w-full rounded-lg p-3 leading-6 italic ${round1Total >= 8 ? 'bg-indigo-50 dark:bg-indigo-900' : 'bg-gray-50 dark:bg-gray-800'} border-l-4 ${round1Total >= 8 ? 'border-indigo-500 dark:border-indigo-400' : 'border-gray-200 dark:border-gray-700'}`}> 
-                                      <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute left-2 top-2" />
-                                      <span className="pl-6 text-gray-900 dark:text-gray-100">"{round1.notes.overall_comment}"</span>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="mt-4 text-xs text-gray-400 dark:text-gray-500 italic">– no comment –</div>
-                                )}
-
-                                {/* Single Expandable Score Breakdown */}
+                                {/* Expandable Detailed Reasoning */}
                                 {round1.notes && (Object.keys(round1.notes).some(key => key.includes('_reasoning')) || round1.notes.reasons) && (
-                                  <div className="mb-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                                  <div>
                                     <button
                                       onClick={() => toggleSection(`${judgeName}-round1-breakdown`)}
-                                      className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                      className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-4"
                                     >
-                                      {expandedSections[`${judgeName}-round1-breakdown`] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                      {expandedSections[`${judgeName}-round1-breakdown`] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                       <span>View detailed reasoning</span>
                                     </button>
+                                    
                                     {expandedSections[`${judgeName}-round1-breakdown`] && (
-                                      <div className="mt-3 space-y-4 p-4 bg-gradient-to-r from-indigo-50/50 to-transparent dark:from-indigo-900/10 dark:to-transparent border border-indigo-100 dark:border-indigo-800 rounded-lg">
+                                      <div className="space-y-6">
                                         {[
                                           ['innovation', round1.innovation, 'Innovation'],
                                           ['technical_execution', round1.technical_execution, 'Technical Execution'],
@@ -491,7 +489,7 @@ export default function SubmissionDetail() {
                                           const numValue = score as number
                                           
                                           return (
-                                            <div key={key as string} className="border border-indigo-200 dark:border-indigo-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+                                            <div key={key as string} className="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0">
                                               <div className="flex items-center gap-3 mb-3">
                                                 <Icon className={`h-5 w-5 ${
                                                   numValue >= 8 ? 'text-emerald-600 dark:text-emerald-400' :
@@ -499,10 +497,10 @@ export default function SubmissionDetail() {
                                                   numValue >= 4 ? 'text-orange-600 dark:text-orange-400' :
                                                   'text-red-600 dark:text-red-400'
                                                 }`} />
-                                                <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                                                <h4 className="font-medium text-gray-900 dark:text-gray-100">
                                                   {displayName as string}
                                                 </h4>
-                                                <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                                                <div className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                                                   numValue >= 8 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
                                                   numValue >= 6 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
                                                   numValue >= 4 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
@@ -511,12 +509,9 @@ export default function SubmissionDetail() {
                                                   {numValue}/10
                                                 </div>
                                               </div>
-                                              <div className="relative">
-                                                <Quote className="h-4 w-4 text-gray-400 dark:text-gray-500 opacity-60 absolute -left-1 -top-1" />
-                                                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed pl-6 italic">
-                                                  "{reasoning}"
-                                                </p>
-                                              </div>
+                                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed pl-8">
+                                                {reasoning}
+                                              </p>
                                             </div>
                                           )
                                         }).filter(Boolean)}
@@ -621,6 +616,7 @@ export default function SubmissionDetail() {
                             )}
                           </div>
                         </div>
+                        </div>
                       </div>
                     )
                   })}
@@ -714,7 +710,7 @@ export default function SubmissionDetail() {
               <CardHeader>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Research Analysis</h3>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="px-4 py-3 space-y-6">
                 {(() => {
                   const assessment = getTechnicalAssessment()
                   if (!assessment && !submission.research.github_analysis) {
@@ -725,27 +721,33 @@ export default function SubmissionDetail() {
                     )
                   }
 
+                  const sections = []
+                  let sectionIndex = 0
+
                   return (
                     <>
                       {/* GitHub Analysis Section */}
                       {submission.research.github_analysis && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('github-analysis')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <Github className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                              <span className="text-sm font-medium">GitHub Analysis</span>
-                              <div className="flex items-center">
-                                <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                                <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
-                              </div>
+                            <div className="flex items-center gap-4">
+                              <Github className="h-5 w-5 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">GitHub Analysis</span>
                             </div>
-                            {expandedSections['github-analysis'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-700">
+                                <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
+                                <span className="text-xs font-medium text-green-700 dark:text-green-300">Completed</span>
+                              </div>
+                              {expandedSections['github-analysis'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['github-analysis'] && (
-                            <div className="px-4 pt-2 pb-4">
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-indigo-200 dark:border-indigo-600 px-3">
                               {(() => {
                                 try {
                                   const githubData = typeof submission.research.github_analysis === 'string' 
@@ -890,21 +892,26 @@ export default function SubmissionDetail() {
 
                       {/* Technical Implementation */}
                       {assessment?.technical_implementation && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('technical-impl')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-blue-50/50 dark:hover:bg-blue-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <Code className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                              <span className="text-sm font-medium">Technical Implementation</span>
-                              <ScoreBadge score={assessment.technical_implementation.score} />
+                            <div className="flex items-center gap-4">
+                              <Code className="h-5 w-5 text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Technical Implementation</span>
                             </div>
-                            {expandedSections['technical-impl'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <ScoreBadge score={assessment.technical_implementation.score} />
+                              </div>
+                              {expandedSections['technical-impl'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['technical-impl'] && (
-                            <div className="px-3 pb-3 space-y-3">
-                              <p className="text-xs text-gray-700 dark:text-gray-200">{assessment.technical_implementation.analysis}</p>
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-blue-200 dark:border-blue-600 px-3 space-y-3">
+                              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{assessment.technical_implementation.analysis}</p>
                               
                               {assessment.technical_implementation.strengths && assessment.technical_implementation.strengths.length > 0 && (
                                 <div>
@@ -946,21 +953,26 @@ export default function SubmissionDetail() {
 
                       {/* Market Analysis */}
                       {assessment?.market_analysis && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('market-analysis')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-purple-50/50 dark:hover:bg-purple-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <Target className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                              <span className="text-sm font-medium">Market Analysis</span>
-                              <ScoreBadge score={assessment.market_analysis.score} />
+                            <div className="flex items-center gap-4">
+                              <Target className="h-5 w-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Market Analysis</span>
                             </div>
-                            {expandedSections['market-analysis'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <ScoreBadge score={assessment.market_analysis.score} />
+                              </div>
+                              {expandedSections['market-analysis'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['market-analysis'] && (
-                            <div className="px-3 pb-3 space-y-3">
-                              <div className="text-xs text-gray-700 dark:text-gray-200">
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-purple-200 dark:border-purple-600 px-3 space-y-3">
+                              <div className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
                                 <p><strong>Market Size:</strong> {assessment.market_analysis.market_size}</p>
                                 <p><strong>Unique Value:</strong> {assessment.market_analysis.unique_value}</p>
                               </div>
@@ -988,21 +1000,26 @@ export default function SubmissionDetail() {
 
                       {/* Innovation Rating */}
                       {assessment?.innovation_rating && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('innovation')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-yellow-600 dark:hover:text-yellow-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-yellow-50/50 dark:hover:bg-yellow-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                              <span className="text-sm font-medium">Innovation Rating</span>
-                              <ScoreBadge score={assessment.innovation_rating.score} />
+                            <div className="flex items-center gap-4">
+                              <Lightbulb className="h-5 w-5 text-yellow-600 dark:text-yellow-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Innovation Rating</span>
                             </div>
-                            {expandedSections['innovation'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <ScoreBadge score={assessment.innovation_rating.score} />
+                              </div>
+                              {expandedSections['innovation'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['innovation'] && (
-                            <div className="px-3 pb-3">
-                              <p className="text-xs text-gray-700 dark:text-gray-200">{assessment.innovation_rating.analysis}</p>
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-yellow-200 dark:border-yellow-600 px-3">
+                              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{assessment.innovation_rating.analysis}</p>
                             </div>
                           )}
                         </div>
@@ -1010,23 +1027,28 @@ export default function SubmissionDetail() {
 
                       {/* Red Flags */}
                       {assessment?.red_flags && assessment.red_flags.length > 0 && (
-                        <div className="border border-red-200 dark:border-red-800 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('red-flags')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-red-50 dark:hover:bg-red-900 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-red-50/50 dark:hover:bg-red-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                              <span className="text-sm font-medium text-red-800 dark:text-red-200">Red Flags</span>
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                                {assessment.red_flags.length}
-                              </span>
+                            <div className="flex items-center gap-4">
+                              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-red-800 dark:text-red-200">Red Flags</span>
                             </div>
-                            {expandedSections['red-flags'] ? <ChevronDown className="h-4 w-4 text-red-600" /> : <ChevronRight className="h-4 w-4 text-red-600" />}
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700">
+                                  {assessment.red_flags.length} flags
+                                </span>
+                              </div>
+                              {expandedSections['red-flags'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['red-flags'] && (
-                            <div className="px-3 pb-3">
-                              <ul className="text-xs text-red-700 dark:text-red-300 space-y-1">
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-red-200 dark:border-red-600 px-3">
+                              <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
                                 {assessment.red_flags.map((flag: string, idx: number) => (
                                   <li key={idx} className="flex items-start">
                                     <span className="mr-1">•</span>
@@ -1041,22 +1063,27 @@ export default function SubmissionDetail() {
 
                       {/* Judge Insights */}
                       {assessment?.judge_insights && (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
                           <button
                             onClick={() => toggleSection('judge-insights')}
-                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                            className="flex items-center justify-between w-full text-left hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 mb-3 group"
                           >
-                            <div className="flex items-center gap-3">
-                              <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-                              <span className="text-sm font-medium">Judge Insights</span>
-                              <span className="text-xs text-gray-600 dark:text-gray-300">
-                                {Object.keys(assessment.judge_insights).length} perspectives
-                              </span>
+                            <div className="flex items-center gap-4">
+                              <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Judge Insights</span>
                             </div>
-                            {expandedSections['judge-insights'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-700">
+                                  {Object.keys(assessment.judge_insights).length} perspectives
+                                </span>
+                              </div>
+                              {expandedSections['judge-insights'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
                           </button>
                           {expandedSections['judge-insights'] && (
-                            <div className="px-4 pt-2 pb-4 space-y-4">
+                            <div className="pt-1 pb-4 mb-3 bg-gradient-to-r from-indigo-50/30 to-transparent dark:from-indigo-900/10 dark:to-transparent rounded-lg space-y-2">
                               {Object.entries(assessment.judge_insights).map(([judge, insight]: [string, any]) => {
                                 // Map research judge names to avatar keys
                                 const researchToAvatarMap: Record<string, string> = {
@@ -1069,8 +1096,8 @@ export default function SubmissionDetail() {
                                 const displayName = judge === 'marc' ? 'aimarc' : judge === 'shaw' ? 'aishaw' : judge
                                 
                                 return (
-                                  <div key={judge} className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-3">
+                                  <div key={judge} className="py-2 px-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-indigo-200 dark:border-indigo-600">
+                                    <div className="flex items-center gap-2 mb-2">
                                       <img
                                         src={judgeAvatarMap[judgeKey] || '/avatars/default.png'}
                                         alt={judge + ' avatar'}
@@ -1085,12 +1112,9 @@ export default function SubmissionDetail() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="relative">
-                                      <Quote className="h-3 w-3 text-gray-400 dark:text-gray-500 opacity-60 absolute -left-1 -top-1" />
-                                      <p className="text-sm text-gray-700 dark:text-gray-200 italic leading-relaxed pl-4">
-                                        "{insight}"
-                                      </p>
-                                    </div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">
+                                      "{insight}"
+                                    </p>
                                   </div>
                                 )
                               })}
@@ -1114,7 +1138,7 @@ export default function SubmissionDetail() {
                 Community Feedback
               </h3>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <LikeDislike submissionId={submission.submission_id.toString()} />
             </CardContent>
           </Card>
