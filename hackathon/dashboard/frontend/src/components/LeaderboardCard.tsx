@@ -35,7 +35,7 @@ export function LeaderboardCard({ entry, onVoteClick }: { entry: LeaderboardEntr
         <DiscordAvatar 
           discord_id={entry.discord_id}
           discord_avatar={entry.discord_avatar}
-          discord_handle={entry.discord_handle}
+          discord_handle={entry.discord_username}
           size="lg" 
           className="ring-2 ring-white dark:ring-gray-950" 
         />

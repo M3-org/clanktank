@@ -97,11 +97,21 @@ DISCORD_REDIRECT_URI = os.getenv(
     "DISCORD_REDIRECT_URI", "http://localhost:5173/auth/discord/callback"
 )
 
+# Discord Guild/Bot configuration
+DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
+# Prefer explicit bot token, else fall back to DISCORD_TOKEN if present
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN") or os.getenv("DISCORD_TOKEN")
 # Debug: Log Discord config status (without exposing secrets)
 if DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET:
     logging.info(f"Discord OAuth configured: Client ID starts with {DISCORD_CLIENT_ID[:10]}...")
 else:
     logging.warning("Discord OAuth not configured - missing CLIENT_ID or CLIENT_SECRET")
+
+# Log guild/bot role-fetch capability
+if DISCORD_GUILD_ID and DISCORD_BOT_TOKEN:
+    logging.info("Discord guild role fetch enabled (bot token present)")
+elif DISCORD_GUILD_ID and not DISCORD_BOT_TOKEN:
+    logging.warning("DISCORD_GUILD_ID set but no bot token; guild roles will not be fetched via bot")
 
 # Create FastAPI app
 app = FastAPI(
@@ -169,6 +179,16 @@ async def debug_request_middleware(request: Request, call_next):
 
     response = await call_next(request)
     return response
+
+
+# Ensure DB schema at startup (works with uvicorn module import)
+@app.on_event("startup")
+async def ensure_db_schema_startup():
+    try:
+        create_users_table()
+        logging.info("Users table ensured (including roles column)")
+    except Exception as e:
+        logging.error(f"Startup schema ensure failed: {e}")
 
 
 # Configure CORS with environment-specific origins
@@ -346,6 +366,10 @@ class SubmissionDetail(BaseModel):
     avg_score: Optional[float] = None
     solana_address: Optional[str] = None
     discord_handle: Optional[str] = None
+    # Add Discord user info for detail view
+    discord_id: Optional[str] = None
+    discord_username: Optional[str] = None
+    discord_avatar: Optional[str] = None
     can_edit: Optional[bool] = None
     is_creator: Optional[bool] = None
     twitter_handle: Optional[str] = None
@@ -442,12 +466,18 @@ def create_users_table():
                     username TEXT NOT NULL,
                     discriminator TEXT,
                     avatar TEXT,
+                    roles TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
                 )
             )
+            # Ensure roles column exists for older DBs
+            pragma_result = conn.execute(text("PRAGMA table_info(users)"))
+            columns = {row[1] for row in pragma_result.fetchall()}
+            if "roles" not in columns:
+                conn.execute(text("ALTER TABLE users ADD COLUMN roles TEXT"))
             
             # Create likes_dislikes table
             conn.execute(
@@ -575,6 +605,30 @@ async def exchange_discord_code(code: str) -> dict:
     return {"access_token": access_token, "user": user_data}
 
 
+async def fetch_user_guild_roles(discord_user_id: str) -> List[str]:
+    """Fetch list of role IDs for a user in the configured guild using the bot token.
+
+    Returns [] if missing configuration or on error.
+    """
+    try:
+        if not (DISCORD_GUILD_ID and DISCORD_BOT_TOKEN and discord_user_id):
+            return []
+        url = f"https://discord.com/api/guilds/{DISCORD_GUILD_ID}/members/{discord_user_id}"
+        headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    logging.warning(f"Guild roles fetch failed {resp.status}: {body}")
+                    return []
+                data = await resp.json()
+                roles = data.get("roles", [])
+                return [str(r) for r in roles] if isinstance(roles, list) else []
+    except Exception as e:
+        logging.error(f"Error fetching guild roles: {e}")
+        return []
+
+
 # Function will be moved after DiscordUser model definition
 
 
@@ -628,6 +682,7 @@ class DiscordUser(BaseModel):
     username: str
     discriminator: Optional[str] = None
     avatar: Optional[str] = None
+    roles: Optional[List[str]] = None
 
 
 class DiscordAuthResponse(BaseModel):
@@ -648,7 +703,7 @@ class LikeDislikeResponse(BaseModel):
     user_action: Optional[str] = None  # "like", "dislike", or None
 
 
-def create_or_update_user(discord_user_data: dict) -> DiscordUser:
+def create_or_update_user(discord_user_data: dict, roles: Optional[List[str]] = None) -> DiscordUser:
     """Create or update user in database."""
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
@@ -663,12 +718,15 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
             if avatar_hash:
                 avatar = f"https://cdn.discordapp.com/avatars/{discord_id}/{avatar_hash}.png"
 
+            # Serialize roles for storage
+            roles_json = json.dumps(roles) if roles else None
+
             # Insert or update user
             conn.execute(
                 text(
                     """
-                INSERT OR REPLACE INTO users (discord_id, username, discriminator, avatar, last_login)
-                VALUES (:discord_id, :username, :discriminator, :avatar, CURRENT_TIMESTAMP)
+                INSERT OR REPLACE INTO users (discord_id, username, discriminator, avatar, roles, last_login)
+                VALUES (:discord_id, :username, :discriminator, :avatar, :roles, CURRENT_TIMESTAMP)
             """
                 ),
                 {
@@ -676,6 +734,7 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
                     "username": username,
                     "discriminator": discriminator,
                     "avatar": avatar,
+                    "roles": roles_json,
                 },
             )
             conn.commit()
@@ -685,6 +744,7 @@ def create_or_update_user(discord_user_data: dict) -> DiscordUser:
                 username=username,
                 discriminator=discriminator,
                 avatar=avatar,
+                roles=roles or None,
             )
     except Exception as e:
         logging.error(f"Error creating/updating user: {e}")
@@ -718,8 +778,10 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
                     log_security_event("auth_failed")
                     return None
                 user_data = await resp.json()
-                # Update user in database
-                discord_user = create_or_update_user(user_data)
+                # Fetch roles via bot token (best effort)
+                roles = await fetch_user_guild_roles(str(user_data.get("id")))
+                # Update user in database including roles
+                discord_user = create_or_update_user(user_data, roles)
                 from hackathon.backend.simple_audit import log_user_action
                 log_user_action("auth_success", discord_user.discord_id)
                 return discord_user
@@ -834,8 +896,9 @@ async def discord_callback(callback_data: DiscordCallbackRequest):
         # Exchange code for access token and user info
         oauth_data = await exchange_discord_code(callback_data.code)
 
-        # Create or update user in database
-        discord_user = create_or_update_user(oauth_data["user"])
+        # Fetch roles via bot token (best effort) and create/update user in DB
+        roles = await fetch_user_guild_roles(str(oauth_data["user"].get("id")))
+        discord_user = create_or_update_user(oauth_data["user"], roles)
 
         return DiscordAuthResponse(
             user=discord_user, access_token=oauth_data["access_token"]
@@ -982,11 +1045,25 @@ async def get_like_dislike_counts(submission_id: int, request: Request):
     "/api/submissions", tags=["latest"], response_model=List[SubmissionSummary]
 )
 async def list_submissions_latest(
-    include: str = "scores,research,community", status: str = None, category: str = None
+    include: str = "scores,research,community",
+    status: str = None,
+    category: str = None,
 ):
     return await list_submissions(
-        version="v2", include=include, status=status, category=category
+        version="v2", include=include, status=status, category=category, detail=False
     )
+
+
+@app.get("/api/submissions/full", tags=["latest"])
+async def list_submissions_full(
+    include: str = "scores,research,community",
+    status: str = None,
+    category: str = None,
+):
+    data = await list_submissions(
+        version="v2", include=include, status=status, category=category, detail=True
+    )
+    return JSONResponse(content=data)
 
 
 @app.get(
@@ -2186,6 +2263,7 @@ async def list_submissions(
     include: str = "scores,research,community",
     status: str = None,
     category: str = None,
+    detail: bool = False,
 ):
     if version not in ("v1", "v2"):
         raise HTTPException(
@@ -2196,7 +2274,24 @@ async def list_submissions(
 
     # Get only database fields (excludes UI-only fields like 'invite_code')
     db_field_names = get_database_field_names(version)
-    fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
+    base_fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
+    # If detail is requested, ensure extended fields are present
+    extended_detail_fields = [
+        "github_url",
+        "demo_video_url",
+        "project_image",
+        "problem_solved",
+        "favorite_part",
+        "solana_address",
+    ]
+    if detail:
+        # Use set to avoid duplicates and only include fields that exist in schema/db
+        fields = [f for f in base_fields]
+        for f in extended_detail_fields:
+            if f not in fields:
+                fields.append(f)
+    else:
+        fields = base_fields
 
     # Build WHERE clause for filtering
     where_conditions = []
@@ -2361,6 +2456,10 @@ async def list_submissions(
                     "total_votes": total_votes,
                     "feedback": feedback_summary,
                 }
+            # For summary responses, remove free-form handle to avoid duplication
+            if not detail:
+                if "discord_handle" in submission_dict:
+                    del submission_dict["discord_handle"]
             submissions.append(submission_dict)
     return submissions
 
@@ -2816,8 +2915,26 @@ async def get_submission(
     fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
 
     # project_image field is handled properly via schema
+    # Join users to include Discord info for detail view
     select_stmt = text(
-        f"SELECT {', '.join(fields)} FROM {table} WHERE submission_id = :submission_id"
+        f"""
+        SELECT {', '.join([f's.{f}' for f in fields])},
+               u.discord_id AS discord_id,
+               u.username AS discord_username,
+               u.avatar AS discord_avatar
+        FROM {table} s
+        LEFT JOIN users u 
+          ON (
+               s.owner_discord_id = u.discord_id
+               OR (
+                    s.owner_discord_id IS NULL 
+                AND u.username IS NOT NULL 
+                AND s.discord_handle IS NOT NULL 
+                AND LOWER(u.username) = LOWER(s.discord_handle)
+               )
+             )
+        WHERE s.submission_id = :submission_id
+        """
     )
     with engine.connect() as conn:
         result = conn.execute(select_stmt, {"submission_id": submission_id})
@@ -2974,6 +3091,9 @@ async def get_submission(
             "avg_score": submission_dict.get("avg_score"),
             "solana_address": submission_dict.get("solana_address"),
             "discord_handle": submission_dict.get("discord_handle"),
+            "discord_id": submission_dict.get("discord_id"),
+            "discord_username": submission_dict.get("discord_username"),
+            "discord_avatar": submission_dict.get("discord_avatar"),
             "twitter_handle": submission_dict.get("twitter_handle"),
         }
         # Fill missing optional fields with None
@@ -2987,6 +3107,9 @@ async def get_submission(
             "research",
             "avg_score",
             "solana_address",
+            "discord_id",
+            "discord_username",
+            "discord_avatar",
         ]:
             if k not in detail:
                 detail[k] = None

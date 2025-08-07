@@ -472,7 +472,7 @@ export default function Frontpage() {
                               </h3>
                               <p className="text-sm text-slate-300 mb-1">{entry.category}</p>
                               <p className="text-xs text-slate-400">
-                                @{entry.discord_username || entry.discord_handle || 'Unknown'}
+                                @{entry.discord_username || 'Unknown'}
                               </p>
                             </div>
                           </div>

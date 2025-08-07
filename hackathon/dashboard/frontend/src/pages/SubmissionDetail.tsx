@@ -408,7 +408,31 @@ export default function SubmissionDetail() {
                             </div>
                             {round1 ? (
                               <>
-                                {/* Overall Comment */}
+                                {/* Compact toggle to reveal Round 1 details */}
+                                <div className="mt-1 mb-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const detailsKey = `${judgeName}-r1-details`
+                                      setExpandedSections(prev => {
+                                        const isOpen = !!prev[detailsKey]
+                                        const next: Record<string, boolean> = { ...prev, [detailsKey]: !isOpen }
+                                        const catKeys = ['innovation','technical_execution','market_potential','user_experience']
+                                          .map(k => `${judgeName}-${k}-reasoning`)
+                                        catKeys.forEach(k => { next[k] = !isOpen })
+                                        return next
+                                      })
+                                    }}
+                                    className="flex items-center gap-1 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                                    type="button"
+                                  >
+                                    {expandedSections[`${judgeName}-r1-details`] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                    {expandedSections[`${judgeName}-r1-details`] ? 'Hide detailed analysis' : 'Show detailed analysis'}
+                                  </button>
+                                </div>
+
+                                {/* Overall Comment (always visible if present) */}
                                 {round1.notes?.overall_comment && (
                                   <div className="mb-4 relative">
                                     <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-indigo-400 rounded-full"></div>
@@ -419,6 +443,9 @@ export default function SubmissionDetail() {
                                     </div>
                                   </div>
                                 )}
+
+                                {expandedSections[`${judgeName}-r1-details`] && (
+                                  <>
                                 {/* Combined Category Scores & Detailed Reasoning */}
                                 <div className="space-y-2">
                                   {[
@@ -513,28 +540,8 @@ export default function SubmissionDetail() {
                                   })}
                                 </div>
                                 
-                                {/* Global reasoning toggle if needed */}
-                                {round1.notes && (Object.keys(round1.notes).some(key => key.includes('_reasoning')) || round1.notes.reasons) && (
-                                  <div className="mt-3">
-                                    <button
-                                      onClick={(e) => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        const allKeys = ['innovation', 'technical_execution', 'market_potential', 'user_experience']
-                                          .map(key => `${judgeName}-${key}-reasoning`)
-                                        const allExpanded = allKeys.every(key => expandedSections[key])
-                                        allKeys.forEach(key => {
-                                          setExpandedSections(prev => ({...prev, [key]: !allExpanded}))
-                                        })
-                                      }}
-                                      type="button"
-                                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                    >
-                                      {['innovation', 'technical_execution', 'market_potential', 'user_experience']
-                                        .map(key => `${judgeName}-${key}-reasoning`)
-                                        .every(key => expandedSections[key]) ? 'Collapse all reasoning' : 'Expand all reasoning'}
-                                    </button>
-                                  </div>
+                                  {/* Global reasoning toggle removed in favor of single details toggle */}
+                                  </>
                                 )}
                               </>
                             ) : (
@@ -560,69 +567,71 @@ export default function SubmissionDetail() {
                                   <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 italic">– no final verdict –</div>
                                 )}
 
-                                {/* Expandable Round 2 Details */}
+                                {/* Round 2 details toggle */}
                                 {(round2.notes?.round2_reasoning || round2.notes?.score_revision || round2.notes?.community_influence || round2.notes?.confidence) && (
                                   <div className="mt-3">
                                     <button
                                       onClick={() => toggleSection(`${judgeName}-round2-details`)}
-                                      className="flex items-center gap-2 text-xs text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors"
+                                      className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200 transition-colors"
+                                      type="button"
                                     >
-                                      {expandedSections[`${judgeName}-round2-details`] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                      View Analysis Details
+                                      {expandedSections[`${judgeName}-round2-details`] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                      {expandedSections[`${judgeName}-round2-details`] ? 'Hide detailed analysis' : 'Show detailed analysis'}
                                     </button>
-                                    {expandedSections[`${judgeName}-round2-details`] && (
-                                      <div className="mt-2 space-y-2 pl-4 border-l-2 border-green-200 dark:border-green-700">
-                                        {round2.notes.round2_reasoning && (
-                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
-                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
-                                              Judge Reasoning
-                                            </div>
-                                            <div className="text-green-700 dark:text-green-300">
-                                              {round2.notes.round2_reasoning}
-                                            </div>
-                                          </div>
-                                        )}
-                                        
-                                        {round2.notes.score_revision && typeof round2.notes.score_revision === 'object' && (
-                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
-                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
-                                              Score Revision: {round2.notes.score_revision.type || 'none'}
-                                            </div>
-                                            <div className="text-green-700 dark:text-green-300">
-                                              {round2.notes.score_revision.reason && (
-                                                <div className="mb-1">{round2.notes.score_revision.reason}</div>
-                                              )}
-                                              {round2.notes.score_revision.adjustment && (
-                                                <div>Adjustment: {round2.notes.score_revision.adjustment > 0 ? '+' : ''}{round2.notes.score_revision.adjustment}</div>
-                                              )}
-                                              {round2.notes.score_revision.new_score && (
-                                                <div>New Score: {round2.notes.score_revision.new_score}/40</div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        )}
+                                  </div>
+                                )}
 
-                                        {round2.notes.community_influence && (
-                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
-                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
-                                              Community Influence
-                                            </div>
-                                            <div className="text-green-700 dark:text-green-300 capitalize">
-                                              {round2.notes.community_influence}
-                                            </div>
-                                          </div>
-                                        )}
+                                {expandedSections[`${judgeName}-round2-details`] && (
+                                  <div className="mt-2 space-y-2 pl-4 border-l-2 border-green-200 dark:border-green-700">
+                                    {round2?.notes?.round2_reasoning && (
+                                      <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                        <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                          Judge Reasoning
+                                        </div>
+                                        <div className="text-green-700 dark:text-green-300">
+                                              {round2?.notes?.round2_reasoning}
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    {round2?.notes?.score_revision && typeof round2?.notes?.score_revision === 'object' && (
+                                      <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                        <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                              Score Revision: {round2?.notes?.score_revision?.type || 'none'}
+                                        </div>
+                                        <div className="text-green-700 dark:text-green-300">
+                                              {round2?.notes?.score_revision?.reason && (
+                                                <div className="mb-1">{round2?.notes?.score_revision?.reason}</div>
+                                          )}
+                                              {round2?.notes?.score_revision?.adjustment && (
+                                                <div>Adjustment: {round2?.notes?.score_revision?.adjustment > 0 ? '+' : ''}{round2?.notes?.score_revision?.adjustment}</div>
+                                          )}
+                                              {round2?.notes?.score_revision?.new_score && (
+                                                <div>New Score: {round2?.notes?.score_revision?.new_score}/40</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
 
-                                        {round2.notes.confidence && (
-                                          <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
-                                            <div className="font-medium text-green-800 dark:text-green-200 mb-1">
-                                              Judge Confidence
-                                            </div>
-                                            <div className="text-green-700 dark:text-green-300 capitalize">
-                                              {round2.notes.confidence}
-                                            </div>
-                                          </div>
-                                        )}
+                                    {round2?.notes?.community_influence && (
+                                      <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                        <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                          Community Influence
+                                        </div>
+                                        <div className="text-green-700 dark:text-green-300 capitalize">
+                                              {round2?.notes?.community_influence}
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {round2?.notes?.confidence && (
+                                      <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded text-xs">
+                                        <div className="font-medium text-green-800 dark:text-green-200 mb-1">
+                                          Judge Confidence
+                                        </div>
+                                        <div className="text-green-700 dark:text-green-300 capitalize">
+                                              {round2?.notes?.confidence}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -927,7 +936,56 @@ export default function SubmissionDetail() {
                           </button>
                           {expandedSections['technical-impl'] && (
                             <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-blue-200 dark:border-blue-600 px-3 space-y-3">
-                              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{assessment.technical_implementation.analysis}</p>
+                              {/* Safe render for analysis: supports string, array, or object with positive/negative */}
+                              {(() => {
+                                const analysis: any = (assessment as any).technical_implementation?.analysis
+                                if (!analysis) return null
+                                if (typeof analysis === 'string') {
+                                  return (
+                                    <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{analysis}</p>
+                                  )
+                                }
+                                if (Array.isArray(analysis)) {
+                                  return (
+                                    <div className="space-y-2">
+                                      {analysis.map((line: any, idx: number) => (
+                                        <p key={idx} className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{String(line)}</p>
+                                      ))}
+                                    </div>
+                                  )
+                                }
+                                if (typeof analysis === 'object') {
+                                  const pos = analysis.positive
+                                  const neg = analysis.negative
+                                  return (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                      {pos && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">Positive</h5>
+                                          <ul className="text-xs text-green-700 dark:text-green-300 space-y-1 ml-4">
+                                            {(Array.isArray(pos) ? pos : [pos]).map((item: any, idx: number) => (
+                                              <li key={`pos-${idx}`} className="list-disc">{String(item)}</li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                      {neg && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1">Negative</h5>
+                                          <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1 ml-4">
+                                            {(Array.isArray(neg) ? neg : [neg]).map((item: any, idx: number) => (
+                                              <li key={`neg-${idx}`} className="list-disc">{String(item)}</li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                }
+                                return (
+                                  <pre className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900/20 p-2 rounded">{JSON.stringify(analysis, null, 2)}</pre>
+                                )
+                              })()}
                               
                               {assessment.technical_implementation.strengths && assessment.technical_implementation.strengths.length > 0 && (
                                 <div>

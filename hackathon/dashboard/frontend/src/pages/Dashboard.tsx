@@ -171,8 +171,7 @@ export default function Dashboard() {
         submission.project_name?.toLowerCase().includes(searchLower) ||
         submission.team_name?.toLowerCase().includes(searchLower) ||
         submission.description?.toLowerCase().includes(searchLower) ||
-        submission.discord_username?.toLowerCase().includes(searchLower) ||
-        submission.discord_handle?.toLowerCase().includes(searchLower)
+        submission.discord_username?.toLowerCase().includes(searchLower)
       )
     }
     
@@ -438,12 +437,12 @@ export default function Dashboard() {
                         <DiscordAvatar
                           discord_id={submission.discord_id}
                           discord_avatar={submission.discord_avatar}
-                          discord_handle={submission.discord_handle}
+                          discord_handle={submission.discord_username}
                           size="sm"
                           className="border border-gray-300 dark:border-gray-700"
                         />
                         <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 truncate max-w-[80px] sm:max-w-none">
-                          {submission.discord_username || submission.discord_handle || '—'}
+                          {submission.discord_username || '—'}
                         </span>
                       </div>
                     </td>
@@ -576,14 +575,14 @@ export default function Dashboard() {
                   <DiscordAvatar
                     discord_id={submission.discord_id}
                     discord_avatar={submission.discord_avatar}
-                    discord_handle={submission.discord_handle}
+                    discord_handle={submission.discord_username}
                     size="md"
                     className="border border-gray-300 dark:border-gray-700"
                   />
                   <span className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 line-clamp-2 truncate">
                     {submission.project_name}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.discord_username || submission.discord_handle || '—'}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.discord_username || '—'}</span>
                 </div>
                 {submission.description && (
                   <div className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2" title={submission.description}>
