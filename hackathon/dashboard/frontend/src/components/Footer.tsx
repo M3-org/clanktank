@@ -30,6 +30,10 @@ const FOOTER_LINKS = {
     {
       name: 'Jedai Council',
       url: 'https://jedaicouncil.com',
+    },
+    {
+      name: 'GitScape',
+      url: 'https://elizaos.github.io/',
     }
   ]
 }
