@@ -410,10 +410,13 @@ export default function SubmissionDetail() {
                               <>
                                 {/* Overall Comment */}
                                 {round1.notes?.overall_comment && (
-                                  <div className="mb-4 pl-4 border-l-2 border-gray-300 dark:border-gray-600">
-                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
-                                      "{round1.notes.overall_comment}"
-                                    </p>
+                                  <div className="mb-4 relative">
+                                    <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-indigo-400 rounded-full"></div>
+                                    <div className="pl-4 py-2 bg-gradient-to-r from-indigo-50/40 to-transparent dark:from-indigo-900/20 dark:to-transparent rounded-r-lg border-l-4 border-indigo-200 dark:border-indigo-700">
+                                      <p className="text-sm text-indigo-900 dark:text-indigo-100 leading-relaxed font-medium">
+                                        "{round1.notes.overall_comment}"
+                                      </p>
+                                    </div>
                                   </div>
                                 )}
                                 {/* Combined Category Scores & Detailed Reasoning */}
