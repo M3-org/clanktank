@@ -22,6 +22,12 @@ import {
   Heart,
   Quote,
   Edit3,
+  ChevronDown,
+  ChevronRight,
+  Award,
+  Target,
+  Lightbulb,
+  AlertTriangle,
 } from 'lucide-react'
 
 const solanaLogo = (
@@ -51,9 +57,18 @@ export default function SubmissionDetail() {
   const [, setFeedback] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [discordData, setDiscordData] = useState<{discord_id?: string, discord_avatar?: string} | null>(null)
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
 
   // Check if user is authenticated
   const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
+
+  // Toggle expanded sections
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }))
+  }
 
   // Handle back navigation
   const handleBack = () => {
@@ -170,6 +185,33 @@ export default function SubmissionDetail() {
     'peepo': 'UX meme lord',
     'spartan': 'DeFi maximalist',
     'eliza': 'AI Judge', // fallback for eliza or unknown judges
+  }
+
+  // Parse technical assessment data
+  const getTechnicalAssessment = () => {
+    if (!submission?.research?.technical_assessment) return null
+    try {
+      return typeof submission.research.technical_assessment === 'string' 
+        ? JSON.parse(submission.research.technical_assessment)
+        : submission.research.technical_assessment
+    } catch (e) {
+      return null
+    }
+  }
+
+  // Score badge component
+  const ScoreBadge = ({ score, maxScore = 10 }: { score: number, maxScore?: number }) => {
+    const percentage = (score / maxScore) * 100
+    const bgColor = percentage >= 80 ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' :
+                   percentage >= 60 ? 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200' :
+                   percentage >= 40 ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200' :
+                   'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+    
+    return (
+      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${bgColor}`}>
+        {score}/{maxScore}
+      </span>
+    )
   }
 
 
@@ -522,80 +564,399 @@ export default function SubmissionDetail() {
             </CardContent>
           </Card>
 
-          {/* Research Summary */}
+          {/* Enhanced Research Analysis */}
           {submission.research && (
             <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
               <CardHeader>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Research Summary</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Research Analysis</h3>
               </CardHeader>
-              <CardContent>
-                {submission.research.github_analysis && (
-                  <div className="mb-3 p-3 bg-indigo-50 dark:bg-indigo-900 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        <Github className="h-4 w-4 mr-2" />
-                        GitHub Analysis
-                      </h4>
-                      <div className="flex items-center">
-                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* AI Research Summary */}
-                {submission.research.technical_assessment && (
-                  <div className="mb-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        <TrendingUp className="h-4 w-4 mr-2" />
-                        AI Research
-                      </h4>
-                      <div className="flex items-center">
-                        <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
-                      </div>
-                    </div>
-                    
-                    {(() => {
-                      try {
-                        const research = typeof submission.research.technical_assessment === 'string' 
-                          ? JSON.parse(submission.research.technical_assessment) 
-                          : submission.research.technical_assessment;
-                        
-                        // Only show red flags if any exist
-                        if (research['Red Flags'] && Array.isArray(research['Red Flags']) && research['Red Flags'].length > 0) {
-                          return (
-                            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900 rounded border-l-4 border-red-400">
-                              <h5 className="text-xs font-medium text-red-800 dark:text-red-200 mb-1">Red Flags Found</h5>
+              <CardContent className="space-y-4">
+                {(() => {
+                  const assessment = getTechnicalAssessment()
+                  if (!assessment && !submission.research.github_analysis) {
+                    return (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                        No research data available
+                      </p>
+                    )
+                  }
+
+                  return (
+                    <>
+                      {/* GitHub Analysis Section */}
+                      {submission.research.github_analysis && (
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('github-analysis')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Github className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                              <span className="text-sm font-medium">GitHub Analysis</span>
+                              <div className="flex items-center">
+                                <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
+                                <span className="text-xs text-gray-600 dark:text-gray-300">Completed</span>
+                              </div>
+                            </div>
+                            {expandedSections['github-analysis'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                          {expandedSections['github-analysis'] && (
+                            <div className="px-4 pt-2 pb-4">
+                              {(() => {
+                                try {
+                                  const githubData = typeof submission.research.github_analysis === 'string' 
+                                    ? JSON.parse(submission.research.github_analysis)
+                                    : submission.research.github_analysis
+
+                                  return (
+                                    <div className="space-y-3">
+                                      {/* Repository Overview */}
+                                      <div className="grid grid-cols-3 gap-3">
+                                        <div className="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                                          <div className="text-lg font-semibold text-blue-700 dark:text-blue-300">
+                                            {githubData.file_structure?.total_files || 0}
+                                          </div>
+                                          <div className="text-xs text-blue-600 dark:text-blue-400">Files</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded">
+                                          <div className="text-lg font-semibold text-green-700 dark:text-green-300">
+                                            {githubData.commit_activity?.total_commits !== undefined ? 
+                                             githubData.commit_activity.total_commits :
+                                             '—'}
+                                          </div>
+                                          <div className="text-xs text-green-600 dark:text-green-400">Commits</div>
+                                        </div>
+                                        <div className="text-center p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+                                          <div className="text-lg font-semibold text-purple-700 dark:text-purple-300">
+                                            {githubData.commit_activity?.commit_authors?.length !== undefined ? 
+                                             githubData.commit_activity.commit_authors.length :
+                                             '—'}
+                                          </div>
+                                          <div className="text-xs text-purple-600 dark:text-purple-400">Contributors</div>
+                                        </div>
+                                      </div>
+
+                                      {/* Tech Stack */}
+                                      {githubData.file_structure?.file_extensions && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-gray-800 dark:text-gray-200 mb-2 flex items-center">
+                                            <Code className="h-3 w-3 mr-1" />
+                                            Tech Stack
+                                          </h5>
+                                          <div className="flex flex-wrap gap-1">
+                                            {Object.entries(githubData.file_structure.file_extensions)
+                                              .sort(([,a], [,b]) => (b as number) - (a as number))
+                                              .slice(0, 6)
+                                              .map(([ext, count]) => (
+                                                <span key={ext} className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                                  {ext.toUpperCase()} ({count as number})
+                                                </span>
+                                              ))
+                                            }
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Architecture & Timeline */}
+                                      <div className="grid grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                          <div className="text-gray-700 dark:text-gray-300 mb-1">
+                                            <strong>Architecture:</strong>
+                                          </div>
+                                          <div className="text-gray-600 dark:text-gray-400 space-y-1">
+                                            {githubData.file_structure?.is_mono_repo && (
+                                              <div className="flex items-center gap-1">
+                                                <div className="h-1 w-1 bg-indigo-500 rounded-full"></div>
+                                                Monorepo
+                                              </div>
+                                            )}
+                                            {githubData.file_structure?.has_tests && (
+                                              <div className="flex items-center gap-1">
+                                                <div className="h-1 w-1 bg-green-500 rounded-full"></div>
+                                                Has Tests
+                                              </div>
+                                            )}
+                                            {githubData.file_structure?.has_docs && (
+                                              <div className="flex items-center gap-1">
+                                                <div className="h-1 w-1 bg-blue-500 rounded-full"></div>
+                                                Has Docs
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-gray-700 dark:text-gray-300 mb-1">
+                                            <strong>Timeline:</strong>
+                                          </div>
+                                          <div className="text-gray-600 dark:text-gray-400 space-y-1">
+                                            {githubData.commit_activity?.days_with_commits && (
+                                              <div>{githubData.commit_activity.days_with_commits} active days</div>
+                                            )}
+                                            {githubData.commit_activity?.days_before_deadline !== undefined && (
+                                              <div className={githubData.commit_activity.days_before_deadline > 0 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>
+                                                Finished {Math.abs(githubData.commit_activity.days_before_deadline)}d {githubData.commit_activity.days_before_deadline > 0 ? 'early' : 'after deadline'}
+                                              </div>
+                                            )}
+                                            {githubData.commit_activity?.web_upload_commits && githubData.commit_activity.web_upload_commits > 0 && (
+                                              <div className="text-amber-600 dark:text-amber-400">
+                                                {githubData.commit_activity.web_upload_commits} web uploads
+                                              </div>
+                                            )}
+                                            {!githubData.commit_activity?.total_commits && githubData.commit_activity?.commits_in_last_72h !== undefined && (
+                                              <div className="text-gray-500 dark:text-gray-400 text-xs italic">
+                                                Limited commit data
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Contributors */}
+                                      {githubData.commit_activity?.commit_authors && githubData.commit_activity.commit_authors.length > 0 && (
+                                        <div>
+                                          <h5 className="text-xs font-medium text-gray-800 dark:text-gray-200 mb-1 flex items-center">
+                                            <Users className="h-3 w-3 mr-1" />
+                                            Contributors
+                                          </h5>
+                                          <div className="flex flex-wrap gap-1">
+                                            {githubData.commit_activity.commit_authors.map((author: string) => (
+                                              <span key={author} className="text-xs text-gray-600 dark:text-gray-400">
+                                                {author}
+                                              </span>
+                                            )).reduce((prev: any, curr: any, i: number) => 
+                                              prev === null ? [curr] : [...prev, <span key={`sep-${i}`} className="text-gray-400">, </span>, curr], null
+                                            )}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                } catch (e) {
+                                  return (
+                                    <div className="text-xs text-gray-600 dark:text-gray-300">
+                                      Repository structure and commit history analyzed
+                                    </div>
+                                  )
+                                }
+                              })()}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Technical Implementation */}
+                      {assessment?.technical_implementation && (
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('technical-impl')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Code className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              <span className="text-sm font-medium">Technical Implementation</span>
+                              <ScoreBadge score={assessment.technical_implementation.score} />
+                            </div>
+                            {expandedSections['technical-impl'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                          {expandedSections['technical-impl'] && (
+                            <div className="px-3 pb-3 space-y-3">
+                              <p className="text-xs text-gray-700 dark:text-gray-200">{assessment.technical_implementation.analysis}</p>
+                              
+                              {assessment.technical_implementation.strengths && assessment.technical_implementation.strengths.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-green-800 dark:text-green-200 mb-1 flex items-center">
+                                    <div className="h-2 w-2 bg-green-500 rounded-full mr-2"></div>
+                                    Strengths
+                                  </h5>
+                                  <ul className="text-xs text-green-700 dark:text-green-300 space-y-1 ml-4">
+                                    {assessment.technical_implementation.strengths.map((strength: string, idx: number) => (
+                                      <li key={idx} className="flex items-start">
+                                        <span className="mr-1">•</span>
+                                        <span>{strength}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {assessment.technical_implementation.weaknesses && assessment.technical_implementation.weaknesses.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-orange-800 dark:text-orange-200 mb-1 flex items-center">
+                                    <div className="h-2 w-2 bg-orange-500 rounded-full mr-2"></div>
+                                    Areas for Improvement
+                                  </h5>
+                                  <ul className="text-xs text-orange-700 dark:text-orange-300 space-y-1 ml-4">
+                                    {assessment.technical_implementation.weaknesses.map((weakness: string, idx: number) => (
+                                      <li key={idx} className="flex items-start">
+                                        <span className="mr-1">•</span>
+                                        <span>{weakness}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Market Analysis */}
+                      {assessment?.market_analysis && (
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('market-analysis')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Target className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                              <span className="text-sm font-medium">Market Analysis</span>
+                              <ScoreBadge score={assessment.market_analysis.score} />
+                            </div>
+                            {expandedSections['market-analysis'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                          {expandedSections['market-analysis'] && (
+                            <div className="px-3 pb-3 space-y-3">
+                              <div className="text-xs text-gray-700 dark:text-gray-200">
+                                <p><strong>Market Size:</strong> {assessment.market_analysis.market_size}</p>
+                                <p><strong>Unique Value:</strong> {assessment.market_analysis.unique_value}</p>
+                              </div>
+                              
+                              {assessment.market_analysis.competitors && assessment.market_analysis.competitors.length > 0 && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-purple-800 dark:text-purple-200 mb-1 flex items-center">
+                                    <div className="h-2 w-2 bg-purple-500 rounded-full mr-2"></div>
+                                    Key Competitors
+                                  </h5>
+                                  <div className="space-y-2 ml-4">
+                                    {assessment.market_analysis.competitors.slice(0, 2).map((competitor: any, idx: number) => (
+                                      <div key={idx} className="text-xs">
+                                        <p className="font-medium text-gray-900 dark:text-gray-100">{competitor.name}</p>
+                                        <p className="text-gray-600 dark:text-gray-400">{competitor.differentiation}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Innovation Rating */}
+                      {assessment?.innovation_rating && (
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('innovation')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Lightbulb className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                              <span className="text-sm font-medium">Innovation Rating</span>
+                              <ScoreBadge score={assessment.innovation_rating.score} />
+                            </div>
+                            {expandedSections['innovation'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                          {expandedSections['innovation'] && (
+                            <div className="px-3 pb-3">
+                              <p className="text-xs text-gray-700 dark:text-gray-200">{assessment.innovation_rating.analysis}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Red Flags */}
+                      {assessment?.red_flags && assessment.red_flags.length > 0 && (
+                        <div className="border border-red-200 dark:border-red-800 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('red-flags')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-red-50 dark:hover:bg-red-900 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              <span className="text-sm font-medium text-red-800 dark:text-red-200">Red Flags</span>
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
+                                {assessment.red_flags.length}
+                              </span>
+                            </div>
+                            {expandedSections['red-flags'] ? <ChevronDown className="h-4 w-4 text-red-600" /> : <ChevronRight className="h-4 w-4 text-red-600" />}
+                          </button>
+                          {expandedSections['red-flags'] && (
+                            <div className="px-3 pb-3">
                               <ul className="text-xs text-red-700 dark:text-red-300 space-y-1">
-                                {research['Red Flags'].slice(0, 2).map((flag: string, idx: number) => (
+                                {assessment.red_flags.map((flag: string, idx: number) => (
                                   <li key={idx} className="flex items-start">
                                     <span className="mr-1">•</span>
                                     <span>{flag}</span>
                                   </li>
                                 ))}
-                                {research['Red Flags'].length > 2 && (
-                                  <li className="text-xs italic">... and {research['Red Flags'].length - 2} more</li>
-                                )}
                               </ul>
                             </div>
-                          );
-                        }
-                        return null;
-                      } catch (e) {
-                        return null;
-                      }
-                    })()}
-                  </div>
-                )}
-                
-                {!submission.research.github_analysis && !submission.research.technical_assessment && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">
-                    No research data available
-                  </p>
-                )}
+                          )}
+                        </div>
+                      )}
+
+                      {/* Judge Insights */}
+                      {assessment?.judge_insights && (
+                        <div className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <button
+                            onClick={() => toggleSection('judge-insights')}
+                            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors rounded-lg"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                              <span className="text-sm font-medium">Judge Insights</span>
+                              <span className="text-xs text-gray-600 dark:text-gray-300">
+                                {Object.keys(assessment.judge_insights).length} perspectives
+                              </span>
+                            </div>
+                            {expandedSections['judge-insights'] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </button>
+                          {expandedSections['judge-insights'] && (
+                            <div className="px-4 pt-2 pb-4 space-y-4">
+                              {Object.entries(assessment.judge_insights).map(([judge, insight]: [string, any]) => {
+                                // Map research judge names to avatar keys
+                                const researchToAvatarMap: Record<string, string> = {
+                                  'marc': 'aimarc',
+                                  'shaw': 'aishaw', 
+                                  'spartan': 'spartan',
+                                  'peepo': 'peepo'
+                                }
+                                const judgeKey = researchToAvatarMap[judge.trim().toLowerCase()] || judge.trim().toLowerCase()
+                                const displayName = judge === 'marc' ? 'aimarc' : judge === 'shaw' ? 'aishaw' : judge
+                                
+                                return (
+                                  <div key={judge} className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-3">
+                                      <img
+                                        src={judgeAvatarMap[judgeKey] || '/avatars/default.png'}
+                                        alt={judge + ' avatar'}
+                                        className="h-6 w-6 rounded-full border-2 border-white dark:border-gray-600 shadow-sm"
+                                      />
+                                      <div>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                                          {displayName.replace('ai', 'AI ')}
+                                        </span>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                          {judgeSpecialtyMap[judgeKey] || 'AI Judge'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="relative">
+                                      <Quote className="h-3 w-3 text-gray-400 dark:text-gray-500 opacity-60 absolute -left-1 -top-1" />
+                                      <p className="text-sm text-gray-700 dark:text-gray-200 italic leading-relaxed pl-4">
+                                        "{insight}"
+                                      </p>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </CardContent>
             </Card>
           )}
