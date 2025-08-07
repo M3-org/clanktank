@@ -610,7 +610,7 @@ export default function SubmissionDetail() {
               </h3>
             </CardHeader>
             <CardContent>
-              {!isModal && <LikeDislike submissionId={submission.submission_id.toString()} />}
+              <LikeDislike submissionId={submission.submission_id.toString()} />
             </CardContent>
           </Card>
         </div>

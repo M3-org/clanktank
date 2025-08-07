@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { X, ExternalLink } from 'lucide-react'
 import { useSubmissionCache } from '../hooks/useSubmissionCache'
@@ -13,6 +13,8 @@ interface SubmissionModalProps {
 export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissionIds }: SubmissionModalProps) {
   const navigate = useNavigate()
   const { prefetchSubmissions } = useSubmissionCache()
+  const modalRef = useRef<HTMLDivElement>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
 
   // Prefetch adjacent submissions for faster navigation
   useEffect(() => {
@@ -30,20 +32,58 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
     }
   }, [submissionId, allSubmissionIds, prefetchSubmissions])
 
-  // Keyboard navigation
+  // Focus modal on mount to ensure keyboard navigation works
+  useEffect(() => {
+    modalRef.current?.focus()
+  }, [])
+
+  // Setup iframe keyboard listener when iframe loads
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose()
       } else if (e.key === 'ArrowLeft' && onNavigate) {
+        e.preventDefault()
         onNavigate('prev')
       } else if (e.key === 'ArrowRight' && onNavigate) {
         onNavigate('next')
       }
     }
 
+    const setupIframeListener = () => {
+      const iframe = iframeRef.current
+      if (iframe && iframe.contentDocument) {
+        try {
+          // Add listener to iframe's document
+          iframe.contentDocument.addEventListener('keydown', handleKeydown)
+        } catch (error) {
+          console.log('Cannot access iframe document (cross-origin)')
+        }
+      }
+    }
+
+    // Add listener to parent document
     document.addEventListener('keydown', handleKeydown)
-    return () => document.removeEventListener('keydown', handleKeydown)
+    
+    // Setup iframe listener when it loads
+    const iframe = iframeRef.current
+    if (iframe) {
+      iframe.addEventListener('load', setupIframeListener)
+    }
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeydown)
+      if (iframe) {
+        iframe.removeEventListener('load', setupIframeListener)
+        if (iframe.contentDocument) {
+          try {
+            iframe.contentDocument.removeEventListener('keydown', handleKeydown)
+          } catch (error) {
+            // Ignore cross-origin errors on cleanup
+          }
+        }
+      }
+    }
   }, [onClose, onNavigate])
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -62,8 +102,15 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
       onClick={handleBackdropClick}
     >
       <div 
+        ref={modalRef}
         className="bg-white dark:bg-gray-900 rounded-lg shadow-2xl w-full h-full max-w-[85vw] max-h-[85vh] overflow-hidden flex flex-col"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation()
+          // Reclaim focus when modal is clicked to ensure keyboard navigation works
+          modalRef.current?.focus()
+        }}
+        tabIndex={-1}
+        style={{ outline: 'none' }}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
@@ -102,6 +149,7 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
         
         {/* Iframe Content */}
         <iframe 
+          ref={iframeRef}
           src={`/submission/${submissionId}?modal=true`} 
           className="flex-1 w-full border-0 bg-white dark:bg-gray-900"
           title="Submission Details"
