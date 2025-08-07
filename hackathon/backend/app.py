@@ -734,8 +734,8 @@ def validate_github_url(url: str) -> bool:
     """Validate GitHub URL format for security."""
     if not url:
         return False
-    # Pattern: https://github.com/username/repo (with optional trailing slash)
-    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+/?$'
+    # Pattern: https://github.com/username/repo (with optional additional paths)
+    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+(/.*)?$'
     return bool(re.match(pattern, url))
 
 
@@ -2839,12 +2839,23 @@ async def get_submission(
                 "round",
                 "community_bonus",
                 "final_verdict",
+                "created_at",
             ]
             actual_score_fields = get_score_columns(conn, score_fields)
             if actual_score_fields:
+                # Get only the latest score per judge per round using window functions
                 scores_result = conn.execute(
                     text(
-                        f"SELECT {', '.join(actual_score_fields)} FROM hackathon_scores WHERE submission_id = :submission_id ORDER BY judge_name, round"
+                        f"""
+                        SELECT {', '.join(actual_score_fields)} FROM (
+                            SELECT {', '.join(actual_score_fields)},
+                                   ROW_NUMBER() OVER (PARTITION BY judge_name, round ORDER BY created_at DESC) as rn
+                            FROM hackathon_scores 
+                            WHERE submission_id = :submission_id
+                        ) ranked_scores
+                        WHERE rn = 1
+                        ORDER BY judge_name, round
+                        """
                     ),
                     {"submission_id": submission_id},
                 )

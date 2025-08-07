@@ -288,18 +288,23 @@ class HackathonResearcher:
         return research_results
 
     def research_all_pending(self) -> List[Dict[str, Any]]:
-        """Research all submissions that don't have research data yet."""
+        """Research all submissions that don't have research data yet (or all if force=True)."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Find submissions without research
-        query = f"""
-        SELECT s.submission_id 
-        FROM {self.table} s 
-        LEFT JOIN hackathon_research r ON s.submission_id = r.submission_id 
-        WHERE r.submission_id IS NULL
-        """
+        # Find submissions - either without research or all if force is enabled
+        if self.force:
+            query = f"SELECT submission_id FROM {self.table}"
+            logger.info("Force flag enabled - will re-research all submissions")
+        else:
+            query = f"""
+            SELECT s.submission_id 
+            FROM {self.table} s 
+            LEFT JOIN hackathon_research r ON s.submission_id = r.submission_id 
+            WHERE r.submission_id IS NULL
+            """
+        
         cursor.execute(query)
         pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()

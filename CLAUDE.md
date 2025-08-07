@@ -276,6 +276,32 @@ Versioned schemas (v1, v2) with fields like:
 - Debug with browser: Use `test_browser_debug.html` for frontend issues
 - Database debugging: Direct SQLite queries and browser dev tools
 
+## Common Issues and Debugging
+
+### Frontend Not Updating After Backend Changes
+**Symptoms**: Backend has new data (confirmed via API), but frontend dashboard shows old data
+
+**Root Cause**: Frontend implements 5-minute aggressive caching:
+- `hackathon/dashboard/frontend/src/lib/api.ts:14,29`
+- Both HTTP headers (`Cache-Control: max-age=300`) and in-memory cache (`CACHE_DURATION = 5 * 60 * 1000`)
+
+**Solutions**:
+1. **Immediate**: Hard refresh browser (Ctrl+Shift+R / Cmd+Shift+R)  
+2. **Development**: Wait 5 minutes for cache to expire naturally
+3. **Testing**: Temporarily reduce `CACHE_DURATION` in `api.ts`
+4. **Verification**: Check API endpoints directly (e.g., `curl localhost:8000/api/leaderboard`)
+
+**Debugging Steps**:
+```bash
+# Verify backend has new data
+python -c "import sqlite3; c=sqlite3.connect('data/hackathon.db'); print(c.execute('SELECT created_at FROM hackathon_scores ORDER BY created_at DESC LIMIT 5').fetchall())"
+
+# Test API endpoint directly  
+curl http://localhost:8000/api/leaderboard
+
+# If API returns new data but frontend doesn't, it's caching
+```
+
 ## Daily Operations
 
 ### Automated GitHub Actions

@@ -95,6 +95,47 @@ def check_and_migrate_scores(cursor, dry_run):
     print("  hackathon_scores check complete.")
 
 
+def add_scores_unique_constraint(cursor, dry_run):
+    """Add unique constraint to hackathon_scores to prevent duplicate judge scores."""
+    print("Checking hackathon_scores unique constraint...")
+    
+    # Check if unique index already exists
+    cursor.execute("PRAGMA index_list(hackathon_scores)")
+    indexes = cursor.fetchall()
+    constraint_exists = False
+    
+    for idx in indexes:
+        cursor.execute(f"PRAGMA index_info({idx[1]})")
+        cols = [col[2] for col in cursor.fetchall()]
+        if sorted(cols) == sorted(['submission_id', 'judge_name', 'round']) and idx[2] == 1:  # unique=1
+            constraint_exists = True
+            break
+    
+    if constraint_exists:
+        print("  Unique constraint already exists for hackathon_scores")
+        return
+    
+    print("  Adding unique constraint for (submission_id, judge_name, round)")
+    
+    if dry_run:
+        print("  Would add unique constraint to hackathon_scores")
+        return
+    
+    # Create unique index to prevent duplicate scores
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_unique_judge_round 
+        ON hackathon_scores(submission_id, judge_name, round)
+    """)
+    
+    print("  ✅ Added unique constraint to hackathon_scores")
+    
+    try:
+        from hackathon.backend.simple_audit import log_system_action
+        log_system_action("scores_unique_constraint_added", "hackathon_scores")
+    except Exception as e:
+        print(f"    Warning: Could not log audit event: {e}")
+
+
 def fix_data_constraints(cursor, version, dry_run):
     """Fix data constraint violations by updating null/empty required fields."""
     print(f"Checking data constraints for version {version}")
@@ -349,6 +390,16 @@ def main():
         "--db", default="data/hackathon.db", help="Path to DB file."
     )
 
+    scores_constraint_parser = subparsers.add_parser(
+        "add-scores-unique", help="Add unique constraint to hackathon_scores to prevent duplicate judge scores."
+    )
+    scores_constraint_parser.add_argument(
+        "--db", default="data/hackathon.db", help="Path to DB file."
+    )
+    scores_constraint_parser.add_argument(
+        "--dry-run", action="store_true", help="Only print actions, do not modify DB."
+    )
+
     args = parser.parse_args()
 
     if args.command == "add-field":
@@ -380,6 +431,13 @@ def main():
         if not args.dry_run:
             conn.commit()
             print("✅ Database constraints added successfully")
+        else:
+            print("Dry run complete - no changes made")
+    elif args.command == "add-scores-unique":
+        add_scores_unique_constraint(cursor, args.dry_run)
+        if not args.dry_run:
+            conn.commit()
+            print("✅ Unique constraint added to hackathon_scores successfully")
         else:
             print("Dry run complete - no changes made")
     else:
