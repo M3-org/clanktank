@@ -179,6 +179,23 @@ export default function SubmissionDetail() {
     'peepo': '/avatars/peepo.png',
   }
 
+  // Normalize various judge name strings to avatar keys
+  function normalizeJudgeKey(name: string): string {
+    const n = name.trim().toLowerCase()
+    // broad contains checks to handle variations (e.g., "Marc (AI)")
+    if (n.includes('marc')) return 'aimarc'
+    if (n.includes('shaw')) return 'aishaw'
+    if (n.includes('spartan')) return 'spartan'
+    if (n.includes('peepo')) return 'peepo'
+    if (n.includes('eliza')) return 'eliza'
+    return n
+  }
+
+  function getJudgeAvatar(name: string): string {
+    const key = normalizeJudgeKey(name)
+    return judgeAvatarMap[key] || judgeAvatarMap['eliza']
+  }
+
   // Add mapping for judge specialties (matching Frontpage.tsx)
   const judgeSpecialtyMap: Record<string, string> = {
     'aimarc': 'ROI skeptic',
@@ -334,7 +351,8 @@ export default function SubmissionDetail() {
               <CardContent>
                 {/* Judge sections with separators */}
                 <div className="space-y-8">
-                  {Array.from(new Set((submission.scores || []).map(s => s.judge_name.trim().toLowerCase()))).map((judgeKey, index) => {
+                  {Array.from(new Set((submission.scores || []).map(s => normalizeJudgeKey(s.judge_name))))
+                    .map((judgeKey, index) => {
                     const round1 = (submission.scores || []).find(s => s.judge_name && s.round === 1 && s.judge_name.trim().toLowerCase() === judgeKey)
                     const round2 = (submission.scores || []).find(s => s.judge_name && s.round === 2 && s.judge_name.trim().toLowerCase() === judgeKey)
                     
@@ -344,7 +362,7 @@ export default function SubmissionDetail() {
                     
                     // Use the original judge name from round1 or round2 for display
                     const judgeName = round1?.judge_name || round2?.judge_name || judgeKey
-                    const avatarSrc = judgeAvatarMap[judgeKey] || '/avatars/default.png';
+                    const avatarSrc = getJudgeAvatar(judgeName)
                                     return (
                       <div key={judgeName}>
                         {index > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-8"></div>}
@@ -949,7 +967,8 @@ export default function SubmissionDetail() {
                             <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-blue-200 dark:border-blue-600 px-3 space-y-3">
                               {/* Safe render for analysis: supports string, array, or object with positive/negative */}
                               {(() => {
-                                const analysis: any = (assessment as any).technical_implementation?.analysis
+                                const ti: any = (assessment as any).technical_implementation || {}
+                                const analysis: any = ti.analysis ?? ti.assessment
                                 if (!analysis) return null
                                 if (typeof analysis === 'string') {
                                   return (
@@ -1058,8 +1077,27 @@ export default function SubmissionDetail() {
                           {expandedSections['market-analysis'] && (
                             <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-purple-200 dark:border-purple-600 px-3 space-y-3">
                               <div className="text-sm text-gray-700 dark:text-gray-200 space-y-1">
-                                <p><strong>Market Size:</strong> {assessment.market_analysis.market_size}</p>
-                                <p><strong>Unique Value:</strong> {assessment.market_analysis.unique_value}</p>
+                                {(
+                                  (assessment.market_analysis as any).market_size ||
+                                  (assessment.market_analysis as any).addressable_market
+                                ) && (
+                                  <p>
+                                    <strong>Market Size:</strong> {(assessment.market_analysis as any).market_size || (assessment.market_analysis as any).addressable_market}
+                                  </p>
+                                )}
+                                {(
+                                  (assessment.market_analysis as any).unique_value ||
+                                  (assessment.market_analysis as any).differentiation
+                                ) && (
+                                  <p>
+                                    <strong>Unique Value:</strong> {(assessment.market_analysis as any).unique_value || (assessment.market_analysis as any).differentiation}
+                                  </p>
+                                )}
+                                {(assessment.market_analysis as any).market_potential && (
+                                  <p>
+                                    <strong>Market Potential:</strong> {(assessment.market_analysis as any).market_potential}
+                                  </p>
+                                )}
                               </div>
                               
                               {assessment.market_analysis.competitors && assessment.market_analysis.competitors.length > 0 && (
@@ -1069,12 +1107,23 @@ export default function SubmissionDetail() {
                                     Key Competitors
                                   </h5>
                                   <div className="space-y-2 ml-4">
-                                    {assessment.market_analysis.competitors.slice(0, 2).map((competitor: any, idx: number) => (
-                                      <div key={idx} className="text-xs">
-                                        <p className="font-medium text-gray-900 dark:text-gray-100">{competitor.name}</p>
-                                        <p className="text-gray-600 dark:text-gray-400">{competitor.differentiation}</p>
-                                      </div>
-                                    ))}
+                                    {assessment.market_analysis.competitors.slice(0, 3).map((competitor: any, idx: number) => {
+                                      if (typeof competitor === 'string') {
+                                        return (
+                                          <div key={idx} className="text-xs text-gray-700 dark:text-gray-300">
+                                            {competitor}
+                                          </div>
+                                        )
+                                      }
+                                      return (
+                                        <div key={idx} className="text-xs">
+                                          <p className="font-medium text-gray-900 dark:text-gray-100">{competitor.name}</p>
+                                          {competitor.differentiation && (
+                                            <p className="text-gray-600 dark:text-gray-400">{competitor.differentiation}</p>
+                                          )}
+                                        </div>
+                                      )
+                                    })}
                                   </div>
                                 </div>
                               )}
@@ -1104,7 +1153,88 @@ export default function SubmissionDetail() {
                           </button>
                           {expandedSections['innovation'] && (
                             <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-yellow-200 dark:border-yellow-600 px-3">
-                              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{assessment.innovation_rating.analysis}</p>
+                              <p className="text-sm text-gray-700 dark:text-gray-200 leading-relaxed">{(assessment.innovation_rating as any).analysis ?? (assessment.innovation_rating as any).assessment}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Viability Assessment */}
+                      {assessment?.viability_assessment && (
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
+                          <button
+                            onClick={() => toggleSection('viability')}
+                            className="flex items-center justify-between w-full text-left hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 mb-3 group"
+                            type="button"
+                          >
+                            <div className="flex items-center gap-4">
+                              <Target className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Viability Assessment</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <ScoreBadge score={assessment.viability_assessment.score} />
+                              </div>
+                              {expandedSections['viability'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
+                          </button>
+                          {expandedSections['viability'] && (
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-emerald-200 dark:border-emerald-600 px-3 space-y-2">
+                              {(assessment.viability_assessment as any).challenges && Array.isArray((assessment.viability_assessment as any).challenges) && (
+                                <div>
+                                  <h5 className="text-xs font-medium text-emerald-800 dark:text-emerald-200 mb-1 flex items-center">
+                                    <div className="h-2 w-2 bg-emerald-500 rounded-full mr-2"></div>
+                                    Challenges
+                                  </h5>
+                                  <ul className="text-xs text-emerald-700 dark:text-emerald-300 space-y-1 ml-4">
+                                    {(assessment.viability_assessment as any).challenges.map((c: string, idx: number) => (
+                                      <li key={idx} className="list-disc">{c}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {(assessment.viability_assessment as any).production_readiness && (
+                                <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Production Readiness:</strong> {(assessment.viability_assessment as any).production_readiness}</p>
+                              )}
+                              {(assessment.viability_assessment as any).maintenance_concerns && (
+                                <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Maintenance:</strong> {(assessment.viability_assessment as any).maintenance_concerns}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Overall Assessment */}
+                      {(assessment as any).overall_assessment && (
+                        <div>
+                          {sectionIndex++ > 0 && <div className="border-t border-gray-200 dark:border-gray-700 mb-3"></div>}
+                          <button
+                            onClick={() => toggleSection('overall')}
+                            className="flex items-center justify-between w-full text-left hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 py-2 px-2 -mx-2 rounded-lg hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 mb-3 group"
+                            type="button"
+                          >
+                            <div className="flex items-center gap-4">
+                              <Award className="h-5 w-5 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-base font-semibold text-gray-900 dark:text-gray-100">Overall Assessment</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="shadow-sm">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-700">
+                                  {(assessment as any).overall_assessment?.final_score ?? '—'}/10
+                                </span>
+                              </div>
+                              {expandedSections['overall'] ? <ChevronDown className="h-4 w-4 text-gray-400" /> : <ChevronRight className="h-4 w-4 text-gray-400" />}
+                            </div>
+                          </button>
+                          {expandedSections['overall'] && (
+                            <div className="pt-1 pb-4 mb-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-indigo-200 dark:border-indigo-600 px-3 space-y-2">
+                              {(assessment as any).overall_assessment?.summary && (
+                                <p className="text-sm text-gray-700 dark:text-gray-200">{(assessment as any).overall_assessment.summary}</p>
+                              )}
+                              {(assessment as any).overall_assessment?.recommendation && (
+                                <p className="text-sm text-gray-700 dark:text-gray-200"><strong>Recommendation:</strong> {(assessment as any).overall_assessment.recommendation}</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1171,20 +1301,14 @@ export default function SubmissionDetail() {
                             <div className="pt-1 pb-4 mb-3 bg-gradient-to-r from-indigo-50/30 to-transparent dark:from-indigo-900/10 dark:to-transparent rounded-lg space-y-2">
                               {Object.entries(assessment.judge_insights).map(([judge, insight]: [string, any]) => {
                                 // Map research judge names to avatar keys
-                                const researchToAvatarMap: Record<string, string> = {
-                                  'marc': 'aimarc',
-                                  'shaw': 'aishaw', 
-                                  'spartan': 'spartan',
-                                  'peepo': 'peepo'
-                                }
-                                const judgeKey = researchToAvatarMap[judge.trim().toLowerCase()] || judge.trim().toLowerCase()
-                                const displayName = judge === 'marc' ? 'aimarc' : judge === 'shaw' ? 'aishaw' : judge
+                                const judgeKey = normalizeJudgeKey(judge)
+                                const displayName = judgeKey
                                 
                                 return (
                                   <div key={judge} className="py-2 px-3 bg-white/50 dark:bg-gray-800/30 rounded border-l-4 border-indigo-200 dark:border-indigo-600">
                                     <div className="flex items-center gap-2 mb-2">
                                       <img
-                                        src={judgeAvatarMap[judgeKey] || '/avatars/default.png'}
+                                        src={getJudgeAvatar(judge)}
                                         alt={judge + ' avatar'}
                                         className="h-6 w-6 rounded-full border-2 border-white dark:border-gray-600 shadow-sm"
                                       />
