@@ -5,6 +5,7 @@ import { SubmissionDetail as SubmissionDetailType } from '../types'
 import { formatDate } from '../lib/utils'
 import { Card, CardHeader, CardContent } from '../components/Card'
 import { Button } from '../components/Button'
+import { Markdown } from '../components/Markdown'
 import { useAuth } from '../contexts/AuthContext'
 import { LikeDislike } from '../components/LikeDislike'
 import { DiscordAvatar } from '../components/DiscordAvatar'
@@ -239,14 +240,24 @@ export default function SubmissionDetail() {
           <h1 className="text-2xl md:text-4xl font-bold text-white drop-shadow mb-1">{submission.project_name}</h1>
           <div className="flex items-center gap-3">
             <p className="text-lg text-white/80">by</p>
-            <span className="text-lg font-semibold text-white">{submission.discord_handle}</span>
-            <DiscordAvatar 
-              discord_id={discordData?.discord_id || submission.discord_id}
-              discord_avatar={discordData?.discord_avatar || submission.discord_avatar}
-              discord_handle={submission.discord_handle}
-              size="md"
-              variant="dark"
-            />
+            <Link
+              to={`/p/${encodeURIComponent(submission.discord_username || submission.discord_handle || 'user')}${searchParams.get('modal') === 'true' ? '?modal=true' : ''}`}
+              className="text-lg font-semibold text-white hover:underline"
+            >
+              {submission.discord_username || submission.discord_handle}
+            </Link>
+            <Link
+              to={`/p/${encodeURIComponent(submission.discord_username || submission.discord_handle || 'user')}${searchParams.get('modal') === 'true' ? '?modal=true' : ''}`}
+              className="inline-flex"
+            >
+              <DiscordAvatar 
+                discord_id={discordData?.discord_id || submission.discord_id}
+                discord_avatar={discordData?.discord_avatar || submission.discord_avatar}
+                discord_handle={submission.discord_username || submission.discord_handle}
+                size="md"
+                variant="dark"
+              />
+            </Link>
           </div>
         </div>
       </div>
@@ -280,7 +291,7 @@ export default function SubmissionDetail() {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Description</h2>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 dark:text-gray-200 leading-relaxed">{submission.description}</p>
+              <Markdown className="prose prose-sm dark:prose-invert max-w-none" content={submission.description} />
             </CardContent>
           </Card>
 
@@ -297,7 +308,7 @@ export default function SubmissionDetail() {
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     Problem Solved
                   </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.problem_solved}</p>
+                  <Markdown className="prose prose-sm dark:prose-invert max-w-none ml-5" content={submission.problem_solved} />
                 </div>
               )}
               
@@ -307,7 +318,7 @@ export default function SubmissionDetail() {
                     <div className="h-2 w-2 bg-indigo-600 rounded-full mr-3"></div>
                     Favorite Part
                   </h3>
-                  <p className="text-gray-700 dark:text-gray-200 leading-relaxed ml-5">{submission.favorite_part}</p>
+                  <Markdown className="prose prose-sm dark:prose-invert max-w-none ml-5" content={submission.favorite_part} />
                 </div>
               )}
               

@@ -461,18 +461,29 @@ export default function Frontpage() {
                             <div className="flex-shrink-0">
                               {getRankBadge(rank)}
                             </div>
-                            <img 
-                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                              alt="Profile"
-                            />
+                            <a
+                              href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                              onClick={(e) => { e.stopPropagation() }}
+                            >
+                              <img 
+                                src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                                alt="Profile"
+                              />
+                            </a>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-white text-base leading-tight mb-1">
                                 {entry.project_name}
                               </h3>
                               <p className="text-sm text-slate-300 mb-1">{entry.category}</p>
                               <p className="text-xs text-slate-400">
-                                @{entry.discord_username || 'Unknown'}
+                                <a
+                                  href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                                  onClick={(e) => { e.stopPropagation() }}
+                                  className="hover:underline"
+                                >
+                                  @{entry.discord_username || 'Unknown'}
+                                </a>
                               </p>
                             </div>
                           </div>
@@ -522,11 +533,16 @@ export default function Frontpage() {
                         </div>
 
                         <div className="hidden md:flex items-center gap-3 min-w-0 px-4 py-4">
-                          <img 
-                            src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                            className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                            alt="Profile"
-                          />
+                          <a
+                            href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                            onClick={(e) => { e.stopPropagation() }}
+                          >
+                            <img 
+                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                              alt="Profile"
+                            />
+                          </a>
                           <div className="min-w-0">
                             <h3 className="font-medium truncate text-white">{entry.project_name}</h3>
                             <p className="text-sm text-gray-400 truncate">{entry.category}</p>

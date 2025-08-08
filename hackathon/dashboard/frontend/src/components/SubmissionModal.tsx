@@ -8,9 +8,12 @@ interface SubmissionModalProps {
   onClose: () => void
   onNavigate?: (direction: 'prev' | 'next') => void
   allSubmissionIds?: number[]
+  title?: string
+  srcOverride?: string
+  hideViewFullPage?: boolean
 }
 
-export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissionIds }: SubmissionModalProps) {
+export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissionIds, title, srcOverride, hideViewFullPage }: SubmissionModalProps) {
   const navigate = useNavigate()
   const { prefetchSubmissions } = useSubmissionCache()
   const modalRef = useRef<HTMLDivElement>(null)
@@ -93,6 +96,13 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
   }
 
   const handleViewFullPage = () => {
+    if (srcOverride) {
+      // For custom sources (e.g., profile), navigate to that page without modal
+      const url = new URL(srcOverride, window.location.origin)
+      url.searchParams.delete('modal')
+      window.location.href = url.pathname + (url.search || '')
+      return
+    }
     navigate(`/submission/${submissionId}`, { state: { from: 'dashboard' } })
   }
 
@@ -116,7 +126,7 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Submission Details
+              {title || 'Submission Details'}
             </h2>
             {onNavigate && (
               <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -130,13 +140,15 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleViewFullPage}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-            >
-              <ExternalLink className="h-4 w-4" />
-              View Full Page
-            </button>
+            {!hideViewFullPage && (
+              <button
+                onClick={handleViewFullPage}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View Full Page
+              </button>
+            )}
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -150,7 +162,7 @@ export function SubmissionModal({ submissionId, onClose, onNavigate, allSubmissi
         {/* Iframe Content */}
         <iframe 
           ref={iframeRef}
-          src={`/submission/${submissionId}?modal=true`} 
+          src={srcOverride ? `${srcOverride}${srcOverride.includes('?') ? '' : '?'}${(srcOverride.includes('modal=') ? '' : (srcOverride.includes('?') ? '&' : ''))}modal=true` : `/submission/${submissionId}?modal=true`} 
           className="flex-1 w-full border-0 bg-white dark:bg-gray-900"
           title="Submission Details"
         />

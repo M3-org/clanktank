@@ -32,13 +32,15 @@ export function LeaderboardCard({ entry, onVoteClick }: { entry: LeaderboardEntr
       )}>{entry.rank}</div>
 
       <div className="flex items-center gap-4">
-        <DiscordAvatar 
-          discord_id={entry.discord_id}
-          discord_avatar={entry.discord_avatar}
-          discord_handle={entry.discord_username}
-          size="lg" 
-          className="ring-2 ring-white dark:ring-gray-950" 
-        />
+        <a href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`} onClick={(e) => e.stopPropagation()}>
+          <DiscordAvatar 
+            discord_id={entry.discord_id}
+            discord_avatar={entry.discord_avatar}
+            discord_handle={entry.discord_username}
+            size="lg" 
+            className="ring-2 ring-white dark:ring-gray-950" 
+          />
+        </a>
         <div className="flex-1 min-w-0">
           <h2 className="text-lg font-semibold">
             <a

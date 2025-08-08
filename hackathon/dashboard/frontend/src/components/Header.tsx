@@ -149,9 +149,15 @@ export default function Header() {
 
                   {userDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
-                      <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700">
+                      <button
+                        onClick={() => {
+                          navigate('/profile')
+                          setUserDropdownOpen(false)
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-200 dark:border-gray-700"
+                      >
                         {authState.discordUser?.username}
-                      </div>
+                      </button>
                       <button
                         onClick={() => {
                           handleLogout()
@@ -227,8 +233,14 @@ export default function Header() {
             
             {/* Mobile Auth Section */}
             {authState.isAuthenticated ? (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                <div className="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                <button
+                  onClick={() => {
+                    navigate('/profile')
+                    setMobileMenuOpen(false)
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                >
                   <DiscordAvatar
                     discord_id={authState.discordUser?.discord_id}
                     discord_avatar={authState.discordUser?.avatar}
@@ -238,7 +250,7 @@ export default function Header() {
                     className="border border-gray-300 dark:border-gray-700 mr-2"
                   />
                   <span className="text-sm">{authState.discordUser?.username}</span>
-                </div>
+                </button>
                 <button
                   onClick={() => {
                     handleLogout()

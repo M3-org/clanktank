@@ -25,6 +25,7 @@ const Leaderboard = lazy(() => import('./pages/Leaderboard'))
 const SubmissionDetail = lazy(() => import('./pages/SubmissionDetail'))
 const SubmissionPage = lazy(() => import('./pages/SubmissionPage'))
 const SubmissionEdit = lazy(() => import('./pages/SubmissionEdit'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'))
 const AuthPage = lazy(() => import('./pages/AuthPage'))
 const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'))
@@ -39,7 +40,10 @@ const Templates = lazy(() => import('./pages/experimental/Templates'))
 function AppContent() {
   const location = useLocation()
   const searchParams = new URLSearchParams(location.search)
-  const isModal = searchParams.get('modal') === 'true'
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top
+  const isModal = isInIframe ||
+                  searchParams.get('modal') === 'true' ||
+                  (location.pathname.startsWith('/profile') && searchParams.has('user'))
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
@@ -57,6 +61,8 @@ function AppContent() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />
+           <Route path="/p/:username" element={<ProfilePage />} />
+           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/submission/:id" element={<SubmissionDetail />} />
           
           {/* Experimental routes - development only */}
