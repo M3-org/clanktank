@@ -60,7 +60,9 @@ export default function ProfilePage() {
               discord_username: (detail as any).discord_username || targetUsername,
               discord_avatar: (detail as any).discord_avatar,
             }
-          } catch {}
+          } catch (err) {
+            void err // ignore fetch errors; profile can still render from list/auth
+          }
         }
 
         // Fallback to auth if viewing self

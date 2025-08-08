@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from 'react'
+import { useEffect, useState, useMemo, lazy, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
@@ -59,21 +59,7 @@ export default function Dashboard() {
     setSearchParams(newParams)
   }
 
-  // Load data on mount and filter changes
-  useEffect(() => {
-    loadData()
-  }, [statusFilter, categoryFilter])
-
-  // Auto-refresh interval - only start after initial load for better mobile performance
-  useEffect(() => {
-    if (loading) return // Don't start interval until initial load is complete
-    
-    const refreshInterval = viewingSubmissionId ? 60000 : 45000 // Longer interval for mobile battery
-    const interval = setInterval(loadData, refreshInterval)
-    return () => clearInterval(interval)
-  }, [loading, viewingSubmissionId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [submissionsData, statsData] = await Promise.all([
         hackathonApi.getSubmissions({ 
@@ -89,7 +75,21 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter, categoryFilter])
+
+  // Load data on mount and filter changes
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Auto-refresh interval - only start after initial load for better mobile performance
+  useEffect(() => {
+    if (loading) return // Don't start interval until initial load is complete
+    
+    const refreshInterval = viewingSubmissionId ? 60000 : 45000 // Longer interval for mobile battery
+    const interval = setInterval(loadData, refreshInterval)
+    return () => clearInterval(interval)
+  }, [loading, viewingSubmissionId, loadData])
 
   const handleSort = (field: typeof sortField) => {
     const newDirection = field === sortField ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc'

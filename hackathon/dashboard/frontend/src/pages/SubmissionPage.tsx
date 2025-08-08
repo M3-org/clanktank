@@ -137,7 +137,7 @@ export default function SubmissionPage() {
     }
 
     loadSchema()
-  }, [setValue, authState.discordUser, searchParams])
+  }, [setValue, authState.discordUser, searchParams, reset, draftAlreadyRestored])
 
   // Real-time URL state management using React Hook Form's watch
   const watchedValues = watch();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VoteModal } from '../components/VoteModal';
 import { SubmissionModal } from '../components/SubmissionModal';
@@ -207,29 +207,29 @@ export default function Frontpage() {
   const [touchEnd, setTouchEnd] = useState(0);
 
   // Video navigation functions
-  const getCurrentVideoIndex = () => {
+  const getCurrentVideoIndex = useCallback(() => {
     return latestEpisodes.findIndex(ep => ep.id === openVideo);
-  };
+  }, [latestEpisodes, openVideo]);
 
-  const navigateToVideo = (index: number) => {
+  const navigateToVideo = useCallback((index: number) => {
     if (index >= 0 && index < latestEpisodes.length) {
       setOpenVideo(latestEpisodes[index].id);
     }
-  };
+  }, [latestEpisodes]);
 
-  const goToPreviousVideo = () => {
+  const goToPreviousVideo = useCallback(() => {
     const currentIndex = getCurrentVideoIndex();
     if (currentIndex > 0) {
       navigateToVideo(currentIndex - 1);
     }
-  };
+  }, [getCurrentVideoIndex, navigateToVideo]);
 
-  const goToNextVideo = () => {
+  const goToNextVideo = useCallback(() => {
     const currentIndex = getCurrentVideoIndex();
     if (currentIndex < latestEpisodes.length - 1) {
       navigateToVideo(currentIndex + 1);
     }
-  };
+  }, [getCurrentVideoIndex, navigateToVideo, latestEpisodes.length]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -250,7 +250,7 @@ export default function Frontpage() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [openVideo]);
+  }, [openVideo, goToPreviousVideo, goToNextVideo]);
 
   // Touch handlers for lightbox swipe
   const handleLightboxTouchStart = (e: React.TouchEvent) => {

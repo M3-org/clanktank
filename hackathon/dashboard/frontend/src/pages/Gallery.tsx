@@ -163,29 +163,29 @@ export default function Gallery() {
   }, []);
 
   // Navigation functions
-  const getCurrentImageIndex = () => {
+  const getCurrentImageIndex = useCallback(() => {
     return galleryImages.findIndex(img => img.path === selectedImage);
-  };
+  }, [galleryImages, selectedImage]);
 
-  const navigateToImage = (index: number) => {
+  const navigateToImage = useCallback((index: number) => {
     if (index >= 0 && index < galleryImages.length) {
       setSelectedImage(galleryImages[index].path);
     }
-  };
+  }, [galleryImages]);
 
   const goToPreviousImage = useCallback(() => {
     const currentIndex = getCurrentImageIndex();
     if (currentIndex > 0) {
       navigateToImage(currentIndex - 1);
     }
-  }, [selectedImage, galleryImages]);
+  }, [getCurrentImageIndex, navigateToImage]);
 
   const goToNextImage = useCallback(() => {
     const currentIndex = getCurrentImageIndex();
     if (currentIndex < galleryImages.length - 1) {
       navigateToImage(currentIndex + 1);
     }
-  }, [selectedImage, galleryImages]);
+  }, [getCurrentImageIndex, navigateToImage, galleryImages.length]);
 
   // Keyboard navigation
   useEffect(() => {

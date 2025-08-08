@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionDetail as SubmissionDetailType } from '../types'
@@ -82,14 +82,13 @@ export default function SubmissionDetail() {
     }
   }
 
-  useEffect(() => {
-    if (id) {
-      // Load all data in parallel to avoid blocking the UI
-      loadAllData()
-    }
+  const loadDiscordDataAsync = useCallback(async () => {
+    if (!id) return null
+    // Only get Discord data from cache or skip it; detail already contains user info
+    return null
   }, [id])
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     if (!id) return
     
     try {
@@ -122,15 +121,16 @@ export default function SubmissionDetail() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, loadDiscordDataAsync])
 
-  const loadDiscordDataAsync = async () => {
-    if (!id) return null
-    
-    // Only get Discord data from cache or skip it
-    // The submission detail already contains user info
-    return null
-  }
+  useEffect(() => {
+    if (id) {
+      // Load all data in parallel to avoid blocking the UI
+      loadAllData()
+    }
+  }, [id, loadAllData])
+
+  
 
   if (loading) {
     return (

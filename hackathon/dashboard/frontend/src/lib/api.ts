@@ -190,22 +190,14 @@ export const hackathonApi = {
 
   // Fetch the latest submission schema from the backend
   fetchSubmissionSchema: async () => {
-    try {
-      const response = await api.get('/submission-schema');
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get('/submission-schema');
+    return response.data;
   },
 
   // Validate invite code
   validateInviteCode: async (code: string) => {
-    try {
-      const response = await api.post('/invite-codes/validate', { code });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post('/invite-codes/validate', { code });
+    return response.data;
   },
 
 
