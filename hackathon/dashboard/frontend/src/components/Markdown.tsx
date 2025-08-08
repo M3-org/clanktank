@@ -1,9 +1,21 @@
 import MarkdownToJSX from 'markdown-to-jsx'
+import DOMPurify from 'dompurify'
 
 function sanitizeInput(input: string): string {
-  // Remove script tags and their content (defense-in-depth)
-  const withoutScripts = input.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-  return withoutScripts
+  // Strip ALL raw HTML. We only want Markdown to be interpreted.
+  // This removes event handlers, inline scripts, and dangerous HTML constructs.
+  return DOMPurify.sanitize(input, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
+}
+
+function isSafeUrl(url?: string | null): boolean {
+  if (!url) return false
+  try {
+    const parsed = new URL(url, window.location.origin)
+    const protocol = parsed.protocol.toLowerCase()
+    return protocol === 'http:' || protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 export function Markdown({ content, className }: { content?: string | null; className?: string }) {
@@ -14,18 +26,23 @@ export function Markdown({ content, className }: { content?: string | null; clas
       <MarkdownToJSX
         options={{
           forceBlock: true,
-          // markdown-to-jsx escapes raw HTML by default; we also stripped <script> for safety
+          // markdown-to-jsx escapes raw HTML by default; we additionally strip ALL HTML with DOMPurify
           overrides: {
             a: {
-              props: {
-                target: '_blank',
-                rel: 'noopener noreferrer'
+              component: (props: any) => {
+                const href = typeof props.href === 'string' && isSafeUrl(props.href) ? props.href : undefined
+                return (
+                  <a {...props} href={href} target="_blank" rel="noopener noreferrer">
+                    {props.children}
+                  </a>
+                )
               }
             },
             img: {
-              props: {
-                loading: 'lazy',
-                referrerPolicy: 'no-referrer'
+              component: (props: any) => {
+                const src = typeof props.src === 'string' && isSafeUrl(props.src) ? props.src : undefined
+                if (!src) return null
+                return <img {...props} src={src} loading="lazy" referrerPolicy="no-referrer" />
               }
             }
           }

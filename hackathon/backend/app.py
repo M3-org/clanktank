@@ -1480,16 +1480,23 @@ async def upload_image(
 async def serve_upload(filename: str):
     """Serve uploaded files."""
     # Use absolute path relative to the app.py file location
-    uploads_dir = Path(__file__).parent / "data" / "uploads"
-    file_path = uploads_dir / filename
+    uploads_dir = (Path(__file__).parent / "data" / "uploads").resolve()
 
-    if not file_path.exists():
+    # Validate that the resolved path stays within the uploads directory
+    try:
+        candidate_path = (uploads_dir / filename).resolve()
+        candidate_path.relative_to(uploads_dir)
+    except Exception:
+        # Path traversal or invalid path detected
+        raise HTTPException(status_code=400, detail="Invalid file path")
+
+    if not candidate_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
 
     # Return file content with appropriate headers
     from fastapi.responses import FileResponse
 
-    return FileResponse(file_path)
+    return FileResponse(candidate_path)
 
 
 @app.get(
