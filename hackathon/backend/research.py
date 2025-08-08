@@ -27,7 +27,6 @@ try:
 except Exception:
     # Fallback for non-installed package layout
     from ..prompts.research_prompts import create_research_prompt  # type: ignore
-
 # Load environment variables
 load_dotenv()
 
@@ -71,8 +70,18 @@ def get_v2_fields_from_schema():
     return [f["name"] for f in schema["schemas"]["v2"]]
 
 class HackathonResearcher:
-    def __init__(self, db_path=None, version=None):
-        """Initialize researcher with API keys, cache directory, DB path, and version."""
+    def __init__(self, db_path=None, version=None, force: bool = False):
+        """Initialize researcher with API keys, cache directory, DB path, and version.
+
+        Parameters
+        ----------
+        db_path: Optional[str]
+            Path to SQLite DB
+        version: Optional[str]
+            Submission schema version (e.g., 'v2')
+        force: bool
+            If True, bypass cached research results and recompute
+        """
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
         self.github_analyzer = GitHubAnalyzer(GITHUB_TOKEN)
@@ -81,6 +90,7 @@ class HackathonResearcher:
         self.db_path = db_path or HACKATHON_DB_PATH
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
+        self.force = force
         self.fields = get_fields(self.version)
         # API headers
         self.headers = {
@@ -105,6 +115,9 @@ class HackathonResearcher:
 
     def _load_from_cache(self, submission_id: str) -> Optional[Dict[str, Any]]:
         """Load research results from cache if valid."""
+        # Bypass cache entirely when force is enabled
+        if getattr(self, "force", False):
+            return None
         cache_path = self._get_cache_path(submission_id)
 
         if self._is_cache_valid(cache_path):
@@ -343,6 +356,11 @@ def main():
     )
     parser.add_argument("--output", help="Output file for research results (JSON)")
     parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force recomputation and bypass cached research results",
+    )
+    parser.add_argument(
         "--version",
         type=str,
         default="v2",
@@ -360,7 +378,7 @@ def main():
         parser.print_help()
         return
     try:
-        researcher = HackathonResearcher(db_path=args.db_file, version=args.version)
+        researcher = HackathonResearcher(db_path=args.db_file, version=args.version, force=args.force)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")
