@@ -20,6 +20,8 @@ anthropic==0.58.2
 
 # ── GitHub analysis ───────────────────────────────────────────
 PyGithub==2.6.1
+gitingest==0.1.5  # required for repository code context in research pipeline
+jsonschema==4.23.0  # used for validating GitIngest config responses
 
 # ── Web dashboard (FastAPI backend) ───────────────────────────
 fastapi==0.116.1
