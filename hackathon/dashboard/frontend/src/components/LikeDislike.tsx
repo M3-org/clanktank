@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import { Button } from './Button'
 import { hackathonApi } from '../lib/api'
@@ -20,6 +20,15 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
   // Check if user is authenticated
   const isAuthenticated = authState.authMethod === 'discord' || authState.authMethod === 'invite'
 
+  const loadCounts = useCallback(async () => {
+    try {
+      const response = await hackathonApi.getLikeDislikeCounts(submissionId)
+      setData(response)
+    } catch (error) {
+      console.error('Failed to load like/dislike counts:', error)
+    }
+  }, [submissionId])
+
   useEffect(() => {
     // Debounce loading to prevent rapid calls during navigation
     const timeoutId = setTimeout(() => {
@@ -27,16 +36,7 @@ export function LikeDislike({ submissionId, className }: LikeDislikeProps) {
     }, 100)
     
     return () => clearTimeout(timeoutId)
-  }, [submissionId])
-
-  const loadCounts = async () => {
-    try {
-      const response = await hackathonApi.getLikeDislikeCounts(submissionId)
-      setData(response)
-    } catch (error) {
-      console.error('Failed to load like/dislike counts:', error)
-    }
-  }
+  }, [submissionId, loadCounts])
 
   const handleAction = async (action: 'like' | 'dislike') => {
     if (loading) return

@@ -14,5 +14,5 @@ export default {
     },
   },
   darkMode: 'class',
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 }

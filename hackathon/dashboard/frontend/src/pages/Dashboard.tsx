@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, lazy, Suspense } from 'react'
+import { useEffect, useState, useMemo, lazy, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { hackathonApi } from '../lib/api'
 import { SubmissionSummary, Stats } from '../types'
@@ -42,6 +42,9 @@ export default function Dashboard() {
   const [viewingSubmissionId, setViewingSubmissionId] = useState<number | null>(
     searchParams.get('submission') ? parseInt(searchParams.get('submission')!) : null
   )
+  const [profileModalSrc, setProfileModalSrc] = useState<string | null>(
+    searchParams.get('profile') ? `/profile?user=${encodeURIComponent(searchParams.get('profile')!)}&modal=true` : null
+  )
 
   // Update URL parameters when filters change
   const updateSearchParams = (updates: Record<string, string | null>) => {
@@ -56,21 +59,7 @@ export default function Dashboard() {
     setSearchParams(newParams)
   }
 
-  // Load data on mount and filter changes
-  useEffect(() => {
-    loadData()
-  }, [statusFilter, categoryFilter])
-
-  // Auto-refresh interval - only start after initial load for better mobile performance
-  useEffect(() => {
-    if (loading) return // Don't start interval until initial load is complete
-    
-    const refreshInterval = viewingSubmissionId ? 60000 : 45000 // Longer interval for mobile battery
-    const interval = setInterval(loadData, refreshInterval)
-    return () => clearInterval(interval)
-  }, [loading, viewingSubmissionId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [submissionsData, statsData] = await Promise.all([
         hackathonApi.getSubmissions({ 
@@ -86,7 +75,21 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter, categoryFilter])
+
+  // Load data on mount and filter changes
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+
+  // Auto-refresh interval - only start after initial load for better mobile performance
+  useEffect(() => {
+    if (loading) return // Don't start interval until initial load is complete
+    
+    const refreshInterval = viewingSubmissionId ? 60000 : 45000 // Longer interval for mobile battery
+    const interval = setInterval(loadData, refreshInterval)
+    return () => clearInterval(interval)
+  }, [loading, viewingSubmissionId, loadData])
 
   const handleSort = (field: typeof sortField) => {
     const newDirection = field === sortField ? (sortDirection === 'asc' ? 'desc' : 'asc') : 'asc'
@@ -122,7 +125,8 @@ export default function Dashboard() {
 
   const handleCloseModal = () => {
     setViewingSubmissionId(null)
-    updateSearchParams({ submission: null })
+    setProfileModalSrc(null)
+    updateSearchParams({ submission: null, profile: null })
   }
 
   const handleNavigateSubmission = (direction: 'prev' | 'next') => {
@@ -171,8 +175,7 @@ export default function Dashboard() {
         submission.project_name?.toLowerCase().includes(searchLower) ||
         submission.team_name?.toLowerCase().includes(searchLower) ||
         submission.description?.toLowerCase().includes(searchLower) ||
-        submission.discord_username?.toLowerCase().includes(searchLower) ||
-        submission.discord_handle?.toLowerCase().includes(searchLower)
+        submission.discord_username?.toLowerCase().includes(searchLower)
       )
     }
     
@@ -289,7 +292,7 @@ export default function Dashboard() {
                   size="sm"
                   className="rounded-r-none"
                 >
-                  My Projects
+                  Mine
                 </Button>
                 <Button
                   onClick={() => handleProjectViewChange('all')}
@@ -297,7 +300,7 @@ export default function Dashboard() {
                   size="sm"
                   className="rounded-l-none border-l-0"
                 >
-                  All Projects
+                  All
                 </Button>
               </div>
 
@@ -435,16 +438,38 @@ export default function Dashboard() {
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <DiscordAvatar
-                          discord_id={submission.discord_id}
-                          discord_avatar={submission.discord_avatar}
-                          discord_handle={submission.discord_handle}
-                          size="sm"
-                          className="border border-gray-300 dark:border-gray-700"
-                        />
-                        <span className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 truncate max-w-[80px] sm:max-w-none">
-                          {submission.discord_username || submission.discord_handle || '—'}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const uname = submission.discord_username || 'user'
+                            const src = `/profile?user=${encodeURIComponent(uname)}`
+                            setProfileModalSrc(src)
+                            updateSearchParams({ profile: uname })
+                          }}
+                          className="inline-flex"
+                          title={`View ${submission.discord_username || 'user'} profile`}
+                        >
+                          <DiscordAvatar
+                            discord_id={submission.discord_id}
+                            discord_avatar={submission.discord_avatar}
+                            discord_handle={submission.discord_username}
+                            size="sm"
+                            className="border border-gray-300 dark:border-gray-700"
+                          />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const uname = submission.discord_username || 'user'
+                            const src = `/profile?user=${encodeURIComponent(uname)}`
+                            setProfileModalSrc(src)
+                            updateSearchParams({ profile: uname })
+                          }}
+                          className="text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 hover:underline truncate max-w-[80px] sm:max-w-none"
+                          title={`View ${submission.discord_username || 'user'} profile`}
+                        >
+                          {submission.discord_username || '—'}
+                        </button>
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
@@ -573,17 +598,42 @@ export default function Dashboard() {
               </div>
               <CardContent className="p-4 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-1 min-h-[2.5em]">
-                  <DiscordAvatar
-                    discord_id={submission.discord_id}
-                    discord_avatar={submission.discord_avatar}
-                    discord_handle={submission.discord_handle}
-                    size="md"
-                    className="border border-gray-300 dark:border-gray-700"
-                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const uname = submission.discord_username || 'user'
+                      const src = `/profile?user=${encodeURIComponent(uname)}`
+                      setProfileModalSrc(src)
+                      updateSearchParams({ profile: uname })
+                    }}
+                    title={`View ${submission.discord_username || 'user'} profile`}
+                  >
+                    <DiscordAvatar
+                      discord_id={submission.discord_id}
+                      discord_avatar={submission.discord_avatar}
+                      discord_handle={submission.discord_username}
+                      size="md"
+                      className="border border-gray-300 dark:border-gray-700"
+                    />
+                  </button>
                   <span className="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 line-clamp-2 truncate">
                     {submission.project_name}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">· {submission.discord_username || submission.discord_handle || '—'}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">·{' '}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const uname = submission.discord_username || 'user'
+                        const src = `/profile?user=${encodeURIComponent(uname)}`
+                        setProfileModalSrc(src)
+                        updateSearchParams({ profile: uname })
+                      }}
+                      className="text-gray-600 dark:text-gray-300 hover:underline"
+                      title={`View ${submission.discord_username || 'user'} profile`}
+                    >
+                      {submission.discord_username || '—'}
+                    </button>
+                  </span>
                 </div>
                 {submission.description && (
                   <div className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2" title={submission.description}>
@@ -597,18 +647,28 @@ export default function Dashboard() {
       )}
 
       {/* Submission Detail Modal */}
-      {viewingSubmissionId && (
+      {(viewingSubmissionId || profileModalSrc) && (
         <Suspense fallback={
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
           </div>
         }>
-          <SubmissionModal
-            submissionId={viewingSubmissionId}
-            onClose={handleCloseModal}
-            onNavigate={handleNavigateSubmission}
-            allSubmissionIds={sortedSubmissions.map(s => s.submission_id)}
-          />
+          {profileModalSrc ? (
+            <SubmissionModal
+              submissionId={0}
+              onClose={handleCloseModal}
+              title="Profile"
+              srcOverride={profileModalSrc}
+              hideViewFullPage
+            />
+          ) : (
+            <SubmissionModal
+              submissionId={viewingSubmissionId!}
+              onClose={handleCloseModal}
+              onNavigate={handleNavigateSubmission}
+              allSubmissionIds={sortedSubmissions.map(s => s.submission_id)}
+            />
+          )}
         </Suspense>
       )}
     </div>

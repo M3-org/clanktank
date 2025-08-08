@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VoteModal } from '../components/VoteModal';
 import { SubmissionModal } from '../components/SubmissionModal';
@@ -207,29 +207,29 @@ export default function Frontpage() {
   const [touchEnd, setTouchEnd] = useState(0);
 
   // Video navigation functions
-  const getCurrentVideoIndex = () => {
+  const getCurrentVideoIndex = useCallback(() => {
     return latestEpisodes.findIndex(ep => ep.id === openVideo);
-  };
+  }, [latestEpisodes, openVideo]);
 
-  const navigateToVideo = (index: number) => {
+  const navigateToVideo = useCallback((index: number) => {
     if (index >= 0 && index < latestEpisodes.length) {
       setOpenVideo(latestEpisodes[index].id);
     }
-  };
+  }, [latestEpisodes]);
 
-  const goToPreviousVideo = () => {
+  const goToPreviousVideo = useCallback(() => {
     const currentIndex = getCurrentVideoIndex();
     if (currentIndex > 0) {
       navigateToVideo(currentIndex - 1);
     }
-  };
+  }, [getCurrentVideoIndex, navigateToVideo]);
 
-  const goToNextVideo = () => {
+  const goToNextVideo = useCallback(() => {
     const currentIndex = getCurrentVideoIndex();
     if (currentIndex < latestEpisodes.length - 1) {
       navigateToVideo(currentIndex + 1);
     }
-  };
+  }, [getCurrentVideoIndex, navigateToVideo, latestEpisodes.length]);
 
   // Keyboard navigation for lightbox
   useEffect(() => {
@@ -250,7 +250,7 @@ export default function Frontpage() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [openVideo]);
+  }, [openVideo, goToPreviousVideo, goToNextVideo]);
 
   // Touch handlers for lightbox swipe
   const handleLightboxTouchStart = (e: React.TouchEvent) => {
@@ -461,18 +461,29 @@ export default function Frontpage() {
                             <div className="flex-shrink-0">
                               {getRankBadge(rank)}
                             </div>
-                            <img 
-                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                              alt="Profile"
-                            />
+                            <a
+                              href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                              onClick={(e) => { e.stopPropagation() }}
+                            >
+                              <img 
+                                src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                                alt="Profile"
+                              />
+                            </a>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-white text-base leading-tight mb-1">
                                 {entry.project_name}
                               </h3>
                               <p className="text-sm text-slate-300 mb-1">{entry.category}</p>
                               <p className="text-xs text-slate-400">
-                                @{entry.discord_username || entry.discord_handle || 'Unknown'}
+                                <a
+                                  href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                                  onClick={(e) => { e.stopPropagation() }}
+                                  className="hover:underline"
+                                >
+                                  @{entry.discord_username || 'Unknown'}
+                                </a>
                               </p>
                             </div>
                           </div>
@@ -522,11 +533,16 @@ export default function Frontpage() {
                         </div>
 
                         <div className="hidden md:flex items-center gap-3 min-w-0 px-4 py-4">
-                          <img 
-                            src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                            className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                            alt="Profile"
-                          />
+                          <a
+                            href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
+                            onClick={(e) => { e.stopPropagation() }}
+                          >
+                            <img 
+                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
+                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                              alt="Profile"
+                            />
+                          </a>
                           <div className="min-w-0">
                             <h3 className="font-medium truncate text-white">{entry.project_name}</h3>
                             <p className="text-sm text-gray-400 truncate">{entry.category}</p>

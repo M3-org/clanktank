@@ -15,25 +15,27 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, List
-from dotenv import load_dotenv, find_dotenv
-
-# Load environment variables (automatically finds .env in parent directories)
-load_dotenv(find_dotenv())
+from dotenv import load_dotenv
 import subprocess
 
 # Import GitHub analyzer
 from hackathon.backend.github_analyzer import GitHubAnalyzer
+
+# Use centralized prompt builder
+try:
+    from hackathon.prompts.research_prompts import create_research_prompt
+except Exception:
+    # Fallback for non-installed package layout
+    from ..prompts.research_prompts import create_research_prompt  # type: ignore
+
+# Load environment variables
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
-
-# Enable debug logging if needed
-if os.getenv("DEBUG", "").lower() in ["true", "1", "yes"]:
-    logger.setLevel(logging.DEBUG)
-    logger.debug("Debug logging enabled")
 
 # Configuration from environment
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
@@ -44,9 +46,7 @@ RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv("RESEARCH_CACHE_EXPIRY_HOURS", "24")
 
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-AI_MODEL_PROVIDER = os.getenv("AI_MODEL_PROVIDER", "openrouter")
-AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3.5-sonnet")
-MODEL = AI_MODEL_NAME
+MODEL = "perplexity/sonar-reasoning-pro:online"
 
 # Import versioned schema helpers
 try:
@@ -70,13 +70,9 @@ def get_v2_fields_from_schema():
         schema = json.load(f)
     return [f["name"] for f in schema["schemas"]["v2"]]
 
-
-
-
-
 class HackathonResearcher:
-    def __init__(self, db_path=None, version=None, force=False):
-        """Initialize researcher with API keys, cache directory, DB path, version, and force flag."""
+    def __init__(self, db_path=None, version=None):
+        """Initialize researcher with API keys, cache directory, DB path, and version."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
         self.github_analyzer = GitHubAnalyzer(GITHUB_TOKEN)
@@ -86,7 +82,6 @@ class HackathonResearcher:
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)
-        self.force = force
         # API headers
         self.headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -131,20 +126,16 @@ class HackathonResearcher:
     def build_research_prompt(
         self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
     ) -> str:
-        """Build comprehensive research prompt for AI analysis."""
-        # Load GitIngest output if available - let prompt handle any reduction
+        """Build research prompt via centralized prompts module."""
         gitingest_content = ""
         if gitingest_path and os.path.exists(gitingest_path):
             try:
                 with open(gitingest_path, 'r', encoding='utf-8') as f:
                     gitingest_content = f.read()
-                logger.info(f"Loaded GitIngest content: {len(gitingest_content):,} chars for AI research")
             except Exception as e:
                 logger.warning(f"Could not read GitIngest output {gitingest_path}: {e}")
                 gitingest_content = f"Error reading GitIngest output: {e}"
-        
-        # Use centralized prompt (handles any necessary content reduction)
-        from hackathon.prompts.research_prompts import create_research_prompt
+        # Delegate to the latest prompt builder which also trims content safely
         return create_research_prompt(project_data, github_analysis, gitingest_content)
 
     def conduct_ai_research(
@@ -165,11 +156,6 @@ class HackathonResearcher:
             "temperature": 0.3,
             "max_tokens": 4000,
         }
-        
-        # Debug logging for payload size
-        payload_size = len(json.dumps(payload))
-        logger.info(f"OpenRouter payload size: {payload_size:,} chars (~{payload_size//4:,} tokens)")
-        logger.info(f"Using model: {MODEL}")
 
         try:
             logger.info(f"Conducting AI research for {project_data['project_name']}")
@@ -202,13 +188,10 @@ class HackathonResearcher:
         """Research a single submission with GitHub analysis and GitIngest."""
         logger.info(f"Starting research for submission {submission_id}")
         
-        # Check cache first (unless force flag is set)
-        if not self.force:
-            cached_results = self._load_from_cache(submission_id)
-            if cached_results:
-                return cached_results
-        else:
-            logger.info(f"Force flag set - bypassing cache for {submission_id}")
+        # Check cache first
+        cached_results = self._load_from_cache(submission_id)
+        if cached_results:
+            return cached_results
         
         # Get submission data from database
         conn = sqlite3.connect(self.db_path)
@@ -235,32 +218,16 @@ class HackathonResearcher:
             logger.info(f"Analyzing GitHub repository: {github_url}")
             github_analysis = self.github_analyzer.analyze_repository(github_url)
             
-            # Log analysis summary
-            if "error" in github_analysis:
-                logger.error(f"GitHub analysis failed: {github_analysis['error']}")
-            else:
-                logger.info(f"GitHub analysis completed for {github_analysis.get('name', 'unknown')}")
-                logger.info(f"File count: {github_analysis.get('file_structure', {}).get('total_files', 0)}")
-                logger.info(f"Languages: {list(github_analysis.get('file_structure', {}).get('file_extensions', {}).keys())}")
-            
             # Run GitIngest with dynamic settings - prefer agentic recommendation
             gitingest_settings = github_analysis.get("gitingest_agentic_recommendation")
             if not gitingest_settings:
                 logger.info("No agentic recommendation available, falling back to basic settings")
                 gitingest_settings = github_analysis.get("gitingest_settings", {})
-            else:
-                logger.info(f"Using agentic recommendation: {gitingest_settings.get('rationale', 'No rationale')}")
             
             # Use GitHubAnalyzer's secure GitIngest method
             output_file = f"gitingest-{submission_id}.txt"
             cache_path = Path(RESEARCH_CACHE_DIR) / output_file
-            logger.info(f"Running GitIngest with settings: {gitingest_settings}")
             gitingest_path = self.github_analyzer.run_gitingest_secure(github_url, str(cache_path), gitingest_settings)
-            
-            if gitingest_path:
-                logger.info(f"GitIngest completed successfully: {gitingest_path}")
-            else:
-                logger.error("GitIngest failed")
         
         # Conduct AI research
         ai_research = self.conduct_ai_research(project_data, github_analysis, gitingest_path)
@@ -288,23 +255,18 @@ class HackathonResearcher:
         return research_results
 
     def research_all_pending(self) -> List[Dict[str, Any]]:
-        """Research all submissions that don't have research data yet (or all if force=True)."""
+        """Research all submissions that don't have research data yet."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Find submissions - either without research or all if force is enabled
-        if self.force:
-            query = f"SELECT submission_id FROM {self.table}"
-            logger.info("Force flag enabled - will re-research all submissions")
-        else:
-            query = f"""
-            SELECT s.submission_id 
-            FROM {self.table} s 
-            LEFT JOIN hackathon_research r ON s.submission_id = r.submission_id 
-            WHERE r.submission_id IS NULL
-            """
-        
+        # Find submissions without research entry in hackathon_research
+        query = f"""
+        SELECT s.submission_id
+        FROM {self.table} AS s
+        LEFT JOIN hackathon_research AS r ON r.submission_id = s.submission_id
+        WHERE r.submission_id IS NULL
+        """
         cursor.execute(query)
         pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()
@@ -334,7 +296,7 @@ class HackathonResearcher:
 
         # Extract Market Analysis section for dedicated column
         ai_research = research_data.get("ai_research", {})
-        market_research_section = ai_research.get("market_analysis", {})
+        market_research_section = ai_research.get("Market Analysis", {})
         market_research = json.dumps(market_research_section)
         technical_assessment = json.dumps(ai_research)
         github_analysis = json.dumps(research_data.get("github_analysis", {}))
@@ -393,17 +355,12 @@ def main():
         default=None,
         help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
     )
-    parser.add_argument(
-        "--force", "-f",
-        action="store_true",
-        help="Force re-research even if cached results exist",
-    )
     args = parser.parse_args()
     if not args.submission_id and not args.all:
         parser.print_help()
         return
     try:
-        researcher = HackathonResearcher(db_path=args.db_file, version=args.version, force=args.force)
+        researcher = HackathonResearcher(db_path=args.db_file, version=args.version)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")

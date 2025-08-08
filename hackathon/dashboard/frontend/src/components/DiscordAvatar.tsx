@@ -39,7 +39,7 @@ export function DiscordAvatar({
     return (
       <img
         src={avatarUrl}
-        alt={`${discord_handle} avatar`}
+        alt={`${discord_handle || 'user'} avatar`}
         className={cn(
           'rounded-full border-2 border-white/20 bg-white/10 object-cover',
           sizeClasses[size],
@@ -50,7 +50,7 @@ export function DiscordAvatar({
   }
 
   // Fallback avatar with initial
-  const initial = discord_handle?.charAt(0)?.toUpperCase() || '?'
+  const initial = (discord_handle || 'U').charAt(0)?.toUpperCase()
   
   // Choose appropriate styling based on variant
   const getFallbackStyles = () => {

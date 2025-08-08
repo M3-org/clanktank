@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+/* eslint-disable react-refresh/only-export-components */
+import React, { useState, useEffect, createContext, useContext } from 'react'
 import { hackathonApi } from '../lib/api'
 
 export interface DiscordUser {
@@ -14,14 +15,14 @@ export interface AuthState {
   discordUser: DiscordUser | null
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   authState: AuthState
   login: (discordUser: DiscordUser, token: string) => void
   logout: () => void
   loading: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authState, setAuthState] = useState<AuthState>({
@@ -99,4 +100,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
-} 
+}
