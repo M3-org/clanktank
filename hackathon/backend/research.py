@@ -273,13 +273,20 @@ class HackathonResearcher:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Find submissions without research entry in hackathon_research
-        query = f"""
-        SELECT s.submission_id
-        FROM {self.table} AS s
-        LEFT JOIN hackathon_research AS r ON r.submission_id = s.submission_id
-        WHERE r.submission_id IS NULL
-        """
+        # When force is enabled, process ALL submissions; otherwise only those without research
+        if getattr(self, "force", False):
+            query = f"""
+            SELECT s.submission_id
+            FROM {self.table} AS s
+            """
+        else:
+            # Find submissions without research entry in hackathon_research
+            query = f"""
+            SELECT s.submission_id
+            FROM {self.table} AS s
+            LEFT JOIN hackathon_research AS r ON r.submission_id = s.submission_id
+            WHERE r.submission_id IS NULL
+            """
         cursor.execute(query)
         pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()
