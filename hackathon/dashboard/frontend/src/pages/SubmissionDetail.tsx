@@ -455,33 +455,7 @@ export default function SubmissionDetail() {
                     </dd>
                   </div>
                 )}
-                {submission.discord_id && (
-                  <div className="flex items-center justify-between">
-                    <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                      <Users className="h-4 w-4 mr-2" />
-                      Discord
-                    </dt>
-                    <dd className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                      {discordData?.discord_avatar && (
-                        <DiscordAvatar 
-                          discord_id={submission.discord_id} 
-                          discord_avatar={discordData.discord_avatar}
-                          size="sm"
-                        />
-                      )}
-                      {submission.discord_id}
-                    </dd>
-                  </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <dt className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Likes
-                  </dt>
-                  <dd className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {0}
-                  </dd>
-                </div>
+                
               </dl>
             </CardContent>
           </Card>
