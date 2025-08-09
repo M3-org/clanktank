@@ -23,6 +23,7 @@ import Footer from './components/Footer'
 // Non-critical routes - lazy load
 const Leaderboard = lazy(() => import('./pages/Leaderboard'))
 const SubmissionDetail = lazy(() => import('./pages/SubmissionDetail'))
+const ResearchPage = lazy(() => import('./pages/ResearchPage.tsx'))
 const SubmissionPage = lazy(() => import('./pages/SubmissionPage'))
 const SubmissionEdit = lazy(() => import('./pages/SubmissionEdit'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'))
@@ -64,6 +65,7 @@ function AppContent() {
            <Route path="/p/:username" element={<ProfilePage />} />
            <Route path="/profile" element={<ProfilePage />} />
           <Route path="/submission/:id" element={<SubmissionDetail />} />
+           <Route path="/submission/:id/research" element={<ResearchPage />} />
           
           {/* Experimental routes - development only */}
           {import.meta.env.DEV && (
