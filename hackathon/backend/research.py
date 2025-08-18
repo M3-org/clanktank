@@ -69,6 +69,26 @@ def get_v2_fields_from_schema():
         schema = json.load(f)
     return [f["name"] for f in schema["schemas"]["v2"]]
 
+def basic_research_cleanup(ai_research: Dict[str, Any]) -> Dict[str, Any]:
+    """Basic cleanup of AI research output - minimal intervention to preserve natural judging."""
+    
+    try:
+        # Just ensure it's a dict and log what we got
+        if not isinstance(ai_research, dict):
+            logger.warning(f"Research output is not a dict, got {type(ai_research)}")
+            return {"raw_response": str(ai_research)}
+        
+        # Log the sections we found
+        sections = list(ai_research.keys())
+        logger.info(f"Research sections found: {sections}")
+        
+        # Just return as-is - let frontend handle the diversity
+        return ai_research
+        
+    except Exception as e:
+        logger.error(f"Research cleanup failed: {e}")
+        return {"error": str(e), "raw_response": str(ai_research)}
+
 class HackathonResearcher:
     def __init__(self, db_path=None, version=None, force: bool = False):
         """Initialize researcher with API keys, cache directory, DB path, and version.
@@ -184,14 +204,33 @@ class HackathonResearcher:
                 if "```json" in content:
                     json_start = content.find("```json") + 7
                     json_end = content.find("```", json_start)
+                    if json_end == -1:  # No closing ```
+                        json_end = len(content)
                     content = content[json_start:json_end].strip()
+                elif "```" in content and "{" in content:
+                    # Handle case where JSON is in code block without 'json' label
+                    start_brace = content.find("{")
+                    end_brace = content.rfind("}")
+                    if start_brace != -1 and end_brace != -1 and end_brace > start_brace:
+                        content = content[start_brace:end_brace+1]
 
-                return json.loads(content)
-            except json.JSONDecodeError:
-                logger.warning(
-                    "Could not parse AI response as JSON, returning raw content"
-                )
-                return {"raw_response": content}
+                parsed_json = json.loads(content)
+                logger.info("Successfully parsed AI response as JSON")
+                return parsed_json
+            except json.JSONDecodeError as e:
+                logger.warning(f"Could not parse AI response as JSON: {e}")
+                logger.warning(f"Raw content (first 500 chars): {content[:500]}")
+                
+                # Try to extract at least some structured data from the response
+                fallback_structure = {
+                    "technical_implementation": {"score": 5, "analysis": "Raw response - see error details"},
+                    "market_analysis": {"score": 5, "market_size": "Unknown"},
+                    "innovation_rating": {"score": 5, "analysis": "Raw response - see error details"},
+                    "overall_assessment": {"final_score": 5.0, "summary": content[:500] + "..." if len(content) > 500 else content},
+                    "raw_response": content,
+                    "parse_error": str(e)
+                }
+                return fallback_structure
 
         except Exception as e:
             logger.error(f"AI research failed: {e}")
@@ -244,6 +283,9 @@ class HackathonResearcher:
         
         # Conduct AI research
         ai_research = self.conduct_ai_research(project_data, github_analysis, gitingest_path)
+        
+        # Basic cleanup without forcing schema
+        ai_research = basic_research_cleanup(ai_research)
         
         # Compile final results
         research_results = {
