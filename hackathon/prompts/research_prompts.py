@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-
 def get_time_context():
     """Generate time context for research prompts using existing submission deadline."""
     submission_deadline = os.getenv('SUBMISSION_DEADLINE', '2025-08-09T23:00:00+00:00')
