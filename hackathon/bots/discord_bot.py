@@ -56,15 +56,17 @@ class HackathonDiscordBot:
         return sqlite3.connect(self.db_path)
     
     def get_submission(self, submission_id: str) -> Optional[Dict]:
-        """Fetch submission data from database."""
+        """Fetch submission data from database with Discord avatar and project image."""
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT submission_id, project_name, discord_handle, description, 
-                   category, github_url, demo_video_url, status
-            FROM hackathon_submissions_v2
-            WHERE submission_id = ?
+            SELECT s.submission_id, s.project_name, s.discord_handle, s.description, 
+                   s.category, s.github_url, s.demo_video_url, s.status, s.project_image,
+                   u.avatar as discord_avatar, u.username as discord_username, u.discord_id
+            FROM hackathon_submissions_v2 s
+            LEFT JOIN users u ON s.owner_discord_id = u.discord_id
+            WHERE s.submission_id = ?
         """, (submission_id,))
         
         row = cursor.fetchone()
@@ -74,26 +76,32 @@ class HackathonDiscordBot:
             return {
                 'submission_id': row[0],
                 'project_name': row[1],
-                'discord_handle': row[2],  # Use discord_handle instead of team_name
+                'discord_handle': row[2],
                 'description': row[3],
                 'category': row[4],
                 'github_url': row[5],
                 'video_url': row[6],  # demo_video_url
-                'status': row[7]
+                'status': row[7],
+                'project_image': row[8],
+                'discord_avatar': row[9],
+                'discord_username': row[10],
+                'discord_id': row[11]
             }
         return None
     
     def get_scored_submissions(self) -> List[Dict]:
-        """Get all submissions with status 'scored'."""
+        """Get all submissions with status 'scored' with Discord avatar and project image."""
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
         cursor.execute("""
-            SELECT submission_id, project_name, discord_handle, description,
-                   category, github_url, demo_video_url
-            FROM hackathon_submissions_v2
-            WHERE status = 'scored'
-            ORDER BY created_at
+            SELECT s.submission_id, s.project_name, s.discord_handle, s.description,
+                   s.category, s.github_url, s.demo_video_url, s.project_image,
+                   u.avatar as discord_avatar, u.username as discord_username, u.discord_id
+            FROM hackathon_submissions_v2 s
+            LEFT JOIN users u ON s.owner_discord_id = u.discord_id
+            WHERE s.status = 'scored'
+            ORDER BY s.created_at
         """)
         
         rows = cursor.fetchall()
@@ -104,27 +112,32 @@ class HackathonDiscordBot:
             submissions.append({
                 'submission_id': row[0],
                 'project_name': row[1],
-                'discord_handle': row[2],  # Use discord_handle instead of team_name
+                'discord_handle': row[2],
                 'description': row[3],
                 'category': row[4],
                 'github_url': row[5],
-                'video_url': row[6]  # demo_video_url
+                'video_url': row[6],  # demo_video_url
+                'project_image': row[7],
+                'discord_avatar': row[8],
+                'discord_username': row[9],
+                'discord_id': row[10]
             })
         
         return submissions
     
     def create_submission_embed(self, submission: Dict) -> discord.Embed:
-        """Create a Discord embed for a submission."""
-        # Choose color based on category
+        """Create a Discord embed for a submission with Discord avatar and project image."""
+        # Category-based styling with colors only
         category_colors = {
-            'DeFi': 0x1E88E5,      # Blue
-            'Gaming': 0x7B1FA2,    # Purple
-            'AI/Agents': 0x00ACC1, # Cyan
-            'Infrastructure': 0x43A047,  # Green
-            'Social': 0xFB8C00,    # Orange
-            'Other': 0x757575      # Grey
+            'DeFi': 0x1E88E5,          # Blue
+            'Gaming': 0x7B1FA2,        # Purple
+            'AI/Agents': 0x00ACC1,     # Cyan
+            'Infrastructure': 0x43A047, # Green
+            'Social': 0xFB8C00,        # Orange
+            'Other': 0x757575          # Grey
         }
-        color = category_colors.get(submission['category'], 0x757575)
+        
+        color = category_colors.get(submission['category'], category_colors['Other'])
         
         # Create embed
         embed = discord.Embed(
@@ -133,32 +146,35 @@ class HackathonDiscordBot:
             color=color
         )
         
-        # Add fields
-        embed.add_field(name="Creator", value=submission['discord_handle'], inline=True)  # Changed from "Team"
-        embed.add_field(name="Category", value=submission['category'], inline=True)
-        embed.add_field(name="ID", value=submission['submission_id'], inline=True)
+        # Set author with Discord avatar if available
+        creator_name = submission.get('discord_username') or submission['discord_handle']
+        discord_avatar_url = submission.get('discord_avatar')
         
-        # Add links
-        links = []
-        if submission.get('github_url'):
-            links.append(f"[GitHub]({submission['github_url']})")
-        if submission.get('demo_url'):
-            links.append(f"[Demo]({submission['demo_url']})")
-        if submission.get('video_url'):
-            links.append(f"[Video]({submission['video_url']})")
+        if discord_avatar_url:
+            embed.set_author(
+                name=f"Created by {creator_name}",
+                icon_url=discord_avatar_url
+            )
+        else:
+            embed.set_author(name=f"Created by {creator_name}")
         
-        if links:
-            embed.add_field(name="Links", value=" • ".join(links), inline=False)
+        # Set project image if available
+        if submission.get('project_image'):
+            embed.set_image(url=submission['project_image'])
         
-        # Add voting instructions  
+        # Add submission page link
+        submission_url = f"https://clanktank.tv/dashboard?view=all&submission={submission['submission_id']}"
+        embed.add_field(name="View Submission", value=submission_url, inline=False)
+        
+        # Add simple voting instructions
         embed.add_field(
             name="Vote with Reactions",
-            value="👍 Like this project  •  👎 Not impressed\n\n💡 **Tip:** Your vote syncs with the website - no double voting!",
+            value="👍 **Like** this project  •  👎 **Not impressed**",
             inline=False
         )
         
-        # Set footer
-        embed.set_footer(text="React to vote for this project!")
+        # Set simple footer
+        embed.set_footer(text="Reply to comment about this project!")
         embed.timestamp = datetime.now()
         
         return embed
