@@ -45,8 +45,8 @@ const judges = [
 
 const faqs = [
   {
-    q: 'How many rounds are there?',
-    a: 'There are two main rounds: Round 1 (AI judge scoring) and Round 2 (community voting + judge synthesis). Then the top 5 projects are featured on Clank Tank.'
+    q: 'How does the Clank Tank evaluation process work?',
+    a: 'User submissions → AI-generated news show → Round 1 (research & voting) → Round 2 (synthesis & final episode)'
   },
   {
     q: 'How does community voting work?',
@@ -54,11 +54,11 @@ const faqs = [
   },
   {
     q: 'What do the judges look for?',
-    a: 'Each judge has a unique style: Aimarc (business/ROI), Aishaw (technical depth), Peepo (user experience), Spartan (DeFi/crypto). See above for details.'
+    a: 'Each judge focuses on different aspects: business/ROI, technical depth, user experience, and DeFi/crypto potential.'
   },
   {
-    q: 'How do I get featured in an episode?',
-    a: 'Top 5 projects will be featured on Clank Tank and live premiered for the final round.'
+    q: 'How do projects get selected for episodes?',
+    a: 'Projects are first reviewed in a news show format, then through deliberation we select which ones appear in the final Clank Tank game show where AI judges deliver dramatic verdicts.'
   },
   {
     q: 'Where can I ask questions or get help?',

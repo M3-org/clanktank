@@ -126,6 +126,15 @@ export default function Header() {
                 Gallery
               </button>
 
+              <button
+                onClick={() => navigate('/about')}
+                className={`text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                  location.pathname === '/about' ? 'text-indigo-600 dark:text-indigo-400 font-medium' : ''
+                }`}
+              >
+                About
+              </button>
+
             </nav>
 
             {/* Auth Section */}
@@ -229,6 +238,14 @@ export default function Header() {
             >
               <Camera className="h-4 w-4" />
               Gallery
+            </button>
+            <button
+              onClick={() => navigate('/about')}
+              className={`block w-full text-left px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors ${
+                location.pathname === '/about' ? 'text-indigo-600 dark:text-indigo-400 font-medium bg-indigo-50 dark:bg-indigo-900/20 rounded-md' : ''
+              }`}
+            >
+              About
             </button>
             
             {/* Mobile Auth Section */}
