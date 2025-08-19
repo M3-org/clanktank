@@ -278,9 +278,6 @@ class HackathonDiscordBot:
                 # Update submission status
                 self.update_submission_status(submission['submission_id'], 'community-voting')
                 
-                # Store message ID -> submission ID mapping
-                self.store_message_mapping(submission_message.id, submission['submission_id'])
-                
                 logger.info(f"Posted submission {submission['submission_id']} as message {submission_message.id}")
                 posted_messages.append(submission_message.id)
                 
