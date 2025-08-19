@@ -90,7 +90,7 @@ class HackathonDiscordBot:
         return None
     
     def get_scored_submissions(self) -> List[Dict]:
-        """Get all submissions with status 'scored' with Discord avatar and project image."""
+        """Get all submissions with status 'researched' or 'scored' with Discord avatar and project image."""
         conn = self.get_db_connection()
         cursor = conn.cursor()
         
@@ -100,7 +100,7 @@ class HackathonDiscordBot:
                    u.avatar as discord_avatar, u.username as discord_username, u.discord_id
             FROM hackathon_submissions_v2 s
             LEFT JOIN users u ON s.owner_discord_id = u.discord_id
-            WHERE s.status = 'scored'
+            WHERE s.status IN ('researched', 'scored', 'community-voting')
             ORDER BY s.created_at
         """)
         
@@ -141,7 +141,7 @@ class HackathonDiscordBot:
         
         # Create embed
         embed = discord.Embed(
-            title=f"🚀 {submission['project_name']}",
+            title=f"({submission['submission_id']}) {submission['project_name']}",
             description=submission['description'][:1024],  # Discord limit
             color=color
         )
@@ -158,9 +158,10 @@ class HackathonDiscordBot:
         else:
             embed.set_author(name=f"Created by {creator_name}")
         
-        # Set project image if available
-        if submission.get('project_image'):
-            embed.set_image(url=submission['project_image'])
+        # Set project image if available and valid
+        project_image = submission.get('project_image')
+        if project_image and project_image.strip() and project_image.startswith(('http://', 'https://')):
+            embed.set_image(url=project_image)
         
         # Add submission page link
         submission_url = f"https://clanktank.tv/dashboard?view=all&submission={submission['submission_id']}"
@@ -168,16 +169,130 @@ class HackathonDiscordBot:
         
         # Add simple voting instructions
         embed.add_field(
-            name="Vote with Reactions",
+            name="Vote with Reactions, Reply to comment",
             value="👍 **Like** this project  •  👎 **Not impressed**",
             inline=False
         )
         
-        # Set simple footer
-        embed.set_footer(text="Reply to comment about this project!")
+        # Set timestamp only
         embed.timestamp = datetime.now()
         
         return embed
+    
+    def create_summary_embed(self, submissions: List[Dict]) -> discord.Embed:
+        """Create a summary embed for multiple submissions in a voting round."""
+        embed = discord.Embed(
+            title="📊 **Community Voting Round - New Submissions**",
+            description=f"**{len(submissions)} projects ready for community feedback**",
+            color=0x5865F2  # Discord blurple
+        )
+        
+        # Create compact submission list
+        submission_list = []
+        for submission in submissions[:10]:  # Limit to 10 for Discord field limits
+            creator_name = submission.get('discord_username') or submission['discord_handle']
+            submission_list.append(
+                f"🚀 **{submission['project_name']}** by @{creator_name} | {submission['category']} | ID: {submission['submission_id']}"
+            )
+        
+        if len(submissions) > 10:
+            submission_list.append(f"... and {len(submissions) - 10} more projects")
+        
+        embed.add_field(
+            name="Projects in This Round",
+            value="\n".join(submission_list),
+            inline=False
+        )
+        
+        embed.add_field(
+            name="💬 How to Participate",
+            value="• **Click threads below** for detailed project discussion\n• **Vote with 👍👎** in each thread\n• **Reply** to share your thoughts",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🌐 View All Submissions",
+            value="https://clanktank.tv/dashboard?view=all",
+            inline=False
+        )
+        
+        embed.set_footer(text="Each project gets its own thread below for detailed discussion!")
+        embed.timestamp = datetime.now()
+        
+        return embed
+    
+    def create_short_embed(self, submission: Dict) -> discord.Embed:
+        """Create a short, clean embed for the main channel."""
+        # Get category color
+        category_colors = {
+            'DeFi': 0x1E88E5,          # Blue
+            'Gaming': 0x7B1FA2,        # Purple
+            'AI/Agents': 0x00ACC1,     # Cyan
+            'Infrastructure': 0x43A047, # Green
+            'Social': 0xFB8C00,        # Orange
+            'Other': 0x757575          # Grey
+        }
+        color = category_colors.get(submission['category'], category_colors['Other'])
+        
+        # Create compact embed
+        embed = discord.Embed(
+            title=f"({submission['submission_id']}) {submission['project_name']}",
+            color=color
+        )
+        
+        # Set author with Discord avatar if available
+        creator_name = submission.get('discord_username') or submission['discord_handle']
+        discord_avatar_url = submission.get('discord_avatar')
+        
+        if discord_avatar_url:
+            embed.set_author(
+                name=f"by {creator_name}",
+                icon_url=discord_avatar_url
+            )
+        else:
+            embed.set_author(name=f"by {creator_name}")
+        
+        # Add submission link
+        submission_url = f"https://clanktank.tv/dashboard?view=all&submission={submission['submission_id']}"
+        embed.add_field(name="View Details", value=submission_url, inline=False)
+        
+        return embed
+
+    async def post_voting_round(self, channel: discord.TextChannel, submissions: List[Dict]):
+        """Post submissions as detailed embeds with voting reactions."""
+        if not submissions:
+            logger.warning("No submissions to post")
+            return
+        
+        posted_messages = []
+        for i, submission in enumerate(submissions):
+            try:
+                # Post detailed embed with all information
+                detailed_embed = self.create_submission_embed(submission)
+                submission_message = await channel.send(embed=detailed_embed)
+                
+                # Add voting reactions
+                await submission_message.add_reaction('👍')
+                await submission_message.add_reaction('👎')
+                
+                # Update submission status
+                self.update_submission_status(submission['submission_id'], 'community-voting')
+                
+                # Store message ID -> submission ID mapping
+                self.store_message_mapping(submission_message.id, submission['submission_id'])
+                
+                logger.info(f"Posted submission {submission['submission_id']} as message {submission_message.id}")
+                posted_messages.append(submission_message.id)
+                
+                # Small delay to prevent rate limiting
+                if i < len(submissions) - 1:
+                    await asyncio.sleep(2)
+                
+            except Exception as e:
+                logger.error(f"Error posting submission {submission['submission_id']}: {e}")
+        
+        logger.info(f"Finished posting {len(posted_messages)} submissions")
+        return posted_messages
     
     async def post_submission(self, channel: discord.TextChannel, submission: Dict):
         """Post a submission to the Discord channel."""
@@ -305,14 +420,31 @@ async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
     submission_id = None
     if reaction.message.embeds:
         embed = reaction.message.embeds[0]
-        # Look for submission ID in the embed fields
-        for field in embed.fields:
-            if field.name == "ID":
-                submission_id = field.value
-                break
+        # Look for submission ID in the title format: (15) Project Name
+        if embed.title and embed.title.startswith('('):
+            end_paren = embed.title.find(')')
+            if end_paren > 1:
+                try:
+                    submission_id = embed.title[1:end_paren].strip()
+                    # Validate it's a number
+                    int(submission_id)
+                except ValueError:
+                    submission_id = None
+        
+        # Fallback: look for submission ID in the embed fields (legacy format)
+        if not submission_id:
+            for field in embed.fields:
+                if field.name == "ID":
+                    submission_id = field.value.strip('`')  # Remove backticks if present
+                    break
     
     if not submission_id:
         logger.warning(f"Could not find submission ID in message {reaction.message.id}")
+        return
+    
+    # Verify submission ID exists in database (security check)
+    if not hackathon_bot.get_submission(submission_id):
+        logger.warning(f"Submission ID {submission_id} does not exist - ignoring reaction")
         return
     
     action = REACTION_TO_ACTION[emoji_str]
@@ -350,14 +482,31 @@ async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
     submission_id = None
     if reaction.message.embeds:
         embed = reaction.message.embeds[0]
-        # Look for submission ID in the embed fields
-        for field in embed.fields:
-            if field.name == "ID":
-                submission_id = field.value
-                break
+        # Look for submission ID in the title format: (15) Project Name
+        if embed.title and embed.title.startswith('('):
+            end_paren = embed.title.find(')')
+            if end_paren > 1:
+                try:
+                    submission_id = embed.title[1:end_paren].strip()
+                    # Validate it's a number
+                    int(submission_id)
+                except ValueError:
+                    submission_id = None
+        
+        # Fallback: look for submission ID in the embed fields (legacy format)
+        if not submission_id:
+            for field in embed.fields:
+                if field.name == "ID":
+                    submission_id = field.value.strip('`')  # Remove backticks if present
+                    break
     
     if not submission_id:
         logger.warning(f"Could not find submission ID in message {reaction.message.id}")
+        return
+    
+    # Verify submission ID exists in database (security check)
+    if not hackathon_bot.get_submission(submission_id):
+        logger.warning(f"Submission ID {submission_id} does not exist - ignoring reaction removal")
         return
     
     # Get user info using actual Discord user ID
@@ -372,7 +521,7 @@ async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
         discord_user_nickname=nickname
     )
 
-async def post_submissions(submission_ids: List[str] = None, post_all: bool = False):
+async def post_submissions(submission_ids: List[str] = None, post_all: bool = False, hybrid: bool = False):
     """Post submissions to Discord channel."""
     await bot.wait_until_ready()
     
@@ -397,19 +546,28 @@ async def post_submissions(submission_ids: List[str] = None, post_all: bool = Fa
             else:
                 logger.error(f"Submission {sid} not found")
     
-    # Post each submission
-    for i, submission in enumerate(submissions):
+    if hybrid:
+        # Use hybrid approach: summary + threads
+        logger.info(f"Using hybrid posting for {len(submissions)} submissions")
         try:
-            await hackathon_bot.post_submission(channel, submission)
-            
-            # Sleep between posts to avoid spamming (except for the last one)
-            if i < len(submissions) - 1:
-                sleep_time = 5  # 5 seconds between posts
-                logger.info(f"Sleeping {sleep_time} seconds before next post...")
-                await asyncio.sleep(sleep_time)
-                
+            await hackathon_bot.post_voting_round(channel, submissions)
         except Exception as e:
-            logger.error(f"Error posting submission {submission['submission_id']}: {e}")
+            logger.error(f"Error in hybrid posting: {e}")
+    else:
+        # Use individual posts (legacy approach)
+        logger.info(f"Using individual posting for {len(submissions)} submissions")
+        for i, submission in enumerate(submissions):
+            try:
+                await hackathon_bot.post_submission(channel, submission)
+                
+                # Sleep between posts to avoid spamming (except for the last one)
+                if i < len(submissions) - 1:
+                    sleep_time = 5  # 5 seconds between posts
+                    logger.info(f"Sleeping {sleep_time} seconds before next post...")
+                    await asyncio.sleep(sleep_time)
+                    
+            except Exception as e:
+                logger.error(f"Error posting submission {submission['submission_id']}: {e}")
     
     logger.info("Finished posting submissions")
     await bot.close()
@@ -432,6 +590,11 @@ def main():
         '--post-all',
         action='store_true',
         help='Post all scored submissions'
+    )
+    parser.add_argument(
+        '--hybrid',
+        action='store_true',
+        help='Use hybrid posting (summary + threads) instead of individual posts'
     )
     parser.add_argument(
         '--run-bot',
@@ -475,7 +638,8 @@ def main():
             # Run the posting task
             await post_submissions(
                 submission_ids=args.submission_id,
-                post_all=args.post_all
+                post_all=args.post_all,
+                hybrid=args.hybrid
             )
             
             # Close the bot after posting
