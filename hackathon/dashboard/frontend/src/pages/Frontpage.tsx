@@ -436,11 +436,10 @@ export default function Frontpage() {
               /* Single leaderboard table */
               <div className="bg-slate-800/30 rounded-lg border border-slate-700 overflow-hidden">
                 {/* Table Header - Hidden on mobile */}
-                <div className="hidden md:grid grid-cols-[64px_1fr_100px_100px_280px] gap-4 px-4 py-3 text-xs font-semibold text-gray-400 bg-slate-800/50 border-b border-slate-700">
+                <div className="hidden md:grid grid-cols-[64px_1fr_100px_280px] gap-4 px-4 py-3 text-xs font-semibold text-gray-400 bg-slate-800/50 border-b border-slate-700">
                   <span className="text-center">#</span>
                   <span>Project</span>
-                  <span className="text-center">AI Score</span>
-                  <span className="text-center">Human Score</span>
+                  <span className="text-center">Final Score</span>
                   <span className="text-center">Vote Instructions</span>
                 </div>
 
@@ -451,7 +450,7 @@ export default function Frontpage() {
                     return (
                       <div
                         key={entry.submission_id}
-                        className="grid grid-cols-1 md:grid-cols-[64px_1fr_100px_100px_280px] gap-4 hover:bg-slate-700/30 transition-colors cursor-pointer"
+                        className="grid grid-cols-1 md:grid-cols-[64px_1fr_100px_280px] gap-4 hover:bg-slate-700/30 transition-colors cursor-pointer"
                         onClick={() => setSelectedSubmission(entry)}
                       >
                         {/* Mobile: Card-style layout */}
@@ -488,20 +487,13 @@ export default function Frontpage() {
                             </div>
                           </div>
 
-                          {/* Scores Row */}
-                          <div className="flex items-center justify-center gap-6 py-2">
+                          {/* Score Display */}
+                          <div className="flex items-center justify-center py-2">
                             <div className="text-center">
                               <div className="text-xl font-bold text-white mb-1">
                                 {entry.final_score?.toFixed(1) || '—'}
                               </div>
-                              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">AI Score</div>
-                            </div>
-                            <div className="w-px h-8 bg-slate-600"></div>
-                            <div className="text-center">
-                              <div className="text-xl font-bold text-white mb-1">
-                                {entry.community_score?.toFixed(1) || '—'}
-                              </div>
-                              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Community</div>
+                              <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Final Score</div>
                             </div>
                           </div>
 
@@ -557,13 +549,6 @@ export default function Frontpage() {
                           </div>
                         </div>
 
-                        <div className="hidden md:flex items-center justify-center px-4 py-4">
-                          <div className="text-center">
-                            <div className="text-lg font-semibold text-white">
-                              {entry.community_score?.toFixed(1) || '—'}
-                            </div>
-                          </div>
-                        </div>
 
                         <div 
                           className="hidden md:flex items-center justify-center cursor-pointer hover:bg-slate-700/20 transition-colors"
