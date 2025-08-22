@@ -30,6 +30,7 @@ export interface SubmissionDetail extends SubmissionSummary {
   research?: Research
   solana_address?: string
   discord_handle?: string
+  community_score?: number  // Add community score field
   // Edit permission info
   can_edit?: boolean
   is_creator?: boolean

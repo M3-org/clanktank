@@ -370,6 +370,7 @@ class SubmissionDetail(BaseModel):
     discord_id: Optional[str] = None
     discord_username: Optional[str] = None
     discord_avatar: Optional[str] = None
+    community_score: Optional[float] = None  # Add community score field
     can_edit: Optional[bool] = None
     is_creator: Optional[bool] = None
     twitter_handle: Optional[str] = None
@@ -401,6 +402,7 @@ class LeaderboardEntry(BaseModel):
     project_name: str
     category: str
     final_score: float
+    community_score: Optional[float] = None  # Add community score field
     youtube_url: Optional[str] = None
     status: str
     discord_handle: Optional[str] = None
@@ -1532,6 +1534,22 @@ async def get_leaderboard_latest():
                 FROM hackathon_scores sc
                 JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
                 GROUP BY sc.submission_id
+            ),
+            community_scores AS (
+                SELECT 
+                    CAST(ld.submission_id AS INTEGER) as submission_id,
+                    COUNT(*) as total_reactions,
+                    COUNT(DISTINCT ld.discord_id) as unique_voters,
+                    SUM(CASE WHEN ld.action = 'like' THEN 1 ELSE 0 END) as likes,
+                    SUM(CASE WHEN ld.action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
+                    -- Simple community score: likes ratio * 10 
+                    CASE 
+                        WHEN COUNT(*) > 0 THEN 
+                            (SUM(CASE WHEN ld.action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
+                        ELSE 0
+                    END as community_score
+                FROM likes_dislikes ld
+                GROUP BY ld.submission_id
             )
             SELECT 
                 s.submission_id,
@@ -1540,12 +1558,14 @@ async def get_leaderboard_latest():
                 s.demo_video_url as youtube_url,
                 s.status,
                 ps.avg_score,
+                COALESCE(cs.community_score, 0.0) as community_score,
                 u.username as discord_handle,
                 u.discord_id as discord_id,
                 u.username as discord_username,
                 u.avatar as discord_avatar
             FROM {table} s
             JOIN project_scores ps ON s.submission_id = ps.submission_id
+            LEFT JOIN community_scores cs ON s.submission_id = cs.submission_id
             JOIN users u ON s.owner_discord_id = u.discord_id
             WHERE s.status IN ('scored', 'completed', 'published')
             ORDER BY ps.avg_score DESC
@@ -1561,7 +1581,8 @@ async def get_leaderboard_latest():
                 submission_id=row_dict["submission_id"],
                 project_name=row_dict["project_name"],
                 category=row_dict["category"],
-                final_score=round(row_dict["avg_score"], 2),
+                final_score=round(row_dict["avg_score"] / 4, 1),  # Convert to 0-10 display scale
+                community_score=round(row_dict.get("community_score", 0.0), 1),
                 youtube_url=row_dict["youtube_url"],
                 status=row_dict["status"],
                 discord_handle=row_dict["discord_handle"],
@@ -2332,20 +2353,26 @@ async def list_submissions(
         for submission_row in result.fetchall():
             submission_dict = dict(submission_row._mapping)
             submission_id = submission_dict["submission_id"]
-            # Always calculate score aggregates for SubmissionSummary
+            # Always calculate score aggregates for SubmissionSummary - use latest round
             scores_agg_result = conn.execute(
                 text(
                     """
+                WITH latest_round AS (
+                    SELECT MAX(round) as max_round
+                    FROM hackathon_scores
+                    WHERE submission_id = :submission_id
+                )
                 SELECT AVG(weighted_total) as avg_score, COUNT(DISTINCT judge_name) as judge_count
-                FROM hackathon_scores 
-                WHERE submission_id = :submission_id AND round = 1
+                FROM hackathon_scores sc
+                JOIN latest_round lr ON sc.round = lr.max_round
+                WHERE sc.submission_id = :submission_id
             """
                 ),
                 {"submission_id": submission_id},
             )
             agg_row = scores_agg_result.fetchone()
             if agg_row and agg_row[0] is not None:
-                submission_dict["avg_score"] = round(float(agg_row[0]), 2)
+                submission_dict["avg_score"] = round(float(agg_row[0]) / 4, 1)  # Scale to 0-10 range
                 submission_dict["judge_count"] = int(agg_row[1])
             else:
                 submission_dict["avg_score"] = None
@@ -3035,8 +3062,9 @@ async def get_submission(
                 submission_dict["research"] = research
             else:
                 submission_dict["research"] = None
-        # Optionally add community feedback
+        # Optionally add community feedback and score
         if "community" in include_parts:
+            # Get community feedback (legacy table)
             feedback_result = conn.execute(
                 text(
                     """
@@ -3074,6 +3102,32 @@ async def get_submission(
                 "feedback": feedback_summary,
             }
 
+            # Get community score from like/dislike votes
+            community_score_result = conn.execute(
+                text(
+                    """
+                SELECT 
+                    COUNT(*) as total_reactions,
+                    COUNT(DISTINCT discord_id) as unique_voters,
+                    SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
+                    SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
+                    CASE 
+                        WHEN COUNT(*) > 0 THEN 
+                            (SUM(CASE WHEN action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
+                        ELSE 0
+                    END as community_score
+                FROM likes_dislikes
+                WHERE CAST(submission_id AS INTEGER) = :submission_id
+                """
+                ),
+                {"submission_id": submission_id},
+            )
+            community_score_row = community_score_result.fetchone()
+            if community_score_row:
+                submission_dict["community_score"] = round(community_score_row.community_score or 0.0, 1)
+            else:
+                submission_dict["community_score"] = 0.0
+
         # Map fields to match SubmissionDetail model, ensuring required fields are non-None strings
         def safe_str(val):
             return str(val) if val is not None else ""
@@ -3102,6 +3156,7 @@ async def get_submission(
             "discord_username": submission_dict.get("discord_username"),
             "discord_avatar": submission_dict.get("discord_avatar"),
             "twitter_handle": submission_dict.get("twitter_handle"),
+            "community_score": submission_dict.get("community_score", 0.0),
         }
         # Fill missing optional fields with None
         for k in [

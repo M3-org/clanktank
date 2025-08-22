@@ -59,7 +59,9 @@ export default function SubmissionDetail() {
   const [discordData, setDiscordData] = useState<{discord_id?: string, discord_avatar?: string} | null>(null)
   // Per-category reasoning expansion (collapsed by default)
   const [expandedReason, setExpandedReason] = useState<Record<string, boolean>>({})
-  const [showJudgeScores, setShowJudgeScores] = useState<boolean>(true)
+  // Judge scores: expanded by default if Round 2 scores exist
+  const hasRound2Scores = submission?.scores?.some(s => s.round === 2) || false
+  const [showJudgeScores, setShowJudgeScores] = useState<boolean>(hasRound2Scores)
   const isResearchTab = searchParams.get('tab') === 'research'
   const [expandedJudges, setExpandedJudges] = useState<Record<string, boolean>>({})
   const { copied, copyToClipboard } = useCopyToClipboard()
@@ -128,6 +130,14 @@ export default function SubmissionDetail() {
       loadAllData()
     }
   }, [id, loadAllData])
+
+  // Update judge scores visibility when submission loads
+  useEffect(() => {
+    if (submission) {
+      const hasRound2 = submission.scores?.some(s => s.round === 2) || false
+      setShowJudgeScores(hasRound2)
+    }
+  }, [submission])
 
   
 
@@ -460,6 +470,70 @@ export default function SubmissionDetail() {
             </CardContent>
           </Card>
 
+          {/* Final Score Summary */}
+          {submission.scores && submission.scores.length > 0 && (
+            <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+              <CardHeader>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Final Score</h3>
+              </CardHeader>
+              <CardContent>
+                {/* Score Progression */}
+                <div className="p-6 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg border">
+                  <div className="grid grid-cols-3 gap-6">
+                    {/* Round 1 Average */}
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
+                        {(() => {
+                          const round1Scores = (submission.scores || []).filter(s => s.round === 1)
+                          if (round1Scores.length === 0) return '—'
+                          const avgScore = round1Scores.reduce((sum, s) => sum + s.weighted_total, 0) / round1Scores.length
+                          return (avgScore / 4).toFixed(1)
+                        })()}
+                      </div>
+                      <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Round 1</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">Initial AI Evaluation</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                        AI only
+                      </div>
+                    </div>
+                    
+                    {/* Arrow */}
+                    <div className="flex items-center justify-center">
+                      <div className="text-2xl text-slate-400 dark:text-slate-500">→</div>
+                    </div>
+                    
+                    {/* Round 2 Average */}
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                        {(() => {
+                          const round2Scores = (submission.scores || []).filter(s => s.round === 2)
+                          if (round2Scores.length === 0) return '—'
+                          const avgScore = round2Scores.reduce((sum, s) => sum + s.weighted_total, 0) / round2Scores.length
+                          return (avgScore / 4).toFixed(1)
+                        })()}
+                      </div>
+                      <div className="text-sm font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">Round 2</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                        {(() => {
+                          const round2Scores = (submission.scores || []).filter(s => s.round === 2)
+                          if (round2Scores.length === 0) return 'Gathering human input'
+                          return 'Final Synthesis'
+                        })()}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                        {(() => {
+                          const round2Scores = (submission.scores || []).filter(s => s.round === 2)
+                          if (round2Scores.length === 0) return 'Waiting for all submissions'
+                          return 'AI + human'
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Judge Scores (clickable header, collapsed by default) */}
           {submission.scores && submission.scores.length > 0 && (
             <Card className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
@@ -672,12 +746,27 @@ export default function SubmissionDetail() {
                           <div>
                             <div className="mb-2 flex items-center gap-2">
                               <span className="inline-block h-2 w-2 rounded-full bg-green-500"></span>
-                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">Round 2</span>
+                              <span className="text-xs font-semibold text-green-700 dark:text-green-400">Round 2 - Final Synthesis</span>
                             </div>
                             {round2 ? (
-                              <div className="text-sm text-gray-700 dark:text-gray-300">Overall: {(round2.weighted_total / 4).toFixed(1)}/10</div>
+                              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded border-l-4 border-green-300 dark:border-green-600">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-green-900 dark:text-green-100">Final Score:</span>
+                                  <span className="text-lg font-bold text-green-700 dark:text-green-300">{(round2.weighted_total / 4).toFixed(1)}/10</span>
+                                </div>
+                                {round2.notes?.round2_final_verdict && (
+                                  <div className="mt-2 text-sm text-green-800 dark:text-green-200 italic">
+                                    "{round2.notes.round2_final_verdict}"
+                                  </div>
+                                )}
+                                {round2.notes?.round2_reasoning && (
+                                  <div className="mt-2 text-xs text-green-700 dark:text-green-300">
+                                    {round2.notes.round2_reasoning}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
-                              <div className="text-xs text-gray-400 dark:text-gray-500 italic">No round 2 data</div>
+                              <div className="text-xs text-gray-400 dark:text-gray-500 italic">No round 2 synthesis data</div>
                             )}
                           </div>
                         </div>
