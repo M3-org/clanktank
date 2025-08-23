@@ -31,6 +31,8 @@ from fastapi import (
     status,
     UploadFile,
     File as FastAPIFile,
+    WebSocket,
+    WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -46,6 +48,7 @@ from slowapi.errors import RateLimitExceeded
 # Add path for importing schema module
 from hackathon.backend.schema import get_fields, get_schema, reload_schema
 from hackathon.backend.simple_audit import log_security_event, log_user_action
+from hackathon.backend.websocket_service import prize_pool_service
 
 from PIL import Image
 from io import BytesIO
@@ -187,8 +190,21 @@ async def ensure_db_schema_startup():
     try:
         create_users_table()
         logging.info("Users table ensured (including roles column)")
+        
+        # Start WebSocket service for real-time prize pool updates
+        await prize_pool_service.start()
+        logging.info("WebSocket service started for real-time prize pool updates")
     except Exception as e:
         logging.error(f"Startup schema ensure failed: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_websocket_service():
+    """Clean shutdown of WebSocket service."""
+    try:
+        await prize_pool_service.stop()
+        logging.info("WebSocket service stopped")
+    except Exception as e:
+        logging.error(f"Error stopping WebSocket service: {e}")
 
 
 # Configure CORS with environment-specific origins
@@ -2035,6 +2051,27 @@ async def get_prize_pool():
     except Exception as e:
         logging.error(f"Error in prize pool: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.websocket("/ws/prize-pool")
+async def websocket_prize_pool_endpoint(websocket: WebSocket):
+    """WebSocket endpoint for real-time prize pool updates."""
+    try:
+        await websocket.accept()
+        await prize_pool_service.add_client(websocket)
+        
+        # Keep connection alive and handle disconnection
+        try:
+            while True:
+                # Wait for any message from client (ping/pong or disconnect)
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            pass
+            
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+    finally:
+        await prize_pool_service.remove_client(websocket)
 
 
 def process_ai16z_transaction(tx_sig: str, submission_id: int, sender: str, amount: float):

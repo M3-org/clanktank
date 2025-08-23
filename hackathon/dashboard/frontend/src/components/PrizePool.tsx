@@ -40,7 +40,7 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   }
   
   // Destructure for easier access
-  const { tokenHoldings, totalValue, loading, lastUpdated } = prizePoolData
+  const { tokenHoldings, totalValue, loading, lastUpdated, connected } = prizePoolData
 
   // Auto-hide/show logic for marquee
   useEffect(() => {
@@ -80,7 +80,9 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 backdrop-blur-sm">
           <div className="flex items-center justify-center h-16 px-4">
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-cyan-400 border-t-transparent mr-2"></div>
-            <span className="text-sm text-cyan-400">Loading prize pool...</span>
+            <span className="text-sm text-cyan-400">
+              {connected ? 'Loading prize pool...' : 'Connecting to live updates...'}
+            </span>
           </div>
         </div>
       )
@@ -180,7 +182,9 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
       return (
         <div className="flex items-center gap-2">
           <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-400 border-t-transparent"></div>
-          <span className="text-sm text-gray-500 dark:text-gray-400">Loading prize pool...</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {connected ? 'Loading prize pool...' : 'Connecting to live updates...'}
+          </span>
         </div>
       )
     }
@@ -260,7 +264,16 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
               <span className="text-xs text-brand-accent/70">{progress.toFixed(0)}% of {goal} SOL</span>
               {lastUpdated && (
                 <span className="text-xs text-brand-accent/50">
-                  Updated {new Date(lastUpdated).toLocaleTimeString()}
+                  {connected ? (
+                    <>Live • Updated {new Date(lastUpdated).toLocaleTimeString()}</>
+                  ) : (
+                    <>Offline • Updated {new Date(lastUpdated).toLocaleTimeString()}</>
+                  )}
+                </span>
+              )}
+              {!lastUpdated && (
+                <span className="text-xs text-brand-accent/50">
+                  {connected ? 'Live updates connected' : 'Connecting...'}
                 </span>
               )}
             </div>
