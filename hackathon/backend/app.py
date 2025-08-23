@@ -1186,11 +1186,9 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
         # Backup creation logic
         import os, json
 
-        backup_dir = os.path.join(
-            os.path.dirname(__file__), "../dashboard/data/submission_backups"
-        )
-        os.makedirs(backup_dir, exist_ok=True)
-        backup_path = os.path.join(backup_dir, f"{submission_id}.json")
+        backup_dir = REPO_ROOT / "data" / "submission_backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        backup_path = backup_dir / f"{submission_id}.json"
         with open(backup_path, "w") as f:
             json.dump({"submission_data": data}, f, indent=2)
         return {
@@ -1459,8 +1457,8 @@ async def upload_image(
         # Convert to RGB for consistent JPEG output (removes EXIF data)
         img = img.convert("RGB")
 
-        # Create uploads directory (use same path as serve_upload)
-        uploads_dir = Path(__file__).parent / "data" / "uploads"
+        # Create uploads directory (consolidated location)
+        uploads_dir = REPO_ROOT / "data" / "uploads"
         uploads_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate unique filename with .jpg extension
@@ -1497,8 +1495,8 @@ async def upload_image(
 @app.get("/api/uploads/{filename}")
 async def serve_upload(filename: str):
     """Serve uploaded files."""
-    # Use absolute path relative to the app.py file location
-    uploads_dir = (Path(__file__).parent / "data" / "uploads").resolve()
+    # Use consolidated uploads directory
+    uploads_dir = (REPO_ROOT / "data" / "uploads").resolve()
 
     # Validate that the resolved path stays within the uploads directory
     try:
