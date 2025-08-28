@@ -11,7 +11,7 @@ const api = axios.create({
   baseURL: API_BASE,
   // Enable caching for GET requests
   headers: {
-    'Cache-Control': 'max-age=300', // 5 minutes cache
+    'Cache-Control': 'max-age=86400', // 1 day cache
   }
 })
 
@@ -26,7 +26,7 @@ api.interceptors.request.use((config) => {
 
 // Simple in-memory response cache for GET requests
 const responseCache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes for better caching
+const CACHE_DURATION = 24 * 60 * 60 * 1000 // 1 day cache for stable hackathon data
 
 // Request deduplication - prevent multiple identical requests
 const pendingRequests = new Map<string, Promise<any>>()

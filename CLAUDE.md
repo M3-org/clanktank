@@ -379,3 +379,6 @@ This approach provides:
 ### Backend Management
 - I will start / stop the backend app.py, just let me know when I need to
 - Update todo.md after completing each task
+- Principle: Less code = less complexity = more secure = more maintainable. Always look for code/features to DELETE before adding new 
+  ones.
+- Start a new branch to implement a cluster of similar new features or bug fixes
