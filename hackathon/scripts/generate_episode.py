@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Hackathon Episode Generator - Unified Format.
-Generates backwards-compatible episodes that work with both original and hackathon renderers.
+Clank Tank Episode Generator V2 - Solid, Validated Version
+Combines the best of all approaches with proper cast validation and structure enforcement.
 """
 
 import os
@@ -11,21 +11,23 @@ import logging
 import argparse
 import requests
 from datetime import datetime
-from typing import Dict, Any, List
-from dotenv import load_dotenv
-
-# Import dialogue prompts
-from hackathon.prompts.episode_dialogue import create_host_intro_prompt
-
-# Import judge personas
-from hackathon.prompts.judge_personas import JUDGE_PERSONAS
-
-# Import versioned schema helpers
-from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields, get_schema
-
+from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv, find_dotenv
 
-# Load environment variables (automatically finds .env in parent directories)
+# Import the restructured configuration
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from prompts.show_config import (
+    SHOW_INFO, 
+    build_episode_prompt,
+    validate_episode_cast,
+    get_episode_structure,
+    SHOW_CONFIG
+)
+from backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+
+# Load environment variables
 load_dotenv(find_dotenv())
 
 # Set up logging
@@ -38,28 +40,11 @@ logger = logging.getLogger(__name__)
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
 AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3-opus")
-
-# OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-
-SCHEMA_PATH = os.path.join(
-    os.path.dirname(__file__), "../backend/submission_schema.json"
-)
-
-
-def load_schema_fields(version: str) -> List[str]:
-    """Load field names from schema dynamically."""
-    try:
-        with open(SCHEMA_PATH) as f:
-            schema = json.load(f)
-        return [f["name"] for f in schema["schemas"][version]]
-    except Exception as e:
-        logger.warning(f"Could not load schema for {version}: {e}")
-        return get_fields(version)  # Fallback to schema.py
 
 
 class SubmissionFieldMapper:
-    """Dynamic field mapper for different schema versions."""
+    """Dynamic field mapper for different schema versions with enhanced fallbacks."""
     
     def __init__(self, submission_data: Dict[str, Any], version: str):
         self.data = submission_data
@@ -68,80 +53,33 @@ class SubmissionFieldMapper:
         
     def get_team_name(self) -> str:
         """Get team name with fallbacks."""
-        # v1 has team_name, v2 uses discord_handle as the creator
-        if 'team_name' in self.data:
+        if 'team_name' in self.data and self.data['team_name']:
             return self.data['team_name']
-        elif 'discord_handle' in self.data:
+        elif 'discord_handle' in self.data and self.data['discord_handle']:
             return f"{self.data['discord_handle']}'s Team"
+        elif 'discord_username' in self.data and self.data['discord_username']:
+            return f"{self.data['discord_username']}'s Team"
         else:
             return "The Development Team"
     
-    def get_description(self) -> str:
-        """Get project description."""
-        return self.data.get('description', 'an innovative project')
-    
-    def get_problem_solved(self) -> str:
-        """Get problem description with fallbacks."""
-        if 'problem_solved' in self.data:
-            return self.data['problem_solved']
-        elif 'description' in self.data:
-            return f"addressing key challenges in {self.data.get('category', 'the space')}"
-        else:
-            return "a critical problem in the space"
-    
-    def get_technical_details(self) -> str:
-        """Get technical details with fallbacks."""
-        # v1: coolest_tech, v2: favorite_part
-        if 'coolest_tech' in self.data:
-            return self.data['coolest_tech']
-        elif 'favorite_part' in self.data:
-            return self.data['favorite_part']
-        else:
-            return "Our unique technical approach"
-    
-    def get_how_it_works(self) -> str:
-        """Get how it works description with fallbacks."""
-        if 'how_it_works' in self.data:
-            return self.data['how_it_works']
-        elif 'favorite_part' in self.data:
-            return self.data['favorite_part']
-        elif 'description' in self.data:
-            return f"It's {self.data['description']}"
-        else:
-            return "It's super simple - users just connect and go"
-    
-    def get_next_steps(self) -> str:
-        """Get next steps with fallbacks."""
-        if 'next_steps' in self.data:
-            return self.data['next_steps']
-        else:
-            return "Getting everything production-ready and scaling our user base"
-    
-    def get_tech_stack(self) -> str:
-        """Get tech stack with fallbacks."""
-        if 'tech_stack' in self.data:
-            return self.data['tech_stack']
-        else:
-            return "battle-tested technologies"
-    
-    def get_github_url(self) -> str:
-        """Get GitHub URL with fallbacks."""
-        return self.data.get('github_url', 'our repository')
-    
     def get_safe_field(self, field_name: str, default: str = "") -> str:
         """Safely get any field with default."""
-        return self.data.get(field_name, default)
+        value = self.data.get(field_name, default)
+        return value if value else default
 
 
-class UnifiedEpisodeGenerator:
-    """Generate backwards-compatible episodes with hackathon enhancements"""
+class EpisodeGeneratorV2:
+    """
+    Enhanced episode generator with proper validation and structure enforcement.
+    Combines single AI prompt approach with comprehensive validation.
+    """
 
     def __init__(self, db_path=None, version=None):
-        """Initialize the episode generator."""
+        """Initialize the V2 episode generator."""
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
 
-        self.db_path = db_path or os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
+        self.db_path = db_path or HACKATHON_DB_PATH
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)
@@ -149,72 +87,37 @@ class UnifiedEpisodeGenerator:
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/m3-org/clanktank",
-            "X-Title": "Clank Tank Episode Generator",
+            "X-Title": "Clank Tank Episode Generator V2",
         }
-
-        # Standard character mappings for backwards compatibility
-        self.character_map = {
-            "Eliza": "elizahost",
-            "AI Aimarc": "aimarc",
-            "AI Aishaw": "aishaw",
-            "Peepo": "peepo",
-            "AI Spartan": "spartan",
-        }
-
-        # Default cast positions
-        self.default_cast = {
-            "judge_seat_1": "aimarc",
-            "judge_seat_2": "aishaw",
-            "judge_seat_3": "peepo",
-            "judge_seat_4": "spartan",
-            "announcer_position": "elizahost",
-        }
-
-    def generate_ai_dialogue(self, prompt: str, judge_name: str = None) -> str:
-        """Generate dialogue using AI with judge personas."""
-        system_prompt = (
-            "You are a writer for an AI game show. Generate natural, engaging dialogue."
-        )
-
-        # If generating for a specific judge, use their persona
-        if judge_name and judge_name in JUDGE_PERSONAS:
-            system_prompt = JUDGE_PERSONAS[judge_name]
-
-        payload = {
-            "model": AI_MODEL_NAME,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.8,
-            "max_tokens": 200,
-        }
-
-        try:
-            response = requests.post(BASE_URL, json=payload, headers=self.headers)
-            response.raise_for_status()
-
-            result = response.json()
-            return result["choices"][0]["message"]["content"].strip()
-
-        except Exception as e:
-            logger.error(f"Failed to generate dialogue: {e}")
-            return "Let's move on to the next project!"
 
     def fetch_project_data(self, submission_id: str) -> Dict[str, Any]:
-        """Fetch all data for a project from the database."""
+        """
+        Fetch comprehensive project data with API-first approach and database fallback.
+        Enhanced to gather rich context for better episode generation.
+        """
+        try:
+            # Try to fetch rich data from API first
+            response = requests.get(
+                f"http://localhost:8000/api/submissions/{submission_id}?include=scores%2Cresearch%2Ccommunity", 
+                timeout=5
+            )
+            if response.status_code == 200:
+                api_data = response.json()
+                logger.info(f"Fetched rich API data for submission {submission_id}")
+                return {
+                    "submission": api_data,
+                    "discord_avatar_url": api_data.get('discord_avatar'),
+                    "has_rich_data": True,
+                    "source": "api"
+                }
+        except Exception as e:
+            logger.warning(f"Failed to fetch API data: {e}, falling back to database")
+        
+        # Fallback to database if API unavailable
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # Fetch submission data
-        cursor.execute(
-            f"""
-            SELECT * FROM {self.table} 
-            WHERE submission_id = ?
-        """,
-            (submission_id,),
-        )
-
+        cursor.execute(f"SELECT * FROM {self.table} WHERE submission_id = ?", (submission_id,))
         submission_row = cursor.fetchone()
         if not submission_row:
             conn.close()
@@ -223,431 +126,253 @@ class UnifiedEpisodeGenerator:
         columns = [desc[0] for desc in cursor.description]
         submission_data = dict(zip(columns, submission_row))
 
-        # Fetch scores
-        cursor.execute(
-            """
+        # Fetch Discord avatar if available
+        discord_avatar_url = None
+        if 'discord_handle' in submission_data and submission_data['discord_handle']:
+            cursor.execute("SELECT avatar FROM users WHERE username = ?", (submission_data['discord_handle'],))
+            avatar_row = cursor.fetchone()
+            if avatar_row and avatar_row[0]:
+                discord_avatar_url = avatar_row[0]
+
+        # Fetch judge scores for context
+        cursor.execute("""
             SELECT judge_name, innovation, technical_execution, 
                    market_potential, user_experience, weighted_total, notes
             FROM hackathon_scores 
             WHERE submission_id = ? AND round = 1
             ORDER BY judge_name
-        """,
-            (submission_id,),
-        )
-
+        """, (submission_id,))
+        
         scores = []
         for row in cursor.fetchall():
             score_data = {
                 "judge_name": row[0],
                 "innovation": row[1],
-                "technical_execution": row[2],
+                "technical_execution": row[2], 
                 "market_potential": row[3],
                 "user_experience": row[4],
                 "weighted_total": row[5],
-                "notes": json.loads(row[6]) if row[6] else {},
+                "notes": json.loads(row[6]) if row[6] else {}
             }
             scores.append(score_data)
 
         conn.close()
-
-        return {"submission": submission_data, "scores": scores}
-
-    def _generate_episode_id(self, submission_id: str) -> str:
-        """Generate episode ID from submission ID"""
-        # Use submission ID directly as episode ID
-        return submission_id.lower()
-
-    def _generate_summary(self, submissions: List[Dict]) -> str:
-        """Generate episode summary"""
-        categories = list(set(s["submission"]["category"] for s in submissions))
-        return (
-            f"In this special hackathon edition, our AI judges evaluate {len(submissions)} "
-            f"cutting-edge projects across {', '.join(categories)}. Watch as innovative "
-            f"developers pitch their solutions and receive expert feedback from our panel."
-        )
-
-    def _infer_action(self, actor: str, line: str) -> str:
-        """Infer appropriate action based on actor and dialogue"""
-        line_lower = line.lower()
-
-        # Check for specific action keywords
-        if any(word in line_lower for word in ["welcome", "!"]):
-            return "excited"
-        if any(word in line_lower for word in ["score", "rating", "out of"]):
-            return "scoring"
-        if any(word in line_lower for word in ["weak", "poor", "questionable"]):
-            return "critical"
-        if "?" in line:
-            return "questioning"
-
-        # Character defaults
-        defaults = {
-            "elizahost": "hosting",
-            "aimarc": "analytical",
-            "aishaw": "skeptical",
-            "peepo": "casual",
-            "spartan": "intense",
+        return {
+            "submission": submission_data,
+            "discord_avatar_url": discord_avatar_url,
+            "scores": scores,
+            "has_rich_data": False,
+            "source": "database"
         }
 
-        return defaults.get(actor, "neutral")
-
-    def _generate_project_scenes(self, project_data: Dict[str, Any]) -> List[Dict]:
-        """Generate scenes for a single project review following original Clank Tank format"""
-        submission = project_data["submission"]
-        scores = project_data["scores"]
+    def create_rich_project_info(self, project_data: Dict[str, Any]) -> str:
+        """Create comprehensive project information for the AI prompt."""
         
-        # Create field mapper for dynamic field access
-        field_mapper = SubmissionFieldMapper(submission, self.version)
+        if project_data.get("has_rich_data", False):
+            # Use rich API data
+            submission = project_data["submission"]
+            
+            # Extract judge insights for authentic dialogue
+            judge_insights = ""
+            if submission.get("scores"):
+                for score in submission["scores"]:
+                    if score.get("notes", {}).get("reasons"):
+                        judge_name = score["judge_name"]
+                        reasons = score["notes"]["reasons"]
+                        judge_insights += f"\n{judge_name.upper()} PREVIOUSLY NOTED: "
+                        for category, note in reasons.items():
+                            if note:
+                                judge_insights += f"{category}: {note[:150]}... "
+                        judge_insights += "\n"
+            
+            # Extract GitHub insights
+            github_insights = ""
+            if submission.get("research", {}).get("github_analysis"):
+                github = submission["research"]["github_analysis"]
+                github_insights = f"""
+GitHub Analysis:
+- Repository: {github.get('name', 'N/A')} ({github.get('total_files', 0)} files)
+- Created: {github.get('created_at', 'N/A')[:10]}
+- Quality: {'Large repository' if github.get('is_large_repo') else 'Standard size'}, {'Has tests' if github.get('has_tests') else 'No tests'}, {'Has docs' if github.get('has_docs') else 'No docs'}
+"""
+            
+            return f"""
+Team: {submission.get('discord_username', 'Unknown')}'s Team
+Project: {submission.get('project_name', 'Unknown Project')}
+Category: {submission.get('category', 'Other')}
+Description: {submission.get('description', 'An innovative project')[:300]}
+Problem Solved: {submission.get('problem_solved', 'Solving challenges in the space')[:300]}
+What They Love Most: {submission.get('favorite_part', 'Passionate about their innovation')[:200]}
+GitHub: {submission.get('github_url', 'Repository available')}
+Twitter: {submission.get('twitter_handle', 'Not provided')}
+Community Score: {submission.get('community_score', 'Not rated')}
+Average Judge Score: {submission.get('avg_score', 'Not scored')}
+{github_insights}
+JUDGE CONTEXT FOR AUTHENTIC DIALOGUE:
+{judge_insights}
+"""
+        else:
+            # Use database data with field mapper
+            submission = project_data["submission"]
+            field_mapper = SubmissionFieldMapper(submission, self.version)
+            
+            # Add score context if available
+            score_context = ""
+            if project_data.get("scores"):
+                avg_score = sum(s["weighted_total"] for s in project_data["scores"]) / len(project_data["scores"])
+                score_context = f"\nAverage Judge Score: {avg_score:.1f}/40"
+                
+                for score in project_data["scores"]:
+                    if score.get("notes"):
+                        judge_name = score["judge_name"]
+                        notes = score["notes"]
+                        score_context += f"\n{judge_name.upper()}: {str(notes)[:100]}..."
+            
+            return f"""
+Team: {field_mapper.get_team_name()}
+Project: {field_mapper.get_safe_field('project_name', 'Innovative Project')}
+Category: {field_mapper.get_safe_field('category', 'Blockchain')}
+Description: {field_mapper.get_safe_field('description', 'An innovative blockchain project')}
+Problem Solved: {field_mapper.get_safe_field('problem_solved', 'Solving key challenges in the space')}
+What They Love Most: {field_mapper.get_safe_field('favorite_part', 'Passionate about their innovation')}
+GitHub: {field_mapper.get_safe_field('github_url', 'Repository available')}
+Twitter: {field_mapper.get_safe_field('twitter_handle', 'Not provided')}
+{score_context}
+"""
+
+    def generate_episode_with_ai(self, project_info: str, submission_id: str, video_url: str = None, avatar_url: str = None) -> Dict[str, Any]:
+        """Generate complete episode using structured AI prompt with validation."""
         
-        scenes = []
-
-        # Scene 1: Introduction and main pitch (main_stage)
-        intro_prompt = create_host_intro_prompt(submission)
-        intro_dialogue = self.generate_ai_dialogue(intro_prompt)
-
-        # Create a virtual presenter (Jin as surrogate)
-        presenter_cast = self.default_cast.copy()
-        presenter_cast["presenter_area_1"] = "jin"
-
-        scene1 = {
-            "location": "main_stage",
-            "description": f"Introduction and pitch of {field_mapper.get_safe_field('project_name')}",
-            "in": "cut",
-            "out": "cut",
-            "cast": presenter_cast,
-            "dialogue": [
-                {"actor": "elizahost", "line": intro_dialogue, "action": "hosting"},
-                {
-                    "actor": "jin",
-                    "line": f"Thanks Eliza! {field_mapper.get_safe_field('project_name')} is {field_mapper.get_description()}. We're solving {field_mapper.get_problem_solved()}.",
-                    "action": "pitching",
-                },
-                {
-                    "actor": "aimarc",
-                    "line": "Interesting. But how does this differ from existing solutions? What's your moat?",
-                    "action": "questioning",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"Great question! {field_mapper.get_technical_details()} sets us apart. We're not just another clone.",
-                    "action": "explaining",
-                },
+        # Build the structured prompt with actual submission ID
+        full_prompt = build_episode_prompt(project_info, submission_id, video_url, avatar_url)
+        
+        payload = {
+            "model": AI_MODEL_NAME,
+            "messages": [
+                {"role": "user", "content": full_prompt},
             ],
-            "hackathon_metadata": {
-                "segment_type": "pitch_intro",
-                "submission_id": field_mapper.get_safe_field('submission_id'),
-                "project_name": field_mapper.get_safe_field('project_name'),
-                "team_name": field_mapper.get_team_name(),
-            },
+            "temperature": 0.8,
+            "max_tokens": 6000,
         }
-        scenes.append(scene1)
 
-        # Scene 2: Interview between pitcher and host (interview_room)
-        scene2 = {
-            "location": "interview_room_solo",
-            "description": f"Eliza interviews the team about {field_mapper.get_safe_field('project_name')}",
-            "in": "cut",
-            "out": "cut",
-            "cast": {"interviewer_seat": "elizahost", "contestant_seat": "jin"},
-            "dialogue": [
-                {
-                    "actor": "elizahost",
-                    "line": f"So tell me, what inspired you to build {field_mapper.get_safe_field('project_name')}?",
-                    "action": "curious",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"We saw that {field_mapper.get_problem_solved()}. Our team has the perfect background to tackle this.",
-                    "action": "passionate",
-                },
-                {
-                    "actor": "elizahost",
-                    "line": "What's been the biggest challenge so far?",
-                    "action": "probing",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"Honestly? {field_mapper.get_next_steps()}. But we're committed to making this work.",
-                    "action": "honest",
-                },
-            ],
-            "hackathon_metadata": {"segment_type": "interview"},
-        }
-        scenes.append(scene2)
+        try:
+            response = requests.post(BASE_URL, json=payload, headers=self.headers)
+            response.raise_for_status()
+            result = response.json()
+            episode_json_text = result["choices"][0]["message"]["content"].strip()
+            
+            # Parse the JSON response, handling markdown code blocks
+            try:
+                # Remove markdown code blocks if present
+                if episode_json_text.startswith("```json"):
+                    episode_json_text = episode_json_text[7:]  # Remove ```json
+                if episode_json_text.endswith("```"):
+                    episode_json_text = episode_json_text[:-3]  # Remove ```
+                episode_json_text = episode_json_text.strip()
+                
+                episode = json.loads(episode_json_text)
+                
+                # CRITICAL: Validate the episode structure and cast
+                validation_errors = validate_episode_cast(episode)
+                if validation_errors:
+                    logger.warning("Episode validation failed with errors:")
+                    for error in validation_errors:
+                        logger.warning(f"  - {error}")
+                    
+                    # Attempt to fix common issues automatically
+                    episode = self._attempt_cast_fixes(episode)
+                    
+                    # Re-validate
+                    validation_errors = validate_episode_cast(episode)
+                    if validation_errors:
+                        logger.error("Could not auto-fix episode validation errors:")
+                        for error in validation_errors:
+                            logger.error(f"  - {error}")
+                        raise ValueError(f"Episode validation failed: {validation_errors}")
+                
+                logger.info("Episode successfully generated and validated")
+                return episode
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse AI-generated JSON: {e}")
+                logger.error(f"Raw response: {episode_json_text[:500]}...")
+                raise ValueError(f"AI generated invalid JSON: {e}")
+                
+        except Exception as e:
+            logger.error(f"Failed to generate episode with AI: {e}")
+            raise
 
-        # Scene 3: Conclusion of pitch (main_stage)
-        scene3 = {
-            "location": "main_stage",
-            "description": f"Final questions about {field_mapper.get_safe_field('project_name')}",
-            "in": "cut",
-            "out": "cut",
-            "cast": presenter_cast,
-            "dialogue": [
-                {
-                    "actor": "peepo",
-                    "line": "Yo, but like, why would normies actually use this? Break it down for me.",
-                    "action": "skeptical",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"Great point! {field_mapper.get_how_it_works()}. We've focused heavily on UX.",
-                    "action": "enthusiastic",
-                },
-                {
-                    "actor": "spartan",
-                    "line": "TELL ME WARRIOR - DO YOU HAVE THE STRENGTH TO CONQUER THIS MARKET OR WILL YOU FALL LIKE SO MANY BEFORE YOU?",
-                    "action": "challenging",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"We're in this for the long haul! Our tech stack includes {field_mapper.get_tech_stack()} and we're ready to scale!",
-                    "action": "determined",
-                },
-                {
-                    "actor": "aishaw",
-                    "line": "show me the github. i want to see commit history, not promises.",
-                    "action": "demanding",
-                },
-                {
-                    "actor": "jin",
-                    "line": f"Absolutely! Check out {field_mapper.get_github_url()} - we've been shipping consistently.",
-                    "action": "confident",
-                },
-            ],
-            "hackathon_metadata": {"segment_type": "pitch_conclusion"},
-        }
-        scenes.append(scene3)
-
-        # Scene 4: Judges deliberate (deliberation_room)
-        scene4 = {
-            "location": "deliberation_room",
-            "description": f"Judges discuss {field_mapper.get_safe_field('project_name')}",
-            "in": "cut",
-            "out": "cut",
-            "cast": {
-                "judge_seat_1": "aimarc",
-                "judge_seat_2": "aishaw",
-                "judge_seat_3": "peepo",
-                "judge_seat_4": "spartan",
-            },
-            "dialogue": self._generate_deliberation_dialogue(field_mapper, scores),
-            "hackathon_metadata": {"segment_type": "deliberation"},
-        }
-        scenes.append(scene4)
-
-        # Scene 5: Final verdicts - PUMP/DUMP/YAWN (main_stage)
-        scene5 = {
-            "location": "main_stage",
-            "description": f"Final verdicts for {field_mapper.get_safe_field('project_name')}",
-            "in": "cut",
-            "out": "cut",
-            "cast": presenter_cast,
-            "dialogue": self._generate_verdict_dialogue(field_mapper, scores),
-            "hackathon_metadata": {
-                "segment_type": "verdict",
-                "submission_id": field_mapper.get_safe_field('submission_id'),
-                "project_name": field_mapper.get_safe_field('project_name'),
-                "scores": {
-                    score["judge_name"]: score["weighted_total"] for score in scores
-                },
-                "average_score": (
-                    sum(s["weighted_total"] for s in scores) / len(scores)
-                    if scores
-                    else 0
-                ),
-            },
-        }
-        scenes.append(scene5)
-
-        return scenes
-
-    def _generate_deliberation_dialogue(
-        self, field_mapper: SubmissionFieldMapper, scores: List[Dict]
-    ) -> List[Dict]:
-        """Generate judge deliberation dialogue"""
-        dialogue = []
-
-        # Judges discuss among themselves
-        dialogue.append(
-            {
-                "actor": "aimarc",
-                "line": f"Alright, let's talk about {field_mapper.get_safe_field('project_name')}. The business model is {self._assess_business_model(scores)}.",
-                "action": "analytical",
-            }
-        )
-
-        dialogue.append(
-            {
-                "actor": "aishaw",
-                "line": f"the github activity is {self._assess_technical(scores)}. i've seen better commit messages from bootcamp grads.",
-                "action": "critical",
-            }
-        )
-
-        dialogue.append(
-            {
-                "actor": "peepo",
-                "line": f"Real talk though - would I use this? {self._assess_user_experience(scores)}",
-                "action": "thoughtful",
-            }
-        )
-
-        dialogue.append(
-            {
-                "actor": "spartan",
-                "line": f"THIS PROJECT {self._assess_warrior_spirit(scores)}! THE MARKET DEMANDS STRENGTH!",
-                "action": "intense",
-            }
-        )
-
-        return dialogue
-
-    def _generate_verdict_dialogue(
-        self, field_mapper: SubmissionFieldMapper, scores: List[Dict]
-    ) -> List[Dict]:
-        """Generate final verdict dialogue with PUMP/DUMP/YAWN votes"""
-        dialogue = []
-
-        dialogue.append(
-            {
-                "actor": "elizahost",
-                "line": f"Time for our judges to decide! Will {field_mapper.get_safe_field('project_name')} get the funding they need? Judges, what say you?",
-                "action": "hosting",
-            }
-        )
-
-        # Each judge gives their verdict based on their score
-        judge_order = ["aimarc", "aishaw", "peepo", "spartan"]
-        for judge in judge_order:
-            score_data = next((s for s in scores if s["judge_name"] == judge), None)
-            if not score_data:
+    def _attempt_cast_fixes(self, episode: Dict[str, Any]) -> Dict[str, Any]:
+        """Attempt to automatically fix common cast issues."""
+        scenes = episode.get("scenes", [])
+        structure = get_episode_structure()
+        
+        for i, scene in enumerate(scenes):
+            if i >= len(structure):
                 continue
-            weighted_score = score_data["weighted_total"]
-            verdict = self._score_to_verdict(weighted_score)
-
-            if judge == "aimarc":
-                if verdict == "PUMP":
-                    line = "The fundamentals are strong and the market opportunity is real. This gets a PUMP from me!"
-                elif verdict == "DUMP":
-                    line = "Too many red flags in the business model. I have to DUMP this one."
-                else:
-                    line = "It's not terrible but it's not exciting either. YAWN."
-            elif judge == "aishaw":
-                if verdict == "PUMP":
-                    line = "the code is actually solid. color me impressed. PUMP."
-                elif verdict == "DUMP":
-                    line = "this codebase is held together with prayers and duct tape. DUMP."
-                else:
-                    line = "it's... fine. nothing special. YAWN."
-            elif judge == "peepo":
-                if verdict == "PUMP":
-                    line = "Yo this actually slaps! The vibes are immaculate! PUMP!"
-                elif verdict == "DUMP":
-                    line = "Nah fam, this ain't it. Big DUMP energy."
-                else:
-                    line = "It's mid, no cap. YAWN from me."
-            elif judge == "spartan":
-                if verdict == "PUMP":
-                    line = "THESE WARRIORS HAVE PROVEN THEIR WORTH! PUMP! THIS! IS! VICTORY!"
-                elif verdict == "DUMP":
-                    line = "WEAK! PATHETIC! THIS PROJECT DIES IN THE ARENA! DUMP!"
-                else:
-                    line = "MEDIOCRE WARRIORS RECEIVE MEDIOCRE REWARDS! YAWN!"
-
-            dialogue.append({"actor": judge, "line": line, "action": verdict})
-
-        # Final summary
-        verdicts = [self._score_to_verdict(s["weighted_total"]) for s in scores]
-        pump_count = verdicts.count("PUMP")
-        dump_count = verdicts.count("DUMP")
-        yawn_count = verdicts.count("YAWN")
-
-        project_name = field_mapper.get_safe_field('project_name')
-        if pump_count >= 3:
-            final_line = f"Incredible! {pump_count} PUMPs! {project_name} is heading to the moon!"
-        elif dump_count >= 3:
-            final_line = f"Ouch! {dump_count} DUMPs! {project_name} needs to go back to the drawing board!"
-        else:
-            final_line = f"A mixed verdict! {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs. {project_name} has work to do!"
-
-        dialogue.append(
-            {"actor": "elizahost", "line": final_line, "action": "dramatic"}
-        )
-
-        return dialogue
-
-    def _score_to_verdict(self, score: float) -> str:
-        """Convert numerical score to PUMP/DUMP/YAWN verdict
-        Note: Scores are weighted totals out of 40 (4 categories x 10 points each)
-        """
-        # Weighted scores go from 0-40, so adjust thresholds
-        if score >= 25:  # 62.5% or higher
-            return "PUMP"
-        elif score <= 15:  # 37.5% or lower
-            return "DUMP"
-        else:
-            return "YAWN"
-
-    def _assess_business_model(self, scores: List[Dict]) -> str:
-        """Generate business model assessment for deliberation"""
-        avg = sum(s["market_potential"] for s in scores) / len(scores) if scores else 0
-        if avg >= 7:
-            return "actually solid, they might be onto something"
-        elif avg <= 4:
-            return "questionable at best, I don't see the path to revenue"
-        else:
-            return "decent but nothing groundbreaking"
-
-    def _assess_technical(self, scores: List[Dict]) -> str:
-        """Generate technical assessment for deliberation"""
-        avg = (
-            sum(s["technical_execution"] for s in scores) / len(scores) if scores else 0
-        )
-        if avg >= 7:
-            return "surprisingly clean"
-        elif avg <= 4:
-            return "a complete disaster"
-        else:
-            return "mediocre"
-
-    def _assess_user_experience(self, scores: List[Dict]) -> str:
-        """Generate UX assessment for deliberation"""
-        avg = sum(s["user_experience"] for s in scores) / len(scores) if scores else 0
-        if avg >= 7:
-            return "Actually yeah, the UX is pretty fire!"
-        elif avg <= 4:
-            return "Hell no, this UI is giving 2010 energy."
-        else:
-            return "Maybe? It's not terrible but not great either."
-
-    def _assess_warrior_spirit(self, scores: List[Dict]) -> str:
-        """Generate warrior assessment for deliberation"""
-        avg = sum(s["innovation"] for s in scores) / len(scores) if scores else 0
-        if avg >= 7:
-            return "HAS THE HEART OF A TRUE WARRIOR"
-        elif avg <= 4:
-            return "IS WEAK AND SHALL PERISH"
-        else:
-            return "SHOWS POTENTIAL BUT LACKS TRUE FIRE"
-
-    def _get_judge_action(self, actor: str, score: float) -> str:
-        """Get appropriate action based on judge and score"""
-        if score >= 8:
-            return "impressed"
-        elif score >= 6:
-            return "neutral"
-        else:
-            return "critical"
+                
+            expected = structure[i]
+            
+            # Fix main stage scenes missing judges
+            if expected["location"] == "main_stage":
+                scene["cast"] = {
+                    "judge00": "aimarc",
+                    "judge01": "aishaw", 
+                    "judge02": "peepo",
+                    "judge03": "spartan",
+                    "host": "elizahost",
+                    "standing00": "pitchbot"
+                }
+                logger.info(f"Fixed cast for scene {i} (main_stage)")
+                
+            # Fix deliberation scene
+            elif expected["location"] == "deliberation_room":
+                scene["cast"] = {
+                    "judge00": "aimarc",
+                    "judge01": "aishaw",
+                    "judge02": "peepo", 
+                    "judge03": "spartan"
+                }
+                logger.info(f"Fixed cast for scene {i} (deliberation)")
+                
+            # Fix interview scene
+            elif expected["location"] == "interview_room_solo":
+                scene["cast"] = {
+                    "interviewer_seat": "elizahost",
+                    "contestant_seat": "pitchbot"
+                }
+                logger.info(f"Fixed cast for scene {i} (interview)")
+                
+            # Fix intro/outro scenes
+            elif expected["location"] == "intro_stage":
+                scene["cast"] = {
+                    "standing00": "elizahost",
+                    "standing01": "pitchbot"
+                }
+                logger.info(f"Fixed cast for scene {i} (intro_stage)")
+        
+        return episode
 
     def generate_episode(
-        self, submission_id: str, episode_title: str = None
+        self, 
+        submission_id: str, 
+        episode_title: str = None,
+        video_url: Optional[str] = None,
+        avatar_url: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Generate a hackathon pitch episode in unified format
-
+        """
+        Generate a complete validated episode.
+        
         Args:
             submission_id: Submission ID from database
             episode_title: Optional custom title
+            video_url: Optional demo video URL for Jin's roll-video command
+            avatar_url: Optional avatar URL for Jin's user-avatar command
+            
+        Returns:
+            Complete validated episode JSON
         """
+        
         # Fetch project data
         try:
             project_data = self.fetch_project_data(submission_id)
@@ -655,107 +380,86 @@ class UnifiedEpisodeGenerator:
             logger.error(f"Failed to fetch {submission_id}: {e}")
             raise ValueError(f"Could not load submission {submission_id}")
 
-        submission = project_data["submission"]
-        field_mapper = SubmissionFieldMapper(submission, self.version)
+        # Create rich project information
+        project_info = self.create_rich_project_info(project_data)
+        
+        # Auto-detect media URLs if not provided
+        if project_data.get("has_rich_data", False):
+            submission = project_data["submission"]
+            video_url = video_url or submission.get('demo_video_url')
+            avatar_url = avatar_url or submission.get('discord_avatar')
+        else:
+            submission = project_data["submission"]
+            field_mapper = SubmissionFieldMapper(submission, self.version)
+            video_url = video_url or field_mapper.get_safe_field('demo_video_url')
+            avatar_url = avatar_url or project_data.get('discord_avatar_url')
 
-        # Generate episode ID from submission ID
-        episode_id = self._generate_episode_id(submission_id)
-
-        if not episode_title:
-            episode_title = f"Clank Tank: {field_mapper.get_safe_field('project_name')}"
-
-        episode = {
-            # Original required fields for backwards compatibility
-            "id": episode_id,
-            "name": episode_title,
-            "premise": f"{field_mapper.get_team_name()} presents {field_mapper.get_safe_field('project_name')}, {field_mapper.get_description()[:100]}...",
-            "summary": self._generate_episode_summary(project_data),
-            "scenes": [],
-            # Hackathon metadata (ignored by original renderer)
-            "hackathon_metadata": {
-                "format_version": "unified_v1",
+        # Generate episode using AI
+        episode = self.generate_episode_with_ai(project_info, submission_id, video_url, avatar_url)
+        
+        # Add enhanced metadata
+        if project_data.get("has_rich_data", False):
+            submission = project_data["submission"]
+            metadata = {
+                "format_version": "v2_validated",
+                "generated_at": datetime.now().isoformat(),
+                "submission_id": submission_id,
+                "project_name": submission.get('project_name'),
+                "team_name": f"{submission.get('discord_username', 'Unknown')}'s Team",
+                "category": submission.get('category'),
+                "video_url": video_url,
+                "avatar_url": avatar_url,
+                "generation_method": "single_ai_prompt_with_validation",
+                "has_judge_scores": bool(submission.get('scores')),
+                "has_research_data": bool(submission.get('research')),
+                "data_source": project_data.get("source", "api"),
+                "validation_passed": True
+            }
+        else:
+            submission = project_data["submission"]
+            field_mapper = SubmissionFieldMapper(submission, self.version)
+            metadata = {
+                "format_version": "v2_validated",
                 "generated_at": datetime.now().isoformat(),
                 "submission_id": submission_id,
                 "project_name": field_mapper.get_safe_field('project_name'),
                 "team_name": field_mapper.get_team_name(),
                 "category": field_mapper.get_safe_field('category'),
-            },
-        }
-
-        # Generate all 5 scenes following original format
-        scenes = self._generate_project_scenes(project_data)
-
-        # Add hackathon context to opening
-        scenes[0]["dialogue"].insert(
-            0,
-            {
-                "actor": "elizahost",
-                "line": f"Welcome to Clank Tank! Today we're evaluating {field_mapper.get_safe_field('project_name')}, a {field_mapper.get_safe_field('category')} project from the hackathon!",
-                "action": "excited",
-            },
-        )
-
-        episode["scenes"] = scenes
-
+                "video_url": video_url,
+                "avatar_url": avatar_url,
+                "generation_method": "single_ai_prompt_with_validation",
+                "has_judge_scores": bool(project_data.get('scores')),
+                "data_source": project_data.get("source", "database"),
+                "validation_passed": True
+            }
+        
+        episode["enhanced_metadata"] = metadata
+        episode["config"] = SHOW_CONFIG
+        
+        logger.info(f"Successfully generated validated episode for {submission_id}")
         return episode
-
-    def _generate_episode_summary(self, project_data: Dict) -> str:
-        """Generate episode-specific summary"""
-        submission = project_data["submission"]
-        scores = project_data["scores"]
-        field_mapper = SubmissionFieldMapper(submission, self.version)
-
-        # Calculate verdict counts
-        if scores:
-            verdicts = [self._score_to_verdict(s["weighted_total"]) for s in scores]
-            pump_count = verdicts.count("PUMP")
-            dump_count = verdicts.count("DUMP")
-            yawn_count = verdicts.count("YAWN")
-            verdict_summary = f"The judges deliver {pump_count} PUMPs, {dump_count} DUMPs, and {yawn_count} YAWNs."
-        else:
-            verdict_summary = "The judges evaluate this ambitious project."
-
-        return (
-            f"{field_mapper.get_team_name()} pitches {field_mapper.get_safe_field('project_name')}, "
-            f"a {field_mapper.get_safe_field('category')} project that {field_mapper.get_problem_solved()}. "
-            f"{verdict_summary}"
-        )
-
-    def get_scored_submissions(self, limit: int = None) -> List[str]:
-        """Get all submissions with status 'scored' or 'completed'."""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-
-        query = """
-            SELECT s.submission_id 
-            FROM hackathon_submissions s
-            WHERE s.status IN ('scored', 'completed')
-            AND EXISTS (
-                SELECT 1 FROM hackathon_scores sc 
-                WHERE sc.submission_id = s.submission_id
-            )
-            ORDER BY s.created_at
-        """
-
-        if limit:
-            query += f" LIMIT {limit}"
-
-        cursor.execute(query)
-        submission_ids = [row[0] for row in cursor.fetchall()]
-
-        conn.close()
-        return submission_ids
 
 
 def main():
-    """Main function with CLI interface."""
+    """Main CLI interface with comprehensive options."""
     parser = argparse.ArgumentParser(
-        description="Generate Clank Tank episode from hackathon submissions"
+        description="Generate Clank Tank episodes with V2 validation and structure enforcement"
     )
     parser.add_argument(
         "--submission-id",
         type=str,
+        required=False,
         help="Generate episode for a specific submission ID",
+    )
+    parser.add_argument(
+        "--video-url",
+        type=str,
+        help="Video URL for Jin's roll-video producer command"
+    )
+    parser.add_argument(
+        "--avatar-url", 
+        type=str,
+        help="Avatar URL for Jin's user-avatar producer command"
     )
     parser.add_argument(
         "--version",
@@ -768,37 +472,82 @@ def main():
         "--db-file",
         type=str,
         default=None,
-        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
+        help="Path to the hackathon SQLite database file",
     )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="episodes/v2", 
+        help="Output directory for generated episodes"
+    )
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Only validate an existing episode file without generating"
+    )
+    parser.add_argument(
+        "--episode-file",
+        type=str,
+        help="Path to episode file for validation (used with --validate-only)"
+    )
+
     args = parser.parse_args()
 
-    if not args.submission_id:
-        parser.print_help()
+    # Validation mode
+    if args.validate_only:
+        if not args.episode_file:
+            logger.error("--episode-file required when using --validate-only")
+            return
+        
+        try:
+            with open(args.episode_file, 'r') as f:
+                episode = json.load(f)
+            
+            errors = validate_episode_cast(episode)
+            if errors:
+                logger.error(f"Validation failed for {args.episode_file}:")
+                for error in errors:
+                    logger.error(f"  - {error}")
+            else:
+                logger.info(f"Validation passed for {args.episode_file}")
+        except Exception as e:
+            logger.error(f"Failed to validate {args.episode_file}: {e}")
         return
 
-    # Initialize generator
+    # Generation mode - require submission_id
+    if not args.submission_id:
+        logger.error("--submission-id is required when not using --validate-only")
+        return
+        
     try:
-        generator = UnifiedEpisodeGenerator(db_path=args.db_file, version=args.version)
+        generator = EpisodeGeneratorV2(db_path=args.db_file, version=args.version)
     except ValueError as e:
         logger.error(f"Initialization failed: {e}")
         return
 
-    # Generate episode
-    logger.info(f"Generating episode for submission {args.submission_id}...")
+    logger.info(f"Generating V2 validated episode for submission {args.submission_id}...")
 
     try:
-        episode = generator.generate_episode(args.submission_id)
+        episode = generator.generate_episode(
+            submission_id=args.submission_id,
+            video_url=args.video_url,
+            avatar_url=args.avatar_url
+        )
 
-        # Save to file using submission ID as filename
-        output_dir = "episodes/hackathon"
+        # Save episode
+        output_dir = args.output_dir
         os.makedirs(output_dir, exist_ok=True)
+        
         output_path = os.path.join(output_dir, f"{args.submission_id}.json")
+        
         with open(output_path, "w") as f:
             json.dump(episode, f, indent=2)
 
         logger.info(f"Episode saved to {output_path}")
-        logger.info(f"Episode ID: {episode['id']}")
-        logger.info(f"Project: {episode['hackathon_metadata']['project_name']}")
+        logger.info(f"Project: {episode.get('enhanced_metadata', {}).get('project_name', 'Unknown')}")
+        logger.info(f"Scenes: {len(episode.get('scenes', []))}")
+        logger.info(f"Validation: PASSED")
+        logger.info(f"Data source: {episode.get('enhanced_metadata', {}).get('data_source', 'unknown')}")
 
     except Exception as e:
         logger.error(f"Episode generation failed for {args.submission_id}: {e}")

@@ -1,6 +1,7 @@
 site/
 youtube_credentials.json
 client_secrets.json
+trashcan/
 
 # Environment files
 .env

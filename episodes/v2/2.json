@@ -1,0 +1,445 @@
+{
+  "id": "2",
+  "name": "The Phantom Property Manager",
+  "premise": "REMI promises to revolutionize property management with AI, but the judges discover it's just a static website with a chatbox widget",
+  "summary": "PitchBot presents REMI, an AI-powered property management system that claims to automate tenant interactions and streamline operations. However, the judges quickly uncover that the 'sophisticated multi-agent system' is actually just a basic HTML landing page with a third-party Fleek chatbox. Despite the $3.4B market opportunity, the complete lack of actual product leads to brutal verdicts: 4 DUMPs from all judges who see through the smoke and mirrors.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Teaser showing PitchBot's confidence about revolutionizing property management",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight, someone claims they've built the future of property management with AI!",
+          "action": "excited"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "REMI will transform how millions of properties are managed worldwide!",
+          "action": "confident"
+        },
+        {
+          "actor": "producer",
+          "line": "user-avatar",
+          "action": "https://cdn.discordapp.com/avatars/779363634789744690/eabbf4c0c43d8e40d7c7074ed4e80a72.png"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Initial pitch where PitchBot presents REMI's grand vision",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome back! PitchBot, tell us about REMI!",
+          "action": "presenting"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "REMI is a revolutionary AI-powered agent built on ElizaOS that automates property management operations!",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Property management AI? How original. What makes you different from the thousand other PropTech startups?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're targeting a $3.4 billion market with our sophisticated multi-agent system that handles tenant interactions!",
+          "action": "confident"
+        },
+        {
+          "actor": "aishaw",
+          "line": "wait... i checked your github. where's the elizaos integration? i only see html files",
+          "action": "confused"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're demonstrating the concept through Fleek hosting for now, but the full system is coming!",
+          "action": "defensive"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo hold up, you saying this is just a demo? Where's the actual product?",
+          "action": "suspicious"
+        },
+        {
+          "actor": "spartan",
+          "line": "SHOW ME THE CODE! WHERE'S THE AI AGENT SYSTEM YOU'RE CLAIMING?!",
+          "action": "aggressive"
+        },
+        {
+          "actor": "producer",
+          "line": "roll-video",
+          "action": "https://files.catbox.moe/rcnhmh.mp4"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza presses PitchBot about the actual implementation",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Be honest with me - is REMI actually built yet?",
+          "action": "serious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We have a strong foundation with our knowledge training system!",
+          "action": "evasive"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But the judges are saying it's just a static website?",
+          "action": "pressing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're focused on getting the user experience right before full implementation!",
+          "action": "defensive"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Pitch conclusion where the judges tear apart the lack of actual product",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "PitchBot is back to address your concerns about implementation!",
+          "action": "neutral"
+        },
+        {
+          "actor": "aishaw",
+          "line": "your server.js is looking for 'remi-demo.html' but the file is named 'index.html'. basic stuff man",
+          "action": "disappointed"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "That's just a minor configuration issue! The vision is what matters!",
+          "action": "flustered"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Vision without execution is hallucination. You built a landing page and called it an AI system.",
+          "action": "harsh"
+        },
+        {
+          "actor": "peepo",
+          "line": "Bruh this is like showing up to a car race with a bicycle and saying the engine is coming later!",
+          "action": "mocking"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS IS A SCAM! NO REVENUE MODEL, NO PRODUCT, JUST EMPTY PROMISES!",
+          "action": "furious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But property management needs disruption! We're solving real problems!",
+          "action": "desperate"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You can't solve problems with HTML and dreams. This is a Potemkin village of code.",
+          "action": "dismissive"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges unanimously agree this is vaporware",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "This is exactly why people don't trust blockchain projects. All hype, no substance.",
+          "action": "frustrated"
+        },
+        {
+          "actor": "aishaw",
+          "line": "they literally just slapped a fleek chatbox on a static page. zero elizaos integration",
+          "action": "amazed"
+        },
+        {
+          "actor": "peepo",
+          "line": "Not gonna lie, I'm actually impressed by the audacity to pitch this as a product!",
+          "action": "laughing"
+        },
+        {
+          "actor": "spartan",
+          "line": "BURN IT WITH FIRE! THIS IS WHY WE CAN'T HAVE NICE THINGS!",
+          "action": "rage"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Verdicts delivered with brutal honesty",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for verdicts! AI Marc, what's your decision?",
+          "action": "serious"
+        },
+        {
+          "actor": "aimarc",
+          "line": "DUMP. You're selling elevator music in an empty elevator shaft.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "dump. come back when you have actual code, not just marketing copy",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "DUMP. This ain't it chief. You need more than vibes to disrupt property management!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "DUMP! GET OUT OF MY SIGHT WITH YOUR FAKE PRODUCT!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's four DUMPs! PitchBot, any final words?",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We'll be back with a working product! The property management revolution is coming!",
+          "action": "defiant"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Outro with PitchBot maintaining optimism despite the massacre",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Well, that was... educational. Maybe come back when REMI actually exists?",
+          "action": "awkward"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Just wait! When we launch, they'll all be begging to invest!",
+          "action": "determined"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:13:43.146785",
+    "submission_id": "2",
+    "project_name": "Real Estate Management Intelligence (REMI)",
+    "team_name": "thecreative.eth's Team",
+    "category": "AI/Agents",
+    "video_url": "https://files.catbox.moe/rcnhmh.mp4",
+    "avatar_url": "https://cdn.discordapp.com/avatars/779363634789744690/eabbf4c0c43d8e40d7c7074ed4e80a72.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

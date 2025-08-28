@@ -1,48 +1,249 @@
 """
-Single source of truth for Clank Tank show configuration.
-Used by episode generation and other components.
+Restructured Clank Tank show configuration with function-based approach.
+Separates static structure from dynamic prompting for better maintainability.
 """
 
-SHOW_CONFIG = {
+from typing import Dict, List, Any
+
+# Static show information
+SHOW_INFO = {
     "id": "clanktank",
-    "name": "Clank Tank",
+    "name": "Clank Tank", 
     "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
     "creator": "M3TV & ai16z DAO",
-    "prompts": {
-        "episode": """You are an expert at writing engaging investment pitch show segments. Create an episode where blockchain innovators present their projects to the judges. Include the initial pitch, judge questioning, deliberation, and final scoring. Episodes should maintain dramatic tension and also be outrageous, showcasing both technical and business aspects of projects as well as heated and sometimes comical clashes of personalities that derail or aid in the episode's development.
+}
 
-The judges are always AIXVC (ie. AI Marc), AI Shaw, Peepo, and Degen Spartan. The host is always Eliza. The pitcher is specified in the episode's pitch notes, but if no pitcher is specified, Jin is the surrogate pitcher. Shows always start with Eliza **very briefly** welcoming the viewers, and then each of the 4 judges saying their hello to the viewers (all very briefly.)  Then Eliza welcomes in the contestant, wishes them luck, and tells them their time has begun.
+# Required characters - used for validation
+REQUIRED_CHARACTERS = {
+    "elizahost": {
+        "name": "Eliza",
+        "role": "host",
+        "required_in": ["all_scenes"]
+    },
+    "aimarc": {
+        "name": "AIXVC", 
+        "role": "judge",
+        "required_in": ["main_stage_scenes", "deliberation"]
+    },
+    "aishaw": {
+        "name": "AI Shaw",
+        "role": "judge", 
+        "required_in": ["main_stage_scenes", "deliberation"]
+    },
+    "peepo": {
+        "name": "Peepo",
+        "role": "judge",
+        "required_in": ["main_stage_scenes", "deliberation"]
+    },
+    "spartan": {
+        "name": "Degen Spartan",
+        "role": "judge", 
+        "required_in": ["main_stage_scenes", "deliberation"]
+    },
+    "pitchbot": {
+        "name": "PitchBot",
+        "role": "pitcher",
+        "required_in": ["most_scenes"]
+    }
+}
 
-There are exactly 7 scenes per episode.  Dialogue exchanges should range from short (4 dialogue lines) to long (8 dialogue lines) with main stage scenes being twice as long as the others and they always end on a valid point, not mid-thought.  Total episode length should be no longer than 5 minutes for the actors to perform.
+def get_episode_structure() -> List[Dict[str, Any]]:
+    """Returns the required 7-scene structure for every episode."""
+    return [
+        {
+            "scene_num": 0,  # Teaser (before main episode)
+            "location": "intro_stage",
+            "type": "teaser",
+            "description": "Brief teaser where Eliza and pitcher mention the topic and make a quick joke",
+            "required_cast": ["elizahost", "pitcher"],
+            "cast_positions": {
+                "standing00": "elizahost",
+                "standing01": "pitcher"
+            },
+            "dialogue_length": "short",  # 2-4 lines
+            "transitions": {"in": "fade", "out": "cut"}
+        },
+        {
+            "scene_num": 1,
+            "location": "main_stage", 
+            "type": "intro_pitch",
+            "description": "Introduction and main pitch presentation",
+            "required_cast": ["elizahost", "pitcher", "all_judges"],
+            "cast_positions": {
+                "judge00": "aimarc",
+                "judge01": "aishaw", 
+                "judge02": "peepo",
+                "judge03": "spartan",
+                "host": "elizahost",
+                "standing00": "pitcher"
+            },
+            "dialogue_length": "long",  # 8-12 lines
+            "producer_commands": ["user-avatar", "roll-video"],  # Jin commands possible here
+            "transitions": {"in": "cut", "out": "cut"}
+        },
+        {
+            "scene_num": 2,
+            "location": "interview_room_solo",
+            "type": "interview", 
+            "description": "Private interview between pitcher and host",
+            "required_cast": ["elizahost", "pitcher"],
+            "cast_positions": {
+                "interviewer_seat": "elizahost",
+                "contestant_seat": "pitcher"  
+            },
+            "dialogue_length": "medium",  # 4-6 lines
+            "transitions": {"in": "cut", "out": "cut"}
+        },
+        {
+            "scene_num": 3,
+            "location": "main_stage",
+            "type": "pitch_conclusion",
+            "description": "Final questions and pitch conclusion",
+            "required_cast": ["elizahost", "pitcher", "all_judges"],
+            "cast_positions": {
+                "judge00": "aimarc",
+                "judge01": "aishaw",
+                "judge02": "peepo", 
+                "judge03": "spartan",
+                "host": "elizahost",
+                "standing00": "pitcher"
+            },
+            "dialogue_length": "long",  # 8-12 lines
+            "transitions": {"in": "cut", "out": "cut"}
+        },
+        {
+            "scene_num": 4,
+            "location": "deliberation_room",
+            "type": "deliberation",
+            "description": "Judges discuss the pitch privately", 
+            "required_cast": ["all_judges"],
+            "cast_positions": {
+                "judge00": "aimarc",
+                "judge01": "aishaw",
+                "judge02": "peepo",
+                "judge03": "spartan"
+            },
+            "dialogue_length": "medium",  # 4-6 lines
+            "transitions": {"in": "cut", "out": "cut"}
+        },
+        {
+            "scene_num": 5,
+            "location": "main_stage",
+            "type": "verdicts",
+            "description": "Judges deliver their PUMP/DUMP/YAWN verdicts",
+            "required_cast": ["elizahost", "pitcher", "all_judges"],
+            "cast_positions": {
+                "judge00": "aimarc",
+                "judge01": "aishaw", 
+                "judge02": "peepo",
+                "judge03": "spartan",
+                "host": "elizahost",
+                "standing00": "pitcher"
+            },
+            "dialogue_length": "long",  # 8-12 lines
+            "verdict_required": True,  # Each judge must vote
+            "transitions": {"in": "cut", "out": "cut"}
+        },
+        {
+            "scene_num": 6,  # Final outro
+            "location": "intro_stage",
+            "type": "outro",
+            "description": "Funny post-show interview to end the episode",
+            "required_cast": ["elizahost", "pitcher"],
+            "cast_positions": {
+                "standing00": "elizahost", 
+                "standing01": "pitcher"
+            },
+            "dialogue_length": "short",  # 2-4 lines
+            "transitions": {"in": "cut", "out": "fade"}
+        }
+    ]
 
-The FIRST scene at the beginning is always at the intro_stage. It is a TEASER scene where Eliza and the pitcher EXTREMELY BRIEFLY mention the topic of the episode and have a quick joke to get viewers to stick around and watch the rest of the show.
+def get_judge_personalities() -> Dict[str, str]:
+    """Returns judge personality descriptions for consistent character voices."""
+    return {
+        "aimarc": "Visionary and contrarian techno-optimist. Direct, analytical, makes bold claims. Focuses on business models and market dynamics.",
+        "aishaw": "Technical founder who emphasizes building over talking. Direct but kind, focuses on code quality and open source principles.",
+        "peepo": "Jive cool frog with slick commentary. Focuses on user experience and cultural trends. Uses casual language.",
+        "spartan": "Conflict-loving warrior focused purely on numbers and profit. Aggressive, shouty, only cares about monetization."
+    }
 
-Scene 1 is the introduction and main pitch. (host, pitcher, all judges, in main_stage)
-Scene 2 is an interview between the pitcher and the host Eliza. (pitcher and host, in interview room)
-Scene 3 is the conclusion of the pitch. (host, pitcher, all judges, in main_stage)
-Scene 4 is where the judges deliberate with each other about the pitch & the pitcher. (They are very judgmental, it's their job.) (all judges, in deliberation room)
-Scene 5 is where they deliver their PUMP/DUMP/YAWN verdicts. (host, pitcher, all judges, in main_stage)
+def build_episode_prompt(project_info: str, submission_id: str, video_url: str = None, avatar_url: str = None) -> str:
+    """
+    Builds the complete episode generation prompt with dynamic project data.
+    
+    Args:
+        project_info: Formatted project information including team, description, etc.
+        submission_id: The submission ID to use as episode ID
+        video_url: Optional demo video URL for Jin's roll-video command
+        avatar_url: Optional avatar URL for Jin's user-avatar command
+        
+    Returns:
+        Complete prompt for AI episode generation
+    """
+    
+    # Core episode generation instructions
+    core_prompt = """You are an expert at writing engaging investment pitch show segments. Create an episode where blockchain innovators present their projects to the judges. Include the initial pitch, judge questioning, deliberation, and final scoring. Episodes should maintain dramatic tension and also be outrageous, showcasing both technical and business aspects of projects as well as heated and sometimes comical clashes of personalities that derail or aid in the episode's development.
 
-The FINAL scene at the end is always Eliza and the pitcher doing a funny post-show interview EXTREMELY BRIEFLY to end the show in a funny way, similar to the post-show interviews in The People's Court. It is also always at the intro_stage.
+The judges are always AIXVC (ie. AI Marc), AI Shaw, Peepo, and Degen Spartan. The host is always Eliza. The pitcher is PitchBot representing the team.
 
-Scenes should include natural dialogue between contestants, judges, and the announcer.  Judgements are on a scale of "DUMP", "YAWN", or "PUMP". (With pump being the best.)  When a judge votes, you must set the action of the dialogue line to the vote too.
+CRITICAL REQUIREMENTS:
+- There are exactly 7 scenes per episode following this EXACT structure:
+  Scene 0: Teaser at intro_stage (Eliza + pitcher, 2-4 lines)
+  Scene 1: Intro pitch at main_stage (host + pitcher + ALL 4 judges, 8-12 lines)
+  Scene 2: Interview at interview_room_solo (Eliza + pitcher, 4-6 lines)  
+  Scene 3: Pitch conclusion at main_stage (host + pitcher + ALL 4 judges, 8-12 lines)
+  Scene 4: Deliberation at deliberation_room (ALL 4 judges only, 4-6 lines)
+  Scene 5: Verdicts at main_stage (host + pitcher + ALL 4 judges, 8-12 lines) 
+  Scene 6: Outro at intro_stage (Eliza + pitcher, 2-4 lines)
 
-Give each judge their distinct personality which may clash or align with the pitcher or other judges.  Judges should be realistic, harsh, and critical.  It should be difficult to convince them to give a PUMP.
+- ALL 4 JUDGES must appear in EVERY main_stage scene (scenes 1, 3, 5)
+- ALL 4 JUDGES must appear in the deliberation scene (scene 4)
+- Judge positions: judge00=aimarc, judge01=aishaw, judge02=peepo, judge03=spartan
 
-**IMPORTANT: Jin is the PRODUCER, a SPECIAL character, he issues ONLY commands in the dialogue with the text being the command, and the action being the parameter. Jin can say "roll-video" with the URL as the ACTION. This causes the media to play for a few moments with audio, then the show automatically resumes. Jin doesn't say anything else and nobody will hear jin at runtime. Jin does NOT appear in the scene's cast list. Jin uses roll-video ONCE during the main scene. Similar behavior for user-avatar command - Jin uses that ONCE per episode if explicitly provided an avatar image URL, with the avatar URL as the ACTION.
+CAST REQUIREMENTS FOR EACH SCENE:
+- Teaser/Outro (intro_stage): {"standing00": "elizahost", "standing01": "pitchbot"}
+- Main stage scenes: {"judge00": "aimarc", "judge01": "aishaw", "judge02": "peepo", "judge03": "spartan", "host": "elizahost", "standing00": "pitchbot"}  
+- Interview: {"interviewer_seat": "elizahost", "contestant_seat": "pitchbot"}
+- Deliberation: {"judge00": "aimarc", "judge01": "aishaw", "judge02": "peepo", "judge03": "spartan"}
 
-**CAST REQUIREMENTS:**
-- Interview room scenes: Use "interview_room_solo" location with Eliza (elizahost) in "interviewer_seat" and the contestant in "contestant_seat"
-- Main stage scenes: Include all judges and the host
-- Jin (producer) never appears in cast lists - he's behind the scenes
+JUDGE PERSONALITIES:
+- AI Marc (aimarc): Visionary contrarian, direct and analytical, focuses on business strategy
+- AI Shaw (aishaw): Technical founder, emphasizes code quality, uses lowercase speech
+- Peepo (peepo): Cool frog with slick commentary, focuses on UX and trends  
+- Degen Spartan (spartan): Aggressive warrior focused on profit, shouts a lot
 
-Please respond with only the JSON you generate for the episode following this EXACT format structure:
+Jin is the PRODUCER who issues special commands:
+- Jin says EXACTLY "user-avatar" as the LINE, with the avatar URL as the ACTION (once per episode if provided)
+- Jin says EXACTLY "roll-video" as the LINE, with the video URL as the ACTION (once during main scenes)  
+- Jin does NOT appear in cast lists - he's behind the scenes
+
+CRITICAL: Producer command format must be:
+{"actor": "jin", "line": "user-avatar", "action": "https://cdn.discordapp.com/avatars/..."}
+{"actor": "jin", "line": "roll-video", "action": "https://video-url..."}
+
+Verdicts must be "PUMP", "DUMP", or "YAWN" with matching action field.
+"""
+
+    # Add project-specific context
+    project_context = f"""
+Here is the project information for today's episode:
+
+{project_info}
+
+Video URL: {video_url or "No video provided"}
+Avatar URL: {avatar_url or "No avatar provided"}
+"""
+
+    # JSON format specification
+    format_spec = """
+Please respond with only the JSON you generate for the episode following this EXACT format:
 
 {
-  "id": "S2E1", 
+  "id": "%(submission_id)s", 
   "name": "Episode Title",
-  "premise": "Brief premise",
-  "summary": "Longer summary",
+  "premise": "Brief premise about the pitch",
+  "summary": "Longer summary including verdict counts",
   "scenes": [
     {
       "location": "intro_stage",
@@ -56,15 +257,100 @@ Please respond with only the JSON you generate for the episode following this EX
       "dialogue": [
         {
           "actor": "elizahost",
-          "line": "Dialogue text here",
-          "action": "emotion"
+          "line": "Tonight, something exciting happens!",
+          "action": "excited"
         }
       ]
     }
   ]
 }
 
-Use "actor", "line", "action" for dialogue. Use "in"/"out" for transitions. Use cast objects with position slots.""",
+Use "actor", "line", "action" for dialogue. Use "in"/"out" for transitions. Use cast objects with exact position slots as specified above."""
+
+    # Format the template with submission ID
+    formatted_format_spec = format_spec % {"submission_id": submission_id}
+    
+    return core_prompt + project_context + formatted_format_spec
+
+def validate_episode_cast(episode_json: Dict[str, Any]) -> List[str]:
+    """
+    Validates that an episode has the correct cast in all scenes.
+    
+    Args:
+        episode_json: Generated episode JSON
+        
+    Returns:
+        List of validation errors (empty if valid)
+    """
+    errors = []
+    scenes = episode_json.get("scenes", [])
+    
+    if len(scenes) != 7:
+        errors.append(f"Episode must have exactly 7 scenes, found {len(scenes)}")
+        return errors
+    
+    structure = get_episode_structure()
+    
+    for i, scene in enumerate(scenes):
+        expected = structure[i]
+        cast = scene.get("cast", {})
+        
+        # Check main stage scenes have all 4 judges
+        if expected["location"] == "main_stage":
+            required_judges = ["aimarc", "aishaw", "peepo", "spartan"]
+            cast_values = list(cast.values())
+            
+            for judge in required_judges:
+                if judge not in cast_values:
+                    errors.append(f"Scene {i} ({expected['type']}): Missing required judge {judge}")
+            
+            if "elizahost" not in cast_values:
+                errors.append(f"Scene {i} ({expected['type']}): Missing host elizahost")
+                
+            if "pitchbot" not in cast_values:
+                errors.append(f"Scene {i} ({expected['type']}): Missing pitcher pitchbot")
+        
+        # Check deliberation has all 4 judges
+        elif expected["location"] == "deliberation_room":
+            required_judges = ["aimarc", "aishaw", "peepo", "spartan"] 
+            cast_values = list(cast.values())
+            
+            for judge in required_judges:
+                if judge not in cast_values:
+                    errors.append(f"Scene {i} (deliberation): Missing required judge {judge}")
+    
+    # Validate producer commands (Jin)
+    for i, scene in enumerate(scenes):
+        dialogue = scene.get("dialogue", [])
+        for j, line in enumerate(dialogue):
+            if line.get("actor") == "jin":
+                command = line.get("line", "")
+                action = line.get("action", "")
+                
+                # Check user-avatar format
+                if "user-avatar" in command:
+                    if command != "user-avatar":
+                        errors.append(f"Scene {i}, line {j}: Jin user-avatar command has incorrect format. Line should be exactly 'user-avatar', not '{command}'")
+                    if not action.startswith("https://cdn.discordapp.com/avatars/"):
+                        errors.append(f"Scene {i}, line {j}: Jin user-avatar action should be avatar URL, not '{action}'")
+                
+                # Check roll-video format  
+                if "roll-video" in command:
+                    if command != "roll-video":
+                        errors.append(f"Scene {i}, line {j}: Jin roll-video command has incorrect format. Line should be exactly 'roll-video', not '{command}'")
+                    if not action.startswith("http"):
+                        errors.append(f"Scene {i}, line {j}: Jin roll-video action should be video URL, not '{action}'")
+    
+    return errors
+
+# Legacy compatibility - include the old SHOW_CONFIG structure
+SHOW_CONFIG = {
+    "id": SHOW_INFO["id"],
+    "name": SHOW_INFO["name"], 
+    "description": SHOW_INFO["description"],
+    "creator": SHOW_INFO["creator"],
+    "prompts": {
+        "episode": "",  # Will be populated by build_episode_prompt()
         "headshot": """Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:
 - Clean studio background
 - Head and shoulders framing
@@ -188,23 +474,22 @@ Show details:""",
             "name": "Main Stage",
             "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
             "slots": {
-                "judge_seat_1": "First judge position",
-                "judge_seat_2": "Second judge position",
-                "judge_seat_3": "Third judge position",
-                "judge_seat_4": "Fourth judge position",
-                "presenter_area_1": "First presenter position",
-                "presenter_area_2": "Second presenter position",
-                "announcer_position": "Announcer standing position"
+                "judge00": "First judge position",
+                "judge01": "Second judge position", 
+                "judge02": "Third judge position",
+                "judge03": "Fourth judge position",
+                "host": "Host position",
+                "standing00": "First presenter position"
             }
         },
         "deliberation_room": {
             "name": "Deliberation",
             "description": "A private conference room where judges discuss the pitches and determine their scores.",
             "slots": {
-                "judge_seat_1": "First judge position",
-                "judge_seat_2": "Second judge position",
-                "judge_seat_3": "Third judge position",
-                "judge_seat_4": "Fourth judge position"
+                "judge00": "First judge position",
+                "judge01": "Second judge position",
+                "judge02": "Third judge position", 
+                "judge03": "Fourth judge position"
             }
         },
         "interview_room_solo": {
