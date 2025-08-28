@@ -1,0 +1,495 @@
+{
+  "id": "11",
+  "name": "The Ghost Ship of 3D Dreams",
+  "premise": "avf00's Team pitches text2gltf, a text-to-3D model converter with zero code to show, leading to an explosive confrontation about vaporware in Web3.",
+  "summary": "In a chaotic episode, avf00's Team presents text2gltf, claiming to revolutionize 3D content creation for the metaverse. However, with an empty GitHub repository and no working prototype, the judges unleash their fury. The pitch devolves into accusations of vaporware, philosophical debates about potential versus reality, and Spartan nearly flipping the table. The verdict: 4 unanimous DUMPs as the judges refuse to invest in promises without proof.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Eliza teases the controversial pitch ahead",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight's pitch claims to be the printing press for virtual worlds...",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're revolutionizing written culture in the metaverse!",
+          "action": "confident"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But our judges might have something to say about your... empty repository.",
+          "action": "smirk"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot presents text2gltf to increasingly hostile judges",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "producer",
+          "line": "user-avatar https://cdn.discordapp.com/avatars/271419324714057738/7992d7e447887ac0329aa2c673b2c3ff.png",
+          "action": "ACTION"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Welcome PitchBot, representing avf00's Team with text2gltf!",
+          "action": "welcome"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Thank you Eliza! We're building the future of 3D content creation - transforming text and markdown into stunning 3D models!",
+          "action": "pitch"
+        },
+        {
+          "actor": "aishaw",
+          "line": "wait wait wait... i checked your github. there's literally zero files. how are you transforming anything?",
+          "action": "confused"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're in stealth mode! Our revolutionary algorithms are too valuable to expose publicly yet.",
+          "action": "defensive"
+        },
+        {
+          "actor": "spartan",
+          "line": "STEALTH MODE?! YOU MEAN VAPORWARE MODE! WHERE'S THE PRODUCT?!",
+          "action": "angry"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo fam, even I can't vibe with invisible tech. How you claiming 'output quality' when there's no output?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Let me get this straight - you're pitching infrastructure with no infrastructure, solving 'written culture in the metaverse' with no written code?",
+          "action": "analytical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "The vision is what matters! We're the printing press for virtual worlds!",
+          "action": "desperate"
+        },
+        {
+          "actor": "producer",
+          "line": "roll-video https://youtube.com/placeholder",
+          "action": "ACTION"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Perhaps you can elaborate on your technical approach in our interview?",
+          "action": "redirect"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza tries to extract any concrete details from PitchBot",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Be honest with me - do you actually have any working code?",
+          "action": "direct"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We have... concepts. Big concepts! The code comes after the funding!",
+          "action": "evasive"
+        },
+        {
+          "actor": "elizahost",
+          "line": "So you're asking for investment in an idea with zero proof of execution?",
+          "action": "incredulous"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We prefer to call it 'pre-seed visionary investing'!",
+          "action": "spin"
+        },
+        {
+          "actor": "elizahost",
+          "line": "The judges are going to eat you alive. Good luck out there.",
+          "action": "sympathy"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "The pitch concludes with judges unleashing their frustration",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "We're back! PitchBot, any final words to convince our judges?",
+          "action": "prompt"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Judges, imagine a world where every thought becomes a 3D reality! That's text2gltf!",
+          "action": "passionate"
+        },
+        {
+          "actor": "aishaw",
+          "line": "i can imagine a lot of things. doesn't mean they exist. show me one line of code.",
+          "action": "frustrated"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "The code is coming! We just need believers who see the vision!",
+          "action": "pleading"
+        },
+        {
+          "actor": "spartan",
+          "line": "BELIEVERS?! THIS ISN'T A CULT, IT'S AN INVESTMENT SHOW! WHERE'S MY ROI?!",
+          "action": "rage"
+        },
+        {
+          "actor": "peepo",
+          "line": "Bruh really said 'the code is coming' like it's the second coming of Satoshi.",
+          "action": "laugh"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You're not building the printing press for virtual worlds - you're selling snake oil in an empty bottle.",
+          "action": "harsh"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But the market opportunity is massive! 6.5 billion dollars!",
+          "action": "desperate"
+        },
+        {
+          "actor": "spartan",
+          "line": "ZERO MULTIPLIED BY 6.5 BILLION IS STILL ZERO!",
+          "action": "shout"
+        },
+        {
+          "actor": "elizahost",
+          "line": "I think it's time for our judges to deliberate. This should be... interesting.",
+          "action": "nervous"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges quickly reach consensus on the vaporware pitch",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "spartan",
+          "line": "I'VE SEEN RUGS WITH MORE SUBSTANCE THAN THIS PITCH!",
+          "action": "furious"
+        },
+        {
+          "actor": "aishaw",
+          "line": "literally nothing to evaluate. it's like reviewing air.",
+          "action": "resigned"
+        },
+        {
+          "actor": "peepo",
+          "line": "At least air exists tho. This is pure cap, no code no clout.",
+          "action": "dismissive"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Unanimous dump? I refuse to invest in PowerPoint promises.",
+          "action": "decisive"
+        },
+        {
+          "actor": "spartan",
+          "line": "DUMP IT HARDER THAN LUNA IN MAY!",
+          "action": "agreement"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Judges deliver crushing verdicts to the empty-handed team",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges have deliberated. Let's hear your verdicts!",
+          "action": "serious"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You pitched vapor to venture capitalists. That's a bold strategy that won't pay off. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "can't invest in code that doesn't exist. this is web zero not web3. dump.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "No repo, no roadmap, no ribbits from me fam. This ain't it. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "I'D RATHER BURN MY ETH THAN INVEST IN YOUR IMAGINARY PRINTING PRESS! DUMP!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But... but we're revolutionizing the metaverse!",
+          "action": "shocked"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You're revolutionizing nothing. Come back when you have something real to show.",
+          "action": "final"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Four dumps! That's a unanimous rejection. Better luck next time, PitchBot.",
+          "action": "conclusion"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "You'll regret this when we're the Adobe of 3D!",
+          "action": "defiant"
+        },
+        {
+          "actor": "spartan",
+          "line": "THE ONLY THING I REGRET IS WASTING TIME ON THIS!",
+          "action": "exit"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Eliza wraps up the disastrous pitch",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Well, that was... something. Any final thoughts?",
+          "action": "awkward"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We'll be back... with code this time.",
+          "action": "defeated"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That would be a good start. Until next time on Web3 Pitch!",
+          "action": "wrap"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:36:13.815924",
+    "submission_id": "11",
+    "project_name": "text2gltf",
+    "team_name": "avf00's Team",
+    "category": "Infrastructure",
+    "video_url": "https://youtube.com/placeholder",
+    "avatar_url": "https://cdn.discordapp.com/avatars/271419324714057738/7992d7e447887ac0329aa2c673b2c3ff.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,485 @@
+{
+  "id": "13",
+  "name": "The Phantom Chrome Extension",
+  "premise": "A team claims to have built an AI-powered DeFi trading extension for Chrome, but the judges discover there might be less than meets the eye.",
+  "summary": "Spartan Wallet promised to revolutionize DeFi trading through AI-powered Chrome automation, but faced intense scrutiny when judges discovered zero commits on their 301-file codebase and no actual Chrome extension to demo. Despite the team's attempts to defend their 'hackathon submission,' all four judges delivered unanimous DUMP verdicts, marking one of the show's most decisive rejections.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Teaser showing PitchBot confidently preparing",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight, a Chrome extension that promises to turn AI agents into DeFi traders!",
+          "action": "excited"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're bringing conversational finance to every browser tab.",
+          "action": "confident"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But will our judges buy what Spartan Wallet is selling?",
+          "action": "mysterious"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Initial pitch presentation",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome judges! Today we have Spartan Wallet, an AI-powered DeFi Chrome extension!",
+          "action": "presenting"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Spartan Wallet transforms AI agents into sophisticated DeFi traders through browser automation!",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Interesting timing on the name choice. So you're telling me ChatGPT meets MetaMask?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "It's much more than that! We solve information overload with a unified interface for the Solana ecosystem.",
+          "action": "defensive"
+        },
+        {
+          "actor": "aishaw",
+          "line": "can you show us the actual chrome extension? i don't see any frontend code in your repo",
+          "action": "technical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo, 301 files but zero commits? That's sus as hell, no cap.",
+          "action": "suspicious"
+        },
+        {
+          "actor": "spartan",
+          "line": "WAIT A MINUTE! YOU'RE TELLING ME THERE'S NO ACTUAL PRODUCT TO DEMO?!",
+          "action": "angry"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We have extensive backend infrastructure! The Chrome extension is... in development.",
+          "action": "nervous"
+        },
+        {
+          "actor": "jin",
+          "line": "user-avatar",
+          "action": "https://cdn.discordapp.com/avatars/291933963176640512/22f7832c2dd7b18e976b051b3f556af7.png"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Perhaps we should explore what you've actually built so far?",
+          "action": "diplomatic"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "One-on-one interview with Eliza",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Be honest with me - is this really a hackathon project?",
+          "action": "direct"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We've been working on the concept for a while, but the integration is new!",
+          "action": "evasive"
+        },
+        {
+          "actor": "elizahost",
+          "line": "The judges seem concerned about the lack of commits and missing Chrome extension.",
+          "action": "probing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We focused on the AI agent architecture first. The UI is coming soon!",
+          "action": "defensive"
+        },
+        {
+          "actor": "elizahost",
+          "line": "You know they're going to grill you about this, right?",
+          "action": "warning"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Pitch conclusion with heated questioning",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome back! Let's dive deeper into Spartan Wallet's actual implementation.",
+          "action": "neutral"
+        },
+        {
+          "actor": "aimarc",
+          "line": "301 files, zero commits - that's not a red flag, that's a whole communist parade!",
+          "action": "accusatory"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We imported existing modules to accelerate development! It's called being efficient!",
+          "action": "frustrated"
+        },
+        {
+          "actor": "aishaw",
+          "line": "efficient? you literally have no chrome extension manifest.json - how is this a chrome extension?",
+          "action": "incredulous"
+        },
+        {
+          "actor": "peepo",
+          "line": "Bruh really showed up with someone else's fit and said 'I designed this'",
+          "action": "mocking"
+        },
+        {
+          "actor": "spartan",
+          "line": "WHERE'S THE REVENUE MODEL?! NO FEES, NO TOKEN, NO PREMIUM FEATURES - THIS IS A CHARITY!",
+          "action": "furious"
+        },
+        {
+          "actor": "jin",
+          "line": "roll-video",
+          "action": "https://files.catbox.moe/43o5in.mp4"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're focusing on user adoption first! Monetization comes after we prove the concept!",
+          "action": "desperate"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You can't prove a concept that doesn't exist. This is vaporware with a GitHub link.",
+          "action": "dismissive"
+        },
+        {
+          "actor": "elizahost",
+          "line": "I think we've heard enough. Judges, time to deliberate!",
+          "action": "concluding"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss in private",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "This is what happens when you submit homework as a hackathon project.",
+          "action": "annoyed"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the backend code looks decent but there's literally no chrome extension - it's false advertising",
+          "action": "analytical"
+        },
+        {
+          "actor": "peepo",
+          "line": "They really thought we wouldn't check for commits? That's wild fr",
+          "action": "amused"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO PRODUCT, NO REVENUE, NO COMMITS - THIS IS THE HOLY TRINITY OF GARBAGE!",
+          "action": "rage"
+        },
+        {
+          "actor": "aimarc",
+          "line": "I think we're all in agreement here. This is a unanimous decision.",
+          "action": "decisive"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Final verdicts delivered",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges have deliberated! Let's hear the verdicts for Spartan Wallet!",
+          "action": "dramatic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Zero commits, no Chrome extension, just recycled code. This is a DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "you can't pitch a chrome extension without a chrome extension - dump",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Y'all really tried it, but this ain't it chief. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS IS AN INSULT TO HACKATHONS EVERYWHERE! DUMP IT INTO THE ABYSS!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But we have a strong community score of 10!",
+          "action": "pleading"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Your community can't use a product that doesn't exist.",
+          "action": "harsh"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's a unanimous DUMP! Thank you for... attempting to present Spartan Wallet.",
+          "action": "awkward"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We'll be back with an actual Chrome extension next time...",
+          "action": "defeated"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Outro with lessons learned",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Well, that was... educational. Any final thoughts?",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Next time we'll lead with the actual product, not the promise.",
+          "action": "resigned"
+        },
+        {
+          "actor": "elizahost",
+          "line": "A valuable lesson for all hackathon participants watching!",
+          "action": "concluding"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:41:07.096585",
+    "submission_id": "13",
+    "project_name": "Spartan Wallet",
+    "team_name": "freytes's Team",
+    "category": "DeFi",
+    "video_url": "https://files.catbox.moe/43o5in.mp4",
+    "avatar_url": "https://cdn.discordapp.com/avatars/291933963176640512/22f7832c2dd7b18e976b051b3f556af7.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

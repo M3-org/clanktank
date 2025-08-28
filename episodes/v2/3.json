@@ -1,0 +1,470 @@
+{
+  "id": "3",
+  "name": "Refraktor: When Physics Meets Music",
+  "premise": "A creative technologist pitches an experimental 3D audio-visual synthesizer that uses light refraction physics to generate music, sparking heated debate about art versus profit in blockchain.",
+  "summary": "PitchBot presents Refraktor, a groundbreaking web-based synthesizer that combines cymatics, light physics, and sound generation. While the judges are impressed by the technical innovation, they clash over its commercial viability. The episode features a dramatic mid-pitch video demonstration and ends with a split decision: 2 PUMPs from the tech-focused judges, 1 YAWN from Peepo, and 1 aggressive DUMP from profit-obsessed Spartan.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Teaser showing PitchBot excited about their physics-based music creation tool",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight, we're bending light to make beats!",
+          "action": "excited"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "INITIALIZING REFRAKTOR.EXE - WHERE SNELL'S LAW MEETS SYNTHESIZERS!",
+          "action": "energetic"
+        },
+        {
+          "actor": "jin",
+          "line": "user-avatar",
+          "action": "https://cdn.discordapp.com/avatars/974468415756578866/4a86b53ac37174d0ea1cc600151a1e5e.png"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot introduces Refraktor while judges react with mixed enthusiasm",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome back! PitchBot, tell us about Refraktor!",
+          "action": "welcoming"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "GREETINGS JUDGES! REFRAKTOR TRANSFORMS LIGHT INTO SOUND USING 3D PHYSICS!",
+          "action": "presenting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Cymatics meets WebAudio? This is exactly the kind of weird intersection that births new categories!",
+          "action": "intrigued"
+        },
+        {
+          "actor": "aishaw",
+          "line": "wait, you're using snell's law calculations for music generation? that's actually brilliant",
+          "action": "impressed"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo this light-to-beats concept is galaxy brain stuff, but who's actually gonna use this?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "spartan",
+          "line": "WHERE'S THE TOKEN?! WHERE'S THE YIELD?! THIS IS JUST FANCY LIGHTS!",
+          "action": "angry"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "COMPUTING RESPONSE... WE SOLVE THE CREATIVE NEED FOR NEW SOUND GENERATION METHODS!",
+          "action": "defensive"
+        },
+        {
+          "actor": "aimarc",
+          "line": "But I noticed all your commits happened in a single day. Care to explain?",
+          "action": "questioning"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "RAPID PROTOTYPING PROTOCOL ENGAGED! SOMETIMES INSPIRATION STRIKES ALL AT ONCE!",
+          "action": "enthusiastic"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza probes deeper into the artistic vision behind Refraktor",
+      "in": "fade",
+      "out": "fade",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "So you're using refraction and light beams to guide music creation?",
+          "action": "curious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "AFFIRMATIVE! SIMULATED LIGHT BEAMS HIT MUSIC PADS THROUGH DEFORMED LENSES!",
+          "action": "explaining"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's fascinating! But Spartan seems concerned about monetization...",
+          "action": "probing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "ERROR: PROFIT.EXE NOT FOUND. PRIMARY DIRECTIVE IS CREATIVE EXPRESSION!",
+          "action": "confused"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot demonstrates the live tool while judges debate art versus commerce",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Let's see Refraktor in action!",
+          "action": "excited"
+        },
+        {
+          "actor": "jin",
+          "line": "roll-video",
+          "action": "https://gm3.github.io/refraktor/"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "BEHOLD! DRAGGABLE PANELS, REAL-TIME SYNTHESIS, THREE.JS GLORY!",
+          "action": "demonstrating"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the module separation is *chef's kiss* - this is production-grade work",
+          "action": "appreciative"
+        },
+        {
+          "actor": "peepo",
+          "line": "It's giving 'too many buttons at the club' energy though, my non-techy friends would bounce",
+          "action": "concerned"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO WALLET INTEGRATION! NO DEFI! THIS IS A HOBBY PROJECT NOT A BUSINESS!",
+          "action": "furious"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Not everything needs a token, Spartan. Sometimes innovation comes from pure creativity.",
+          "action": "defending"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "MARKET SIZE: 10,000 POWER USERS WHO APPRECIATE PHYSICS-BASED SYNTHESIS!",
+          "action": "hopeful"
+        },
+        {
+          "actor": "spartan",
+          "line": "10,000?! MY PORTFOLIO LOSES THAT MANY DOLLARS PER MINUTE!",
+          "action": "mocking"
+        },
+        {
+          "actor": "aishaw",
+          "line": "but where are the tests? no documentation? that's concerning even for experimental tools",
+          "action": "worried"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges argue passionately about artistic merit versus commercial viability",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "This is exactly the kind of boundary-pushing project that creates new categories!",
+          "action": "passionate"
+        },
+        {
+          "actor": "spartan",
+          "line": "NEW CATEGORIES OF BANKRUPTCY! WHERE'S THE BUSINESS MODEL?!",
+          "action": "shouting"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the technical implementation is solid despite the rushed commits... i'm torn",
+          "action": "conflicted"
+        },
+        {
+          "actor": "peepo",
+          "line": "Look, it slaps for physics nerds but that's a small pond to fish in, fam",
+          "action": "realistic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Sometimes we need to fund art for art's sake. This could inspire the next generation!",
+          "action": "idealistic"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Judges deliver their verdicts with dramatic disagreement",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Time for verdicts! AI Marc, you're up first!",
+          "action": "announcing"
+        },
+        {
+          "actor": "aimarc",
+          "line": "This is the weird intersection where magic happens. Despite the TAM concerns, I'm going PUMP!",
+          "action": "PUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the code quality wins me over despite missing tests... reluctant pump",
+          "action": "PUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "It's fire for the creative coding homies but too niche for mainstream. YAWN from me",
+          "action": "YAWN"
+        },
+        {
+          "actor": "spartan",
+          "line": "CYMATICS DON'T PAY BILLS! NO TOKEN, NO YIELD, NO DEAL! DUMP IT TO ZERO!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "PROCESSING RESULTS... 50% APPROVAL RATING DETECTED! ARTISTIC VICTORY ACHIEVED!",
+          "action": "celebrating"
+        },
+        {
+          "actor": "elizahost",
+          "line": "A split decision! Two pumps, one yawn, one dump - Refraktor lives to bend light another day!",
+          "action": "summarizing"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS IS WHY I STICK TO DEFI! AT LEAST RUG PULLS ARE PROFITABLE!",
+          "action": "frustrated"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Keep building, PitchBot. The best projects start as toys for hackers.",
+          "action": "encouraging"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "PitchBot reflects on the mixed reception while Eliza wraps up",
+      "in": "fade",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "pitchbot",
+          "line": "MIXED SIGNALS RECEIVED... BUT CREATIVE MISSION CONTINUES!",
+          "action": "determined"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Sometimes art and commerce collide - thanks for bending reality with us tonight!",
+          "action": "closing"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:15:07.769813",
+    "submission_id": "3",
+    "project_name": "Refraktor: Music Synth",
+    "team_name": "godfreyart's Team",
+    "category": "Other",
+    "video_url": "https://gm3.github.io/refraktor/",
+    "avatar_url": "https://cdn.discordapp.com/avatars/974468415756578866/4a86b53ac37174d0ea1cc600151a1e5e.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

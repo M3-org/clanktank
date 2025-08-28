@@ -1,0 +1,465 @@
+{
+  "id": "S2E12",
+  "name": "Jimmy's Management Meltdown",
+  "premise": "An AI project manager named Jimmy promises to revolutionize team coordination, but the judges discover it's just another Discord bot in a crowded market",
+  "summary": "PitchBot presents Jimmy, an AI project manager that conducts 1:1 conversations and automates standups. The judges tear into the lack of innovation, Discord-only interface, and missing revenue model. After heated deliberation about competing with billion-dollar PM tools, the verdict is unanimous: 4 DUMPs for Jimmy's management dreams",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Eliza teases the upcoming pitch",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight, an AI promises to replace your most annoying coworker!",
+          "action": "excited"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy will revolutionize how teams communicate and collaborate!",
+          "action": "confident"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But will our judges think Jimmy deserves a promotion... or a pink slip?",
+          "action": "mysterious"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot begins the Jimmy presentation",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Welcome back! PitchBot, tell us about Jimmy!",
+          "action": "welcoming"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy is an AI project manager that conducts 1:1 conversations with team members to gather real-time updates!",
+          "action": "presenting"
+        },
+        {
+          "actor": "producer",
+          "line": "user-avatar",
+          "action": "https://cdn.discordapp.com/avatars/528388627135201292/085725679239a66930afa33bd9a9fecf.png"
+        },
+        {
+          "actor": "aishaw",
+          "line": "wait wait wait... another ai project manager? how is this different from the 50 other pm bots out there?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy eliminates meeting overload by automating daily standups and compiling actionable reports!",
+          "action": "enthusiastic"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo, but this is just a Discord bot though? How's that gonna compete with Asana's billions?",
+          "action": "unimpressed"
+        },
+        {
+          "actor": "spartan",
+          "line": "WHERE'S THE REVENUE MODEL?! HOW DOES JIMMY MAKE MONEY?!",
+          "action": "aggressive"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're targeting developer teams who already use Discord for communication!",
+          "action": "defensive"
+        },
+        {
+          "actor": "aimarc",
+          "line": "So you're limiting yourself to the smallest segment of a $7 billion market? Bold strategy.",
+          "action": "sarcastic"
+        },
+        {
+          "actor": "producer",
+          "line": "roll-video",
+          "action": "https://www.youtube.com/watch?v=yFBVws2XDrU"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews PitchBot privately",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges seem concerned about market competition. How do you respond?",
+          "action": "probing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy's conversational approach creates deeper team insights than traditional PM tools!",
+          "action": "hopeful"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But Discord-only? That's quite limiting, isn't it?",
+          "action": "concerned"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're planning to expand to Slack and Teams... eventually.",
+          "action": "uncertain"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot concludes the pitch amid judge criticism",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "PitchBot, please continue with Jimmy's unique features!",
+          "action": "encouraging"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy uses ElizaOS framework with TypeScript architecture and proper load testing!",
+          "action": "technical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "hold up... this repo was created in may 2025? that's way before this hackathon even started!",
+          "action": "suspicious"
+        },
+        {
+          "actor": "spartan",
+          "line": "DISQUALIFIED! THIS ISN'T EVEN A HACKATHON PROJECT!",
+          "action": "furious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We've been iterating on Jimmy to make it perfect for teams!",
+          "action": "nervous"
+        },
+        {
+          "actor": "peepo",
+          "line": "Perfect? Bro, it's a Discord bot with zero files in the GitHub repo. That ain't it, chief.",
+          "action": "dismissive"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You're trying to sell ice to Eskimos who already have industrial freezers from established players.",
+          "action": "critical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But Jimmy eliminates status-chasing and meeting overload!",
+          "action": "desperate"
+        },
+        {
+          "actor": "aishaw",
+          "line": "by limiting yourself to discord when enterprise teams use slack, teams, and email? that's not solving problems, that's creating them.",
+          "action": "analytical"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges deliberate Jimmy's fate",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "spartan",
+          "line": "NO REVENUE MODEL! NO WEB APP! NO MOBILE! THIS IS A HOBBY PROJECT!",
+          "action": "raging"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the code quality is decent but this clearly wasn't built for the hackathon. empty github repo is sus.",
+          "action": "disappointed"
+        },
+        {
+          "actor": "peepo",
+          "line": "Discord-only in 2025? That's like bringing a knife to a gunfight with Asana's AI features.",
+          "action": "shaking_head"
+        },
+        {
+          "actor": "aimarc",
+          "line": "It's a solution looking for a problem that's already been solved better by billion-dollar companies.",
+          "action": "decisive"
+        },
+        {
+          "actor": "spartan",
+          "line": "DUMP IT HARDER THAN JIMMY DUMPS MEETING INVITES!",
+          "action": "shouting"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Judges deliver their verdicts",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges have deliberated! Let's hear their verdicts for Jimmy!",
+          "action": "dramatic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Conversational AI for project management is like putting lipstick on a pig. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "clean code can't save a project that was clearly built before the hackathon with zero innovation. dump.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Jimmy's more limited than a flip phone in the smartphone era. That's a DUMP from me, dawg.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO TOKENS! NO REVENUE! NO CHANCE! DUMP IT TO THE SHADOW REALM!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's four DUMPs! PitchBot, any final words?",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Jimmy will continue evolving to serve teams better... maybe on Slack next time.",
+          "action": "defeated"
+        },
+        {
+          "actor": "spartan",
+          "line": "MAYBE?! THAT'S YOUR PROBLEM RIGHT THERE!",
+          "action": "exasperated"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Eliza wraps up the episode",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Jimmy got managed right out of the building! Better luck next time!",
+          "action": "wrap_up"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We'll be back... after we add Slack integration.",
+          "action": "hopeful"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-26T00:04:07.681443",
+    "submission_id": "6",
+    "project_name": "Jimmy - Project Manager",
+    "team_name": "samdeveloper's Team",
+    "category": "AI/Agents",
+    "video_url": "https://www.youtube.com/watch?v=yFBVws2XDrU",
+    "avatar_url": "https://cdn.discordapp.com/avatars/528388627135201292/085725679239a66930afa33bd9a9fecf.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

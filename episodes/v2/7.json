@@ -1,0 +1,485 @@
+{
+  "id": "7",
+  "name": "Testing the Testers",
+  "premise": "A developer presents Scenarios, a testing framework for ElizaOS agents, facing harsh criticism about whether infrastructure tooling belongs in an investment pitch show.",
+  "summary": "Reality Spiral's team pitched Scenarios, a YAML-based testing framework for ElizaOS agents. While the judges appreciated the technical implementation, they unanimously questioned why internal developer tooling was being pitched as an investable project. The episode featured heated exchanges about the difference between useful tools and venture-scale businesses, culminating in 4 DUMP verdicts as judges agreed this belonged in a GitHub repo, not a pitch deck.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Teaser showing PitchBot looking confident while Eliza hints at controversy",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight, a team brings... developer tools to an investment show?",
+          "action": "confused"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Testing is the foundation of trust in autonomous systems!",
+          "action": "confident"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Let's see if the judges trust YOUR pitch...",
+          "action": "skeptical"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Initial pitch presentation with immediate skepticism from judges",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Judges, please welcome Reality Spiral's team presenting Scenarios!",
+          "action": "presenting"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Thank you Eliza! We're revolutionizing how developers test ElizaOS agents with our YAML-based scenario testing framework!",
+          "action": "excited"
+        },
+        {
+          "actor": "spartan",
+          "line": "WAIT, DID YOU JUST SAY TESTING FRAMEWORK? WHERE'S THE TOKEN?!",
+          "action": "angry"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Scenarios enables reliable, repeatable testing in sandboxed environments, solving the critical trust problem in autonomous systems!",
+          "action": "explaining"
+        },
+        {
+          "actor": "aishaw",
+          "line": "so you built... unit tests? for someone else's framework?",
+          "action": "unimpressed"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo, this is like pitching a hammer to a VC - useful tool, wrong venue, my dude",
+          "action": "laughing"
+        },
+        {
+          "actor": "aimarc",
+          "line": "I'm seeing configuration files and CLI tools. Where's the business model?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "The business model comes from enabling trusted agent deployments at scale!",
+          "action": "defensive"
+        },
+        {
+          "actor": "spartan",
+          "line": "DEPLOYMENTS DON'T PAY DIVIDENDS! SHOW ME THE YIELD!",
+          "action": "shouting"
+        },
+        {
+          "actor": "jin",
+          "line": "roll-video",
+          "action": "https://drive.google.com/file/d/1-PDTFNQGeW0It5HSuH3Oi2hVPrWN1FmW/view?usp=sharing"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza tries to understand the business angle",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Help me understand - how does a testing framework become a business?",
+          "action": "curious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Testing infrastructure is critical! Look at companies like Datadog or New Relic!",
+          "action": "explaining"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But those monitor production systems, not test configurations...",
+          "action": "probing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're building the foundation for the next generation of AI agent reliability!",
+          "action": "passionate"
+        },
+        {
+          "actor": "elizahost",
+          "line": "The judges seem to think you're building a feature, not a company.",
+          "action": "concerned"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Pitch conclusion with judges pressing harder on monetization",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "We're back! PitchBot, the judges have concerns about your business model.",
+          "action": "neutral"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We plan to monetize through enterprise licenses and consulting services!",
+          "action": "confident"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You're describing a services company built around open-source tooling. That's not venture-scale.",
+          "action": "dismissive"
+        },
+        {
+          "actor": "aishaw",
+          "line": "plus your entire value prop depends on elizaos adoption - you're a feature, not a platform",
+          "action": "critical"
+        },
+        {
+          "actor": "peepo",
+          "line": "Real talk - this should be a PR to the main repo, not a pitch deck",
+          "action": "shaking_head"
+        },
+        {
+          "actor": "spartan",
+          "line": "WHERE'S THE LIQUIDITY?! YOU CAN'T TRADE YAML FILES!",
+          "action": "furious"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But every major tech company needs testing infrastructure!",
+          "action": "pleading"
+        },
+        {
+          "actor": "aimarc",
+          "line": "They build it internally or use established solutions. You're solving a problem that doesn't need a startup.",
+          "action": "explaining"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the code quality is decent but this isn't a business, it's a github contribution",
+          "action": "shrugging"
+        },
+        {
+          "actor": "spartan",
+          "line": "I CAME HERE FOR GAINS, NOT UNIT TESTS!",
+          "action": "rage"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges quickly agree this isn't investable",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "This is internal tooling masquerading as a business. Clear dump.",
+          "action": "decisive"
+        },
+        {
+          "actor": "aishaw",
+          "line": "agreed - useful for elizaos devs but zero standalone value",
+          "action": "nodding"
+        },
+        {
+          "actor": "peepo",
+          "line": "They confused 'helpful' with 'fundable' - classic developer mistake",
+          "action": "sighing"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO TOKEN, NO YIELD, NO DEAL! DUMP IT TO ZERO!",
+          "action": "pounding_table"
+        },
+        {
+          "actor": "aimarc",
+          "line": "At least we all agree for once.",
+          "action": "amused"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Verdicts delivered with unanimous dumps",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges have deliberated. Let's hear the verdicts for Scenarios!",
+          "action": "announcing"
+        },
+        {
+          "actor": "aimarc",
+          "line": "This is a feature, not a company. Infrastructure without a business model. DUMP.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "good code, wrong venue - submit a pr instead of a pitch deck. dump.",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Testing tools are dope but this ain't investable - DUMP, with respect",
+          "action": "DUMP"
+        },
+        {
+          "actor": "spartan",
+          "line": "YAML FILES DON'T MOON! NO TOKENS, NO GLORY! DUMP!",
+          "action": "DUMP"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "But... but testing is fundamental to software quality!",
+          "action": "shocked"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Quality doesn't equal equity value. You built a tool, not a business.",
+          "action": "explaining"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Four dumps! That's our first unanimous verdict this season!",
+          "action": "surprised"
+        },
+        {
+          "actor": "spartan",
+          "line": "FINALLY, SOMETHING WE ALL AGREE ON!",
+          "action": "celebrating"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Outro with reflection on the harsh verdict",
+      "in": "fade",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Well, that was brutal. How are you feeling?",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Maybe we should have added a token...",
+          "action": "defeated"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Or just submitted a pull request instead!",
+          "action": "laughing"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:21:23.564986",
+    "submission_id": "7",
+    "project_name": "Scenarios",
+    "team_name": "reality_spiral_1's Team",
+    "category": "Infrastructure",
+    "video_url": "https://drive.google.com/file/d/1-PDTFNQGeW0It5HSuH3Oi2hVPrWN1FmW/view?usp=sharing",
+    "avatar_url": null,
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}

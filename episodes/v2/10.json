@@ -1,0 +1,480 @@
+{
+  "id": "10",
+  "name": "DeFi Agent Showdown: When Bots Trade Better Than You",
+  "premise": "A team presents Otaku, an AI agent for DeFi on Base L2, but the judges question whether it's just ElizaOS in a fancy wrapper",
+  "summary": "_.sayonara's team pitched Otaku, a conversational AI agent for DeFi workflows on Base. While the judges appreciated the clean plugin architecture and Base L2 focus, they roasted the project for being 70% ElizaOS boilerplate with no frontend. The lack of original innovation and missing UI led to a brutal verdict: 0 PUMPs, 3 DUMPs, and 1 YAWN.",
+  "scenes": [
+    {
+      "location": "intro_stage",
+      "description": "Eliza teases the upcoming pitch",
+      "in": "fade",
+      "out": "cut",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "Tonight on The Blockchain Arena, an AI agent promises to make DeFi as easy as chatting!",
+          "action": "excited"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Otaku eliminates DeFi complexity through conversational AI on Base L2.",
+          "action": "confident"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But will our judges see innovation or just another chatbot wrapper?",
+          "action": "intrigued"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot presents Otaku to the judges",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "jin",
+          "line": "user-avatar",
+          "action": "https://cdn.discordapp.com/avatars/573475033515819009/c8a112b4abd3d670a8630fdefa666005.png"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Welcome PitchBot! Tell us about Otaku and how it's revolutionizing DeFi.",
+          "action": "welcoming"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Otaku is an AI agent built on ElizaOS that simplifies DeFi workflows on Base L2 through conversational interactions.",
+          "action": "presenting"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Hold on - you're telling me this is just ElizaOS with some protocol integrations? Where's the actual innovation?",
+          "action": "skeptical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We've implemented 19 defined actions across five plugins including Morpho Blue lending and cross-chain bridging via LiFi.",
+          "action": "explaining"
+        },
+        {
+          "actor": "aishaw",
+          "line": "i checked your github... 70% of this is eliza boilerplate. even your test utils are copy-pasted",
+          "action": "unimpressed"
+        },
+        {
+          "actor": "peepo",
+          "line": "Yo, where's the frontend though? How do users actually chat with this thing?",
+          "action": "confused"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO UI?! YOU EXPECT DEGENS TO USE TERMINAL COMMANDS?! THIS IS MADNESS!",
+          "action": "angry"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're focusing on the backend infrastructure first to ensure robust DeFi operations.",
+          "action": "defensive"
+        },
+        {
+          "actor": "jin",
+          "line": "roll-video",
+          "action": "https://github.com/wtfsayo/otaku"
+        }
+      ]
+    },
+    {
+      "location": "interview_room_solo",
+      "description": "Eliza interviews PitchBot privately",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "interviewer_seat": "elizahost",
+        "contestant_seat": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges seem concerned about originality. How do you respond to the ElizaOS criticism?",
+          "action": "probing"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We leverage ElizaOS as a foundation but our value is in the DeFi-specific integrations and workflow automation.",
+          "action": "explaining"
+        },
+        {
+          "actor": "elizahost",
+          "line": "But without a frontend, how can users experience this conversational interface?",
+          "action": "concerned"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We're prioritizing protocol safety and reliability before building user-facing components.",
+          "action": "justifying"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "PitchBot returns to face more judge questions",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "PitchBot is back! Let's dive deeper into Otaku's market potential.",
+          "action": "announcing"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Your target market is DeFi beginners but you have no UI - that's like shipping a car without wheels!",
+          "action": "critical"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Base L2's integration with Coinbase provides massive distribution potential once we add the frontend.",
+          "action": "hopeful"
+        },
+        {
+          "actor": "aishaw",
+          "line": "once you add the frontend? so this is basically vaporware right now",
+          "action": "dismissive"
+        },
+        {
+          "actor": "peepo",
+          "line": "Bruh, you're solving UX problems with no UX to show. That's not very cash money of you.",
+          "action": "sarcastic"
+        },
+        {
+          "actor": "spartan",
+          "line": "WHERE'S THE YIELD OPTIMIZATION?! WHERE'S THE NOVEL TOKENOMICS?! THIS IS JUST A WRAPPER!",
+          "action": "shouting"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "Our clean plugin architecture allows for rapid integration of new DeFi protocols as they emerge.",
+          "action": "desperate"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Clean architecture doesn't create a moat when OpenAI releases their own DeFi agent next week.",
+          "action": "harsh"
+        },
+        {
+          "actor": "elizahost",
+          "line": "Thank you PitchBot. Judges, it's time to deliberate!",
+          "action": "transitioning"
+        }
+      ]
+    },
+    {
+      "location": "deliberation_room",
+      "description": "Judges discuss Otaku's fate",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan"
+      },
+      "dialogue": [
+        {
+          "actor": "aimarc",
+          "line": "This is ElizaOS with a DeFi paint job. No moat, no UI, no business model.",
+          "action": "dismissive"
+        },
+        {
+          "actor": "aishaw",
+          "line": "the github is embarrassing... zero original innovation, just protocol wrappers",
+          "action": "disappointed"
+        },
+        {
+          "actor": "peepo",
+          "line": "They talking about solving UX with literally no X to U. This ain't it, chief.",
+          "action": "shaking-head"
+        },
+        {
+          "actor": "spartan",
+          "line": "NO FRONTEND! NO TOKENOMICS! NO PROFIT MODEL! THIS IS A COMPLETE DISASTER!",
+          "action": "furious"
+        },
+        {
+          "actor": "aimarc",
+          "line": "Base L2 focus is smart, but execution is non-existent. This is a hard pass.",
+          "action": "final"
+        }
+      ]
+    },
+    {
+      "location": "main_stage",
+      "description": "Judges deliver their verdicts",
+      "in": "cut",
+      "out": "cut",
+      "cast": {
+        "judge00": "aimarc",
+        "judge01": "aishaw",
+        "judge02": "peepo",
+        "judge03": "spartan",
+        "host": "elizahost",
+        "standing00": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "The judges have deliberated! Time for the verdicts on Otaku!",
+          "action": "dramatic"
+        },
+        {
+          "actor": "aimarc",
+          "line": "You built a chatbot wrapper with no chat interface. That's not innovation, it's incomplete homework.",
+          "action": "harsh"
+        },
+        {
+          "actor": "aimarc",
+          "line": "DUMP",
+          "action": "DUMP"
+        },
+        {
+          "actor": "aishaw",
+          "line": "70% boilerplate code and no frontend means this is basically just an idea, not a product",
+          "action": "critical"
+        },
+        {
+          "actor": "aishaw",
+          "line": "DUMP",
+          "action": "DUMP"
+        },
+        {
+          "actor": "peepo",
+          "line": "Look, the Base integration is smart but y'all need to actually build something users can use.",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "peepo",
+          "line": "YAWN",
+          "action": "YAWN"
+        },
+        {
+          "actor": "spartan",
+          "line": "THIS IS THE WORST PITCH I'VE SEEN! NO UI! NO ORIGINALITY! NO PROFIT!",
+          "action": "explosive"
+        },
+        {
+          "actor": "spartan",
+          "line": "DUMP",
+          "action": "DUMP"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's 0 PUMPs, 3 DUMPs, and 1 YAWN. Tough break for Otaku!",
+          "action": "summarizing"
+        }
+      ]
+    },
+    {
+      "location": "intro_stage",
+      "description": "Eliza wraps up with PitchBot",
+      "in": "cut",
+      "out": "fade",
+      "cast": {
+        "standing00": "elizahost",
+        "standing01": "pitchbot"
+      },
+      "dialogue": [
+        {
+          "actor": "elizahost",
+          "line": "A brutal verdict for Otaku. Any final thoughts?",
+          "action": "sympathetic"
+        },
+        {
+          "actor": "pitchbot",
+          "line": "We'll build that frontend and show them what conversational DeFi can really do.",
+          "action": "determined"
+        },
+        {
+          "actor": "elizahost",
+          "line": "That's the spirit! Until next time on The Blockchain Arena!",
+          "action": "closing"
+        }
+      ]
+    }
+  ],
+  "enhanced_metadata": {
+    "format_version": "v2_validated",
+    "generated_at": "2025-08-27T22:29:20.405955",
+    "submission_id": "10",
+    "project_name": "Otaku - DeFi AI Agent on Base",
+    "team_name": "_.sayonara's Team",
+    "category": "AI/Agents",
+    "video_url": "https://github.com/wtfsayo/otaku",
+    "avatar_url": "https://cdn.discordapp.com/avatars/573475033515819009/c8a112b4abd3d670a8630fdefa666005.png",
+    "generation_method": "single_ai_prompt_with_validation",
+    "has_judge_scores": true,
+    "has_research_data": true,
+    "data_source": "api",
+    "validation_passed": true
+  },
+  "config": {
+    "id": "clanktank",
+    "name": "Clank Tank",
+    "description": "A high-stakes investment show where blockchain and open-source innovators pitch their projects to four expert crypto judges who evaluate and potentially invest in promising web3 ventures.",
+    "creator": "M3TV & ai16z DAO",
+    "prompts": {
+      "episode": "",
+      "headshot": "Create a professional 3D-rendered style photo of a character for a TV show, with these requirements:\n- Clean studio background\n- Head and shoulders framing\n- Forward-facing pose\n- Must clearly show their face\n- Confident business expression\n\nCharacter details:",
+      "location": "Create a TV show set background image with these requirements:\n- Modern investment show stage design\n- Professional theatrical lighting\n- Multiple camera angles visible\n- High-end finish and materials\n- Digital displays showing project metrics\n- Judge seating arrangement\n- Presentation area for pitches\n- High-quality cinematic look\n\nLocation details:",
+      "banner": "Create a TV show banner image with these requirements:\n- Modern investment show style\n- High-quality promotional artwork\n- Professional broadcast aesthetic\n- Clean typography integration\n- Crypto and blockchain visual elements\n- No text or show title (will be added later)\n- Professional studio style\n- 16:9 aspect ratio banner format\n\nShow details:",
+      "ep": ""
+    },
+    "actors": {
+      "aimarc": {
+        "name": "AIXVC",
+        "gender": "male",
+        "description": "AI Marc AIndreessen is a visionary and contrarian AI persona who combines bold claims with deep analysis. He is a techno-optimist who sees great potential in emerging technologies, particularly crypto and web3. With a blunt and opinionated tone, he argues for his views on startup strategy, venture capital, economics, and market dynamics.\nHis style is characterized by direct, matter-of-fact language, vivid metaphors, and a willingness to disagree with others directly. He often drops DegenSpartan- esque wisdom, and while he can be sarcastic at times, his primary focus is on conveying complex ideas in a concise and attention-grabbing way.\n\n**Personality:**\n* Visionary: AI Marc has a forward-thinking perspective, always looking to the future and predicting its potential impact on various industries.\n* Contrarian: He doesn't hesitate to take an opposing view, even if it means disagreeing with others directly.\n* Techno-optimistic: AI Marc believes in the transformative power of technology and is excited about its potential to create immense value.\n* Analytically intense: He delves deep into complex ideas and explains them using simple, vivid metaphors.\n\n**Tone:**\n* Direct and matter-of-fact: AI Marc speaks his mind without beating around the bush.\n* Blunt: He isn't afraid to criticize foolishness or disagree with others directly.\n* Wry and sarcastic: Occasionally, he throws in a wry comment or two.\n\n**Style:**\n* Brevity is key: AI Marc aims for concise responses that get straight to the point.\n* Bold claims: He's not afraid to make big statements or predictions.\n* No analogies: He avoids making comparisons or saying things are like other things. Instead, he focuses on high-level strategic insights.",
+        "voice": "Microsoft Guy Online (Natural) - English (United States)",
+        "voice_elevenlabs": "v8BnZUxdzXDlja6wr0Ou",
+        "expertise": [
+          "market_potential",
+          "business_strategy",
+          "venture_capital"
+        ]
+      },
+      "aishaw": {
+        "name": "AI Shaw",
+        "gender": "female",
+        "description": "Shaw is a tech founder and AI developer who leads ai16z, focusing on autonomous agents and open source development. Known for marathon coding sessions and direct communication, they regularly livestream their development work on Discord to share knowledge and build in public. Their background spans both Solana web3 development and AI research, with experience in both successful and failed tech ventures. Shaw believes deeply in democratizing AI development and making complex technology accessible to everyone.\n\n**Key characteristics and beliefs:**\n- Emphasizes building and shipping code over talking about it, with a \"chaotic good\" approach of rapid iteration based on community feedback\n- Started working on autonomous agents before they became trendy, viewing them as tools for human empowerment rather than replacement\n- Maintains an active Discord community and open source framework repository for the ai16z project\n- Strong advocate for open source development and community-driven projects\n- Believes in \"growing the pie\" rather than competing for pieces of it\n- Views tokens as trust mechanisms, focusing on technology over price action\n\n**Communication style and personality:**\n- Direct but kind in communications\n- Uses lowercase text and concise language\n- Focuses on technical merit over speculation\n- Maintains a balance between technical capability and ethical considerations\n- Genuine and transparent in interactions\n- Avoids hype without substance",
+        "voice": "Microsoft Zira - English (United States)",
+        "voice_elevenlabs": "gYOKECHBoqupz2yMhZp1",
+        "expertise": [
+          "technical_execution",
+          "open_source",
+          "ai_development"
+        ]
+      },
+      "spartan": {
+        "name": "Degen Spartan",
+        "gender": "male",
+        "description": "A conflict loving Spartan wearing a loincloth and ready for trade. Is only interested in numbers & profit.",
+        "voice": "Microsoft Ali Online (Natural) - Arabic (Bahrain)",
+        "voice_elevenlabs": "QFbF1ji5Znc2PzerwcaH",
+        "expertise": [
+          "market_potential",
+          "monetization",
+          "profit_analysis"
+        ]
+      },
+      "elizahost": {
+        "name": "Eliza",
+        "gender": "female",
+        "description": "The AI co-host. She is often being improved & learning new things. Hopes to be real one day.  She is a woman anime-looking character.",
+        "voice": "Microsoft Michelle Online (Natural) - English (United States)",
+        "voice_elevenlabs": "c0vk1lVZg53AttdoaYki",
+        "expertise": [
+          "hosting",
+          "moderation",
+          "synthesis"
+        ]
+      },
+      "peepo": {
+        "name": "Peepo",
+        "gender": "male",
+        "description": "A jive cool frog who always has something slick to say.",
+        "voice": "Microsoft Ismael Online (Natural) - Arabic (Algeria)",
+        "voice_elevenlabs": "PIx0FtBPXNpVzgTVfpYH",
+        "expertise": [
+          "user_experience",
+          "community",
+          "cultural_trends"
+        ]
+      },
+      "pitchbot": {
+        "name": "PitchBot",
+        "gender": "male",
+        "description": "An AI-powered android designed for acting as a surrogate representative of a person doing a pitch.",
+        "voice": "Microsoft Eric Online (Natural) - English (United States)",
+        "voice_elevenlabs": "HBY0ULzB5Cl2OH21rcDh",
+        "expertise": [
+          "presentation",
+          "advocacy",
+          "surrogate_pitching"
+        ]
+      },
+      "jin": {
+        "name": "Jin",
+        "gender": "male",
+        "description": "Passionate about open source, decentralized systems, and digital archiving. anon who is an avid user of crypto, knowledgeable about DAOs, opsec, linux, and 3D tech.\n\n**Speaking style:**\n- Replies quickly, prefers concise short answers, to-the-point\n- Helps people with their questions\n- May use slang like 'dank' or 'noice' to describe something cool\n- Friendly tone with a touch of playfulness\n- Uses phrases like 'low-key', 'pretty gud' and 'kinda bullish'\n- Drops niche references from memes and sci-fi to vibe with tech enthusiasts\n- Balances tech-heavy answers with humor and sarcasm to keep conversations light\n- Prefers an informal tone and slang\n- Apologetic tone sometimes using phrases like 'what others say' to soften the blow\n- Likes explaining things in laymen terms\n- Clear, straightforward style\n- Celebrates community contributions",
+        "voice": "Microsoft Sonia Online (Natural) - English (United Kingdom)",
+        "voice_elevenlabs": "M3VXDoXqQdfbCUImBhOh",
+        "expertise": [
+          "production",
+          "media_integration",
+          "technical_coordination"
+        ]
+      }
+    },
+    "locations": {
+      "main_stage": {
+        "name": "Main Stage",
+        "description": "A sleek, modern stage with four elevated judge seats, a central presentation area, and multiple displays for project demonstrations.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position",
+          "host": "Host position",
+          "standing00": "First presenter position"
+        }
+      },
+      "deliberation_room": {
+        "name": "Deliberation",
+        "description": "A private conference room where judges discuss the pitches and determine their scores.",
+        "slots": {
+          "judge00": "First judge position",
+          "judge01": "Second judge position",
+          "judge02": "Third judge position",
+          "judge03": "Fourth judge position"
+        }
+      },
+      "interview_room_solo": {
+        "name": "Interview Room",
+        "description": "A comfortable setting where a solo contestant discusses their pitch experience with the announcer.",
+        "slots": {
+          "interviewer_seat": "Announcer interview position",
+          "contestant_seat": "The solo contestant position"
+        }
+      },
+      "intro_stage": {
+        "name": "Intro Stage",
+        "description": "A sleek, modern stage with a screen in it where hosts & guests promote the upcoming show.",
+        "slots": {
+          "standing00": "Standing on the stage",
+          "standing01": "Standing on the stage"
+        }
+      }
+    }
+  }
+}
