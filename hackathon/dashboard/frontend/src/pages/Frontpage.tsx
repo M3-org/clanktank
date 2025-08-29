@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VoteModal } from '../components/VoteModal';
 import { SubmissionModal } from '../components/SubmissionModal';
+import { DiscordAvatar } from '../components/DiscordAvatar';
 import { hackathonApi } from '../lib/api';
 import { LeaderboardEntry } from '../types';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
@@ -464,10 +465,13 @@ export default function Frontpage() {
                               href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
                               onClick={(e) => { e.stopPropagation() }}
                             >
-                              <img 
-                                src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                                alt="Profile"
+                              <DiscordAvatar
+                                discord_id={entry.discord_id}
+                                discord_avatar={entry.discord_avatar}
+                                discord_handle={entry.discord_username}
+                                size="md"
+                                className="flex-shrink-0"
+                                variant="dark"
                               />
                             </a>
                             <div className="flex-1 min-w-0">
@@ -529,10 +533,13 @@ export default function Frontpage() {
                             href={`/profile?user=${encodeURIComponent(entry.discord_username || 'user')}`}
                             onClick={(e) => { e.stopPropagation() }}
                           >
-                            <img 
-                              src={entry.discord_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.discord_username || 'User')}&size=40&background=6366f1&color=ffffff`}
-                              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                              alt="Profile"
+                            <DiscordAvatar
+                              discord_id={entry.discord_id}
+                              discord_avatar={entry.discord_avatar}
+                              discord_handle={entry.discord_username}
+                              size="md"
+                              className="flex-shrink-0"
+                              variant="dark"
                             />
                           </a>
                           <div className="min-w-0">

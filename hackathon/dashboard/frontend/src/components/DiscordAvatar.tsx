@@ -18,7 +18,8 @@ export function DiscordAvatar({
   className,
   variant = 'auto'
 }: DiscordAvatarProps) {
-  const [imageError, setImageError] = useState(false)
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null)
+  const [hasError, setHasError] = useState(false)
   
   const sizeClasses = {
     sm: 'w-6 h-6 text-xs',
@@ -26,41 +27,54 @@ export function DiscordAvatar({
     lg: 'w-12 h-12 text-base'
   }
 
-  // Handle both full URL and hash formats
-  let avatarUrl = null
-  let fallbackUrl = null
-  let generatedUrl = null
+  // Build fallback chain based on available data
+  const fallbackChain: string[] = []
   
-  if (discord_avatar && !imageError) {
+  if (discord_avatar && discord_id) {
     if (discord_avatar.startsWith('https://')) {
-      // Already a full URL
-      avatarUrl = discord_avatar
+      // Discord CDN URL - extract hash for local cache
+      const urlParts = discord_avatar.split('/')
+      const avatarFilename = urlParts[urlParts.length - 1]
+      const avatarHash = avatarFilename.split('.')[0]
       
-      // Try to construct fallback local cache URL
-      if (discord_id) {
-        const urlParts = discord_avatar.split('/')
-        const avatarFilename = urlParts[urlParts.length - 1]
-        const avatarHash = avatarFilename.split('.')[0]
-        fallbackUrl = `/discord/${discord_id}_${avatarHash}.png`
-      }
-    } else if (discord_id) {
-      // Just a hash, construct the URL
-      avatarUrl = `https://cdn.discordapp.com/avatars/${discord_id}/${discord_avatar}.png`
-      fallbackUrl = `/discord/${discord_id}_${discord_avatar}.png`
+      // Add local cache as primary, skip Discord CDN (404s)
+      fallbackChain.push(`/discord/${discord_id}_${avatarHash}.png`)
+    } else {
+      // Just a hash - add local cache
+      fallbackChain.push(`/discord/${discord_id}_${discord_avatar}.png`)
     }
   }
   
-  // Always have generated avatar as final fallback for users with discord_id
+  // Always add generated avatar as fallback
   if (discord_id) {
-    generatedUrl = `/discord/${discord_id}_generated.png`
+    fallbackChain.push(`/discord/${discord_id}_generated.png`)
   }
 
-  // If we have an avatar URL to try OR if we should try generated avatar directly
-  if ((avatarUrl && !imageError) || (!avatarUrl && generatedUrl && !imageError)) {
-    const srcUrl = avatarUrl || generatedUrl!
+  // Initialize current source on first render
+  if (currentSrc === null && fallbackChain.length > 0) {
+    setCurrentSrc(fallbackChain[0])
+  }
+
+  const handleImageError = () => {
+    if (!currentSrc || hasError) return
+    
+    const currentIndex = fallbackChain.indexOf(currentSrc)
+    const nextIndex = currentIndex + 1
+    
+    if (nextIndex < fallbackChain.length) {
+      // Try next fallback
+      setCurrentSrc(fallbackChain[nextIndex])
+    } else {
+      // All fallbacks failed, show text avatar
+      setHasError(true)
+    }
+  }
+
+  // Show image if we have a valid source and haven't exhausted all fallbacks
+  if (currentSrc && !hasError) {
     return (
       <img
-        src={srcUrl}
+        src={currentSrc}
         alt={`${discord_handle || 'user'} avatar`}
         className={cn(
           'rounded-full border-2 border-white/20 bg-white/10 object-cover',
@@ -68,53 +82,7 @@ export function DiscordAvatar({
           className
         )}
         loading="lazy"
-        onError={() => {
-          // Try fallback to local cache if available
-          if (fallbackUrl) {
-            const img = new Image()
-            img.onload = () => {
-              // Fallback image exists, use it
-              const currentImg = document.querySelector(`img[alt="${discord_handle || 'user'} avatar"]`) as HTMLImageElement
-              if (currentImg) {
-                currentImg.src = fallbackUrl!
-              }
-            }
-            img.onerror = () => {
-              // Try generated avatar if both Discord CDN and local cache failed
-              if (generatedUrl) {
-                const genImg = new Image()
-                genImg.onload = () => {
-                  const currentImg = document.querySelector(`img[alt="${discord_handle || 'user'} avatar"]`) as HTMLImageElement
-                  if (currentImg) {
-                    currentImg.src = generatedUrl!
-                  }
-                }
-                genImg.onerror = () => {
-                  setImageError(true)
-                }
-                genImg.src = generatedUrl
-              } else {
-                setImageError(true)
-              }
-            }
-            img.src = fallbackUrl
-          } else if (generatedUrl) {
-            // No custom avatar, try generated avatar directly
-            const genImg = new Image()
-            genImg.onload = () => {
-              const currentImg = document.querySelector(`img[alt="${discord_handle || 'user'} avatar"]`) as HTMLImageElement
-              if (currentImg) {
-                currentImg.src = generatedUrl!
-              }
-            }
-            genImg.onerror = () => {
-              setImageError(true)
-            }
-            genImg.src = generatedUrl
-          } else {
-            setImageError(true)
-          }
-        }}
+        onError={handleImageError}
       />
     )
   }
