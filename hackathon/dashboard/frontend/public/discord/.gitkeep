@@ -1,0 +1,6 @@
+# Discord Avatar Cache Directory
+# 
+# This directory stores locally cached Discord avatar images for faster loading
+# and offline support. Files are named: {discord_id}_{avatar_hash}.png
+#
+# This file ensures the directory is tracked in git even when empty.
