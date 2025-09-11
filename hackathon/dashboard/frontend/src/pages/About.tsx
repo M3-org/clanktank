@@ -27,7 +27,7 @@ const markdownOptions = {
       }
     },
     h2: {
-      component: ({ children, ...props }: any) => (
+      component: ({ children }: any) => (
         <div className="mt-16 mb-8 first:mt-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4 relative">
             <span className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></span>
@@ -37,7 +37,7 @@ const markdownOptions = {
       )
     },
     p: {
-      component: ({ children, ...props }: any) => {
+      component: ({ children }: any) => {
         // Check if this is the subtitle (first paragraph)
         const isSubtitle = typeof children === 'string' && children.includes('AI-powered game show')
         if (isSubtitle) {
