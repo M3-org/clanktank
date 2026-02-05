@@ -229,10 +229,15 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
         return prompt_with_variety
 
     def parse_scoring_response(self, response_text: str) -> Dict[str, Any]:
-        """Parse the AI's scoring response into structured data."""
+        """Parse the AI's scoring response into structured data.
+
+        Raises:
+            ValueError: If required scores cannot be parsed from response.
+        """
         scores = {}
         reasons = {}
         overall_comment = ""
+        parse_errors = []
 
         # Parse scores and reasons using regex
         patterns = {
@@ -258,23 +263,25 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
                     try:
                         score = int(match.group(1))
                         scores[key] = max(0, min(10, score))
-                    except (ValueError, IndexError):
-                        logger.warning(
-                            f"Could not parse score for {key}, defaulting to 5."
-                        )
-                        scores[key] = 5
+                    except (ValueError, IndexError) as e:
+                        parse_errors.append(f"Could not parse score for {key}: {e}")
 
-        # Validate we have all required scores, default if missing
+        # Validate we have all required scores - FAIL LOUDLY instead of defaulting
         required_scores = [
             "innovation",
             "technical_execution",
             "market_potential",
             "user_experience",
         ]
-        for criterion in required_scores:
-            if criterion not in scores:
-                logger.warning(f"Missing score for {criterion}, defaulting to 5")
-                scores[criterion] = 5
+        missing_scores = [c for c in required_scores if c not in scores]
+        if missing_scores:
+            parse_errors.append(f"Missing required scores: {missing_scores}")
+
+        if parse_errors:
+            error_msg = f"AI scoring parse failed: {'; '.join(parse_errors)}"
+            logger.error(error_msg)
+            logger.error(f"Raw response (first 500 chars): {response_text[:500]}")
+            raise ValueError(error_msg)
 
         return {
             "scores": scores,
@@ -314,7 +321,11 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
 
         # Apply normalization if requested
         if normalize:
-            score_values = [raw_scores.get(key, 5) for key in score_mapping.keys()]
+            # Fail if any required score is missing (caller should have validated)
+            missing = [k for k in score_mapping.keys() if k not in raw_scores]
+            if missing:
+                raise ValueError(f"Missing required scores for normalization: {missing}")
+            score_values = [raw_scores[key] for key in score_mapping.keys()]
             normalized_values = self.renormalize_scores(score_values)
             normalized_scores = dict(zip(score_mapping.keys(), normalized_values))
         else:
@@ -382,18 +393,18 @@ OVERALL_COMMENT: [One punchy line summarizing your view of this project in your 
 
             return judge_scores
 
+        except requests.exceptions.RequestException as e:
+            # Network/API errors - propagate so caller can decide on retry
+            logger.error(f"API request failed for {judge_name}: {e}")
+            raise RuntimeError(f"AI API request failed for judge {judge_name}: {e}") from e
+        except ValueError as e:
+            # Parse errors - propagate with context
+            logger.error(f"Score parsing failed for {judge_name}: {e}")
+            raise RuntimeError(f"AI score parsing failed for judge {judge_name}: {e}") from e
         except Exception as e:
-            logger.error(f"Failed to get scores from {judge_name}: {e}")
-            # Return default scores on error
-            return {
-                "judge_name": judge_name,
-                "innovation": 5,
-                "technical_execution": 5,
-                "market_potential": 5,
-                "user_experience": 5,
-                "weighted_total": 20.0,
-                "notes": json.dumps({"error": str(e)}),
-            }
+            # Unexpected errors - log and propagate
+            logger.error(f"Unexpected error getting scores from {judge_name}: {e}")
+            raise RuntimeError(f"Unexpected AI scoring error for judge {judge_name}: {e}") from e
 
     def score_submission(
         self, submission_id: str, round_num: int = 1

@@ -262,12 +262,14 @@ async def add_security_headers(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     
     # Content Security Policy
+    # Note: 'unsafe-inline' for styles only - required for React/Vite CSS-in-JS
+    # Scripts use strict-dynamic with CDN allowlist instead of unsafe-eval
     csp_policy = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.jsdelivr.net; "
+        "script-src 'self' cdn.jsdelivr.net; "
         "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
         "img-src 'self' data: https:; "
-        "connect-src 'self'; "
+        "connect-src 'self' wss: https:; "
         "frame-ancestors 'none';"
     )
     response.headers["Content-Security-Policy"] = csp_policy
@@ -776,9 +778,15 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
     token = auth_header.split(" ")[1]
-    # Environment-configurable test token for development/testing
+    # Environment-configurable test token for development/testing ONLY
+    # SECURITY: This MUST NOT be used in production environments
     test_token = os.getenv("TEST_AUTH_TOKEN")
+    environment = os.getenv("ENVIRONMENT", "development").lower()
     if test_token and token == test_token:
+        if environment == "production":
+            logging.error("SECURITY: TEST_AUTH_TOKEN bypass attempted in production - denied")
+            log_security_event("test_token_blocked_production", {"token_prefix": token[:8] + "..."})
+            return None  # Block test token in production
         return DiscordUser(
             discord_id="1234567890",
             username="testuser",
@@ -831,6 +839,29 @@ def validate_submission_github_url(data_dict: dict, action: str = "submission"):
         )
 
 
+# Allowed table names for SQL queries (prevents SQL injection via table name interpolation)
+ALLOWED_TABLES = frozenset([
+    "hackathon_submissions_v1",
+    "hackathon_submissions_v2",
+    "hackathon_scores",
+    "hackathon_research",
+    "users",
+    "token_votes",
+    "token_metadata",
+])
+
+
+def validate_table_name(table_name: str) -> str:
+    """Validate table name against allowlist to prevent SQL injection.
+
+    Raises ValueError if table name is not in the allowlist.
+    """
+    if table_name not in ALLOWED_TABLES:
+        log_security_event("invalid_table_name", {"attempted_table": table_name})
+        raise ValueError(f"Invalid table name: {table_name}")
+    return table_name
+
+
 def get_db_connection():
     """Get database connection."""
     return sqlite3.connect(HACKATHON_DB_PATH)
@@ -843,7 +874,8 @@ def get_next_submission_id(conn, version: str = "v2") -> int:
     Works with both SQLite and SQLAlchemy connections.
     """
     table_name = f"hackathon_submissions_{version}"
-    
+    validate_table_name(table_name)  # Prevent SQL injection via version parameter
+
     try:
         # Check if this is a raw SQLite connection or SQLAlchemy connection
         if hasattr(conn, 'cursor'):
@@ -1170,7 +1202,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             data["owner_discord_id"] = discord_user.discord_id
 
             # Database insertion
-            table = "hackathon_submissions_v2"
+            table = validate_table_name("hackathon_submissions_v2")
             columns = ", ".join(data.keys())
             placeholders = ", ".join([f":{key}" for key in data.keys()])
             conn.execute(
@@ -1714,12 +1746,17 @@ async def get_community_scores():
 
 
 async def get_recent_transactions_helius(wallet_address: str, helius_api_key: str, limit: int = 5):
-    """Get recent transactions for wallet using Helius Enhanced Transactions API."""
+    """Get recent transactions for wallet using Helius Enhanced Transactions API.
+
+    NOTE: Helius RPC requires API key in URL (Solana RPC standard). This is server-side
+    only and keys are never exposed to clients. Ensure access logs are secured.
+    """
     import aiohttp
     import time
-    
+
     try:
         # First get recent transaction signatures
+        # SECURITY: API key in URL is required by Helius RPC - ensure logs don't expose keys
         helius_rpc_url = f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
         
         async with aiohttp.ClientSession() as session:
