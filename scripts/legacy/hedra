@@ -1,0 +1,909 @@
+#!/usr/bin/env python3
+"""
+Hedra API Client - Command-line interface for the Hedra API
+"""
+
+import requests
+import time
+import argparse
+import os
+import sys
+import json
+import subprocess
+from pathlib import Path
+import tempfile
+
+# Constants
+BASE_URL = "https://mercury.dev.dream-ai.com/api"
+CONFIG_FILE = os.path.expanduser("~/.hedra.conf")
+ASPECT_RATIO_OPTIONS = ["1:1", "16:9", "9:16"]
+ASSETS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+
+def load_config():
+    """Load configuration from file or environment"""
+    config = {
+        "api_key": os.environ.get("HEDRA_API_KEY", ""),
+        "base_url": os.environ.get("HEDRA_BASE_URL", BASE_URL),
+        "default_aspect_ratio": "1:1",
+        "default_output_dir": "outputs",
+        "assets_dir": ASSETS_DIR
+    }
+    
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                for line in f:
+                    if '=' in line:
+                        key, value = line.strip().split('=', 1)
+                        config[key.strip()] = value.strip()
+        except Exception:
+            pass
+    
+    return config
+
+def save_config(config):
+    """Save configuration to file"""
+    os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+    with open(CONFIG_FILE, 'w') as f:
+        for key, value in config.items():
+            f.write(f"{key}={value}\n")
+    print(f"✅ Configuration saved to {CONFIG_FILE}")
+
+def get_api_headers(config):
+    """Get API headers with API key"""
+    return {"X-API-KEY": config["api_key"]}
+
+def api_request(config, method, path, **kwargs):
+    """Make an API request with error handling"""
+    url = f"{config['base_url']}{path}"
+    headers = get_api_headers(config)
+    
+    if "headers" in kwargs:
+        headers.update(kwargs.pop("headers"))
+    
+    # Remove the raise_for_status parameter if present
+    if "raise_for_status" in kwargs:
+        should_raise = kwargs.pop("raise_for_status")
+    else:
+        should_raise = True
+    
+    try:
+        response = getattr(requests, method.lower())(url, headers=headers, **kwargs)
+        
+        # Manually raise for status if needed
+        if should_raise:
+            response.raise_for_status()
+            
+        return response.json() if response.content else None
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 401:
+            print("❌ Authentication failed. Check your API key.")
+        elif e.response.status_code == 404:
+            print(f"❌ Resource not found: {path}")
+        elif e.response.status_code == 422:
+            print(f"❌ Validation error: {e.response.text}")
+        elif e.response.status_code == 504:
+            print("⚠️ Gateway timeout, you may want to retry")
+        else:
+            print(f"❌ HTTP Error: {e}")
+        if should_raise:
+            sys.exit(1)
+        return None
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        if should_raise:
+            sys.exit(1)
+        return None
+
+def get_voices(config):
+    """Get available voices"""
+    response = api_request(config, "GET", "/v1/voices")
+    return response["supported_voices"]
+
+def find_local_voice_file(voice_name):
+    """Find a local voice file in the assets directory"""
+    if not os.path.exists(ASSETS_DIR):
+        return None
+    
+    # Try exact match first
+    for ext in [".mp3", ".wav"]:
+        path = os.path.join(ASSETS_DIR, f"{voice_name}{ext}")
+        if os.path.exists(path):
+            return path
+    
+    # Try case-insensitive match
+    for file in os.listdir(ASSETS_DIR):
+        file_lower = file.lower()
+        name_lower = voice_name.lower()
+        
+        # Strip extension for comparison
+        file_base = os.path.splitext(file_lower)[0]
+        
+        if name_lower == file_base:
+            return os.path.join(ASSETS_DIR, file)
+    
+    return None
+
+def list_local_voices():
+    """List voice files found in the assets directory"""
+    if not os.path.exists(ASSETS_DIR):
+        return []
+    
+    voice_files = []
+    for file in os.listdir(ASSETS_DIR):
+        if file.lower().endswith(('.mp3', '.wav')):
+            voice_files.append(file)
+    
+    return voice_files
+
+def print_available_voices(config):
+    """Display available voices"""
+    # Get voices from API
+    voices = get_voices(config)
+    
+    # Get local voice files
+    local_voice_files = list_local_voices()
+    local_voice_names = [os.path.splitext(f)[0] for f in local_voice_files]
+    
+    print("\nAvailable Voices:")
+    print("-" * 80)
+    print(f"{'NAME':<30} {'ID':<30} {'SERVICE':<10} {'PREMIUM':<8} {'LOCAL'}")
+    print("-" * 80)
+    
+    for v in voices:
+        name = v.get("name", "(Unnamed)")
+        vid = v["voice_id"]
+        service = v.get("service", "")
+        premium = "✓" if v.get("premium", False) else ""
+        local = "✓" if name in local_voice_names or any(name.lower() in file.lower() for file in local_voice_files) else ""
+        print(f"{name:<30} {vid:<30} {service:<10} {premium:<8} {local}")
+    
+    print("-" * 80)
+    print("\nTo preview a voice, use: hedra voice preview <voice_id_or_name>")
+    
+    if local_voice_files:
+        print("\nLocal voice files found in assets directory:")
+        for file in sorted(local_voice_files):
+            print(f"  - {file}")
+
+def play_voice_preview(config, voice_id_or_name):
+    """Play a preview of a voice (from local file if available, otherwise from API)"""
+    # First check if we have a local file for this voice
+    local_file = find_local_voice_file(voice_id_or_name)
+    
+    # If no local file with that name, check if it's a voice ID and try to find by name
+    if not local_file:
+        voices = get_voices(config)
+        for voice in voices:
+            if voice["voice_id"] == voice_id_or_name:
+                # Found a matching voice ID, try to find local file with the voice name
+                if voice.get("name"):
+                    local_file = find_local_voice_file(voice.get("name"))
+                break
+    
+    # If we found a local file, play it
+    if local_file:
+        print(f"▶️ Playing local preview from {local_file}...")
+        
+        try:
+            # Play with appropriate player depending on OS
+            if sys.platform == "darwin":  # macOS
+                subprocess.run(["afplay", local_file], check=True)
+            elif sys.platform.startswith("linux"):
+                players = ["ffplay", "mpg123", "mplayer"]
+                for player in players:
+                    try:
+                        if player == "ffplay":
+                            subprocess.run([player, "-autoexit", "-nodisp", local_file], 
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        else:
+                            subprocess.run([player, local_file], 
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        break
+                    except FileNotFoundError:
+                        continue
+                else:
+                    print("❌ No supported audio player found. Please install ffplay, mpg123, or mplayer.")
+            elif sys.platform == "win32":  # Windows
+                subprocess.run(["start", local_file], shell=True)
+            else:
+                print(f"❌ Unsupported platform: {sys.platform}")
+            return
+        except Exception as e:
+            print(f"❌ Error playing local file: {e}")
+            # Continue to try online preview as fallback
+    
+    # If no local file or failed to play it, try to get from API
+    voices = get_voices(config)
+    
+    found_voice = None
+    for voice in voices:
+        if voice["voice_id"] == voice_id_or_name or (voice.get("name") and voice_id_or_name.lower() in voice.get("name", "").lower()):
+            found_voice = voice
+            break
+    
+    if not found_voice:
+        print(f"❌ Voice '{voice_id_or_name}' not found locally or in API")
+        return
+    
+    preview_url = found_voice.get("preview_url")
+    if not preview_url:
+        print(f"❌ No preview available for voice '{found_voice.get('name', voice_id_or_name)}'")
+        return
+    
+    print(f"▶️ Playing online preview for '{found_voice.get('name', voice_id_or_name)}'...")
+    
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".mp3") as temp:
+            # Download the file
+            r = requests.get(preview_url)
+            r.raise_for_status()
+            temp.write(r.content)
+            temp.flush()
+            
+            # Play with appropriate player depending on OS
+            if sys.platform == "darwin":  # macOS
+                subprocess.run(["afplay", temp.name], check=True)
+            elif sys.platform.startswith("linux"):
+                players = ["ffplay", "mpg123", "mplayer"]
+                for player in players:
+                    try:
+                        if player == "ffplay":
+                            subprocess.run([player, "-autoexit", "-nodisp", temp.name], 
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        else:
+                            subprocess.run([player, temp.name], 
+                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        break
+                    except FileNotFoundError:
+                        continue
+                else:
+                    print("❌ No supported audio player found. Please install ffplay, mpg123, or mplayer.")
+            elif sys.platform == "win32":  # Windows
+                subprocess.run(["start", temp.name], shell=True)
+            else:
+                print(f"❌ Unsupported platform: {sys.platform}")
+    except Exception as e:
+        print(f"❌ Error playing preview: {e}")
+
+def resolve_voice_id(config, voice_name=None, voice_id=None):
+    """Resolve a voice ID from a name or ID"""
+    voices = get_voices(config)
+    
+    if voice_id:
+        # Verify the voice_id exists
+        for voice in voices:
+            if voice["voice_id"] == voice_id:
+                return voice_id
+        print(f"❌ Voice ID '{voice_id}' not found")
+        sys.exit(1)
+        
+    if voice_name:
+        for voice in voices:
+            if voice.get("name") and voice_name.lower() in voice.get("name", "").lower():
+                return voice["voice_id"]
+        print(f"❌ Voice name '{voice_name}' not found")
+        sys.exit(1)
+    
+    # Default to first voice if none specified
+    return voices[0]["voice_id"]
+
+def upload_image(config, image_path, aspect_ratio):
+    """Upload an image file"""
+    if not os.path.exists(image_path):
+        print(f"❌ Image file not found: {image_path}")
+        sys.exit(1)
+        
+    print(f"📤 Uploading image {image_path}...")
+    with open(image_path, 'rb') as f:
+        response = api_request(
+            config, 
+            "POST",
+            "/v1/portrait",
+            files={'file': f},
+            params={'aspect_ratio': aspect_ratio}
+        )
+    return response['url']
+
+def upload_audio(config, audio_path):
+    """Upload an audio file"""
+    if not os.path.exists(audio_path):
+        print(f"❌ Audio file not found: {audio_path}")
+        sys.exit(1)
+        
+    print(f"📤 Uploading audio {audio_path}...")
+    with open(audio_path, 'rb') as f:
+        response = api_request(
+            config, 
+            "POST",
+            "/v1/audio",
+            files={'file': f}
+        )
+    return response['url']
+
+def generate_audio_payload(config, args, voice_id):
+    """Generate the audio part of the payload"""
+    if args.audio_file:
+        audio_url = upload_audio(config, args.audio_file)
+        return {"audioSource": "audio", "voiceUrl": audio_url}
+    elif args.text:
+        return {"audioSource": "tts", "text": args.text, "voiceId": voice_id}
+    else:
+        print("❌ You must specify either --text or --audio-file")
+        sys.exit(1)
+
+def generate_avatar_payload(config, args, voice_id):
+    """Generate the complete avatar generation payload"""
+    payload = generate_audio_payload(config, args, voice_id)
+    payload["aspectRatio"] = args.aspect_ratio
+
+    if args.img:
+        payload["avatarImage"] = upload_image(config, args.img, args.aspect_ratio)
+    elif args.img_prompt:
+        payload["avatarImageInput"] = {"prompt": args.img_prompt}
+        if args.seed is not None:
+            payload["avatarImageInput"]["seed"] = args.seed
+    else:
+        print("❌ You must provide --img or --img-prompt")
+        sys.exit(1)
+
+    # Add animation prompt if specified
+    if hasattr(args, 'animation_prompt') and args.animation_prompt:
+        payload.setdefault("avatarImageInput", {})["prompt"] = args.animation_prompt
+
+    return payload
+
+def wait_for_completion(config, project_id, poll_interval=5, max_retries=100):
+    """Wait for a job to complete with a progress indicator"""
+    print("⏳ Waiting for job completion...")
+    
+    for i in range(max_retries):
+        try:
+            # Use the modified api_request without raise_for_status
+            response = api_request(config, "GET", f"/v1/projects/{project_id}", raise_for_status=False)
+            if not response:
+                time.sleep(poll_interval)
+                continue
+                
+            status = response.get('status', 'Unknown')
+            stage = response.get('stage', '')
+            progress = response.get('progress', 0) or 0
+            
+            # Create a simple progress bar
+            bar_length = 30
+            filled_length = int(bar_length * progress / 100)
+            bar = '█' * filled_length + '░' * (bar_length - filled_length)
+            
+            # Calculate elapsed time
+            elapsed = i * poll_interval
+            mins = elapsed // 60
+            secs = elapsed % 60
+            
+            # Print status line
+            print(f"\r[{bar}] {progress:3.0f}% | Status: {status} {stage} | Time: {mins:02d}:{secs:02d}", end='')
+            
+            if status == "Completed":
+                print("\n✅ Generation completed!")
+                return response.get("videoUrl") or response.get("voiceUrl")
+            elif status == "Failed":
+                error_msg = response.get("errorMessage", "Unknown error")
+                print(f"\n❌ Generation failed: {error_msg}")
+                sys.exit(1)
+        except Exception as e:
+            print(f"\n⚠️ Error checking status: {e}")
+        
+        time.sleep(poll_interval)
+    
+    print("\n❌ Max retries reached without completion")
+    sys.exit(1)
+
+def download_file(url, out_path):
+    """Download a file"""
+    try:
+        print(f"📥 Downloading to {out_path}...")
+        r = requests.get(url, stream=True)
+        r.raise_for_status()
+        
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+        
+        # Get total size if available
+        total_size = int(r.headers.get('content-length', 0))
+        
+        with open(out_path, 'wb') as f:
+            if total_size > 0:
+                # Show progress if size is known
+                downloaded = 0
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        percent = downloaded / total_size * 100
+                        bar_length = 30
+                        filled_length = int(bar_length * percent / 100)
+                        bar = '█' * filled_length + '░' * (bar_length - filled_length)
+                        print(f"\r[{bar}] {percent:3.1f}%", end='')
+                print()  # New line after progress
+            else:
+                # Just download without progress if size is unknown
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+        
+        print(f"✅ Saved to {out_path}")
+        return True
+    except Exception as e:
+        print(f"❌ Download failed: {e}")
+        return False
+
+def list_projects(config, limit=10):
+    """List recent projects"""
+    response = api_request(config, "GET", "/v1/projects")
+    projects = response.get("projects", [])
+    
+    if not projects:
+        print("No projects found")
+        return
+    
+    # Sort by creation date, newest first
+    projects.sort(key=lambda p: p.get("createdAt", ""), reverse=True)
+    
+    # Limit the number of projects shown
+    projects = projects[:limit]
+    
+    print("\nRecent Projects:")
+    print("-" * 100)
+    print(f"{'ID':<36} {'CREATED':<20} {'STATUS':<10} {'TYPE':<15} {'VIDEO URL':<30}")
+    print("-" * 100)
+    
+    for p in projects:
+        project_id = p.get("id", "")
+        created_at = p.get("createdAt", "").replace("T", " ").replace("Z", "")[:19] if p.get("createdAt") else ""
+        status = p.get("status", "")
+        job_type = p.get("jobType", "")
+        
+        # Handle None values for video URL
+        video_url = p.get("videoUrl", "")
+        if video_url is None:  # Explicitly check for None
+            video_url = ""
+        elif len(video_url) > 30:
+            video_url = video_url[:27] + "..."
+        
+        print(f"{project_id:<36} {created_at:<20} {status:<10} {job_type:<15} {video_url:<30}")
+    
+    print("-" * 100)
+
+def get_project(config, project_id):
+    """Get and display a project"""
+    response = api_request(config, "GET", f"/v1/projects/{project_id}")
+    
+    if not response:
+        return
+    
+    print("\nProject Details:")
+    print("-" * 80)
+    print(f"Project ID:      {response.get('id', 'N/A')}")
+    print(f"Created:         {response.get('createdAt', 'N/A').replace('T', ' ').replace('Z', '')[:19] if response.get('createdAt') else 'N/A'}")
+    print(f"Status:          {response.get('status', 'N/A')}")
+    print(f"Progress:        {response.get('progress', 0) or 0}%")
+    print(f"Stage:           {response.get('stage', 'N/A')}")
+    print(f"Job Type:        {response.get('jobType', 'N/A')}")
+    print(f"Video URL:       {response.get('videoUrl', 'N/A')}")
+    print(f"Image URL:       {response.get('avatarImageUrl', 'N/A')}")
+    print(f"Voice ID:        {response.get('voiceId', 'N/A')}")
+    print(f"Voice URL:       {response.get('voiceUrl', 'N/A')}")
+    print(f"Shared:          {'Yes' if response.get('shared', False) else 'No'}")
+    print(f"Error:           {response.get('errorMessage', 'None')}")
+    print("-" * 80)
+
+def delete_project(config, project_id):
+    """Delete a project"""
+    print(f"🗑️ Deleting project {project_id}...")
+    api_request(config, "DELETE", f"/v1/projects/{project_id}")
+    print(f"✅ Project {project_id} deleted")
+
+def share_project(config, project_id, share_state=True):
+    """Share or unshare a project"""
+    action = "Sharing" if share_state else "Unsharing"
+    print(f"🔄 {action} project {project_id}...")
+    api_request(config, "POST", f"/v1/projects/{project_id}/sharing", params={"shared": share_state})
+    
+    status = "shared" if share_state else "unshared"
+    print(f"✅ Project {project_id} {status}")
+
+def interactive_mode(config):
+    """Run interactive mode with a simplified interface"""
+    print("🎬 Hedra Interactive Character Generation")
+    
+    try:
+        # Get voices
+        voices = get_voices(config)
+        
+        # Choose image source
+        print("\n📸 Image Source:")
+        print("  [1] Upload an image")
+        print("  [2] Generate from a prompt")
+        
+        img_choice = 0
+        while img_choice < 1 or img_choice > 2:
+            try:
+                img_choice = int(input("Choose an option (number): "))
+            except ValueError:
+                print("Please enter a valid number")
+        
+        img = img_prompt = None
+        if img_choice == 1:  # Upload
+            img = input("Path to image file: ").strip()
+            while not os.path.exists(img):
+                print("❌ File not found")
+                img = input("Path to image file (or leave empty to change option): ").strip()
+                if not img:
+                    return interactive_mode(config)
+        else:  # Generate from prompt
+            img_prompt = input("Image generation prompt: ").strip()
+            while not img_prompt:
+                print("❌ Prompt cannot be empty")
+                img_prompt = input("Image generation prompt: ").strip()
+        
+        # Get local voice files
+        local_voice_files = list_local_voices()
+        local_voice_names = [os.path.splitext(f)[0] for f in local_voice_files]
+        
+        # Choose voice - show top 10 only for simplicity
+        print("\n🎙️ Voice Selection:")
+        display_voices = voices[:10]  # Limit to top 10 for simplicity
+        
+        for i, voice in enumerate(display_voices):
+            name = voice.get("name", "Unnamed")
+            vid = voice["voice_id"]
+            local = " (local)" if name in local_voice_names or any(name.lower() in file.lower() for file in local_voice_files) else ""
+            print(f"  [{i+1}] {name}{local} (ID: {vid})")
+        
+        if len(voices) > 10:
+            print(f"  (Showing 10 of {len(voices)} voices. Use 'hedra voice list' to see all.)")
+        
+        # Select a voice
+        voice_idx = -1
+        while voice_idx < 0 or voice_idx >= len(display_voices):
+            try:
+                voice_idx = int(input("Select voice number: ")) - 1
+                if voice_idx < 0 or voice_idx >= len(display_voices):
+                    print("❌ Invalid voice number")
+            except ValueError:
+                print("❌ Please enter a number")
+        
+        voice_id = display_voices[voice_idx]["voice_id"]
+        
+        # Get audio source
+        print("\n🔊 Audio Source:")
+        print("  [1] Text to speech")
+        print("  [2] Upload audio file")
+        
+        audio_choice = 0
+        while audio_choice < 1 or audio_choice > 2:
+            try:
+                audio_choice = int(input("Choose an option (number): "))
+            except ValueError:
+                print("Please enter a valid number")
+        
+        text = audio_file = None
+        if audio_choice == 1:  # TTS
+            text = input("Enter text to speak: ").strip()
+            while not text:
+                print("❌ Text cannot be empty")
+                text = input("Enter text to speak: ").strip()
+        else:  # Upload audio
+            audio_file = input("Path to audio file: ").strip()
+            while not os.path.exists(audio_file):
+                print("❌ File not found")
+                audio_file = input("Path to audio file (or leave empty to change option): ").strip()
+                if not audio_file:
+                    return interactive_mode(config)
+        
+        # Choose aspect ratio
+        print("\n📐 Aspect Ratio:")
+        for i, ar in enumerate(ASPECT_RATIO_OPTIONS):
+            print(f"  [{i+1}] {ar}")
+        
+        ar_choice = 0
+        while ar_choice < 1 or ar_choice > len(ASPECT_RATIO_OPTIONS):
+            try:
+                ar_choice = int(input("Choose an aspect ratio (number): "))
+            except ValueError:
+                print("Please enter a valid number")
+        
+        aspect_ratio = ASPECT_RATIO_OPTIONS[ar_choice-1]
+        
+        # Optional: seed
+        seed_input = input("Enter a seed for reproducibility (optional, press enter to skip): ").strip()
+        seed = int(seed_input) if seed_input and seed_input.isdigit() else None
+        
+        # Output file
+        output_dir = config.get("default_output_dir", "outputs")
+        os.makedirs(output_dir, exist_ok=True)
+        output_file = input(f"Output filename (default: output_{int(time.time())}.mp4): ").strip()
+        if not output_file:
+            output_file = f"output_{int(time.time())}.mp4"
+        
+        # If not an absolute path, put in the output dir
+        if not os.path.isabs(output_file):
+            output_file = os.path.join(output_dir, output_file)
+        
+        # Confirm settings before proceeding
+        print("\nGeneration Settings:")
+        settings = [
+            f"Image: {'Upload: ' + img if img else 'Generated from prompt: ' + img_prompt}",
+            f"Voice: {display_voices[voice_idx].get('name', 'Unknown')} (ID: {voice_id})",
+            f"Audio: {'Text: ' + text if text else 'File: ' + audio_file}",
+            f"Aspect Ratio: {aspect_ratio}",
+            f"Output: {output_file}"
+        ]
+        
+        if seed is not None:
+            settings.append(f"Seed: {seed}")
+        
+        for setting in settings:
+            print(f"  - {setting}")
+        
+        confirm = input("\nProceed with generation? (y/n): ").lower().strip()
+        if confirm != 'y':
+            print("Generation cancelled")
+            return
+        
+        # Create args object for compatibility with existing functions
+        class Args:
+            pass
+        
+        args = Args()
+        args.voice_id = voice_id
+        args.text = text
+        args.audio_file = audio_file
+        args.img = img
+        args.img_prompt = img_prompt
+        args.aspect_ratio = aspect_ratio
+        args.animation_prompt = None
+        args.seed = seed
+        args.output = output_file
+        
+        # Generate character
+        payload = generate_avatar_payload(config, args, voice_id)
+        
+        print("\n🚀 Starting generation...")
+        response = api_request(config, "POST", "/v1/characters", json=payload)
+        job_id = response['jobId']
+        
+        print(f"Job ID: {job_id}")
+        result_url = wait_for_completion(config, job_id)
+        
+        if result_url:
+            download_file(result_url, args.output)
+            
+            # If we generated from a prompt, also save the avatar image info
+            if args.img_prompt:
+                # Get the project to find the avatar image URL
+                project = api_request(config, "GET", f"/v1/projects/{job_id}")
+                avatar_url = project.get("avatarImageUrl")
+                
+                if avatar_url:
+                    avatar_path = args.output.replace('.mp4', '_avatar.jpg')
+                    download_file(avatar_url, avatar_path)
+        
+        return job_id
+    
+    except KeyboardInterrupt:
+        print("\nInteractive mode cancelled")
+        return None
+    except Exception as e:
+        print(f"❌ Error in interactive mode: {e}")
+        return None
+
+def setup_parser():
+    """Setup argument parser with subcommands"""
+    parser = argparse.ArgumentParser(
+        description="Hedra API Client - Create digital avatars and talking heads",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # List available voices
+  hedra voice list
+  
+  # Preview a voice
+  hedra voice preview <voice_id_or_name>
+  
+  # Generate a character with text-to-speech
+  hedra generate --text "Hello, world!" --voice-id <voice_id> --img-prompt "A smiling woman with red hair"
+  
+  # Generate a character with an uploaded image and audio
+  hedra generate --audio-file input.mp3 --img portrait.jpg
+  
+  # Run in interactive mode
+  hedra interactive
+  
+  # List recent projects
+  hedra project list
+  
+  # Get project details
+  hedra project get <project_id>
+  """
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    
+    # Config command
+    config_parser = subparsers.add_parser("config", help="Configure the client")
+    config_parser.add_argument("--api-key", help="Set API key")
+    config_parser.add_argument("--base-url", help="Set base URL")
+    config_parser.add_argument("--default-output-dir", help="Set default output directory")
+    config_parser.add_argument("--assets-dir", help="Set assets directory (for local voices)")
+    
+    # Voice commands
+    voice_parser = subparsers.add_parser("voice", help="Voice-related commands")
+    voice_subparsers = voice_parser.add_subparsers(dest="voice_command", help="Voice command to run")
+    
+    voice_list_parser = voice_subparsers.add_parser("list", help="List available voices")
+    
+    voice_preview_parser = voice_subparsers.add_parser("preview", help="Preview a voice")
+    voice_preview_parser.add_argument("voice_id_or_name", help="Voice ID or name to preview")
+    
+    # Project commands
+    project_parser = subparsers.add_parser("project", help="Project management commands")
+    project_subparsers = project_parser.add_subparsers(dest="project_command", help="Project command to run")
+    
+    project_list_parser = project_subparsers.add_parser("list", help="List recent projects")
+    project_list_parser.add_argument("--limit", type=int, default=10, help="Maximum number of projects to show")
+    
+    project_get_parser = project_subparsers.add_parser("get", help="Get project details")
+    project_get_parser.add_argument("project_id", help="Project ID")
+    
+    project_delete_parser = project_subparsers.add_parser("delete", help="Delete a project")
+    project_delete_parser.add_argument("project_id", help="Project ID")
+    
+    project_share_parser = project_subparsers.add_parser("share", help="Share a project")
+    project_share_parser.add_argument("project_id", help="Project ID")
+    project_share_parser.add_argument("--unshare", action="store_true", help="Unshare instead of share")
+    
+    project_download_parser = project_subparsers.add_parser("download", help="Download project output")
+    project_download_parser.add_argument("project_id", help="Project ID")
+    project_download_parser.add_argument("--output", "-o", help="Output file path")
+    
+    # Generate commands
+    generate_parser = subparsers.add_parser("generate", help="Generate a character")
+    generate_parser.add_argument("--text", help="Text to convert to speech")
+    generate_parser.add_argument("--voice-id", help="Voice ID to use")
+    generate_parser.add_argument("--voice-name", help="Voice name to use (alternative to --voice-id)")
+    generate_parser.add_argument("--audio-file", help="Audio file to use instead of text-to-speech")
+    generate_parser.add_argument("--img", help="Image file to use")
+    generate_parser.add_argument("--img-prompt", help="Prompt to generate an image")
+    generate_parser.add_argument("--output", "-o", default="output.mp4", help="Output file path")
+    generate_parser.add_argument("--poll-interval", type=int, default=5, help="Interval between polls for job status")
+    generate_parser.add_argument("--max-retries", type=int, default=100, help="Maximum number of retries for job status")
+    generate_parser.add_argument("--aspect-ratio", "--ar", choices=ASPECT_RATIO_OPTIONS, default="1:1", help="Aspect ratio for the output")
+    generate_parser.add_argument("--animation-prompt", "--ap", help="Animation prompt to use")
+    generate_parser.add_argument("--seed", type=int, help="Seed for image generation")
+    
+    # Interactive mode
+    interactive_parser = subparsers.add_parser("interactive", help="Run in interactive mode")
+    
+    return parser
+
+def main():
+    """Main entry point"""
+    parser = setup_parser()
+    
+    # If no arguments provided, show help
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(0)
+    
+    args = parser.parse_args()
+    config = load_config()
+    
+    # Check if API key is set
+    if not config.get("api_key") and args.command != "config":
+        print("❌ API key not set. Use 'hedra config --api-key YOUR_API_KEY' to set it.")
+        sys.exit(1)
+    
+    # Handle config command
+    if args.command == "config":
+        if args.api_key:
+            config["api_key"] = args.api_key
+        if args.base_url:
+            config["base_url"] = args.base_url
+        if args.default_output_dir:
+            config["default_output_dir"] = args.default_output_dir
+            os.makedirs(args.default_output_dir, exist_ok=True)
+        if args.assets_dir:
+            config["assets_dir"] = args.assets_dir
+        
+        save_config(config)
+        sys.exit(0)
+    
+    # Handle voice commands
+    elif args.command == "voice":
+        if args.voice_command == "list":
+            print_available_voices(config)
+        elif args.voice_command == "preview":
+            play_voice_preview(config, args.voice_id_or_name)
+        else:
+            print("❌ Please specify a voice subcommand")
+            sys.exit(1)
+    
+    # Handle project commands
+    elif args.command == "project":
+        if args.project_command == "list":
+            list_projects(config, args.limit)
+        elif args.project_command == "get":
+            get_project(config, args.project_id)
+        elif args.project_command == "delete":
+            delete_project(config, args.project_id)
+        elif args.project_command == "share":
+            share_project(config, args.project_id, not args.unshare)
+        elif args.project_command == "download":
+            # Get project first to find the URL
+            response = api_request(config, "GET", f"/v1/projects/{args.project_id}")
+            url = response.get("videoUrl") or response.get("voiceUrl")
+            
+            if not url:
+                print("❌ No URL found in project")
+                sys.exit(1)
+            
+            # Determine output path
+            output_path = args.output
+            if not output_path:
+                output_path = f"project_{args.project_id}.mp4"
+            
+            download_file(url, output_path)
+        else:
+            print("❌ Please specify a project subcommand")
+            sys.exit(1)
+    
+    # Handle generate command
+    elif args.command == "generate":
+        voice_id = resolve_voice_id(config, args.voice_name, args.voice_id)
+        payload = generate_avatar_payload(config, args, voice_id)
+        
+        print("🚀 Starting generation request...")
+        response = api_request(config, "POST", "/v1/characters", json=payload)
+        job_id = response['jobId']
+        
+        print(f"Job ID: {job_id}")
+        result_url = wait_for_completion(config, job_id, args.poll_interval, args.max_retries)
+        
+        if result_url:
+            download_file(result_url, args.output)
+            
+            # If we generated from a prompt, also save the avatar image info
+            if args.img_prompt:
+                avatar_path = args.output.replace('.mp4', '_avatar.jpg')
+                print(f"📸 Exporting avatar image metadata to {avatar_path}")
+                
+                # Try to get the actual image URL from the project
+                project = api_request(config, "GET", f"/v1/projects/{job_id}")
+                avatar_url = project.get("avatarImageUrl")
+                
+                if avatar_url:
+                    download_file(avatar_url, avatar_path)
+                else:
+                    # If no URL, just save the prompt
+                    with open(avatar_path, 'w') as f:
+                        f.write(f"Avatar generated from prompt: '{args.img_prompt}'\n")
+                        if args.seed is not None:
+                            f.write(f"Seed: {args.seed}\n")
+    
+    # Handle interactive mode
+    elif args.command == "interactive":
+        interactive_mode(config)
+    
+    else:
+        print("❌ Unknown command. Use --help to see available commands.")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user")
+        sys.exit(130)
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        sys.exit(1)
