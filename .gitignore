@@ -52,5 +52,12 @@ hackathon/episodes/
 *.tar
 *.zip
 
+# Video recordings (keep JSON metadata, ignore large videos)
+recordings/*.mp4
+recordings/*.webm
+
+# Temporary/staging files
+tmp/
+
 # Generated Documentation
 site/
