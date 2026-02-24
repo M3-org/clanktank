@@ -23,7 +23,7 @@
     "required": true,
     "options": [
       "DeFi",
-      "AI/Agents",
+      "Agents",
       "Gaming",
       "Infrastructure",
       "Social",
@@ -90,7 +90,14 @@
     "type": "text",
     "required": false,
     "placeholder": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
-    "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{32,44}$",
-    "helperText": "Your Solana wallet address for potential rewards (32-44 characters, Base58 format)"
+    "pattern": "^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{32,44}$"
+  },
+  {
+    "name": "ethereum_address",
+    "label": "Ethereum Wallet Address",
+    "type": "text",
+    "required": false,
+    "placeholder": "0x1234...abcd",
+    "pattern": "^0x[0-9a-fA-F]{40}$"
   }
 ]

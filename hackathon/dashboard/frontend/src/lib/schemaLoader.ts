@@ -21,7 +21,7 @@ const MINIMAL_FALLBACK_SCHEMA: SubmissionField[] = [
   { name: 'project_name', label: 'Project Name', type: 'text', required: true, placeholder: 'My Awesome Project' },
   { name: 'team_name', label: 'Team Name', type: 'text', required: true, placeholder: 'The A-Team' },
   { name: 'description', label: 'Project Description', type: 'textarea', required: true, placeholder: 'Describe your project' },
-  { name: 'category', label: 'Category', type: 'select', required: true, options: ['AI/Agents', 'DeFi', 'Gaming', 'Other'] },
+  { name: 'category', label: 'Category', type: 'select', required: true, options: ['Agents', 'DeFi', 'Gaming', 'Other'] },
   { name: 'discord_handle', label: 'Discord Handle', type: 'text', required: true, placeholder: 'username#1234' },
   { name: 'github_url', label: 'GitHub URL', type: 'url', required: true, placeholder: 'https://github.com/...' },
   { name: 'demo_video_url', label: 'Demo Video URL', type: 'url', required: true, placeholder: 'https://youtube.com/...' },

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Markdown from 'markdown-to-jsx'
 
 // Import the markdown content directly
@@ -122,7 +123,7 @@ export default function About() {
         </div>
 
         {/* Video Section */}
-        <section className="mb-16">
+        <section className="mb-8">
           <div className="relative">
             {/* Decorative background */}
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl blur-3xl transform -rotate-1"></div>
@@ -148,57 +149,13 @@ export default function About() {
           </div>
         </section>
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-700 my-12"></div>
-
-        {/* Links Section */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Links & Resources</h2>
-          
-          <div className="grid gap-4 sm:grid-cols-2">
-            <a
-              href="https://mirror.xyz/m3org.eth/VU_Pl00hI7vRkCQPQg73Mg8906elnkvbaEvM1E2zZaE"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors duration-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-300">
-                    Full Story on Mirror
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Read the complete origin story and vision
-                  </p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </div>
-            </a>
-
-            <a
-              href="http://127.0.0.1:8082/clanktank/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors duration-200"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
-                    Technical Documentation
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Architecture, APIs, and development guides
-                  </p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </a>
-          </div>
-        </div>
+        {/* API link */}
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+          Interested in our data? Check out the{' '}
+          <Link to="/api" className="text-indigo-600 dark:text-indigo-400 hover:underline">
+            API Documentation
+          </Link>.
+        </p>
 
       </div>
     </div>

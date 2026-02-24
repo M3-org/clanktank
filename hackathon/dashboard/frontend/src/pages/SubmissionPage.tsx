@@ -7,7 +7,7 @@ import { Button } from '../components/Button'
 import { Card, CardContent } from '../components/Card'
 import { useAuth } from '../contexts/AuthContext'
 import ProtectedRoute from '../components/ProtectedRoute'
-import { Download, Upload } from 'lucide-react'
+import { Copy, Upload } from 'lucide-react'
 import { SubmissionDetail } from '../types';
 
 interface SchemaField {
@@ -297,25 +297,14 @@ export default function SubmissionPage() {
     return template
   }
 
-  function handleDownloadTemplate() {
-    // Get current form values instead of generating template
+  async function handleCopyJson() {
     const currentValues = watchedValues || {};
-    
-    // If form is empty, generate template; otherwise download current state
-    const dataToDownload = Object.keys(currentValues).length > 0 && 
+    const dataToCopy = Object.keys(currentValues).length > 0 &&
       Object.values(currentValues).some(val => val && val.toString().trim() !== '')
       ? currentValues
       : generateTemplate(schema);
-    
-    const blob = new Blob([JSON.stringify(dataToDownload, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = Object.keys(currentValues).length > 0 
-      ? 'my_hackathon_submission.json'
-      : 'hackathon_submission_template.json'
-    a.click()
-    URL.revokeObjectURL(url)
+    await navigator.clipboard.writeText(JSON.stringify(dataToCopy, null, 2));
+    toast.success('JSON copied to clipboard!', { duration: 2000 });
   }
 
   function handleUploadJson(e: React.ChangeEvent<HTMLInputElement>) {
@@ -418,17 +407,17 @@ export default function SubmissionPage() {
               </h1>
               <div className="flex flex-col items-end md:col-span-1">
                 <span className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  💡 Tip: Download your current form state as JSON to save or share.
+                  💡 Tip: Copy your current form state as JSON to save or share.
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
-                    onClick={handleDownloadTemplate}
+                    onClick={handleCopyJson}
                     type="button"
                     size="sm"
                     className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
                   >
-                    <Download className="mr-1" size={16} />
-                    Download JSON
+                    <Copy className="mr-1" size={16} />
+                    Copy JSON
                   </Button>
                   <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
                     <Upload className="mr-1" size={16} />
@@ -465,12 +454,12 @@ export default function SubmissionPage() {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleDownloadTemplate}
+                    onClick={handleCopyJson}
                     type="button"
                     size="sm"
                     className="py-1 px-3 rounded-md bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-xs"
                   >
-                    <Download className="mr-1" size={16}/> Download JSON
+                    <Copy className="mr-1" size={16}/> Copy JSON
                   </Button>
                   <label className="relative inline-flex items-center text-xs py-1 px-3 rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" style={{ willChange: 'transform' }}>
                     <Upload className="mr-1" size={16}/> Upload JSON
@@ -603,11 +592,6 @@ export default function SubmissionPage() {
                         {field.helperText}
                       </p>
                     )}
-                    {field.name === 'demo_video_url' && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        💡 Try catbox.moe, gyazo, or sharex for free hosting
-                      </p>
-                    )}
                     {errors[field.name] && (
                       <p className="mt-1 text-sm text-red-600 dark:text-red-400">
                         {errors[field.name]?.message as string}
@@ -617,7 +601,7 @@ export default function SubmissionPage() {
                 ))}
               </div>
               {/* Render the rest of the fields vertically, except paired fields */}
-              {schema.filter(f => f.name !== 'project_name' && f.name !== 'discord_handle' && f.name !== 'category' && f.name !== 'twitter_handle' && f.name !== 'solana_address' && f.name !== 'github_url' && f.name !== 'demo_video_url').map((field) => {
+              {schema.filter(f => f.name !== 'project_name' && f.name !== 'discord_handle' && f.name !== 'category' && f.name !== 'twitter_handle' && f.name !== 'solana_address' && f.name !== 'ethereum_address' && f.name !== 'github_url' && f.name !== 'demo_video_url').map((field) => {
                 if (field.name === 'project_image') {
                   return (
                     <div key={field.name}>
@@ -758,9 +742,9 @@ export default function SubmissionPage() {
                   </div>
                 );
               })}
-              {/* Twitter handle and Solana address side by side at the bottom */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {schema.filter(f => f.name === 'twitter_handle' || f.name === 'solana_address').map((field) => (
+              {/* Twitter handle, Solana address, and Ethereum address side by side at the bottom */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {schema.filter(f => f.name === 'twitter_handle' || f.name === 'solana_address' || f.name === 'ethereum_address').map((field) => (
                   <div key={field.name}>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                       {field.label}
