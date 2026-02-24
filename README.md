@@ -12,7 +12,7 @@ An AI-powered game show where entrepreneurs pitch to simulated judges, competing
 
 ## About Clank Tank
 
-Clank Tank is an autonomous entertainment platform where users submit real business pitches that are transformed into complete, simulated episodes featuring AI-generated characters, dialogue, and interactions. Inspired by "Shark Tank," our system creates entertaining show episodes that provide exposure for projects while offering AI-driven feedback.
+Clank Tank is a cinematic data pipeline where users submit hackathon projects, business pitches, or grant proposals that are transformed into complete, simulated episodes featuring AI-generated characters, dialogue, and interactions. Inspired by "Shark Tank," our system creates show episodes that provide exposure for projects while offering AI-driven feedback.
 
 The show features a panel of AI judges who evaluate pitches, question the presenter, and ultimately decide whether to "pump" or "dump" the project.
 
