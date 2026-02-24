@@ -32,7 +32,7 @@ const FOOTER_LINKS = {
       url: 'https://jedaicouncil.com',
     },
     {
-      name: 'GitScape',
+      name: 'HiScores',
       url: 'https://elizaos.github.io/',
     }
   ]

@@ -7,7 +7,7 @@
   "project_name": "AI Code Assistant",
   "team_name": "CodeGenies",
   "summary": "An AI-powered assistant that helps developers write and debug code in real time.",
-  "category": "AI/Agents",
+  "category": "Agents",
   "discord_handle": "codegenie#5678",
   "twitter_handle": "@codegeniesai",
   "github_url": "https://github.com/codegenies/ai-code-assistant",

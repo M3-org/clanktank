@@ -32,6 +32,7 @@ const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'))
 const DiscordCallback = lazy(() => import('./pages/DiscordCallback'))
 const Gallery = lazy(() => import('./pages/Gallery'))
 const About = lazy(() => import('./pages/About'))
+const ApiDocs = lazy(() => import('./pages/ApiDocs'))
 
 // Experimental routes - development only
 const LeaderboardV1 = lazy(() => import('./pages/experimental/LeaderboardV1'))
@@ -64,6 +65,7 @@ function AppContent() {
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/about" element={<About />} />
+          <Route path="/api" element={<ApiDocs />} />
            <Route path="/p/:username" element={<ProfilePage />} />
            <Route path="/profile" element={<ProfilePage />} />
           <Route path="/submission/:id" element={<SubmissionDetail />} />

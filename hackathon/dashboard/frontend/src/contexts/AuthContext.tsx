@@ -24,15 +24,39 @@ export interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Dev mode: bypass Discord auth for local recording/demos
+// Only enabled when VITE_DEV_MODE is explicitly 'true' AND not in production
+function isDevMode(): boolean {
+  const flag = import.meta.env.VITE_DEV_MODE
+  const isProd = import.meta.env.PROD
+  if (isProd && flag === 'true') {
+    console.warn('VITE_DEV_MODE is ignored in production builds')
+    return false
+  }
+  return flag === 'true'
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [authState, setAuthState] = useState<AuthState>({
-    isAuthenticated: false,
-    authMethod: null,
-    discordUser: null
-  })
-  const [loading, setLoading] = useState(true)
+  const devMode = isDevMode()
+
+  const [authState, setAuthState] = useState<AuthState>(
+    devMode
+      ? {
+          isAuthenticated: true,
+          authMethod: 'discord',
+          discordUser: { discord_id: 'dev', username: 'DevMode' }
+        }
+      : {
+          isAuthenticated: false,
+          authMethod: null,
+          discordUser: null
+        }
+  )
+  const [loading, setLoading] = useState(!devMode)
 
   useEffect(() => {
+    if (devMode) return
+
     // Check for existing Discord authentication on mount
     const checkExistingAuth = async () => {
       try {

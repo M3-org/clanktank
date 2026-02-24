@@ -49,12 +49,13 @@ export type SubmissionInputs = {
   problem_solved?: string
   favorite_part?: string
   solana_address?: string
+  ethereum_address?: string
   [key: string]: string | File | null | undefined
 }
 
 export const categoryOptions = [
   "DeFi",
-  "AI/Agents", 
+  "Agents", 
   "Gaming",
   "Infrastructure",
   "Social",

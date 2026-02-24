@@ -30,7 +30,7 @@ export function getCategoryColor(category: string) {
       return 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100'
     case 'Gaming':
       return 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100'
-    case 'AI/Agents':
+    case 'Agents':
       return 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100'
     case 'Infrastructure':
       return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100'

@@ -247,7 +247,6 @@ export default function Header() {
             >
               About
             </button>
-            
             {/* Mobile Auth Section */}
             {authState.isAuthenticated ? (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
