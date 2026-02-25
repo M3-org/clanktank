@@ -73,7 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         // Token is invalid, clear it
         localStorage.removeItem('discord_token')
-        console.log('Stored Discord token is invalid, cleared from storage')
+        console.warn('Stored Discord token is invalid, cleared from storage')
       } finally {
         setLoading(false)
       }
