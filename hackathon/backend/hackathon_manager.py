@@ -28,6 +28,9 @@ from hackathon.prompts.judge_personas import (
     JUDGE_PERSONAS,
     JUDGE_WEIGHTS,
     get_judge_persona,
+    get_score_scale,
+    get_scoring_task,
+    get_round2_template,
 )
 
 # Set up logging
@@ -129,16 +132,8 @@ class HackathonManager:
         """Create a detailed scoring prompt for a specific judge."""
         persona = JUDGE_PERSONAS.get(judge_name, "")
         
-        # Hardened scoring scale with explicit anchors
-        SCALE = """
-SCORE SCALE (use these anchors):
-10 – Benchmark-setting, better than 95% of open-source projects
- 8 – Strong; minor issues only experts notice
- 6 – Adequate; clear rough edges
- 4 – Significant gaps or shortcuts
- 2 – Barely functional / mostly boilerplate
- 0 – Non-working, plagiarized, or irrelevant
-"""
+        # Score scale loaded from JUDGE_CONFIG env var
+        SCALE = get_score_scale()
 
         # Parse research data
         github_analysis = {}
@@ -203,26 +198,7 @@ Contributors: {contributors}
 {red_flags_section}
 AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI research available'}
 
-SCORING TASK:
-Rate each criterion from 0-10 (whole numbers only).
-**Your reasoning must cite at least one weakness or risk.**
-Do not give >8 unless you reference a concrete, verifiable feature that meets production-grade standards.
-Provide your reasoning in 2-3 sentences for each score, staying true to your personality.
-
-Format your response EXACTLY like this:
-INNOVATION_SCORE: [0-10]
-INNOVATION_REASON: [Your reasoning - must include at least one criticism or concern]
-
-TECHNICAL_SCORE: [0-10]
-TECHNICAL_REASON: [Your reasoning - must include at least one criticism or concern]
-
-MARKET_SCORE: [0-10]
-MARKET_REASON: [Your reasoning - must include at least one criticism or concern]
-
-EXPERIENCE_SCORE: [0-10]
-EXPERIENCE_REASON: [Your reasoning - must include at least one criticism or concern]
-
-OVERALL_COMMENT: [One punchy line summarizing your view of this project in your unique style]"""
+{get_scoring_task()}"""
 
         # Add variety instruction based on recent evaluations
         prompt_with_variety = add_variety_instruction(self.db_path, judge_name, prompt)
@@ -1098,53 +1074,21 @@ RELATIVE POSITIONING:
             ranked_projects = sorted(projects.items(), key=lambda x: x[1]["avg_score"], reverse=True)
             target_rank = next((i + 1 for i, (pid, _) in enumerate(ranked_projects) if pid == project_id), None)
 
-        prompt = f"""You are {judge.upper()}, one of the Clank Tank hackathon judges. In Round 1, you provided the following analysis:
-
-ROUND 1 ASSESSMENT:
-{r1_data.get('notes', {}).get('overall_comment', 'No specific notes available')}
-Your Round 1 weighted score: {r1_data['score']:.1f}/40
-
-COMMUNITY FEEDBACK SIGNAL:
-{feedback_summary}
-Total reactions: {community_context['total_reactions']} from {community_context['unique_voters']} unique users
-Engagement level: {community_context['engagement_level']}
-
-COMPARATIVE CONTEXT:
-{comparative_reasoning}
-
-PROJECT DETAILS:
-{project_name} ({category}): {description}
-
-YOUR FINAL SYNTHESIS TASK:
-Provide your Round 2 assessment in the following JSON format:
-
-```json
-{{
-  "final_verdict": "Your 2-3 sentence final perspective as {judge.upper()}",
-  "score_revision": {{
-    "type": "none|adjustment|explicit",
-    "new_score": 25.0,
-    "adjustment": -2.5,
-    "reason": "Brief explanation for score change"
-  }},
-  "reasoning": "Detailed explanation of your assessment",
-  "community_influence": "none|minimal|moderate|significant",
-  "confidence": "low|medium|high"
-}}
-```
-
-SCORE REVISION TYPES:
-- "none": Keep Round 1 score unchanged
-- "adjustment": Modify Round 1 score by +/- amount (use "adjustment" field)
-- "explicit": Replace with entirely new score (use "new_score" field)
-
-Consider:
-1. Does your initial technical assessment hold up against the comparative data?
-2. What does the community feedback pattern suggest about user appeal vs technical merit?
-3. Given the competitive landscape, should you revise your scoring reasoning?
-4. If adjusting your score, be explicit about the new value and reasoning.
-
-Respond ONLY with the JSON structure above."""
+        # Round 2 template loaded from JUDGE_CONFIG env var
+        round2_tpl = get_round2_template()
+        prompt = round2_tpl.format(
+            judge=judge.upper(),
+            overall_comment=r1_data.get('notes', {}).get('overall_comment', 'No specific notes available'),
+            r1_score=f"{r1_data['score']:.1f}",
+            feedback_summary=feedback_summary,
+            total_reactions=community_context['total_reactions'],
+            unique_voters=community_context['unique_voters'],
+            engagement_level=community_context['engagement_level'],
+            comparative_reasoning=comparative_reasoning,
+            project_name=project_name,
+            category=category,
+            description=description,
+        )
 
         try:
             logger.info(f"Getting structured final verdict from {judge} for {project_name}")

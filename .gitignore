@@ -62,3 +62,30 @@ tmp/
 
 # Generated Documentation
 site/
+
+# =============================================================================
+# PRE-OPEN-SOURCE: HISTORY SCRUB REQUIRED
+# =============================================================================
+# Before making this repo public, run git-filter-repo to remove gameable judge
+# prompts, scoring weights, and penalty thresholds from commit history.
+#
+# Files to scrub (contained secrets in prior commits):
+#   hackathon/prompts/judge_personas.py    (persona prompts, scoring weights)
+#   hackathon/prompts/research_prompts.py  (penalty thresholds, research prompt)
+#   hackathon/prompts/unified_prompts.py   (dead code copy of prompts)
+#   hackathon/backend/hackathon_manager.py (score scale, scoring task, round2 template)
+#   scripts/legacy/prompts/judge_personas.py (old copy)
+#   .claude/tasks/ONBOARD_001/             (analysis copies of prompts)
+#
+# Example using git-filter-repo (pip install git-filter-repo):
+#   git filter-repo --invert-paths \
+#     --path hackathon/prompts/unified_prompts.py \
+#     --path scripts/legacy/prompts/judge_personas.py \
+#     --path .claude/tasks/ONBOARD_001/
+#
+# For files that still exist (judge_personas.py, research_prompts.py,
+# hackathon_manager.py), use --replace-text with a regex expressions file
+# to blank out the old prompt content from historical commits.
+#
+# After scrubbing, force-push the rewritten history before going public.
+# =============================================================================
