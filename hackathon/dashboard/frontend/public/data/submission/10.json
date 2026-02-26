@@ -12,7 +12,7 @@
   "twitter_handle": "tcm390",
   "github_url": "https://github.com/wtfsayo/otaku",
   "demo_video_url": "https://github.com/wtfsayo/otaku",
-  "project_image": "/media/projects/otaku_project.png",
+  "project_image": "/media/projects/otaku_project.jpg",
   "problem_solved": "DeFi complexity creates barriers: users can't efficiently analyze yields across protocols, manage cross-chain positions, assess liquidation risks, or execute complex strategies safely. Traditional tools require deep technical knowledge and manual coordination across multiple platforms. Otaku eliminates these friction points by providing a unified Conversational AI interface that executes professional-grade DeFi operations through natural language commands, with built-in risk management, real-time monitoring, and automated optimization across multiple protocols.",
   "favorite_part": "Integrating Base-focused plugins into a coherent action flow and validating each step with on-chain data.",
   "solana_address": "5h3okbcCBa8MFAx9djg6mAWhG6pbhMe6iKAgjLxfrJnV",

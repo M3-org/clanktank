@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, X, Camera } from 'lucide-react';
 
-// Auto-generated from gallery directory - moved outside component for performance
+// Gallery filenames - curated media assets and behind-the-scenes dev shots
 const GALLERY_FILENAMES = [
   '9504cf75-1b14-4f28-8043-903cb958f194.jpg',
   'arbitrum.jpeg',

@@ -12,7 +12,7 @@
   "twitter_handle": "0xbbjoker",
   "github_url": "https://github.com/0xbbjoker/my-agent",
   "demo_video_url": "https://www.youtube.com/watch?v=hHTLIqsj2CY",
-  "project_image": "/media/projects/devrel_project.png",
+  "project_image": "/media/projects/devrel_project.jpg",
   "problem_solved": "Developers struggle to get accurate, context-aware answers about ElizaOS implementation details. Eddy eliminates the gap between documentation and actual code by providing instant access to real-time codebase analysis and expert guidance.",
   "favorite_part": "Eddy doesn't just search for keywords - it semantically understands code structure, relationships between components, and can trace execution paths across the entire ElizaOS codebase. This means developers get answers based on how the code actually works right now, not how documentation says it should work.",
   "solana_address": "6ZSoGo74ZCfb4yeVHoJHai1wEekAAU61wPDKhxitJzu6",
