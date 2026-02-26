@@ -1,0 +1,20 @@
+{
+  "id": 9,
+  "submission_id": 9,
+  "status": "completed",
+  "created_at": "2025-08-05T15:31:53.490504",
+  "updated_at": "2025-08-19 01:45:44",
+  "owner_discord_id": "1281434689910997084",
+  "project_name": "Cogsec Arena",
+  "discord_handle": "binkyfishai",
+  "category": "Gaming",
+  "description": "Battlefield for testing your CogSec",
+  "twitter_handle": "binkyfishai",
+  "github_url": "https://github.com/binkyfishai/truth-or-bot",
+  "demo_video_url": "https://cogsec-arena.vercel.app/",
+  "project_image": "/media/projects/cogsec_project.png",
+  "problem_solved": "Protects people from misinformation",
+  "favorite_part": "The Wiki clone pages are pretty sick for normalizing AI output vs real pages",
+  "solana_address": "EFr4ejJxqpuxiKS62M8PbsENDrRJ7U6MdUKiJxhoKaXJ",
+  "ethereum_address": null
+}

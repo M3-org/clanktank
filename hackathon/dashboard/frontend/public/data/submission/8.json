@@ -1,0 +1,20 @@
+{
+  "id": 8,
+  "submission_id": 8,
+  "status": "completed",
+  "created_at": "2025-08-05T11:17:17.107230",
+  "updated_at": "2025-08-19 01:45:41",
+  "owner_discord_id": "262261938334072834",
+  "project_name": "Purple Rush",
+  "discord_handle": "cl0nazepamm",
+  "category": "Gaming",
+  "description": "\"AI as the engine, humans as the steering wheel\" (in a literal sense)\n\nEndless racer where you try to sip on da sizzuuurp and try to keep the car above 150km/h. Whole game was vibe coded using Gork 4. ",
+  "twitter_handle": "@cl0ne2k",
+  "github_url": "https://github.com/vaticanshadow/Purple-Rush/",
+  "demo_video_url": "https://playcanv.as/p/BDl5ASJ3/",
+  "project_image": "/media/projects/purple_rush_project.png",
+  "problem_solved": "I always drive under the influence. My mama says I should grow up and be a real man so I made this game to not put peoples life in danger n so now I don't need to booze cruise in real life when I can do it in a game. The road generation logic is pretty cool too! Pretty modular stuff!",
+  "favorite_part": "I am a 3d artist with no knowledge of programming other than VEX or maxscript but I always wanted to make a game. Grok 4 vibe coding made my dream come true!! This is my first game. In the same genre of \"Subway Surfers\"\n\nparental advisory: codeine + weed ",
+  "solana_address": "8LLLee22a1VJ7QRsp5RzRu1hDRaTxFMGtGR2XkxtfZtb",
+  "ethereum_address": null
+}

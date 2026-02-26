@@ -1,0 +1,20 @@
+{
+  "id": 6,
+  "submission_id": 6,
+  "status": "completed",
+  "created_at": "2025-08-04T22:27:47.020447",
+  "updated_at": "2025-08-19 01:45:34",
+  "owner_discord_id": "528388627135201292",
+  "project_name": "Jimmy - Project Manager",
+  "discord_handle": "samdeveloper",
+  "category": "AI/Agents",
+  "description": "Jimmy \u2013 AI Project Manager Agent\n\nJimmy is an AI agent that performs every task a human project manager can:\n\n1:1 Team Conversations: Chats with individual members to gather real-time updates on what they\u2019ve worked on\n\nRole-Based Management: Adds and organizes team members by role (engineering, marketing, etc.)\n\nAutomated Reporting: Generates comprehensive team reports on demand or on a schedule\n\nCustom Check-Ins: Creates daily, weekly, reflective or mental-health check-ins to boost morale and productivity\n\nOpen Interaction: Team members can talk to Jimmy freely for updates, prompts, and encouragement\n\nUse Jimmy to streamline coordination, stay on top of progress, and support your team\u2019s well-being\u2014all through a single AI agent.",
+  "twitter_handle": "@samarth0x",
+  "github_url": "https://github.com/samarth30/the-org",
+  "demo_video_url": "https://www.youtube.com/watch?v=yFBVws2XDrU",
+  "project_image": "/media/projects/jimmy_project.png",
+  "problem_solved": "Our AI solves three core pain points in team management:\n\nVisibility Gaps & Status-Chasing: Instead of hunting down updates, Jimmy conducts 1:1 conversations and instantly compiles real-time progress into clear, actionable reports.\n\nMeeting Overload: By automating daily/weekly standups and reflective check-ins, it slashes time spent in status meetings\u2014freeing teams to focus on building.\n\nFull Assistance & Productivity Reporting: Jimmy assists you end-to-end, generating detailed reports on each team member to pinpoint strengths, surface blockers, and boost overall productivity.",
+  "favorite_part": "My favorite part is the 1:1 conversational update flow\u2014Jimmy chatting directly with each team member to pull real-time progress and blockers. It takes the most tedious, friction-filled task off your plate and turns raw updates into instantly actionable insights.",
+  "solana_address": "AbZwqXpziLuL4NzhUgB619xjKXpo6A4RkFVV3e5hQ2rM",
+  "ethereum_address": null
+}

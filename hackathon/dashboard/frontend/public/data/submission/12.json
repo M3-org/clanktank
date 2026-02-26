@@ -1,0 +1,20 @@
+{
+  "id": 12,
+  "submission_id": 12,
+  "status": "completed",
+  "created_at": "2025-08-05T17:09:51.224508",
+  "updated_at": "2025-08-19 01:45:54",
+  "owner_discord_id": "141677977929777152",
+  "project_name": "Eliza Discord Activity",
+  "discord_handle": "cjft",
+  "category": "Social",
+  "description": "The ElizaOS Discord Activity transforms Discord servers into intelligent, AI-powered communities by embedding ElizaOS agents directly into Discord channels through Discord's native Activities framework. Unlike traditional Discord bots that require complex setups and permissions, our solution provides a seamless, interactive AI experience that lives within Discord's embedded iframe - making AI assistance as easy as clicking the Activities button.",
+  "twitter_handle": "_cjft",
+  "github_url": "https://github.com/elizaos-plugins/plugin-discord",
+  "demo_video_url": "https://www.catbox.moe",
+  "project_image": "/media/projects/eliza_discord_project.png",
+  "problem_solved": "Discord communities struggle with:\nComplex bot setups requiring server permissions and technical knowledge\nDisconnected AI experiences that feel like external tools\nLimited context awareness in traditional chatbots\nPoor user experience switching between Discord and AI tools",
+  "favorite_part": "The \"Aha!\" moment when Discord Activities just... work.\nYou know what really gets me excited about this project? It's that magical moment when a Discord user clicks the Activities button, and suddenly they're chatting with an AI agent - no permissions, no setup, no \"invite bot to server\" dance. Just pure, frictionless innovation.\n\nBut if I had to pick my absolute favorite part, it's the Discord ID to UUID mapping system.\n\nThis seemingly simple function is actually brilliant - it bridges two completely different identity systems seamlessly. Discord uses snowflake IDs, ElizaOS expects UUIDs, and this function creates a deterministic, collision-free mapping between them. Every Discord user gets a consistent identity across sessions without any database lookups!\n\nBut beyond the technical elegance, what I really love is how this project respects the user's context. The AI knows you're in the #gaming channel talking about strategies, or in #study-group working through calculus problems. It's not just another chatbot - it's a context-aware companion that fits naturally into the Discord experience.",
+  "solana_address": "Dpc1AVb7bmFHPUpYhcysceKvMVfRqgG3WTjW4qY75Psk",
+  "ethereum_address": null
+}

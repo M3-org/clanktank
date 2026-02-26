@@ -1,0 +1,20 @@
+{
+  "id": 15,
+  "submission_id": 15,
+  "status": "completed",
+  "created_at": "2025-08-05T18:50:01.640507",
+  "updated_at": "2025-08-19 01:46:03",
+  "owner_discord_id": "500627620191404033",
+  "project_name": "Dev Rel agent",
+  "discord_handle": ".0xbbjoker",
+  "category": "AI/Agents",
+  "description": "Eddy is an intelligent developer support agent built on ElizaOS that serves as a 24/7 technical assistant for the ElizaOS developer community. \n\nKey Features:\n\u2022 Real-time code analysis and debugging assistance using the code-context plugin\n\u2022 Intelligent knowledge retrieval from documentation, source code, and recent updates\n\u2022 Proactive monitoring of GitHub commits and PRs to stay current with framework changes\n\u2022 Natural language understanding for complex technical queries\n\u2022 Multi-platform support (Discord, CLI, API) for developer accessibility\n\nEddy solves the critical problem of developer onboarding and support scalability in the rapidly evolving ElizaOS ecosystem. By combining retrieval-augmented generation (RAG) with code understanding capabilities, Eddy can provide accurate, context-aware answers to technical questions ranging from simple CLI usage to complex plugin architecture implementation.\n\nWhat makes Eddy unique is its ability to not just answer questions, but to actively analyze codebases, suggest debugging strategies, and even help developers understand recent framework changes by monitoring the ElizaOS repository in real-time.",
+  "twitter_handle": "0xbbjoker",
+  "github_url": "https://github.com/0xbbjoker/my-agent",
+  "demo_video_url": "https://www.youtube.com/watch?v=hHTLIqsj2CY",
+  "project_image": "/media/projects/devrel_project.png",
+  "problem_solved": "Developers struggle to get accurate, context-aware answers about ElizaOS implementation details. Eddy eliminates the gap between documentation and actual code by providing instant access to real-time codebase analysis and expert guidance.",
+  "favorite_part": "Eddy doesn't just search for keywords - it semantically understands code structure, relationships between components, and can trace execution paths across the entire ElizaOS codebase. This means developers get answers based on how the code actually works right now, not how documentation says it should work.",
+  "solana_address": "6ZSoGo74ZCfb4yeVHoJHai1wEekAAU61wPDKhxitJzu6",
+  "ethereum_address": null
+}

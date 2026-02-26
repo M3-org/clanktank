@@ -1,0 +1,20 @@
+{
+  "id": 11,
+  "submission_id": 11,
+  "status": "completed",
+  "created_at": "2025-08-05T16:16:45.841443",
+  "updated_at": "2025-08-19 01:45:50",
+  "owner_discord_id": "271419324714057738",
+  "project_name": "text2gltf",
+  "discord_handle": "avf00",
+  "category": "Infrastructure",
+  "description": "An application to transform text and markdown documents into 3D models. The printing press for virtual worlds.",
+  "twitter_handle": "@avirtualfuture",
+  "github_url": "https://github.com/avirtualfuture/placeholder",
+  "demo_video_url": "https://youtube.com/placeholder",
+  "project_image": "/media/projects/text2gltf_project.png",
+  "problem_solved": "Written culture in the metaverse.",
+  "favorite_part": "Output quality and performance. Ease of use and features.",
+  "solana_address": "BpvFA3hu3G3zi64pj7E1SSoHkrWAginPwuzMeX7UmH1d",
+  "ethereum_address": null
+}

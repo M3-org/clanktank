@@ -1,11 +1,15 @@
 {
-  "total_submissions": 2,
+  "total_submissions": 16,
   "by_status": {
-    "submitted": 2
+    "completed": 16
   },
   "by_category": {
-    "Agents": 1,
-    "DeFi": 1
+    "Gaming": 3,
+    "AI/Agents": 6,
+    "DeFi": 1,
+    "Social": 2,
+    "Infrastructure": 2,
+    "Other": 2
   },
-  "generated_at": "2025-06-26T19:55:24.033682"
+  "generated_at": "2026-02-26T18:22:26.054550"
 }

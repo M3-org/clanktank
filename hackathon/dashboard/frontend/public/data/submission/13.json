@@ -1,0 +1,20 @@
+{
+  "id": 13,
+  "submission_id": 13,
+  "status": "completed",
+  "created_at": "2025-08-05T18:29:51.522382",
+  "updated_at": "2025-08-19 01:45:57",
+  "owner_discord_id": "291933963176640512",
+  "project_name": "Spartan Wallet",
+  "discord_handle": "freytes",
+  "category": "DeFi",
+  "description": "Github URL: https://github.com/elizaOS/spartan/tree/v2-spartan-dev-neo/extension\n\nThe Spartan DeFi Chrome Extension is an intelligent ElizaOS integration that transforms AI agents into sophisticated DeFi traders for the Solana ecosystem through Google Chrome browser automation. Built to solve the complexity and information overload in decentralized finance, this Chrome extension leverages degenIntel services to provide comprehensive DeFi functionality through four core actions: real-time token balance checking, complete portfolio overview with USD valuations, optimized swap quotes via Jupiter aggregator, and AI-powered trading insights through Spartan AI chat. The Chrome extension features a modular architecture with context-aware providers that deliver live market data and portfolio performance tracking, robust TypeScript implementation with Zod validation, and seamless integration with existing degenIntel infrastructure through WebSocket communication between the browser extension and ElizaOS. It serves individual traders seeking intelligent portfolio management through Google Chrome automation, DeFi protocols looking to add AI-powered trading capabilities via Chrome extension, and AI agents requiring autonomous DeFi operations through web interface interaction. With its ElizaOS-native design, conversational interface for complex DeFi operations accessible through Chrome, and comprehensive type safety, the Spartan DeFi Chrome Extension represents a significant advancement in AI-powered DeFi management through Google Chrome browser automation, creating a new paradigm for automated trading while contributing to the broader DeFi ecosystem.",
+  "twitter_handle": "neodotneo",
+  "github_url": "https://github.com/elizaOS/spartan",
+  "demo_video_url": "https://files.catbox.moe/43o5in.mp4",
+  "project_image": "/media/projects/spartan_project.png",
+  "problem_solved": "The Spartan DeFi Plugin solves the critical challenges facing DeFi traders and developers in today's complex cryptocurrency ecosystem. It addresses information overload by providing a unified interface for monitoring multiple tokens, tracking portfolio performance, and staying informed about market movements in real-time. The plugin eliminates technical barriers by offering conversational AI that can understand complex DeFi operations and provide intelligent trading advice without requiring deep technical knowledge. It tackles risk management issues by incorporating AI-powered analysis that can assess market conditions, identify potential risks, and suggest safer trading strategies. The plugin resolves integration complexity by leveraging existing degenIntel services and providing a cohesive workflow that connects fragmented tools and APIs into a single, intelligent system. Additionally, it solves the problem of fragmented DeFi tools by offering comprehensive functionality including token balance checking, portfolio overview, swap quote generation, and AI-powered market analysis all within one integrated platform. The plugin also addresses the lack of intelligent automation in DeFi by enabling AI agents to manage portfolios autonomously, execute trades based on analysis, and provide real-time market intelligence, ultimately reducing the time and effort required for effective DeFi portfolio management while improving decision-making through data-driven insights.",
+  "favorite_part": "Project by Odilitime / Neodotneo",
+  "solana_address": "",
+  "ethereum_address": null
+}

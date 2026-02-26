@@ -1,0 +1,20 @@
+{
+  "id": 1,
+  "submission_id": 1,
+  "status": "completed",
+  "created_at": "2025-07-21T14:18:32.407007",
+  "updated_at": "2025-08-19 01:45:18",
+  "owner_discord_id": "699264581729779733",
+  "project_name": "Kenk Test",
+  "discord_handle": "k_carv",
+  "category": "AI/Agents",
+  "description": "this is a test ",
+  "twitter_handle": "kenkdoteth",
+  "github_url": "https://github.com/KenCarvAPI/Hairpin-Backend",
+  "demo_video_url": "https://www.youtube.com/watch?v=sqSA-SY5Hro",
+  "project_image": "/media/projects/kenk_test_project.png",
+  "problem_solved": "Many problems, many ",
+  "favorite_part": "I love lamp",
+  "solana_address": "76QRBvbcsyhkmiojKkGf8Fb9xmqva7nBmXNgv9b3sG96",
+  "ethereum_address": null
+}

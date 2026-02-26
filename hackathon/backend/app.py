@@ -78,7 +78,7 @@ HACKATHON_DB_PATH = os.getenv(
     "HACKATHON_DB_PATH", str(REPO_ROOT / "data" / "hackathon.db")
 )
 STATIC_DATA_DIR = os.getenv(
-    "STATIC_DATA_DIR", str(Path(__file__).parent / "frontend" / "public" / "data")
+    "STATIC_DATA_DIR", str(REPO_ROOT / "hackathon" / "dashboard" / "frontend" / "public" / "data")
 )
 LOG_FILE_PATH = REPO_ROOT / "logs" / "hackathon_api.log"
 
@@ -2801,12 +2801,13 @@ def generate_static_data():
         result = conn.execute(
             text(
                 """
-            SELECT 
+            SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
                 s.status,
                 s.created_at,
+                s.project_image,
                 AVG(sc.weighted_total) as avg_score,
                 COUNT(DISTINCT sc.judge_name) as judge_count,
                 u.username as discord_handle
@@ -2838,6 +2839,7 @@ def generate_static_data():
                         row_dict["judge_count"] if row_dict["judge_count"] else 0
                     ),
                     "discord_handle": row_dict["discord_handle"],
+                    "project_image": row_dict.get("project_image"),
                 }
             )
 

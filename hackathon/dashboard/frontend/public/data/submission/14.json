@@ -1,0 +1,20 @@
+{
+  "id": 14,
+  "submission_id": 14,
+  "status": "completed",
+  "created_at": "2025-08-05T18:46:58.507759",
+  "updated_at": "2025-08-19 01:46:00",
+  "owner_discord_id": "874076939349020763",
+  "project_name": "Greenthumb",
+  "discord_handle": "cheddarqueso",
+  "category": "AI/Agents",
+  "description": "An AI that successfully guides people from plant-killing beginners to confident urban farmers",
+  "twitter_handle": "@cheddarqueso",
+  "github_url": "https://github.com/ileana-pr/greenthumb-privy",
+  "demo_video_url": "https://1drv.ms/v/c/aad8bc8c43642167/EbhpRHCZ_ZZKnpaEIFRJIaABwhZx0nPLhXL_bKdAGNEIjQ?e=ISGvbz",
+  "project_image": "/media/projects/greenthumb_project.png",
+  "problem_solved": "Despite advancements in agriculture and technology, food insecurity remains a global issue, but Urban gardening, homesteading and farmers markets are on the rise. Decentralized food systems can reduce our over-reliance on corporations and processed foods, protect against political instability and reconnect the people to the land. I want to build a swarm of AI agent soil microbiologists that will coach new and inexperienced urban gardeners from seed to harvest. ",
+  "favorite_part": "It's a consumer app that leverages an existing niche community and facilitates food sustainability through blockchain integration. ",
+  "solana_address": "6S2B4bGBUdU5ngsvz91hyPor98Q7aCszLPCtnCXqnf2N",
+  "ethereum_address": null
+}

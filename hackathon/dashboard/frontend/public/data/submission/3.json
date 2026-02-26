@@ -1,0 +1,20 @@
+{
+  "id": 3,
+  "submission_id": 3,
+  "status": "completed",
+  "created_at": "2025-08-03T19:30:56.487727",
+  "updated_at": "2025-08-19 01:45:24",
+  "owner_discord_id": "974468415756578866",
+  "project_name": "Refraktor: Music Synth",
+  "discord_handle": "godfreyart",
+  "category": "Other",
+  "description": "REFRAKTOR is an interactive 3D audio-visual synthesizer for the web. It combines real-time sound generation with a dynamic 3D scene, allowing users to create evolving soundscapes and visuals by manipulating a variety of parameters.\n\nThe user interface is composed of several draggable panels, each controlling a different aspect of the synthesizer:\n\nGeneral: Master sound toggle and the ability to add a second, independently-controlled \"lens\" to the scene.\n\n- Master: A master volume control and a \"Panic\" button to reset the audio engine.\n- Sound: Control the core sound with a waveform selector (sine, square, etc.), an interactive ADSR envelope visualizer, and sliders for Attack, Decay, Sustain, Release, and note Duration.\n- Filter: Shape the sound with a multi-mode filter (lowpass, highpass, etc.) and controls for Frequency and Q (Resonance).\n- Lens 1 & 2: Manipulate the cymatics simulation by controlling the frequency and amplitude of the wave patterns on the lenses.\n- Music: Enable a \"Chord Magnet\" to gently pull notes towards a defined musical scale for more harmonic results.\n- Bloom: Adjust the post-processing bloom effect, controlling its strength, radius, and threshold to create a glowing, ethereal look.\n- MIDI: Enable MIDI output to send the generated notes to external hardware or software synthesizers.\n- Presets: Save the entire state of the application to a JSON file, and load presets to instantly recall your favorite sounds and settings.\n\nDemo: https://gm3.github.io/refraktor/",
+  "twitter_handle": "@boomboxheads",
+  "github_url": "https://github.com/gm3/refraktor",
+  "demo_video_url": "https://gm3.github.io/refraktor/",
+  "project_image": "/media/projects/refraktor_project.png",
+  "problem_solved": "This project is a creative tool exploring generative sound, and recasting as a source of randomness. It solves the creative need to make sounds in a new kind of way. ",
+  "favorite_part": "My favorite part about this project is that it uses refraction, and simulated light beams, and deformed \"lens\" to guild raycasts to hit music pads. ",
+  "solana_address": "FtZUUr4kkERxGbTTySyVGszXmjMbKWwyeiN63AdVN2H2",
+  "ethereum_address": null
+}

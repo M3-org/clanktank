@@ -1,0 +1,20 @@
+{
+  "id": 5,
+  "submission_id": 5,
+  "status": "completed",
+  "created_at": "2025-08-04T16:35:46.062620",
+  "updated_at": "2025-08-19 01:45:31",
+  "owner_discord_id": "168984078895284224",
+  "project_name": "Starward Astrology",
+  "discord_handle": "dango_z",
+  "category": "Other",
+  "description": "Starward is a personalized Chinese astrology platform that allows users to create detailed birth charts based on Zi Wei Dou Shu (Purple Star Astrology) principles by entering their birth information, then receive AI-powered astrological readings and insights through an interactive chat interface. Users can visualize their astrological charts, purchase credits to unlock readings, and explore their destiny through ancient Chinese astrological wisdom presented in a modern, user-friendly digital experience available in both English and Chinese languages.",
+  "twitter_handle": "@Dangozzzzz",
+  "github_url": "https://github.com/Dangoz/dangoz",
+  "demo_video_url": "https://starward.app",
+  "project_image": "/media/projects/starward_project.png",
+  "problem_solved": "Starward makes ancient Chinese astrology accessible by automating complex Zi Wei Dou Shu calculations and providing instant, AI-powered personalized readings without requiring expensive human consultations.",
+  "favorite_part": "Despite the project being in its early stage with a lot of improvements to be made especially for the ai reading, It was really fun researching and learning about Purple Star Astrology while working on the project.",
+  "solana_address": "952ME6uVpupMiw9FUedh4yUSx6UbUqDukQxWd6Z1qVQg",
+  "ethereum_address": null
+}
