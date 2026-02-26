@@ -38,10 +38,10 @@ const howItWorks = [
 ];
 
 const judges = [
-  { name: 'Aimarc', avatar: '/avatars/aimarc.png', tag: 'ROI skeptic' },
-  { name: 'Aishaw', avatar: '/avatars/aishaw.png', tag: 'Code purist' },
-  { name: 'Peepo', avatar: '/avatars/peepo.png', tag: 'UX meme lord' },
-  { name: 'Spartan', avatar: '/avatars/spartan.png', tag: 'DeFi maximalist' },
+  { name: 'Aimarc', avatar: `${import.meta.env.BASE_URL}avatars/aimarc.png`, tag: 'ROI skeptic' },
+  { name: 'Aishaw', avatar: `${import.meta.env.BASE_URL}avatars/aishaw.png`, tag: 'Code purist' },
+  { name: 'Peepo', avatar: `${import.meta.env.BASE_URL}avatars/peepo.png`, tag: 'UX meme lord' },
+  { name: 'Spartan', avatar: `${import.meta.env.BASE_URL}avatars/spartan.png`, tag: 'DeFi maximalist' },
 ];
 
 const faqs = [
@@ -287,7 +287,7 @@ export default function Frontpage() {
         <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
           <div className="absolute inset-0">
             <video
-              src="/loop.mp4"
+              src={`${import.meta.env.BASE_URL}loop.mp4`}
               autoPlay
               loop
               muted
@@ -344,7 +344,7 @@ export default function Frontpage() {
                     </svg>
                     
                     {/* Main logo */}
-                    <img src="/clanktank_white.png" alt="Clank Tank Logo" className="relative z-10 h-12 sm:h-16 md:h-20 lg:h-24 w-auto mx-auto drop-shadow-lg" />
+                    <img src={`${import.meta.env.BASE_URL}clanktank_white.png`} alt="Clank Tank Logo" className="relative z-10 h-12 sm:h-16 md:h-20 lg:h-24 w-auto mx-auto drop-shadow-lg" />
                     
                     {/* Right gear */}
                     <svg

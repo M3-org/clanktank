@@ -181,11 +181,11 @@ export default function SubmissionDetail() {
 
   // Add mapping for judge avatars
   const judgeAvatarMap: Record<string, string> = {
-    'eliza': '/avatars/eliza.png',
-    'aimarc': '/avatars/aimarc.png',
-    'aishaw': '/avatars/aishaw.png',
-    'spartan': '/avatars/spartan.png',
-    'peepo': '/avatars/peepo.png',
+    'eliza': `${import.meta.env.BASE_URL}avatars/eliza.png`,
+    'aimarc': `${import.meta.env.BASE_URL}avatars/aimarc.png`,
+    'aishaw': `${import.meta.env.BASE_URL}avatars/aishaw.png`,
+    'spartan': `${import.meta.env.BASE_URL}avatars/spartan.png`,
+    'peepo': `${import.meta.env.BASE_URL}avatars/peepo.png`,
   }
 
   // Normalize various judge name strings to avatar keys

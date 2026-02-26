@@ -65,7 +65,7 @@ export default function Leaderboard() {
         <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
           <div className="absolute inset-0">
             <video
-              src="/loop.mp4"
+              src={`${import.meta.env.BASE_URL}loop.mp4`}
               autoPlay
               loop
               muted

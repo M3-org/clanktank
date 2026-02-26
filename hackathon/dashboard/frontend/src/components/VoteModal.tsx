@@ -57,7 +57,7 @@ export function VoteModal({ submission, onClose }: VoteModalProps) {
                 {showTooltip && (
                   <div className="absolute top-6 left-0 z-50 w-60 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
                     <img 
-                      src="/voting-guide.jpg" 
+                      src={`${import.meta.env.BASE_URL}voting-guide.jpg`}
                       alt="Voting Guide" 
                       className="w-full h-auto rounded"
                     />

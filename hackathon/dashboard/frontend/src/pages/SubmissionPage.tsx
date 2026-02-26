@@ -10,6 +10,8 @@ import ProtectedRoute from '../components/ProtectedRoute'
 import { Copy, Upload } from 'lucide-react'
 import { SubmissionDetail } from '../types';
 
+const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
+
 interface SchemaField {
   name: string
   label: string
@@ -358,6 +360,33 @@ export default function SubmissionPage() {
       e.target.value = '';
     };
     reader.readAsText(file);
+  }
+
+  // In static mode, show "hackathon ended" message instead of the form
+  if (USE_STATIC) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="max-w-lg mx-auto mt-16">
+          <CardContent className="text-center py-12">
+            <div className="rounded-full bg-amber-100 dark:bg-amber-900/30 h-16 w-16 flex items-center justify-center mx-auto mb-4">
+              <span className="text-amber-600 text-2xl">🏆</span>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              Hackathon Has Ended
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Thank you to everyone who participated! Submissions are no longer being accepted. Check the leaderboard for final results.
+            </p>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/dashboard')}
+            >
+              View Results
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (!schemaLoaded) {

@@ -7,6 +7,8 @@ import { buildSponsorLink, isMobile as isMobileDevice } from '../utils/phantomLi
 import { PRIZE_WALLET, TOAST_MESSAGES } from '../lib/constants'
 import { pretty } from '../lib/utils'
 
+const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
+
 interface PrizePoolProps {
   goal?: number
   variant?: 'card' | 'banner' | 'marquee'
@@ -75,6 +77,9 @@ export function PrizePool({ goal = 10, variant = 'card' }: PrizePoolProps) {
   }, [variant])
 
   if (variant === 'marquee') {
+    // In static mode, hide the marquee entirely (no backend/WebSocket)
+    if (USE_STATIC) return null
+
     if (loading) {
       return (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 backdrop-blur-sm">

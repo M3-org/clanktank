@@ -3,6 +3,8 @@ import { toast } from 'react-hot-toast'
 import { hackathonApi } from '../lib/api'
 import type { PrizePoolContribution } from '../types'
 
+const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
+
 interface TokenHolding {
   mint: string
   symbol: string
@@ -232,22 +234,27 @@ export function usePrizePool() {
     }
   }, [processWebSocketData, fetchTokenHoldings])
 
-  // Initialize connection on mount
+  // Initialize connection on mount (skip in static mode — no backend)
   useEffect(() => {
+    if (USE_STATIC) {
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
-    
+
     // Try WebSocket first, fallback to HTTP if needed
     connectWebSocket()
-    
+
     // Cleanup on unmount
     return () => {
       isConnectingRef.current = false
-      
+
       if (wsRef.current) {
         wsRef.current.close()
         wsRef.current = null
       }
-      
+
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null

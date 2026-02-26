@@ -106,7 +106,7 @@ const GALLERY_FILENAMES = [
 // Memoized gallery images to prevent recreation
 const createGalleryImages = () => GALLERY_FILENAMES.map(filename => ({
   filename,
-  path: `/media/${filename}`,
+  path: `${import.meta.env.BASE_URL}media/${filename}`,
 }));
 
 export default function Gallery() {
@@ -131,7 +131,7 @@ export default function Gallery() {
     // Gallery page meta data
     const galleryTitle = 'Clank Tank Dev Gallery';
     const galleryDescription = 'Visual journey through Clank Tank\'s development.';
-    const galleryImage = '/media/clanktank-set.jpg'; // Use a representative image
+    const galleryImage = `${import.meta.env.BASE_URL}media/clanktank-set.jpg`; // Use a representative image
 
     // Update meta tags
     document.title = galleryTitle;

@@ -2,6 +2,8 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from './Button'
+
+const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
 import { DiscordAvatar } from './DiscordAvatar'
 import { LogOut, ChevronDown, Plus, Menu, X, Camera } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
@@ -66,7 +68,7 @@ export default function Header() {
               </span>
               <span className="relative inline-block h-10 md:h-12 w-24 md:w-28 flex-shrink-0" style={{ verticalAlign: 'middle' }}>
                 <img 
-                  src="/clanktank_white.png" 
+                  src={`${import.meta.env.BASE_URL}clanktank_white.png`}
                   alt="Clank Tank Logo" 
                   className="relative z-10 h-full w-auto max-w-[6rem] drop-shadow-lg mx-auto"
                   {...({ fetchpriority: "high" } as any)}
@@ -137,7 +139,8 @@ export default function Header() {
 
             </nav>
 
-            {/* Auth Section */}
+            {/* Auth Section — hidden in static mode (no backend) */}
+            {!USE_STATIC && (
             <div className="hidden md:block">
               {authState.isAuthenticated ? (
                 <div className="relative" ref={dropdownRef}>
@@ -190,6 +193,7 @@ export default function Header() {
                 </Button>
               )}
             </div>
+            )}
 
             {/* Mobile menu button - positioned on far right */}
             <div className="flex items-center md:hidden">
@@ -247,8 +251,9 @@ export default function Header() {
             >
               About
             </button>
-            {/* Mobile Auth Section */}
-            {authState.isAuthenticated ? (
+            {/* Mobile Auth Section — hidden in static mode */}
+            {!USE_STATIC && (
+              authState.isAuthenticated ? (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                 <button
                   onClick={() => {
@@ -287,6 +292,7 @@ export default function Header() {
                   Connect
                 </button>
               </div>
+            )
             )}
           </div>
         </div>
