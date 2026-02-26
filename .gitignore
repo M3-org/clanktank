@@ -47,7 +47,9 @@ logs/
 # Hackathon System Generated Files
 data/submission_backups/
 data/temp.txt
+data/*.db
 hackathon/episodes/
+hackathon/dashboard/frontend/dist/
 
 # Large/Archive Files
 *.tar
