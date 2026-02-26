@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   const projectRoot = resolve(__dirname, '../../../')
   const env = loadEnv(mode, projectRoot, '');
   return {
+    base: env.VITE_BASE_PATH || '/',
     plugins: [react()],
     server: {
       proxy: {

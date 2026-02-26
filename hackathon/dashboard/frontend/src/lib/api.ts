@@ -2,10 +2,10 @@ import axios from 'axios'
 import { SubmissionSummary, SubmissionDetail, LeaderboardEntry, Stats, CommunityScore, PrizePoolData } from '../types'
 import { SubmissionInputs } from '../types/submission'
 
-const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:8000/api'
-
 // For static deployment, we'll check if we should use JSON files
 const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
+
+const API_BASE = USE_STATIC ? '/data' : (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api')
 
 const api = axios.create({
   baseURL: API_BASE,
