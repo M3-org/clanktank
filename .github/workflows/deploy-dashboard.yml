@@ -38,7 +38,7 @@ jobs:
         env:
           VITE_USE_STATIC: 'true'
           VITE_BASE_PATH: /clanktank/
-          VITE_PRIZE_WALLET_ADDRESS: ${{ secrets.PRIZE_WALLET_ADDRESS }}
+          VITE_PRIZE_WALLET_ADDRESS: 7ErPek9uyReCBwiLkTi3DbqNDRf2Kmz4BShGhXmWLebx
           VITE_AI16Z_MINT: HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC
           VITE_SUBMISSION_DEADLINE: '2025-08-09T23:00:00+00:00'
 

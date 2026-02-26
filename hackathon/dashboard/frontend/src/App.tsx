@@ -103,7 +103,7 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename={import.meta.env.BASE_URL}>
         <AppContent />
         <Suspense fallback={null}>
           <Toaster
