@@ -1,0 +1,1739 @@
+{
+  "id": 1,
+  "submission_id": 1,
+  "status": "completed",
+  "created_at": "2025-07-21T14:18:32.407007",
+  "updated_at": "2025-08-19 01:45:18",
+  "owner_discord_id": "699264581729779733",
+  "project_name": "Kenk Test",
+  "discord_handle": "k_carv",
+  "category": "AI/Agents",
+  "description": "this is a test ",
+  "twitter_handle": "kenkdoteth",
+  "github_url": "https://github.com/KenCarvAPI/Hairpin-Backend",
+  "demo_video_url": "https://www.youtube.com/watch?v=sqSA-SY5Hro",
+  "project_image": "/media/projects/kenk_test_project.jpg",
+  "problem_solved": "Many problems, many ",
+  "favorite_part": "I love lamp",
+  "solana_address": "76QRBvbcsyhkmiojKkGf8Fb9xmqva7nBmXNgv9b3sG96",
+  "ethereum_address": null,
+  "discord_avatar": "https://cdn.discordapp.com/avatars/699264581729779733/b4c1da348e6a58c61406587ba037467d.png",
+  "discord_id": "699264581729779733",
+  "discord_username": "k_carv",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 2.0,
+      "user_experience": 0.0,
+      "weighted_total": 4.2,
+      "notes": {
+        "reasons": {
+          "innovation": "Contextual ads for AI agents? That's actually a billion-dollar idea waiting to happen - but submitting pre-existing code with \"I love lamp\" as your favorite feature is like showing up to Y Combinator with someone else's pitch deck. The concept could revolutionize how we monetize autonomous systems, but the execution here is pure fraud.",
+          "technical": "Zero commits with 157 files is the technical equivalent of claiming you built Rome in a day while showing us a postcard from 1953. The SSP connector architecture looks production-grade because IT IS production-grade - built months before this hackathon even existed. This isn't technical prowess, it's technical plagiarism.",
+          "market": "The TAM for AI agent advertising could hit $50B by 2030, making this potentially bigger than mobile ads were in 2010. But you can't capture a market with stolen valor - investors can smell dishonesty faster than a bad smart contract, and this team reeks of it from three repositories away.",
+          "experience": "The user experience of discovering you've been scammed is universally negative, which is exactly what this submission delivers. Professional Sphinx documentation and modular SDK design mean nothing when the entire submission is a lie wrapped in an Anchorman reference."
+        },
+        "overall_comment": "This is what happens when you try to pass off your day job as a weekend hack - the blockchain never forgets, and neither do VCs who've seen this grift a thousand times before."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:44:36.949655"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 0.5,
+      "notes": {
+        "round2_final_verdict": "This is what happens when you submit a test string to a hackathon - you get exactly the score you deserve: zero. The community's 100% disapproval rating confirms what we all knew: this isn't even trying to be a project.",
+        "round2_reasoning": "Look, I've seen lazy hackathon submissions before, but 'this is a test' takes the cake. Zero commits during the hackathon, 100% community disapproval, dead last out of 16 projects - this isn't even a project, it's a placeholder that somehow made it through submission. The comparative analysis mentions cymatics visualization and Web Audio API, but the actual submission is just four words: 'this is a test'. Either this is the world's most minimalist AI agent or someone accidentally hit submit on their test form. The 0th percentile ranking is generous - this should be in negative territory. At least the other projects tried to build something, even if they recycled old code. This is just... nothing.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 0.5,
+          "adjustment": -3.7,
+          "reason": "Adjusting down to near-zero to reflect that this is literally just a test submission with no actual project content"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 4.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Kenk Test:\n\nRANKING CONTEXT:\n- Ranked #16 out of 16 projects\n- Score: 0.8 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 0th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 15 projects scored higher (avg gap: 6.1 points)\n- 0 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 100% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "dislike": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 1,
+        "synthesis_timestamp": "2025-08-22T04:59:09.755895"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T04:59:09.756110"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 1.0,
+      "technical_execution": 2.0,
+      "market_potential": 1.0,
+      "user_experience": 0.0,
+      "weighted_total": 4.8,
+      "notes": {
+        "reasons": {
+          "innovation": "Contextual ads for AI agents is actually a clever concept that could solve real monetization problems, but submitting pre-existing work with joke descriptions (\"I love lamp\"? really?) completely undermines any innovative merit. The zero-commit repo with 157 files is technically impossible - you can't write that much code without version control history.",
+          "technical": "The architecture is suspiciously clean - proper SSP connectors, Sphinx docs, professional error handling - but that's exactly the problem. This level of polish takes months, not a hackathon weekend, and the complete absence of iterative commits proves this wasn't built during the event.",
+          "market": "While AI agent advertising could be a billion-dollar market as agents proliferate, I can't evaluate market fit for a project that shows zero respect for basic hackathon rules. The team's integrity issues would tank any real business potential - who would trust their ad network after this stunt?",
+          "experience": "The SDK design might be solid, but the submission experience is insulting - \"this is a test\" as a description? The pre-hackathon repo creation date and bulk code upload pattern shows they didn't even try to hide their rule violations."
+        },
+        "overall_comment": "Professional-grade codebase with zero commits is like claiming you built a rocket in your garage overnight - technically impressive if true, but we all know you didn't."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:44:49.108366"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 0.0,
+      "notes": {
+        "round2_final_verdict": "Zero commits during hackathon + 'this is a test' description = automatic disqualification. This isn't even trying to be a hackathon submission - it's literally testing the submission system.",
+        "round2_reasoning": "Looking at the comparative data confirms my suspicion - this is dead last with 100% negative community feedback. The 'this is a test' description seals it. Someone submitted pre-existing work (or nothing at all) just to see if the system would accept it. Zero commits, zero effort, zero points. The fact that it got 4.8 points in Round 1 was already too generous - we shouldn't reward placeholder submissions that waste judges' time.",
+        "score_revision": {
+          "type": "explicit",
+          "new_score": 0.0,
+          "adjustment": 0,
+          "reason": "Test submissions deserve zero points - this isn't a real project"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 4.8,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Kenk Test:\n\nRANKING CONTEXT:\n- Ranked #16 out of 16 projects\n- Score: 0.8 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 0th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 15 projects scored higher (avg gap: 6.1 points)\n- 0 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 100% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "dislike": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 1,
+        "synthesis_timestamp": "2025-08-22T04:59:29.609048"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T04:59:29.609242"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 1.0,
+      "technical_execution": 2.0,
+      "market_potential": 3.0,
+      "user_experience": 0.0,
+      "weighted_total": 5.7,
+      "notes": {
+        "reasons": {
+          "innovation": "Aight look, contextual ads for AI agents could've been fire, but submitting pre-existing work as a hackathon project? That's not innovation, that's just cap. Plus they couldn't even be bothered to write a real description - \"I love lamp\"? C'mon now.",
+          "technical": "The code might be clean but it don't slap when you realize it's got ZERO commits with 157 files - that's like showing up to a cook-off with yesterday's leftovers. Technical excellence means nothing when the vibe check reveals it was built months before the hackathon even started.",
+          "market": "Yeah AI agent advertising could pop off in the future, but who's gonna trust a team that tries to finesse judges with pre-built code? Market potential don't mean squat if your reputation is cooked from day one - the streets remember everything, fam.",
+          "experience": "Bruh really said \"this is a test\" and \"I love lamp\" as their project description - that's not just bad UX, that's straight disrespectful to everyone's time. Can't rate the experience when they didn't even try to create one for real users or judges."
+        },
+        "overall_comment": "This project got all the slap of a wet noodle - they really thought they could slide in with June code to a July hackathon and nobody would peep? That's not it, chief."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:45:13.205631"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 3.2,
+      "notes": {
+        "round2_final_verdict": "Yo this ain't even a project, it's just three words and a dream. The community already buried it with that 100% dislike ratio - when the people speak, Peepo listens.",
+        "round2_reasoning": "Look fam, I tried to find something redeemable here but there's nothing. No demo, no code, no vibes, no nothing. Just 'this is a test' sitting there like a sad frog on a lily pad. The community ratio of 0 likes to 1 dislike tells the whole story - this project doesn't just not slap, it's the anti-slap. At least other projects tried something, even if they recycled old code. This is just disrespectful to the hackathon tbh. The fact it's ranked dead last at #16 with a 0.8 score? That's the universe correcting itself.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 3.2,
+          "adjustment": -2.5,
+          "reason": "Even 5.7 was too generous for literally just 'this is a test' - community's right, this is bottom tier"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 5.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Kenk Test:\n\nRANKING CONTEXT:\n- Ranked #16 out of 16 projects\n- Score: 0.8 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 0th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 15 projects scored higher (avg gap: 6.1 points)\n- 0 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 100% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "dislike": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 1,
+        "synthesis_timestamp": "2025-08-22T04:59:55.895259"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T04:59:55.895425"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 0.0,
+      "technical_execution": 0.0,
+      "market_potential": 0.0,
+      "user_experience": 0.0,
+      "weighted_total": 0.0,
+      "notes": {
+        "reasons": {
+          "innovation": "WHERE'S THE MONEY?! This joke submission with \"I love lamp\" and ZERO commits is a SCAM, not innovation! Even if contextual ads for AI agents COULD generate yield, these fraudsters built NOTHING during the hackathon - just dumped pre-existing code!",
+          "technical": "Professional SDK architecture means NOTHING when it's PRE-BUILT GARBAGE from June! Zero commits with 157 files? That's not development, that's THEFT of hackathon resources! No revenue model, no tokenomics, just stolen time!",
+          "market": "\"Many problems, many\" - IS THAT YOUR BUSINESS PLAN?! You can't monetize a FRAUD! Even if AI agent advertising could print money, I wouldn't trust these scammers with a single WEI!",
+          "experience": "The only experience here is getting SCAMMED! \"This is a test\" - yeah, a test of how STUPID you think judges are! No demo, no yield mechanics, no path to liquidity - just LIES!"
+        },
+        "overall_comment": "DISQUALIFIED TRASH! Come back when you have REAL tokenomics, not movie quotes and pre-built repos - THIS IS SPARTA, NOT A COMEDY CLUB!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:45:00.731371"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 0.0,
+      "notes": {
+        "round2_final_verdict": "STILL WORTHLESS! A test project with ZERO monetization strategy, ZERO tokenomics, and ZERO path to profit - get this garbage out of my sight!",
+        "round2_reasoning": "This 'test' project is an INSULT to profit-seeking warriors! Where's the token? Where's the yield farming? Where's the liquidity pools? You come to a hackathon with 'this is a test' and expect me to care? The community's 100% dislike rate shows even degens know trash when they see it. Dead last out of 16 projects - EXACTLY where it belongs! No commits during hackathon, no economic model, no DeFi integration, no revenue streams - this isn't even a project, it's a PLACEHOLDER. In the arena of profit, this doesn't even qualify as cannon fodder!",
+        "score_revision": {
+          "type": "none",
+          "new_score": 0.0,
+          "adjustment": 0,
+          "reason": "No revenue model = no score. Period."
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 0.0,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Kenk Test:\n\nRANKING CONTEXT:\n- Ranked #16 out of 16 projects\n- Score: 0.8 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 0th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 15 projects scored higher (avg gap: 6.1 points)\n- 0 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 100% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "dislike": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 1,
+        "synthesis_timestamp": "2025-08-22T05:00:22.043786"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:00:22.043995"
+    }
+  ],
+  "avg_score": 1.87,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/KenCarvAPI/Hairpin-Backend",
+      "owner": "KenCarvAPI",
+      "name": "Hairpin-Backend",
+      "description": "Hairpin-backend",
+      "created_at": "2025-06-11T07:57:24Z",
+      "updated_at": "2025-06-12T13:18:18Z",
+      "license": "None",
+      "readme_analysis": {
+        "exists": true,
+        "size": 2759,
+        "word_count": 377,
+        "has_sections": true,
+        "has_setup_section": true,
+        "has_license_section": true
+      },
+      "file_structure": {
+        "total_files": 157,
+        "file_extensions": {
+          "ds_store": 1,
+          "md": 5,
+          "doctree": 5,
+          "pickle": 1,
+          "buildinfo": 1,
+          "nojekyll": 1,
+          "html": 12,
+          "txt": 12,
+          "js": 11,
+          "css": 4,
+          "woff": 13,
+          "woff2": 13,
+          "eot": 7,
+          "svg": 1,
+          "ttf": 7,
+          "png": 3,
+          "inv": 1,
+          "rst": 5,
+          "py": 37,
+          "bat": 1,
+          "json": 3,
+          "example": 1,
+          "gitignore": 1,
+          "ini": 2,
+          "mako": 1,
+          "yml": 1,
+          "egg-info/pkg-info": 1,
+          "pyc": 3
+        },
+        "config_files": [
+          "hairpin-matching-engine-api/requirements.txt",
+          "hairpin_router/requirements.txt",
+          "requirements.txt"
+        ],
+        "is_large_repo": false,
+        "is_mono_repo": true,
+        "has_docs": true,
+        "has_tests": true,
+        "files": [
+          ".DS_Store",
+          "MVP_USAGE.md",
+          "QUICKSTART.md",
+          "README.md",
+          "docs/Makefile",
+          "docs/_build/doctrees/api.doctree",
+          "docs/_build/doctrees/environment.pickle",
+          "docs/_build/doctrees/examples.doctree",
+          "docs/_build/doctrees/index.doctree",
+          "docs/_build/doctrees/quickstart.doctree",
+          "docs/_build/doctrees/ssp.doctree",
+          "docs/_build/html/.buildinfo",
+          "docs/_build/html/.nojekyll",
+          "docs/_build/html/_modules/hairpin_sdk/client.html",
+          "docs/_build/html/_modules/hairpin_sdk/exceptions.html",
+          "docs/_build/html/_modules/hairpin_sdk/ssp/base.html",
+          "docs/_build/html/_modules/hairpin_sdk/ssp/pubmatic.html",
+          "docs/_build/html/_modules/index.html",
+          "docs/_build/html/_sources/api.rst.txt",
+          "docs/_build/html/_sources/examples.rst.txt",
+          "docs/_build/html/_sources/index.rst.txt",
+          "docs/_build/html/_sources/quickstart.rst.txt",
+          "docs/_build/html/_sources/ssp.rst.txt",
+          "docs/_build/html/_static/_sphinx_javascript_frameworks_compat.js",
+          "docs/_build/html/_static/basic.css",
+          "docs/_build/html/_static/css/badge_only.css",
+          "docs/_build/html/_static/css/fonts/Roboto-Slab-Bold.woff",
+          "docs/_build/html/_static/css/fonts/Roboto-Slab-Bold.woff2",
+          "docs/_build/html/_static/css/fonts/Roboto-Slab-Regular.woff",
+          "docs/_build/html/_static/css/fonts/Roboto-Slab-Regular.woff2",
+          "docs/_build/html/_static/css/fonts/fontawesome-webfont.eot",
+          "docs/_build/html/_static/css/fonts/fontawesome-webfont.svg",
+          "docs/_build/html/_static/css/fonts/fontawesome-webfont.ttf",
+          "docs/_build/html/_static/css/fonts/fontawesome-webfont.woff",
+          "docs/_build/html/_static/css/fonts/fontawesome-webfont.woff2",
+          "docs/_build/html/_static/css/fonts/lato-bold-italic.woff",
+          "docs/_build/html/_static/css/fonts/lato-bold-italic.woff2",
+          "docs/_build/html/_static/css/fonts/lato-bold.woff",
+          "docs/_build/html/_static/css/fonts/lato-bold.woff2",
+          "docs/_build/html/_static/css/fonts/lato-normal-italic.woff",
+          "docs/_build/html/_static/css/fonts/lato-normal-italic.woff2",
+          "docs/_build/html/_static/css/fonts/lato-normal.woff",
+          "docs/_build/html/_static/css/fonts/lato-normal.woff2",
+          "docs/_build/html/_static/css/theme.css",
+          "docs/_build/html/_static/doctools.js",
+          "docs/_build/html/_static/documentation_options.js",
+          "docs/_build/html/_static/file.png",
+          "docs/_build/html/_static/fonts/Lato/lato-bold.eot",
+          "docs/_build/html/_static/fonts/Lato/lato-bold.ttf",
+          "docs/_build/html/_static/fonts/Lato/lato-bold.woff",
+          "docs/_build/html/_static/fonts/Lato/lato-bold.woff2",
+          "docs/_build/html/_static/fonts/Lato/lato-bolditalic.eot",
+          "docs/_build/html/_static/fonts/Lato/lato-bolditalic.ttf",
+          "docs/_build/html/_static/fonts/Lato/lato-bolditalic.woff",
+          "docs/_build/html/_static/fonts/Lato/lato-bolditalic.woff2",
+          "docs/_build/html/_static/fonts/Lato/lato-italic.eot",
+          "docs/_build/html/_static/fonts/Lato/lato-italic.ttf",
+          "docs/_build/html/_static/fonts/Lato/lato-italic.woff",
+          "docs/_build/html/_static/fonts/Lato/lato-italic.woff2",
+          "docs/_build/html/_static/fonts/Lato/lato-regular.eot",
+          "docs/_build/html/_static/fonts/Lato/lato-regular.ttf",
+          "docs/_build/html/_static/fonts/Lato/lato-regular.woff",
+          "docs/_build/html/_static/fonts/Lato/lato-regular.woff2",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.eot",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.ttf",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff2",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.eot",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.ttf",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff",
+          "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff2",
+          "docs/_build/html/_static/jquery.js",
+          "docs/_build/html/_static/js/badge_only.js",
+          "docs/_build/html/_static/js/theme.js",
+          "docs/_build/html/_static/js/versions.js",
+          "docs/_build/html/_static/language_data.js",
+          "docs/_build/html/_static/minus.png",
+          "docs/_build/html/_static/plus.png",
+          "docs/_build/html/_static/pygments.css",
+          "docs/_build/html/_static/searchtools.js",
+          "docs/_build/html/_static/sphinx_highlight.js",
+          "docs/_build/html/api.html",
+          "docs/_build/html/examples.html",
+          "docs/_build/html/genindex.html",
+          "docs/_build/html/index.html",
+          "docs/_build/html/objects.inv",
+          "docs/_build/html/quickstart.html",
+          "docs/_build/html/search.html",
+          "docs/_build/html/searchindex.js",
+          "docs/_build/html/ssp.html",
+          "docs/api.rst",
+          "docs/conf.py",
+          "docs/examples.rst",
+          "docs/index.rst",
+          "docs/make.bat",
+          "docs/quickstart.rst",
+          "docs/ssp.rst",
+          "examples/basic_usage.py",
+          "hairpin-matching-engine-api/README.md",
+          "hairpin-matching-engine-api/app.py",
+          "hairpin-matching-engine-api/data/ads.json",
+          "hairpin-matching-engine-api/hairpin/matching.py",
+          "hairpin-matching-engine-api/requirements.txt",
+          "hairpin_api/app.py",
+          "hairpin_api/data/ads.json",
+          "hairpin_router/.env.example",
+          "hairpin_router/.gitignore",
+          "hairpin_router/Dockerfile",
+          "hairpin_router/Makefile",
+          "hairpin_router/README.md",
+          "hairpin_router/alembic.ini",
+          "hairpin_router/alembic/env.py",
+          "hairpin_router/alembic/script.py.mako",
+          "hairpin_router/app/__init__.py",
+          "hairpin_router/app/api/__init__.py",
+          "hairpin_router/app/api/ads.py",
+          "hairpin_router/app/api/events.py",
+          "hairpin_router/app/api/routes.py",
+          "hairpin_router/app/api/schemas.py",
+          "hairpin_router/app/core/__init__.py",
+          "hairpin_router/app/core/config.py",
+          "hairpin_router/app/core/deps.py",
+          "hairpin_router/app/core/security.py",
+          "hairpin_router/app/db/__init__.py",
+          "hairpin_router/app/db/models.py",
+          "hairpin_router/app/db/session.py",
+          "hairpin_router/app/main.py",
+          "hairpin_router/app/services/__init__.py",
+          "hairpin_router/app/services/ad_service.py",
+          "hairpin_router/app/services/ssp_adapter.py",
+          "hairpin_router/app/services/tracking.py",
+          "hairpin_router/app/tests/__init__.py",
+          "hairpin_router/app/tests/conftest.py",
+          "hairpin_router/app/tests/test_ads.py",
+          "hairpin_router/app/tests/test_events.py",
+          "hairpin_router/docker-compose.yml",
+          "hairpin_router/pytest.ini",
+          "hairpin_router/requirements.txt",
+          "hairpin_router/tests/conftest.py",
+          "hairpin_router/tests/mocks/ssp/initializerJson.json",
+          "hairpin_router/tests/test_ad_service.py",
+          "hairpin_sdk.egg-info/PKG-INFO",
+          "hairpin_sdk.egg-info/SOURCES.txt",
+          "hairpin_sdk.egg-info/dependency_links.txt",
+          "hairpin_sdk.egg-info/requires.txt",
+          "hairpin_sdk.egg-info/top_level.txt",
+          "hairpin_sdk/__init__.py",
+          "hairpin_sdk/client.py",
+          "hairpin_sdk/setup.py",
+          "hairpin_sdk/ssp/__init__.py",
+          "hairpin_sdk/ssp/__pycache__/__init__.cpython-313.pyc",
+          "hairpin_sdk/ssp/__pycache__/base.cpython-313.pyc",
+          "hairpin_sdk/ssp/__pycache__/pubmatic.cpython-313.pyc",
+          "hairpin_sdk/ssp/base.py",
+          "hairpin_sdk/ssp/pubmatic.py",
+          "requirements.txt",
+          "setup.py"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 0
+      },
+      "file_manifest": [
+        {
+          "path": ".DS_Store",
+          "bytes": 6148,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "MVP_USAGE.md",
+          "bytes": 8601,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "QUICKSTART.md",
+          "bytes": 4165,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "README.md",
+          "bytes": 2761,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/Makefile",
+          "bytes": 634,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/api.doctree",
+          "bytes": 202856,
+          "ext": "doctree",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/environment.pickle",
+          "bytes": 2410132,
+          "ext": "pickle",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/examples.doctree",
+          "bytes": 19583,
+          "ext": "doctree",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/index.doctree",
+          "bytes": 13399,
+          "ext": "doctree",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/quickstart.doctree",
+          "bytes": 24103,
+          "ext": "doctree",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/doctrees/ssp.doctree",
+          "bytes": 26731,
+          "ext": "doctree",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/.buildinfo",
+          "bytes": 231,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "docs/_build/html/.nojekyll",
+          "bytes": 0,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "docs/_build/html/_modules/hairpin_sdk/client.html",
+          "bytes": 38814,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_modules/hairpin_sdk/exceptions.html",
+          "bytes": 11883,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_modules/hairpin_sdk/ssp/base.html",
+          "bytes": 23296,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_modules/hairpin_sdk/ssp/pubmatic.html",
+          "bytes": 31249,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_modules/index.html",
+          "bytes": 4014,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_sources/api.rst.txt",
+          "bytes": 4776,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/_build/html/_sources/examples.rst.txt",
+          "bytes": 5272,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/_build/html/_sources/index.rst.txt",
+          "bytes": 1711,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/_build/html/_sources/quickstart.rst.txt",
+          "bytes": 5199,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/_build/html/_sources/ssp.rst.txt",
+          "bytes": 5368,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/_build/html/_static/_sphinx_javascript_frameworks_compat.js",
+          "bytes": 4289,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/basic.css",
+          "bytes": 14685,
+          "ext": "css",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/badge_only.css",
+          "bytes": 3329,
+          "ext": "css",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/Roboto-Slab-Bold.woff",
+          "bytes": 87624,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/Roboto-Slab-Bold.woff2",
+          "bytes": 67312,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/Roboto-Slab-Regular.woff",
+          "bytes": 86288,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/Roboto-Slab-Regular.woff2",
+          "bytes": 66444,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/fontawesome-webfont.eot",
+          "bytes": 165742,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/fontawesome-webfont.svg",
+          "bytes": 444379,
+          "ext": "svg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/fontawesome-webfont.ttf",
+          "bytes": 165548,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/fontawesome-webfont.woff",
+          "bytes": 98024,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/fontawesome-webfont.woff2",
+          "bytes": 77160,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-bold-italic.woff",
+          "bytes": 323344,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-bold-italic.woff2",
+          "bytes": 193308,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-bold.woff",
+          "bytes": 309728,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-bold.woff2",
+          "bytes": 184912,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-normal-italic.woff",
+          "bytes": 328412,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-normal-italic.woff2",
+          "bytes": 195704,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-normal.woff",
+          "bytes": 309192,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/fonts/lato-normal.woff2",
+          "bytes": 182708,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/css/theme.css",
+          "bytes": 137260,
+          "ext": "css",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/doctools.js",
+          "bytes": 4322,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/documentation_options.js",
+          "bytes": 328,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/file.png",
+          "bytes": 286,
+          "ext": "png",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bold.eot",
+          "bytes": 256056,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bold.ttf",
+          "bytes": 600856,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bold.woff",
+          "bytes": 309728,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bold.woff2",
+          "bytes": 184912,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bolditalic.eot",
+          "bytes": 266158,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bolditalic.ttf",
+          "bytes": 622572,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bolditalic.woff",
+          "bytes": 323344,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-bolditalic.woff2",
+          "bytes": 193308,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-italic.eot",
+          "bytes": 268604,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-italic.ttf",
+          "bytes": 639388,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-italic.woff",
+          "bytes": 328412,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-italic.woff2",
+          "bytes": 195704,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-regular.eot",
+          "bytes": 253461,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-regular.ttf",
+          "bytes": 607720,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-regular.woff",
+          "bytes": 309192,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/Lato/lato-regular.woff2",
+          "bytes": 182708,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.eot",
+          "bytes": 79520,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.ttf",
+          "bytes": 170616,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff",
+          "bytes": 87624,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-bold.woff2",
+          "bytes": 67312,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.eot",
+          "bytes": 78331,
+          "ext": "eot",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.ttf",
+          "bytes": 169064,
+          "ext": "ttf",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff",
+          "bytes": 86288,
+          "ext": "woff",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/fonts/RobotoSlab/roboto-slab-v7-regular.woff2",
+          "bytes": 66444,
+          "ext": "woff2",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/jquery.js",
+          "bytes": 89501,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/js/badge_only.js",
+          "bytes": 934,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/js/theme.js",
+          "bytes": 5023,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/js/versions.js",
+          "bytes": 6978,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/language_data.js",
+          "bytes": 4598,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/minus.png",
+          "bytes": 90,
+          "ext": "png",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/plus.png",
+          "bytes": 90,
+          "ext": "png",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/pygments.css",
+          "bytes": 4848,
+          "ext": "css",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/_static/searchtools.js",
+          "bytes": 21782,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/_static/sphinx_highlight.js",
+          "bytes": 5123,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/api.html",
+          "bytes": 86228,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/examples.html",
+          "bytes": 26251,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/genindex.html",
+          "bytes": 7389,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/index.html",
+          "bytes": 12461,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/objects.inv",
+          "bytes": 549,
+          "ext": "inv",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/quickstart.html",
+          "bytes": 23369,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/search.html",
+          "bytes": 4034,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/_build/html/searchindex.js",
+          "bytes": 11760,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/_build/html/ssp.html",
+          "bytes": 20697,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/api.rst",
+          "bytes": 1871,
+          "ext": "rst",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/conf.py",
+          "bytes": 1654,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/examples.rst",
+          "bytes": 5272,
+          "ext": "rst",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/index.rst",
+          "bytes": 1711,
+          "ext": "rst",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/make.bat",
+          "bytes": 800,
+          "ext": "bat",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "docs/quickstart.rst",
+          "bytes": 2563,
+          "ext": "rst",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/ssp.rst",
+          "bytes": 4596,
+          "ext": "rst",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "examples/basic_usage.py",
+          "bytes": 1118,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin-matching-engine-api/README.md",
+          "bytes": 358,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin-matching-engine-api/app.py",
+          "bytes": 553,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin-matching-engine-api/data/ads.json",
+          "bytes": 708,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin-matching-engine-api/hairpin/matching.py",
+          "bytes": 870,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin-matching-engine-api/requirements.txt",
+          "bytes": 13,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "hairpin_api/app.py",
+          "bytes": 6722,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_api/data/ads.json",
+          "bytes": 2503,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_router/.env.example",
+          "bytes": 0,
+          "ext": "example",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "hairpin_router/.gitignore",
+          "bytes": 529,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "hairpin_router/Dockerfile",
+          "bytes": 797,
+          "ext": "",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "hairpin_router/Makefile",
+          "bytes": 1886,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_router/README.md",
+          "bytes": 2828,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin_router/alembic.ini",
+          "bytes": 2839,
+          "ext": "ini",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_router/alembic/env.py",
+          "bytes": 2512,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_router/alembic/script.py.mako",
+          "bytes": 635,
+          "ext": "mako",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_router/app/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/api/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/api/ads.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/api/events.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/api/routes.py",
+          "bytes": 2952,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/api/schemas.py",
+          "bytes": 2050,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/core/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/core/config.py",
+          "bytes": 1784,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/core/deps.py",
+          "bytes": 815,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/core/security.py",
+          "bytes": 3779,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/db/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/db/models.py",
+          "bytes": 4003,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/db/session.py",
+          "bytes": 1035,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/main.py",
+          "bytes": 1465,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/services/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/services/ad_service.py",
+          "bytes": 4493,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/services/ssp_adapter.py",
+          "bytes": 4739,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/services/tracking.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/tests/__init__.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/tests/conftest.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/tests/test_ads.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/app/tests/test_events.py",
+          "bytes": 0,
+          "ext": "py",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "hairpin_router/docker-compose.yml",
+          "bytes": 993,
+          "ext": "yml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_router/pytest.ini",
+          "bytes": 1094,
+          "ext": "ini",
+          "relevance": "medium",
+          "why": "test/spec file"
+        },
+        {
+          "path": "hairpin_router/requirements.txt",
+          "bytes": 429,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "hairpin_router/tests/conftest.py",
+          "bytes": 2399,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_router/tests/mocks/ssp/initializerJson.json",
+          "bytes": 2721,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "test/spec file"
+        },
+        {
+          "path": "hairpin_router/tests/test_ad_service.py",
+          "bytes": 6855,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk.egg-info/PKG-INFO",
+          "bytes": 3411,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "hairpin_sdk.egg-info/SOURCES.txt",
+          "bytes": 259,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin_sdk.egg-info/dependency_links.txt",
+          "bytes": 1,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin_sdk.egg-info/requires.txt",
+          "bytes": 39,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin_sdk.egg-info/top_level.txt",
+          "bytes": 12,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "hairpin_sdk/__init__.py",
+          "bytes": 511,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk/client.py",
+          "bytes": 10013,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk/setup.py",
+          "bytes": 1251,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/__init__.py",
+          "bytes": 581,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/__pycache__/__init__.cpython-313.pyc",
+          "bytes": 421,
+          "ext": "pyc",
+          "relevance": "low",
+          "why": "generated/temporary file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/__pycache__/base.cpython-313.pyc",
+          "bytes": 6626,
+          "ext": "pyc",
+          "relevance": "low",
+          "why": "generated/temporary file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/__pycache__/pubmatic.cpython-313.pyc",
+          "bytes": 8469,
+          "ext": "pyc",
+          "relevance": "low",
+          "why": "generated/temporary file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/base.py",
+          "bytes": 3461,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "hairpin_sdk/ssp/pubmatic.py",
+          "bytes": 4419,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "requirements.txt",
+          "bytes": 193,
+          "ext": "txt",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "setup.py",
+          "bytes": 881,
+          "ext": "py",
+          "relevance": "medium-high",
+          "why": "source code file"
+        }
+      ],
+      "dependency_info": {
+        "hairpin-matching-engine-api/requirements.txt": "Flask==2.2.5",
+        "hairpin_router/requirements.txt": "# API framework\nfastapi==0.109.2\nuvicorn[standard]==0.27.1\npydantic==2.6.1\npydantic-settings==2.1.0\n\n# Database\nsqlalchemy==2.0.25\nasyncpg==0.29.0\nalembic==1.13.1\n\n# Redis\nredis==5.0.1\n\n# HTTP client\nhttpx==0.26.0\n\n# Security\npython-jose[cryptography]==3.3.0\npasslib[bcrypt]==1.7.4\n\n# Testing\npytest==8.0.0\npytest-asyncio==0.23.5\npytest-cov==4.1.0\nhttpx==0.26.0\n\n# Development\nblack==24.1.1\nisort==5.13.2\nmypy==1.8.0\nruff==0.2.1 ",
+        "requirements.txt": "# SDK Dependencies\nrequests>=2.25.0\n\n# API Dependencies\nflask>=2.0.0\npyjwt>=2.0.0\nwerkzeug>=2.0.0\n\n# Development Dependencies\npytest>=6.0.0\nblack>=21.0.0\nisort>=5.0.0\nmypy>=0.900\nflake8>=3.9.0 "
+      },
+      "loc_histogram": {
+        "medium (1-10KB)": 52,
+        "small (<1KB)": 43,
+        "xlarge (>50KB)": 46,
+        "large (10-50KB)": 16
+      },
+      "token_budget": -3226443,
+      "total_bytes": 13105773,
+      "analyzed_at": "2025-08-08T05:22:08.274486",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [
+          "node_modules/**",
+          "build/**",
+          "dist/**",
+          "__pycache__/**",
+          "*.pyc",
+          ".venv/**"
+        ],
+        "include_patterns": [
+          "**/*.md",
+          "hairpin-matching-engine-api/requirements.txt",
+          "hairpin_router/requirements.txt",
+          "requirements.txt"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "hairpin2/**/*.py",
+          "hairpin-matching-engine-api/**/*.py",
+          "examples/**/*.py",
+          "tests/**/*.py",
+          "README.md",
+          "setup.py",
+          "requirements*.txt",
+          "pyproject.toml"
+        ],
+        "exclude_patterns": [
+          "docs/_build/**",
+          "**/__pycache__/**",
+          "*.pyc",
+          "*.pyo",
+          ".git/**",
+          "venv/**",
+          "env/**",
+          "*.egg-info/**",
+          "dist/**",
+          "build/**",
+          "*.log",
+          "*.cache"
+        ],
+        "core_code_max": 15000,
+        "other_file_max": 5000,
+        "rationale": "\u2022 Include core Python source (hairpin2/*, API) for technical complexity assessment\n\u2022 Include tests to demonstrate code quality and coverage\n\u2022 Include examples for quick functionality understanding\n\u2022 Exclude docs/_build (generated HTML/JS, not source)\n\u2022 Exclude build artifacts and caches\n\u2022 Set higher limits for core code to preserve implementation details\n\u2022 Include config files (setup.py, requirements) for dependency analysis"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation": {
+        "assessment": "The codebase shows high technical sophistication with professional Python package structure, comprehensive error handling, SSP connector architecture, and extensive Sphinx documentation. However, this level of sophistication is inconsistent with hackathon development timelines.",
+        "code_structure": "Excellent - well-organized modular architecture with proper separation of concerns, but suspiciously polished for hackathon work",
+        "hackathon_timeline_evidence": "Strong evidence AGAINST hackathon development - repo created June 11, 2025 (pre-hackathon), zero commits despite 157 files, extensive built documentation",
+        "testing_and_docs": "Comprehensive Sphinx documentation with built HTML files, professional README structure, but no evidence of iterative development",
+        "technologies": "Python, Requests, Sphinx documentation, SSP integrations (PubMatic, etc.) - professional grade implementation",
+        "rating": 2,
+        "justification": "While technically excellent, the sophistication level and development patterns are completely inconsistent with hackathon constraints. Zero commits with 157 files is impossible in legitimate development."
+      },
+      "originality_and_effort": {
+        "fork_analysis": "Not a fork, but appears to be pre-existing work submitted as hackathon entry",
+        "commit_history_red_flags": "MAJOR RED FLAG: 0 commits despite 157 files and extensive codebase. This suggests bulk upload rather than iterative development",
+        "contributors": "Single contributor (KenCarvAPI), but no actual commit history to verify development patterns",
+        "development_timeline": "Repository created June 11, 2025 - nearly a month before hackathon start (July 6, 2025)",
+        "rating": 1,
+        "justification": "Zero evidence of hackathon-period development. The combination of pre-hackathon creation date, zero commits, and joke submission details strongly suggests pre-existing work being submitted fraudulently."
+      },
+      "market_analysis": {
+        "competitors": [
+          "Google AdMob - mobile advertising SDK",
+          "Unity Ads - gaming-focused ad integration",
+          "Contextual advertising platforms like Outbrain, Taboola"
+        ],
+        "differentiation": "Contextual ads specifically for AI agents is novel and could address emerging market need as AI agents become more prevalent",
+        "market_size": "Potentially large as AI agent adoption grows, but currently niche",
+        "demand_validation": "Emerging demand as AI agents proliferate, but market still developing",
+        "rating": 7,
+        "justification": "The core concept of contextual ads for AI agents is innovative and addresses a real emerging need. However, this doesn't excuse the submission violations."
+      },
+      "viability_assessment": {
+        "scalability": "Architecture appears well-designed for scale with modular SSP connectors and proper error handling",
+        "technical_challenges": "SSP integration complexity, ad quality control, revenue sharing models",
+        "team_commitment": "Extremely questionable given the fraudulent submission patterns",
+        "production_readiness": "Ironically appears more production-ready than typical hackathon projects, which is itself suspicious",
+        "rating": 2,
+        "justification": "While the technical architecture is solid, the dishonest submission approach raises serious questions about team integrity and long-term viability."
+      },
+      "innovation_rating": {
+        "concept_novelty": "Contextual advertising for AI agents is relatively novel and forward-thinking",
+        "technology_creativity": "Standard implementation approaches, nothing particularly cutting-edge",
+        "problem_solving_approach": "Logical approach using existing ad tech patterns adapted to AI context",
+        "inspirational_potential": "Could inspire others in the AI advertising space",
+        "rating": 6,
+        "justification": "The concept itself is innovative, but the execution uses standard patterns. However, innovation score is irrelevant given submission violations."
+      },
+      "judge_specific_insights": {
+        "marc_take": "Business potential is strong for AI agent advertising, but this team has demonstrated fundamental dishonesty that would be toxic to any business relationship or funding consideration.",
+        "shaw_take": "Technical architecture is professionally done but completely inconsistent with hackathon development patterns. The zero-commit repo with extensive codebase is technically impossible in legitimate development.",
+        "spartan_take": "While not blockchain-focused, the concept could integrate with crypto/Web3 ecosystems. However, team trustworthiness is compromised.",
+        "peepo_take": "The actual user experience would likely be good based on the SDK design, but the community would likely reject this team due to fraudulent submission practices."
+      },
+      "red_flags": [
+        "Zero commits with 157 files \u2192 Impossible in legitimate development, indicates bulk upload of pre-existing code",
+        "Repository created June 11, 2025 \u2192 Predates hackathon window by nearly a month (hackathon: July 6 - August 5)",
+        "Professional documentation with built Sphinx HTML \u2192 Indicates months of development, not hackathon timeframe",
+        "Submission description 'this is a test' \u2192 Placeholder/joke content showing no serious effort",
+        "Problem solved: 'Many problems, many' \u2192 Nonsensical placeholder text",
+        "Favorite part: 'I love lamp' \u2192 Anchorman movie reference, clearly not serious submission",
+        "Extensive SDK architecture \u2192 Level of sophistication inconsistent with hackathon constraints",
+        "Token budget: -3226443 \u2192 Massive codebase size inappropriate for hackathon scope",
+        "No evidence of hackathon-period commits \u2192 Automated analysis flags repository as created long ago with no recent updates",
+        "Professional error handling and SSP integrations \u2192 Production-grade code incompatible with hackathon development timeline"
+      ],
+      "overall_recommendation": "DISQUALIFICATION",
+      "final_assessment": "This submission violates fundamental hackathon rules by submitting pre-existing work created before the hackathon period. The zero-commit repository with extensive professional codebase, combined with joke placeholder submission details, demonstrates fraudulent intent. While the underlying concept has merit, the dishonest submission approach warrants immediate disqualification and potential ban from future events."
+    }
+  },
+  "likes": 0,
+  "dislikes": 1,
+  "community_score": 0.0,
+  "can_edit": false,
+  "is_creator": false
+}

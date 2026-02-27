@@ -1,0 +1,22 @@
+{
+  "id": 2,
+  "submission_id": "6785C7",
+  "status": "submitted",
+  "created_at": "2025-06-26T19:54:07.772201",
+  "updated_at": "2025-06-26T19:54:07.772204",
+  "project_name": "AI Code Assistant",
+  "team_name": "CodeGenies",
+  "summary": "An AI-powered assistant that helps developers write and debug code in real time.",
+  "category": "Agents",
+  "discord_handle": "codegenie#5678",
+  "twitter_handle": "@codegeniesai",
+  "github_url": "https://github.com/codegenies/ai-code-assistant",
+  "demo_video_url": "https://youtu.be/aicodeassistantdemo",
+  "live_demo_url": "https://codegenies.ai/demo",
+  "image_url": "https://codegenies.ai/logo.png",
+  "tech_stack": "Python, TypeScript, VSCode Extension API",
+  "how_it_works": "Integrates with editors to provide context-aware code suggestions and error fixes.",
+  "problem_solved": "Reduces time spent debugging and searching for code snippets.",
+  "favorite_part": "The real-time code feedback.",
+  "test_field": "Test value for v2"
+}

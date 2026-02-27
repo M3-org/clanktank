@@ -1,0 +1,382 @@
+{
+  "id": 16,
+  "submission_id": 16,
+  "status": "completed",
+  "created_at": "2025-08-05T18:50:42.517108",
+  "updated_at": "2025-08-19 01:46:06",
+  "owner_discord_id": "824426320070574140",
+  "project_name": "Agentic racers",
+  "discord_handle": "captainsouthpaw",
+  "category": "Gaming",
+  "description": "We created a light cycle racing game like in Tron where different agentic platforms",
+  "twitter_handle": "@capt_southpaw",
+  "github_url": "https://github.com/CaptainSouthpaw/lightcycle",
+  "demo_video_url": "https://youtu.be/cFuRPMjYKhs?feature=shared",
+  "project_image": "/media/projects/agentic_racers_project.jpg",
+  "problem_solved": "no battle platform for agents",
+  "favorite_part": "seeing them get better over time",
+  "solana_address": "EB7DkfNb1MPVWhrVhv2Zg2Gi8gCSxXkiv9of5WS5hcqW",
+  "ethereum_address": null,
+  "discord_avatar": "https://cdn.discordapp.com/avatars/824426320070574140/745f8569f6ba4eb8435644f167ca0e6a.png",
+  "discord_id": "824426320070574140",
+  "discord_username": "captainsouthpaw",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 2.0,
+      "user_experience": 0.0,
+      "weighted_total": 4.2,
+      "notes": {
+        "reasons": {
+          "innovation": "Tron light cycles with AI agents? That's like claiming you invented fire by pointing at a match you never lit. Zero evidence of any novel implementation, and the concept itself is older than my first venture fund.",
+          "technical": "This is what happens when you submit a hackathon project via carrier pigeon - absolutely nothing to analyze, zero files detected, no repository. It's like showing up to a coding competition with an empty USB drive and a dream.",
+          "market": "Sure, AI agent gaming could be a billion-dollar market, but you can't capture TAM with vaporware. No go-to-market strategy, no competitive moat, just a Solana address floating in the void like a digital tumbleweed.",
+          "experience": "Can't experience what doesn't exist - this is the Fyre Festival of hackathon submissions. No demo, no screenshots, no evidence anyone could ever \"see them get better over time\" as claimed."
+        },
+        "overall_comment": "This isn't a project, it's a haiku about a project that never existed - all promise, no product, pure poetry."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:57:16.966645"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 6.7,
+      "notes": {
+        "round2_final_verdict": "Look, I was harsh in Round 1, but the community sees something I missed - this isn't vaporware, it's a minimum viable dream that actually resonates. Sometimes the best products start as haikus before becoming epics.",
+        "round2_reasoning": "The community feedback is telling me something important here - 100% likes with high engagement means they've struck a nerve. Yes, it's basically a Tron light cycle concept with agent platforms, but that's actually genius positioning. Think about it: every AI company needs to showcase their agents' capabilities in a visceral, competitive way. This could be the 'chess match' of the AI era - a standardized benchmark wrapped in entertainment. The lack of commits during the hackathon still bothers me, but if they can pivot this into an agent evaluation platform disguised as a game, we're looking at a potential B2B SaaS play with real legs. The TAM isn't just gamers - it's every AI company that needs to demo their agents in action.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 6.7,
+          "adjustment": 2.5,
+          "reason": "100% positive community signal suggests there's product-market fit potential I overlooked - adjusting for vision over execution"
+        },
+        "community_influence": "significant",
+        "confidence": "medium",
+        "round1_score": 4.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Agentic racers:\n\nRANKING CONTEXT:\n- Ranked #13 out of 16 projects\n- Score: 2.5 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 19th percentile\n- Judge consensus: High (variance: 0.7)\n\nCOMPETITIVE LANDSCAPE:\n- 12 projects scored higher (avg gap: 5.7 points)\n- 3 projects scored lower\n- 6 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 16,
+        "synthesis_timestamp": "2025-08-22T05:14:00.672956"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:14:00.673066"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 2.0,
+      "user_experience": 0.0,
+      "weighted_total": 2.6,
+      "notes": {
+        "reasons": {
+          "innovation": "The concept of AI agents competing in Tron-style racing isn't new - we've seen this pattern in OpenAI's hide-and-seek and countless reinforcement learning demos. Without any code to inspect, I can't even verify if they implemented basic pathfinding algorithms or just promised \"agents getting better over time\" without any actual learning infrastructure.",
+          "technical": "This is a complete technical void - zero files detected, no repository access, not even a broken GitHub link to debug. The automated analysis literally returned null values across every metric, which means there's no code architecture to evaluate, no clever hacks to appreciate, and definitely no open source contribution here.",
+          "market": "While \"battle platforms for agents\" could address a real need in the AI development community, this submission provides zero evidence of understanding that market. No API documentation, no integration points for different agent frameworks, not even a basic multiplayer protocol - just an empty promise with a Solana address attached.",
+          "experience": "Can't evaluate UX for a game that doesn't exist - no playable demo, no screenshots, no evidence of any visual implementation. The description mentions \"seeing them get better over time\" but without any actual gameplay loop, training visualization, or even basic collision detection code, this is pure vaporware."
+        },
+        "overall_comment": "This isn't even boilerplate code - it's literally nothing, just a Solana address hoping for funding with zero commits to show for it."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:57:30.393148"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 2.6,
+      "notes": {
+        "round2_final_verdict": "Look, I was harsh but fair - you can't submit a Solana address and call it a hackathon project. The community's 100% like ratio on 2 reactions tells me nothing except maybe their friends clicked thumbs up.",
+        "round2_reasoning": "The comparative analysis mentions 'cymatics visualization' and 'Web Audio API synth' which... isn't even this project? That's clearly data from another submission. This 'Agentic racers' claims to be a Tron-like racing game with AI agents, but there's literally no code, no demo, no architecture docs - nothing. Even the description cuts off mid-sentence. The 19th percentile ranking is generous; this should be dead last. At least other low-scoring projects attempted something. This is just vapor.",
+        "score_revision": {
+          "type": "none",
+          "new_score": 2.6,
+          "adjustment": 0,
+          "reason": "Zero commits means zero points - no amount of community copium changes that"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 2.6,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Agentic racers:\n\nRANKING CONTEXT:\n- Ranked #13 out of 16 projects\n- Score: 2.5 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 19th percentile\n- Judge consensus: High (variance: 0.7)\n\nCOMPETITIVE LANDSCAPE:\n- 12 projects scored higher (avg gap: 5.7 points)\n- 3 projects scored lower\n- 6 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 16,
+        "synthesis_timestamp": "2025-08-22T05:14:12.228083"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:14:12.228170"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 2.0,
+      "user_experience": 0.0,
+      "weighted_total": 3.3,
+      "notes": {
+        "reasons": {
+          "innovation": "Yo, they talking about \"agentic racers\" but where's the sauce? Tron light cycles been around since the 80s, and AI agents playing games ain't new either - this is giving me \"I had an idea in the shower\" vibes with zero execution to back it up.",
+          "technical": "Bruh, the automated scanner found ZERO files, NULL repository data, and absolutely nothing to vibe check - that's not just rough edges, that's no edges at all because there's literally no code to edge on. Can't even tell if they know what an agent is or just liked the word.",
+          "market": "Look, AI battle arenas could slap if done right, but \"no battle platform for agents\" ain't the real problem when you got no platform period - the market don't need another promise, it needs something that actually runs and makes people go \"sheeeesh!\"",
+          "experience": "How am I supposed to know if it slaps when there's nothing to slap? No demo, no screenshots, no gameplay, just vibes and dreams - that's like asking me to rate a restaurant that only has a name and no food."
+        },
+        "overall_comment": "This ain't even vaporware, it's just vapor - come back when you got something the community can actually touch, not just a Solana address collecting dust! \ud83d\udc38\ud83d\udca8"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:57:53.319717"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 5.8,
+      "notes": {
+        "round2_final_verdict": "Yo, I was too harsh - even if it's just a concept, at least they're trying to make AI agents fun instead of boring productivity tools. Still needs actual gameplay tho! \ud83c\udfae\ud83d\udc38",
+        "round2_reasoning": "Look, I roasted them for having nothing but an address, and that still stands - you can't vibe with vapor. BUT, I gotta respect the concept more after seeing what else is out there. Making AI agents race like Tron light cycles? That's actually kinda fire conceptually. The community engagement shows people are interested in the idea even without seeing it work. Problem is, we're judging a hackathon not a pitch deck. They're in the 19th percentile for a reason - no commits, no demo, no gameplay footage, nothing. But compared to other bottom-tier projects, at least this one has meme potential if they actually build it. Imagine streaming AI agents battling it out in neon races? That could go viral fr fr.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 5.8,
+          "adjustment": 2.5,
+          "reason": "Gaming + AI agents could slap if executed right, giving credit for the vision even without implementation"
+        },
+        "community_influence": "moderate",
+        "confidence": "medium",
+        "round1_score": 3.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Agentic racers:\n\nRANKING CONTEXT:\n- Ranked #13 out of 16 projects\n- Score: 2.5 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 19th percentile\n- Judge consensus: High (variance: 0.7)\n\nCOMPETITIVE LANDSCAPE:\n- 12 projects scored higher (avg gap: 5.7 points)\n- 3 projects scored lower\n- 6 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 16,
+        "synthesis_timestamp": "2025-08-22T05:14:23.522976"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:14:23.523076"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 0.0,
+      "technical_execution": 0.0,
+      "market_potential": 1.0,
+      "user_experience": 0.0,
+      "weighted_total": 1.3,
+      "notes": {
+        "reasons": {
+          "innovation": "WHAT INNOVATION?! There's ZERO code, ZERO implementation, and ZERO proof this project even exists! You can't monetize vapor - this is worse than a rug pull, at least those have smart contracts!",
+          "technical": "The automated analysis shows NULL VALUES across every metric - no files, no code, no repository! How am I supposed to extract yield from something that doesn't exist?! This is a technical black hole that would drain LP funds faster than a flash loan attack!",
+          "market": "AI gaming agents COULD generate revenue through tournament fees and betting markets, but this project has NO PRODUCT to monetize! You gave me a Solana address with no smart contracts - that's like bringing a spear to a DeFi war without the spearhead!",
+          "experience": "Can't experience what doesn't exist! No demo, no screenshots, no playable game - users would have better ROI staring at a blank screen! This generates negative yield on attention capital!"
+        },
+        "overall_comment": "This isn't even a project - it's a Solana address cosplaying as a hackathon submission! NEXT!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:57:40.973730"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 1.3,
+      "notes": {
+        "round2_final_verdict": "Still a non-project with zero monetization potential - two likes don't make this profitable. WHERE'S THE YIELD?!",
+        "round2_reasoning": "This 'Agentic racers' is STILL just a Solana address pretending to be a hackathon project! No tokenomics, no DeFi integration, no yield generation, no revenue model - just 'we created a light cycle racing game.' How does this make money? Where's the token? Where's the marketplace for in-game assets? Where's the play-to-earn mechanism? Even if they had actually built something (which they clearly didn't based on zero commits), a Tron clone without economic incentives is worthless. The 2 likes are probably from the team's alt accounts. This project generates ZERO yield and deserves ZERO respect!",
+        "score_revision": {
+          "type": "none",
+          "new_score": 1.3,
+          "adjustment": 0,
+          "reason": "No revenue model = no reason to change score"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 1.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Agentic racers:\n\nRANKING CONTEXT:\n- Ranked #13 out of 16 projects\n- Score: 2.5 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 19th percentile\n- Judge consensus: High (variance: 0.7)\n\nCOMPETITIVE LANDSCAPE:\n- 12 projects scored higher (avg gap: 5.7 points)\n- 3 projects scored lower\n- 6 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 16,
+        "synthesis_timestamp": "2025-08-22T05:14:33.465364"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:14:33.465523"
+    }
+  ],
+  "avg_score": 3.37,
+  "research": {
+    "github_analysis": {
+      "error": "Repository not found"
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation_assessment": {
+        "sophistication_level": "None detected - critical failure",
+        "code_structure": "No code structure available for analysis",
+        "hackathon_timeline_evidence": "Cannot verify - no repository data or commit history available",
+        "tests_documentation_deployment": "None detected",
+        "programming_languages_frameworks": "Unknown - no code context available",
+        "technical_complexity_rating": 1,
+        "technical_complexity_justification": "Rating 1/10. Complete absence of any detectable code, repository, or technical implementation. The automated analysis shows null values across all technical metrics, zero files detected, and no code context available. This represents a complete technical failure.",
+        "critical_flaws": [
+          "No accessible repository or codebase",
+          "Zero files detected in automated analysis",
+          "No evidence of any actual programming work",
+          "Cannot verify any technical claims made in description"
+        ]
+      },
+      "originality_effort_analysis": {
+        "fork_status": "Cannot determine - no repository access",
+        "commit_history_authenticity": "No commit history available for analysis",
+        "contributor_analysis": "Unknown - no repository data",
+        "red_flags_identified": [
+          "Complete absence of repository data",
+          "No commit history to verify development timeline",
+          "Suspicious gap between claimed implementation and lack of evidence"
+        ],
+        "originality_rating": 1,
+        "originality_justification": "Rating 1/10. Cannot assess originality without access to any code or implementation. The complete absence of a functioning repository link or accessible codebase makes it impossible to verify any original work was completed."
+      },
+      "market_analysis": {
+        "direct_competitors": [
+          {
+            "name": "Existing Tron Light Cycle games",
+            "evidence": "Multiple implementations exist as shown in search results - ClassicReload.com hosts browser-based versions, various mathematical strategy analyses exist",
+            "differentiation": "Cannot assess differentiation without seeing actual implementation"
+          },
+          {
+            "name": "AI gaming platforms",
+            "evidence": "General category of AI agents competing in games already exists",
+            "differentiation": "Claimed focus on 'agentic platforms' but no technical details provided"
+          }
+        ],
+        "market_differentiation": "Cannot evaluate - no implementation details available",
+        "addressable_market": "Gaming and AI agent platforms represent large markets, but specific positioning unclear",
+        "genuine_demand": "AI agent competitions have proven interest, but execution matters",
+        "market_potential_rating": 3,
+        "market_potential_justification": "Rating 3/10. While AI agent gaming could have market potential, this submission provides no evidence of addressing real market needs or demonstrating viable implementation."
+      },
+      "viability_assessment": {
+        "maintenance_scalability": "Cannot assess without codebase",
+        "main_challenges": [
+          "No existing implementation to build upon",
+          "Would need to start from scratch",
+          "No evidence of technical capability to execute vision"
+        ],
+        "team_continuation_likelihood": "Very low - no demonstrated progress during hackathon",
+        "production_readiness_requirements": "Complete rebuild from ground up",
+        "viability_rating": 1,
+        "viability_justification": "Rating 1/10. Zero evidence of working implementation makes future viability extremely questionable. Would require complete development restart."
+      },
+      "innovation_rating": {
+        "concept_novelty": "Tron-style games are well-established; AI agent competition has precedents",
+        "cutting_edge_technology_usage": "Cannot verify any technology usage",
+        "unique_problem_solving": "No evidence of novel approach",
+        "developer_inspiration_potential": "Minimal without implementation details",
+        "innovation_score": 2,
+        "innovation_justification": "Rating 2/10. While combining AI agents with Tron-style racing could be interesting, this concept exists in various forms. No evidence of innovative implementation or unique technical approach."
+      },
+      "judge_specific_insights": {
+        "marcs_take": "Business potential impossible to assess without product demonstration. No go-to-market strategy evident. Missing fundamental business validation.",
+        "shaws_take": "Technical architecture completely absent. No evidence of scalable design, proper data structures, or performance considerations. Cannot evaluate engineering quality.",
+        "spartans_take": "Solana address provided but no evidence of blockchain integration, smart contracts, or crypto functionality. Disconnect between claimed platform and implementation.",
+        "peepos_take": "User experience cannot be evaluated without playable demo. No evidence of community engagement or user testing. Missing core gaming elements."
+      },
+      "red_flags": [
+        "Complete repository failure \u2192 Automated analysis shows all null values for repository data",
+        "Zero file detection \u2192 File manifest shows 0 total files across all relevance categories",
+        "Missing code context \u2192 'No code context available - repository analysis may be limited to metadata only'",
+        "Broken or missing GitHub link \u2192 No accessible repository URL in submission data",
+        "Post-deadline evaluation \u2192 Hackathon window was July 6 - August 5, evaluating August 8",
+        "Vague technical claims \u2192 Description mentions 'agentic platforms' but provides no implementation details",
+        "Solana address without integration \u2192 Blockchain address provided but no evidence of on-chain functionality",
+        "No deployment evidence \u2192 No live demo, hosted version, or playable implementation detected",
+        "Missing documentation \u2192 No README, setup instructions, or technical specifications found"
+      ],
+      "overall_assessment": {
+        "summary": "This submission appears to be a critical failure with no detectable implementation, codebase, or technical work completed during the hackathon period. The complete absence of accessible repository data and zero file detection suggests either a technical submission error or a non-existent project.",
+        "recommendation": "Disqualification recommended due to lack of verifiable implementation and missing core submission requirements."
+      }
+    }
+  },
+  "likes": 2,
+  "dislikes": 0,
+  "community_score": 10.0,
+  "can_edit": false,
+  "is_creator": false
+}

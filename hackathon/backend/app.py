@@ -10,6 +10,7 @@ import logging
 import math
 import os
 import re
+import shutil
 
 # import random  # CLEANUP: Unused import - commented out for testing
 import sqlite3
@@ -2961,6 +2962,7 @@ def generate_static_data():
             text(
                 """
             SELECT
+                s.submission_id,
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
@@ -2985,6 +2987,7 @@ def generate_static_data():
             leaderboard.append(
                 {
                     "rank": rank,
+                    "submission_id": row_dict["submission_id"],
                     "project_name": row_dict["project_name"],
                     "category": row_dict["category"],
                     "final_score": round(row_dict["avg_score"], 2),
@@ -3029,6 +3032,39 @@ def generate_static_data():
         with open(output_dir / "config.json", "w") as f:
             json.dump(config, f, indent=2)
 
+        # Generate /api/ mirror for static site (so /api/*.json paths work)
+        api_dir = output_dir.parent / "api"
+        api_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy top-level JSON files to api/
+        for json_file in ["submissions.json", "leaderboard.json", "stats.json"]:
+            src = output_dir / json_file
+            if src.exists():
+                shutil.copy2(src, api_dir / json_file)
+
+        # Copy individual submission files to api/submissions/{id}.json
+        api_submissions_dir = api_dir / "submissions"
+        api_submissions_dir.mkdir(exist_ok=True)
+        src_submission_dir = output_dir / "submission"
+        if src_submission_dir.exists():
+            for f in src_submission_dir.glob("*.json"):
+                shutil.copy2(f, api_submissions_dir / f.name)
+
+        # Generate index.html listing available endpoints
+        index_html = """<!DOCTYPE html>
+<html><head><title>Clank Tank API</title></head>
+<body>
+<h1>Clank Tank Static API</h1>
+<ul>
+<li><a href="submissions.json">/api/submissions.json</a></li>
+<li><a href="leaderboard.json">/api/leaderboard.json</a></li>
+<li><a href="stats.json">/api/stats.json</a></li>
+</ul>
+</body></html>"""
+        with open(api_dir / "index.html", "w") as f:
+            f.write(index_html)
+
+        print(f"Generated /api/ mirror with {len(list(api_dir.glob('*.json')))} top-level files")
         print("Static data generation complete!")
 
 
