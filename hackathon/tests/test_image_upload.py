@@ -34,7 +34,7 @@ def test_image_upload(client):
         draw = ImageDraw.Draw(img)
         draw.text((20, 20), "Test Project Image", fill="navy")
     except Exception:
-        pass
+        pass  # Drawing text is optional; image is valid without it
     img_bytes = io.BytesIO()
     img.save(img_bytes, format="PNG")
     img_bytes.seek(0)

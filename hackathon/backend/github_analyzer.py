@@ -457,7 +457,6 @@ Output only valid JSON."""
 
             # Try to parse JSON from response
             import json as pyjson
-            import re
 
             match = re.search(r"\{.*\}", content, re.DOTALL)
             if match:

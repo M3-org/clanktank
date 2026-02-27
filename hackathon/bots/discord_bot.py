@@ -248,7 +248,7 @@ class HackathonDiscordBot:
         """Post submissions as detailed embeds with voting reactions."""
         if not submissions:
             logger.warning("No submissions to post")
-            return
+            return []
 
         posted_messages = []
         for i, submission in enumerate(submissions):

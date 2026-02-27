@@ -399,7 +399,7 @@ def add_community_feedback(submissions, client, headers):
                 )
                 # Don't assert since we expect some to fail (same user voting multiple times)
             except Exception:
-                pass
+                pass  # Expected: duplicate votes from same user are rejected
 
 
 if __name__ == "__main__":
