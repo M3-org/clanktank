@@ -2841,6 +2841,7 @@ def generate_static_data():
                         row_dict["judge_count"] if row_dict["judge_count"] else 0
                     ),
                     "discord_handle": row_dict["discord_handle"],
+                    "discord_username": row_dict["discord_handle"],
                     "discord_id": row_dict.get("discord_id"),
                     "discord_avatar": row_dict.get("discord_avatar"),
                     "project_image": row_dict.get("project_image"),
