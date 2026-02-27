@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Create the hackathon database with proper schema (versioned, future-proof)."""
 
-import sqlite3
-import os
-import sys
 import json
+import os
+import sqlite3
+import sys
 
 # Import versioned field manifests and helpers
-from hackathon.backend.schema import SUBMISSION_VERSIONS, get_fields
+from hackathon.backend.schema import SUBMISSION_VERSIONS
 
 # Update SCHEMA_PATH and any relative imports to reflect new location in backend/
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
@@ -38,19 +38,17 @@ def create_hackathon_database(db_path):
         # Load schema to identify required fields
         with open(SCHEMA_PATH) as f:
             schema = json.load(f)
-        
+
         version_fields = schema["schemas"][version]
         user_fields_sql = []
-        
+
         for field_def in version_fields:
             field_name = field_def["name"]
             constraint = "NOT NULL" if field_def.get("required", False) else ""
             user_fields_sql.append(f"{field_name} TEXT {constraint}")
-        
+
         user_fields_sql_str = ",\n    ".join(user_fields_sql)
-        columns_sql = (
-            f"{static_fields_sql},\n    owner_discord_id TEXT,\n    {user_fields_sql_str}"
-        )
+        columns_sql = f"{static_fields_sql},\n    owner_discord_id TEXT,\n    {user_fields_sql_str}"
         table_name = f"hackathon_submissions_{version}"
         cursor.execute(
             f"""
@@ -122,7 +120,7 @@ def create_hackathon_database(db_path):
             id INTEGER PRIMARY KEY,
             tx_sig TEXT UNIQUE,
             token_mint TEXT NOT NULL,
-            token_symbol TEXT NOT NULL, 
+            token_symbol TEXT NOT NULL,
             amount REAL NOT NULL,
             usd_value_at_time REAL,
             contributor_wallet TEXT,
@@ -199,60 +197,33 @@ def create_hackathon_database(db_path):
     # Create indexes for better performance
     for version in SUBMISSION_VERSIONS:
         table_name = f"hackathon_submissions_{version}"
-        cursor.execute(
-            f"CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status)"
-        )
-        cursor.execute(
-            f"CREATE INDEX IF NOT EXISTS idx_{table_name}_category ON {table_name}(category)"
-        )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_scores_submission ON hackathon_scores(submission_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_feedback_submission ON community_feedback(submission_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)"
-    )
+        cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status)")
+        cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_category ON {table_name}(category)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_scores_submission ON hackathon_scores(submission_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_feedback_submission ON community_feedback(submission_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)")
     cursor.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_research_submission_id_unique ON hackathon_research(submission_id)"
     )
     # This unique index is required for ON CONFLICT(submission_id) upserts in research.py
-    
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_prize_pool_source ON prize_pool_contributions(source)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_prize_pool_timestamp ON prize_pool_contributions(timestamp)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_token_metadata_mint ON token_metadata(token_mint)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_token_metadata_updated ON token_metadata(last_updated)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_likes_dislikes_submission ON likes_dislikes(submission_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_likes_dislikes_discord_id ON likes_dislikes(discord_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_community_votes_submission ON community_votes(submission_id)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_community_votes_signature ON community_votes(transaction_signature)"
-    )
-    cursor.execute(
-        "CREATE INDEX IF NOT EXISTS idx_community_votes_timestamp ON community_votes(timestamp)"
-    )
+
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_prize_pool_source ON prize_pool_contributions(source)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_prize_pool_timestamp ON prize_pool_contributions(timestamp)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metadata_mint ON token_metadata(token_mint)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metadata_updated ON token_metadata(last_updated)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_likes_dislikes_submission ON likes_dislikes(submission_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_likes_dislikes_discord_id ON likes_dislikes(discord_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_community_votes_submission ON community_votes(submission_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_community_votes_signature ON community_votes(transaction_signature)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_community_votes_timestamp ON community_votes(timestamp)")
 
     conn.commit()
-    
+
     # Simple audit logging
     from hackathon.backend.simple_audit import log_system_action
+
     log_system_action("database_created", db_path)
-    
+
     conn.close()
     print(f"Hackathon database created successfully at: {db_path}")
 

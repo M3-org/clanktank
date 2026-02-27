@@ -8,10 +8,11 @@ environment variable (JSON).
 """
 
 import json
-import os
 import logging
+import os
 from datetime import datetime, timedelta
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
 logger = logging.getLogger(__name__)
@@ -36,19 +37,20 @@ _THRESHOLDS = _CONFIG.get("penalty_thresholds", {})
 
 def get_time_context():
     """Generate time context for research prompts using existing submission deadline."""
-    submission_deadline = os.getenv('SUBMISSION_DEADLINE', '2025-08-09T23:00:00+00:00')
+    submission_deadline = os.getenv("SUBMISSION_DEADLINE", "2025-08-09T23:00:00+00:00")
 
     # Parse the deadline and calculate hackathon start (1 month before)
-    deadline_date = datetime.fromisoformat(submission_deadline.replace('Z', '+00:00'))
+    deadline_date = datetime.fromisoformat(submission_deadline.replace("Z", "+00:00"))
     hackathon_start = deadline_date - timedelta(days=30)
-    current_date = datetime.now().strftime('%Y-%m-%d')
+    current_date = datetime.now().strftime("%Y-%m-%d")
 
     return f"""**TIMING CONTEXT:**
 Current Date: {current_date}
-Hackathon Window: {hackathon_start.strftime('%Y-%m-%d')} to {deadline_date.strftime('%Y-%m-%d')}
+Hackathon Window: {hackathon_start.strftime("%Y-%m-%d")} to {deadline_date.strftime("%Y-%m-%d")}
 Evaluate freshness and development timeline within this context.
 
 """
+
 
 def _reduce_github_analysis_for_prompt(github_analysis):
     """Reduce GitHub analysis data for prompt to prevent 413 payload errors."""
@@ -76,7 +78,7 @@ def _reduce_github_analysis_for_prompt(github_analysis):
         "has_docs": file_structure.get("has_docs"),
         "has_tests": file_structure.get("has_tests"),
         # Truncate the massive files array
-        "sample_files": file_structure.get("files", [])[:20]  # Only first 20 files
+        "sample_files": file_structure.get("files", [])[:20],  # Only first 20 files
     }
 
     # Include file manifest summary but limit entries
@@ -87,8 +89,12 @@ def _reduce_github_analysis_for_prompt(github_analysis):
         "medium_relevance": len([f for f in file_manifest if f.get("relevance") == "medium"]),
         "low_relevance": len([f for f in file_manifest if f.get("relevance") == "low"]),
         "sample_high_relevance": [f for f in file_manifest if f.get("relevance") == "high"][:10],
-        "sample_config_files": [f for f in file_manifest if f.get("path").split("/")[-1].lower() in
-                               ["package.json", "requirements.txt", "cargo.toml", "go.mod", "readme.md"]][:5]
+        "sample_config_files": [
+            f
+            for f in file_manifest
+            if f.get("path").split("/")[-1].lower()
+            in ["package.json", "requirements.txt", "cargo.toml", "go.mod", "readme.md"]
+        ][:5],
     }
 
     # Include other important analysis data
@@ -100,6 +106,7 @@ def _reduce_github_analysis_for_prompt(github_analysis):
         reduced["total_bytes"] = github_analysis["total_bytes"]
 
     return reduced
+
 
 def create_research_prompt(project_data, github_analysis, gitingest_content=""):
     """Build comprehensive research prompt for AI analysis."""
@@ -118,26 +125,34 @@ def create_research_prompt(project_data, github_analysis, gitingest_content=""):
     updated_at = github_analysis.get("updated_at")
     if created_at and updated_at and repo_age_days and update_stale_days:
         try:
-            created = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-            updated = datetime.fromisoformat(updated_at.replace('Z', '+00:00'))
+            created = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            updated = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
             days_since_creation = (datetime.now().replace(tzinfo=created.tzinfo) - created).days
             days_since_update = (datetime.now().replace(tzinfo=updated.tzinfo) - updated).days
             if days_since_creation > repo_age_days and days_since_update > update_stale_days:
-                penalty_flags.append("[INVESTIGATE] Repository created long ago with no recent updates - possible pre-existing project")
+                penalty_flags.append(
+                    "[INVESTIGATE] Repository created long ago with no recent updates - possible pre-existing project"
+                )
         except (ValueError, TypeError):
             pass
 
     # Check for dependency-heavy projects
     loc_histogram = github_analysis.get("loc_histogram", {})
-    if loc_histogram.get("xlarge (>50KB)", 0) > 0 and loc_histogram.get("small (<1KB)", 0) > loc_histogram.get("medium (1-10KB)", 0):
-        penalty_flags.append("[CONSIDER] Large files detected with many small files - possible dependency bloat, investigate further")
+    if loc_histogram.get("xlarge (>50KB)", 0) > 0 and loc_histogram.get("small (<1KB)", 0) > loc_histogram.get(
+        "medium (1-10KB)", 0
+    ):
+        penalty_flags.append(
+            "[CONSIDER] Large files detected with many small files - possible dependency bloat, investigate further"
+        )
 
     # Check file manifest for potential issues
     manifest = github_analysis.get("file_manifest", [])
     total_source_files = len([f for f in manifest if f.get("relevance") in ["high", "medium-high"]])
     total_low_relevance = len([f for f in manifest if f.get("relevance") == "low"])
     if boilerplate_ratio and total_source_files > 0 and total_low_relevance > total_source_files * boilerplate_ratio:
-        penalty_flags.append("[INVESTIGATE] High ratio of generated/boilerplate files to source code - verify original work")
+        penalty_flags.append(
+            "[INVESTIGATE] High ratio of generated/boilerplate files to source code - verify original work"
+        )
 
     # Check for minimal implementation
     file_structure = github_analysis.get("file_structure", {})
@@ -163,16 +178,19 @@ def create_research_prompt(project_data, github_analysis, gitingest_content=""):
 
     return template.format(
         time_context=get_time_context(),
-        project_name=project_data['project_name'],
-        description=project_data['description'],
-        category=project_data['category'],
-        problem_solved=project_data.get('problem_solved', 'Not specified'),
-        favorite_part=project_data.get('favorite_part', 'Not specified'),
-        solana_address=project_data.get('solana_address', 'Not specified'),
+        project_name=project_data["project_name"],
+        description=project_data["description"],
+        category=project_data["category"],
+        problem_solved=project_data.get("problem_solved", "Not specified"),
+        favorite_part=project_data.get("favorite_part", "Not specified"),
+        solana_address=project_data.get("solana_address", "Not specified"),
         penalty_section=penalty_section,
         github_analysis_json=json.dumps(_reduce_github_analysis_for_prompt(github_analysis), indent=2),
-        gitingest_content=gitingest_content if gitingest_content else "No code context available - repository analysis may be limited to metadata only.",
+        gitingest_content=gitingest_content
+        if gitingest_content
+        else "No code context available - repository analysis may be limited to metadata only.",
     )
+
 
 def create_github_analysis_prompt(project_data, github_analysis):
     """Create prompt for GitHub-only analysis without AI research."""
@@ -183,6 +201,6 @@ def create_github_analysis_prompt(project_data, github_analysis):
 
     return template.format(
         time_context=get_time_context(),
-        project_name=project_data['project_name'],
+        project_name=project_data["project_name"],
         github_analysis_json=json.dumps(github_analysis, indent=2),
     )

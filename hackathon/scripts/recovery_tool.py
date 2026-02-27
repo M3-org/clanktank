@@ -14,18 +14,16 @@ Usage:
 
 import argparse
 import json
-import sqlite3
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Any, List, Optional
 import os
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 # Import schema functions
 from hackathon.backend.schema import get_fields
 
-SCHEMA_PATH = os.path.join(
-    os.path.dirname(__file__), "../backend/submission_schema.json"
-)
+SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "../backend/submission_schema.json")
 
 
 def get_v2_fields_from_schema():
@@ -40,13 +38,11 @@ DEFAULT_TABLE = "hackathon_submissions_v2"
 
 
 class SubmissionRecoveryTool:
-    def __init__(
-        self, db_path: str = DEFAULT_DB_PATH, backup_dir: str = DEFAULT_BACKUP_DIR
-    ):
+    def __init__(self, db_path: str = DEFAULT_DB_PATH, backup_dir: str = DEFAULT_BACKUP_DIR):
         self.db_path = Path(db_path)
         self.backup_dir = Path(backup_dir)
 
-    def list_backups(self) -> List[Dict[str, Any]]:
+    def list_backups(self) -> list[dict[str, Any]]:
         """List all available backup files."""
         if not self.backup_dir.exists():
             print(f"Backup directory not found: {self.backup_dir}")
@@ -56,14 +52,12 @@ class SubmissionRecoveryTool:
         for backup_file in self.backup_dir.glob("*.json"):
             try:
                 stat = backup_file.stat()
-                with open(backup_file, "r") as f:
+                with open(backup_file) as f:
                     data = json.load(f)
 
                 # Extract info from backup
                 submission_data = data.get("submission_data", {})
-                backup_type = (
-                    "error" if backup_file.name.startswith("ERROR-") else "normal"
-                )
+                backup_type = "error" if backup_file.name.startswith("ERROR-") else "normal"
 
                 backup_info = {
                     "filename": backup_file.name,
@@ -79,9 +73,7 @@ class SubmissionRecoveryTool:
                 }
 
                 if "error" in data:
-                    backup_info["error_message"] = data["error"].get(
-                        "message", "unknown"
-                    )
+                    backup_info["error_message"] = data["error"].get("message", "unknown")
 
                 backups.append(backup_info)
 
@@ -93,7 +85,7 @@ class SubmissionRecoveryTool:
         backups.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return backups
 
-    def validate_backup(self, backup_file: Path) -> Dict[str, Any]:
+    def validate_backup(self, backup_file: Path) -> dict[str, Any]:
         """Validate a backup file and return validation results."""
         result = {
             "valid": False,
@@ -113,7 +105,7 @@ class SubmissionRecoveryTool:
 
         # Try to parse JSON
         try:
-            with open(backup_file, "r") as f:
+            with open(backup_file) as f:
                 data = json.load(f)
             result["parseable"] = True
         except json.JSONDecodeError as e:
@@ -132,9 +124,7 @@ class SubmissionRecoveryTool:
 
         # Validate required fields
         required_fields = get_v2_fields_from_schema()
-        missing_fields = [
-            field for field in required_fields if not submission_data.get(field)
-        ]
+        missing_fields = [field for field in required_fields if not submission_data.get(field)]
         if missing_fields:
             result["errors"].append(f"Missing required fields: {missing_fields}")
 
@@ -143,9 +133,8 @@ class SubmissionRecoveryTool:
             schema_fields = get_fields("v2")
             extra_fields = [
                 field
-                for field in submission_data.keys()
-                if field not in schema_fields
-                and field not in ["submission_id", "status", "created_at", "updated_at"]
+                for field in submission_data
+                if field not in schema_fields and field not in ["submission_id", "status", "created_at", "updated_at"]
             ]
             if extra_fields:
                 result["warnings"].append(f"Extra fields not in schema: {extra_fields}")
@@ -180,7 +169,7 @@ class SubmissionRecoveryTool:
 
         # Load backup data
         try:
-            with open(backup_file, "r") as f:
+            with open(backup_file) as f:
                 backup_data = json.load(f)
         except Exception as e:
             print(f"❌ Failed to load backup file: {e}")
@@ -246,7 +235,7 @@ class SubmissionRecoveryTool:
             if conn:
                 conn.close()
 
-    def find_backup_by_id(self, submission_id: str) -> Optional[Path]:
+    def find_backup_by_id(self, submission_id: str) -> Path | None:
         """Find the most recent backup file for a submission ID."""
         backup_files = list(self.backup_dir.glob(f"{submission_id}-*.json"))
         backup_files.extend(list(self.backup_dir.glob(f"ERROR-{submission_id}-*.json")))
@@ -261,26 +250,16 @@ class SubmissionRecoveryTool:
 def main():
     parser = argparse.ArgumentParser(description="Hackathon Submission Recovery Tool")
     parser.add_argument("--list", action="store_true", help="List all backup files")
-    parser.add_argument(
-        "--restore", metavar="SUBMISSION_ID", help="Restore submission by ID"
-    )
+    parser.add_argument("--restore", metavar="SUBMISSION_ID", help="Restore submission by ID")
     parser.add_argument(
         "--restore-file",
         metavar="BACKUP_FILE",
         help="Restore from specific backup file",
     )
-    parser.add_argument(
-        "--validate", metavar="BACKUP_FILE", help="Validate a backup file"
-    )
-    parser.add_argument(
-        "--force", action="store_true", help="Force operation even if validation fails"
-    )
-    parser.add_argument(
-        "--db-path", default=DEFAULT_DB_PATH, help="Path to database file"
-    )
-    parser.add_argument(
-        "--backup-dir", default=DEFAULT_BACKUP_DIR, help="Path to backup directory"
-    )
+    parser.add_argument("--validate", metavar="BACKUP_FILE", help="Validate a backup file")
+    parser.add_argument("--force", action="store_true", help="Force operation even if validation fails")
+    parser.add_argument("--db-path", default=DEFAULT_DB_PATH, help="Path to database file")
+    parser.add_argument("--backup-dir", default=DEFAULT_BACKUP_DIR, help="Path to backup directory")
 
     args = parser.parse_args()
 

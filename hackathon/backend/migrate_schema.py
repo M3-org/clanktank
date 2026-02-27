@@ -6,15 +6,16 @@ Migration/check script for hackathon DB schema.
 - Can add a new field to manifest and DB: python -m scripts.hackathon.migrate_schema add-field <field_name> --version v1|v2|all|latest [--db ...]
 - Usage: python -m scripts.hackathon.migrate_schema [--dry-run] [--version v1|v2|all|latest] [--db data/hackathon.db]
 """
-import sqlite3
+
 import argparse
-import sys
 import os
 import re
+import sqlite3
+import sys
 
 from hackathon.backend.schema import (
-    SUBMISSION_VERSIONS,
     LATEST_SUBMISSION_VERSION,
+    SUBMISSION_VERSIONS,
     get_fields,
 )
 
@@ -87,50 +88,49 @@ def check_and_migrate_scores(cursor, dry_run):
                 add_column(cursor, "hackathon_scores", f, coltype)
             else:
                 print(f"  Would add column {f} ({coltype})")
-    extra = [f for f in cols if f not in REQUIRED_SCORE_FIELDS + ["id", "created_at"]]
+    extra = [f for f in cols if f not in [*REQUIRED_SCORE_FIELDS, "id", "created_at"]]
     if extra:
-        print(
-            f"  WARNING: Extra columns in hackathon_scores not in required set: {extra}"
-        )
+        print(f"  WARNING: Extra columns in hackathon_scores not in required set: {extra}")
     print("  hackathon_scores check complete.")
 
 
 def add_scores_unique_constraint(cursor, dry_run):
     """Add unique constraint to hackathon_scores to prevent duplicate judge scores."""
     print("Checking hackathon_scores unique constraint...")
-    
+
     # Check if unique index already exists
     cursor.execute("PRAGMA index_list(hackathon_scores)")
     indexes = cursor.fetchall()
     constraint_exists = False
-    
+
     for idx in indexes:
         cursor.execute(f"PRAGMA index_info({idx[1]})")
         cols = [col[2] for col in cursor.fetchall()]
-        if sorted(cols) == sorted(['submission_id', 'judge_name', 'round']) and idx[2] == 1:  # unique=1
+        if sorted(cols) == sorted(["submission_id", "judge_name", "round"]) and idx[2] == 1:  # unique=1
             constraint_exists = True
             break
-    
+
     if constraint_exists:
         print("  Unique constraint already exists for hackathon_scores")
         return
-    
+
     print("  Adding unique constraint for (submission_id, judge_name, round)")
-    
+
     if dry_run:
         print("  Would add unique constraint to hackathon_scores")
         return
-    
+
     # Create unique index to prevent duplicate scores
     cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_unique_judge_round 
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_unique_judge_round
         ON hackathon_scores(submission_id, judge_name, round)
     """)
-    
+
     print("  ✅ Added unique constraint to hackathon_scores")
-    
+
     try:
         from hackathon.backend.simple_audit import log_system_action
+
         log_system_action("scores_unique_constraint_added", "hackathon_scores")
     except Exception as e:
         print(f"    Warning: Could not log audit event: {e}")
@@ -139,31 +139,32 @@ def add_scores_unique_constraint(cursor, dry_run):
 def fix_data_constraints(cursor, version, dry_run):
     """Fix data constraint violations by updating null/empty required fields."""
     print(f"Checking data constraints for version {version}")
-    
+
     # Load schema to identify required fields
     import json
-    with open(SCHEMA_PATH, "r") as f:
+
+    with open(SCHEMA_PATH) as f:
         schema = json.load(f)
-    
+
     version_fields = schema["schemas"][version]
     required_fields = [field["name"] for field in version_fields if field.get("required", False)]
-    
+
     if not required_fields:
         print(f"  No required fields found for version {version}")
         return
-    
+
     print(f"  Required fields: {required_fields}")
-    
+
     table_name = f"hackathon_submissions_{version}"
-    
+
     # Check for null/empty values in required fields
     for field in required_fields:
         cursor.execute(f"SELECT COUNT(*) FROM {table_name} WHERE {field} IS NULL OR {field} = ''")
         count = cursor.fetchone()[0]
-        
+
         if count > 0:
             print(f"  Found {count} rows with null/empty values in required field '{field}'")
-            
+
             if not dry_run:
                 # Set default value based on field type
                 if field == "category":
@@ -180,19 +181,19 @@ def fix_data_constraints(cursor, version, dry_run):
                     default_value = "https://youtube.com/"
                 else:
                     default_value = "N/A"
-                
+
                 cursor.execute(
-                    f"UPDATE {table_name} SET {field} = ? WHERE {field} IS NULL OR {field} = ''",
-                    (default_value,)
+                    f"UPDATE {table_name} SET {field} = ? WHERE {field} IS NULL OR {field} = ''", (default_value,)
                 )
                 print(f"    Updated {field} with default value: {default_value}")
             else:
                 print(f"    Would update {field} with appropriate default value")
-    
+
     # Log the action (skip if database is locked)
     if not dry_run:
         try:
             from hackathon.backend.simple_audit import log_system_action
+
             log_system_action("schema_constraints_fixed", f"version_{version}")
         except Exception as e:
             print(f"    Warning: Could not log audit event: {e}")
@@ -201,53 +202,54 @@ def fix_data_constraints(cursor, version, dry_run):
 def add_database_constraints(cursor, version, dry_run):
     """Add NOT NULL constraints to required fields by rebuilding the table."""
     print(f"Adding database constraints for version {version}")
-    
+
     # Load schema to identify required fields
     import json
-    with open(SCHEMA_PATH, "r") as f:
+
+    with open(SCHEMA_PATH) as f:
         schema = json.load(f)
-    
+
     version_fields = schema["schemas"][version]
     table_name = f"hackathon_submissions_{version}"
-    
+
     # Check if table exists
     cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'")
     if not cursor.fetchone():
         print(f"  Table {table_name} does not exist, skipping constraints")
         return
-    
+
     # Get current table structure
     cursor.execute(f"PRAGMA table_info({table_name})")
     current_columns = {row[1]: row for row in cursor.fetchall()}
-    
+
     # Check if constraints already exist
-    has_constraints = any(col[3] == 1 for col in current_columns.values())  # notnull column
+    any(col[3] == 1 for col in current_columns.values())  # notnull column
     required_fields = [field["name"] for field in version_fields if field.get("required", False)]
-    
+
     missing_constraints = []
     for field in required_fields:
         if field in current_columns and current_columns[field][3] == 0:  # not null = 0
             missing_constraints.append(field)
-    
+
     if not missing_constraints:
         print(f"  All required constraints already exist for {table_name}")
         return
-    
+
     print(f"  Missing constraints for: {missing_constraints}")
-    
+
     if dry_run:
         print(f"  Would rebuild {table_name} with NOT NULL constraints")
         return
-    
+
     # Create new table with constraints
     user_fields_sql = []
     for field in version_fields:
         field_name = field["name"]
         constraint = "NOT NULL" if field.get("required", False) else ""
         user_fields_sql.append(f"{field_name} TEXT {constraint}")
-    
+
     user_fields_sql_str = ",\n    ".join(user_fields_sql)
-    
+
     # Create new table
     cursor.execute(f"""
         CREATE TABLE {table_name}_new (
@@ -260,34 +262,35 @@ def add_database_constraints(cursor, version, dry_run):
             {user_fields_sql_str}
         )
     """)
-    
+
     # Copy data from old table
     copy_fields = ["id", "submission_id", "status", "created_at", "updated_at", "owner_discord_id"]
     copy_fields.extend([field["name"] for field in version_fields])
     copy_fields_sql = ", ".join(copy_fields)
-    
+
     cursor.execute(f"""
         INSERT INTO {table_name}_new ({copy_fields_sql})
         SELECT {copy_fields_sql}
         FROM {table_name}
     """)
-    
+
     # Drop old table and rename new one
     cursor.execute(f"DROP TABLE {table_name}")
     cursor.execute(f"ALTER TABLE {table_name}_new RENAME TO {table_name}")
-    
+
     print(f"  Successfully added constraints to {table_name}")
-    
+
     # Log the action (skip if database is locked)
     try:
         from hackathon.backend.simple_audit import log_system_action
+
         log_system_action("database_constraints_added", f"table_{table_name}")
     except Exception as e:
         print(f"    Warning: Could not log audit event: {e}")
 
 
 def add_field_to_manifest(field_name, version):
-    with open(SCHEMA_PATH, "r") as f:
+    with open(SCHEMA_PATH) as f:
         lines = f.readlines()
     manifest_name = f'SUBMISSION_FIELDS["{version}"]'
     in_manifest = False
@@ -322,80 +325,63 @@ def add_field(args):
         table = f"hackathon_submissions_{v}"
         add_column(cursor, table, field_name, "TEXT")
     conn.commit()
-    
+
     # Simple audit logging
     from hackathon.backend.simple_audit import log_system_action
+
     log_system_action("schema_field_added", field_name)
-    
+
     conn.close()
-    print(
-        f"Added column '{field_name}' to {', '.join(f'hackathon_submissions_{v}' for v in versions)}."
-    )
+    print(f"Added column '{field_name}' to {', '.join(f'hackathon_submissions_{v}' for v in versions)}.")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Migrate/check hackathon DB schema.")
     subparsers = parser.add_subparsers(dest="command")
 
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Only print actions, do not modify DB."
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Only print actions, do not modify DB.")
     parser.add_argument(
         "--version",
-        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        choices=[*SUBMISSION_VERSIONS, "all", "latest"],
         default="all",
         help="Which submission table(s) to check.",
     )
     parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
-    add_parser = subparsers.add_parser(
-        "add-field", help="Add a new field to manifest and DB."
-    )
-    add_parser.add_argument(
-        "field_name", type=str, help="Name of the new field to add."
-    )
+    add_parser = subparsers.add_parser("add-field", help="Add a new field to manifest and DB.")
+    add_parser.add_argument("field_name", type=str, help="Name of the new field to add.")
     add_parser.add_argument(
         "--version",
-        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        choices=[*SUBMISSION_VERSIONS, "all", "latest"],
         default="all",
         help="Which manifest/table to add to.",
     )
-    add_parser.add_argument(
-        "--db", default="data/hackathon.db", help="Path to DB file."
-    )
+    add_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
     fix_parser = subparsers.add_parser(
         "fix-constraints", help="Fix data constraint violations by updating null/empty required fields."
     )
     fix_parser.add_argument(
         "--version",
-        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        choices=[*SUBMISSION_VERSIONS, "all", "latest"],
         default="all",
         help="Which submission table(s) to fix.",
     )
-    fix_parser.add_argument(
-        "--db", default="data/hackathon.db", help="Path to DB file."
-    )
+    fix_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
-    constraint_parser = subparsers.add_parser(
-        "add-constraints", help="Add NOT NULL constraints to required fields."
-    )
+    constraint_parser = subparsers.add_parser("add-constraints", help="Add NOT NULL constraints to required fields.")
     constraint_parser.add_argument(
         "--version",
-        choices=SUBMISSION_VERSIONS + ["all", "latest"],
+        choices=[*SUBMISSION_VERSIONS, "all", "latest"],
         default="all",
         help="Which submission table(s) to add constraints to.",
     )
-    constraint_parser.add_argument(
-        "--db", default="data/hackathon.db", help="Path to DB file."
-    )
+    constraint_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
 
     scores_constraint_parser = subparsers.add_parser(
         "add-scores-unique", help="Add unique constraint to hackathon_scores to prevent duplicate judge scores."
     )
-    scores_constraint_parser.add_argument(
-        "--db", default="data/hackathon.db", help="Path to DB file."
-    )
+    scores_constraint_parser.add_argument("--db", default="data/hackathon.db", help="Path to DB file.")
     scores_constraint_parser.add_argument(
         "--dry-run", action="store_true", help="Only print actions, do not modify DB."
     )

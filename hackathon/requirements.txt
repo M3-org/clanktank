@@ -37,8 +37,7 @@ google-auth-oauthlib==1.2.2
 
 # ── Development tools (install with `pip install -r requirements.txt --extra-index-url dev`) ──
 pytest==8.4.1
-black==25.1.0
-flake8==7.3.0
+ruff>=0.11.0
 
 # ── Image processing & logging ────────────────────────────────
 Pillow>=12.1.1

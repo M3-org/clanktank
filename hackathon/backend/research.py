@@ -5,18 +5,17 @@ Analyzes GitHub repositories, technical implementation, market viability, and in
 Works exclusively with the hackathon database.
 """
 
-import os
-import json
-import time
-import requests
-import logging
 import argparse
+import json
+import logging
+import os
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Any
+
+import requests
 from dotenv import load_dotenv
-import subprocess
 
 # Import GitHub analyzer
 from hackathon.backend.github_analyzer import GitHubAnalyzer
@@ -31,9 +30,7 @@ except Exception:
 load_dotenv()
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Configuration from environment
@@ -69,25 +66,27 @@ def get_v2_fields_from_schema():
         schema = json.load(f)
     return [f["name"] for f in schema["schemas"]["v2"]]
 
-def basic_research_cleanup(ai_research: Dict[str, Any]) -> Dict[str, Any]:
+
+def basic_research_cleanup(ai_research: dict[str, Any]) -> dict[str, Any]:
     """Basic cleanup of AI research output - minimal intervention to preserve natural judging."""
-    
+
     try:
         # Just ensure it's a dict and log what we got
         if not isinstance(ai_research, dict):
             logger.warning(f"Research output is not a dict, got {type(ai_research)}")
             return {"raw_response": str(ai_research)}
-        
+
         # Log the sections we found
         sections = list(ai_research.keys())
         logger.info(f"Research sections found: {sections}")
-        
+
         # Just return as-is - let frontend handle the diversity
         return ai_research
-        
+
     except Exception as e:
         logger.error(f"Research cleanup failed: {e}")
         return {"error": str(e), "raw_response": str(ai_research)}
+
 
 class HackathonResearcher:
     def __init__(self, db_path=None, version=None, force: bool = False):
@@ -133,7 +132,7 @@ class HackathonResearcher:
         cache_age = datetime.now() - datetime.fromtimestamp(cache_path.stat().st_mtime)
         return cache_age < timedelta(hours=RESEARCH_CACHE_EXPIRY_HOURS)
 
-    def _load_from_cache(self, submission_id: str) -> Optional[Dict[str, Any]]:
+    def _load_from_cache(self, submission_id: str) -> dict[str, Any] | None:
         """Load research results from cache if valid."""
         # Bypass cache entirely when force is enabled
         if getattr(self, "force", False):
@@ -142,12 +141,12 @@ class HackathonResearcher:
 
         if self._is_cache_valid(cache_path):
             logger.info(f"Loading research from cache for {submission_id}")
-            with open(cache_path, "r") as f:
+            with open(cache_path) as f:
                 return json.load(f)
 
         return None
 
-    def _save_to_cache(self, submission_id: str, research_data: Dict[str, Any]):
+    def _save_to_cache(self, submission_id: str, research_data: dict[str, Any]):
         """Save research results to cache."""
         cache_path = self._get_cache_path(submission_id)
 
@@ -157,13 +156,13 @@ class HackathonResearcher:
         logger.info(f"Saved research to cache for {submission_id}")
 
     def build_research_prompt(
-        self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
+        self, project_data: dict[str, Any], github_analysis: dict[str, Any], gitingest_path: str | None = None
     ) -> str:
         """Build research prompt via centralized prompts module."""
         gitingest_content = ""
         if gitingest_path and os.path.exists(gitingest_path):
             try:
-                with open(gitingest_path, 'r', encoding='utf-8') as f:
+                with open(gitingest_path, encoding="utf-8") as f:
                     gitingest_content = f.read()
             except Exception as e:
                 logger.warning(f"Could not read GitIngest output {gitingest_path}: {e}")
@@ -172,8 +171,8 @@ class HackathonResearcher:
         return create_research_prompt(project_data, github_analysis, gitingest_content)
 
     def conduct_ai_research(
-        self, project_data: Dict[str, Any], github_analysis: Dict[str, Any], gitingest_path: str = None
-    ) -> Dict[str, Any]:
+        self, project_data: dict[str, Any], github_analysis: dict[str, Any], gitingest_path: str | None = None
+    ) -> dict[str, Any]:
         """Conduct AI-powered research using OpenRouter/Perplexity."""
         prompt = self.build_research_prompt(project_data, github_analysis, gitingest_path)
 
@@ -212,7 +211,7 @@ class HackathonResearcher:
                     start_brace = content.find("{")
                     end_brace = content.rfind("}")
                     if start_brace != -1 and end_brace != -1 and end_brace > start_brace:
-                        content = content[start_brace:end_brace+1]
+                        content = content[start_brace : end_brace + 1]
 
                 parsed_json = json.loads(content)
                 logger.info("Successfully parsed AI response as JSON")
@@ -220,15 +219,18 @@ class HackathonResearcher:
             except json.JSONDecodeError as e:
                 logger.warning(f"Could not parse AI response as JSON: {e}")
                 logger.warning(f"Raw content (first 500 chars): {content[:500]}")
-                
+
                 # Try to extract at least some structured data from the response
                 fallback_structure = {
                     "technical_implementation": {"score": 5, "analysis": "Raw response - see error details"},
                     "market_analysis": {"score": 5, "market_size": "Unknown"},
                     "innovation_rating": {"score": 5, "analysis": "Raw response - see error details"},
-                    "overall_assessment": {"final_score": 5.0, "summary": content[:500] + "..." if len(content) > 500 else content},
+                    "overall_assessment": {
+                        "final_score": 5.0,
+                        "summary": content[:500] + "..." if len(content) > 500 else content,
+                    },
                     "raw_response": content,
-                    "parse_error": str(e)
+                    "parse_error": str(e),
                 }
                 return fallback_structure
 
@@ -236,31 +238,31 @@ class HackathonResearcher:
             logger.error(f"AI research failed: {e}")
             return {"error": str(e)}
 
-    def research_submission(self, submission_id: str) -> Dict[str, Any]:
+    def research_submission(self, submission_id: str) -> dict[str, Any]:
         """Research a single submission with GitHub analysis and GitIngest."""
         logger.info(f"Starting research for submission {submission_id}")
-        
+
         # Check cache first
         cached_results = self._load_from_cache(submission_id)
         if cached_results:
             return cached_results
-        
+
         # Get submission data from database
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
+
         query = f"SELECT * FROM {self.table} WHERE submission_id = ?"
         cursor.execute(query, (submission_id,))
         row = cursor.fetchone()
         conn.close()
-        
+
         if not row:
             raise ValueError(f"Submission {submission_id} not found")
-        
+
         project_data = dict(row)
         github_url = project_data.get("github_url")
-        
+
         if not github_url:
             logger.warning(f"No GitHub URL for submission {submission_id}")
             github_analysis = {"error": "No GitHub URL provided"}
@@ -269,24 +271,24 @@ class HackathonResearcher:
             # Perform GitHub analysis
             logger.info(f"Analyzing GitHub repository: {github_url}")
             github_analysis = self.github_analyzer.analyze_repository(github_url)
-            
+
             # Run GitIngest with dynamic settings - prefer agentic recommendation
             gitingest_settings = github_analysis.get("gitingest_agentic_recommendation")
             if not gitingest_settings:
                 logger.info("No agentic recommendation available, falling back to basic settings")
                 gitingest_settings = github_analysis.get("gitingest_settings", {})
-            
+
             # Use GitHubAnalyzer's secure GitIngest method
             output_file = f"gitingest-{submission_id}.txt"
             cache_path = Path(RESEARCH_CACHE_DIR) / output_file
             gitingest_path = self.github_analyzer.run_gitingest_secure(github_url, str(cache_path), gitingest_settings)
-        
+
         # Conduct AI research
         ai_research = self.conduct_ai_research(project_data, github_analysis, gitingest_path)
-        
+
         # Basic cleanup without forcing schema
         ai_research = basic_research_cleanup(ai_research)
-        
+
         # Compile final results
         research_results = {
             "submission_id": submission_id,
@@ -295,26 +297,27 @@ class HackathonResearcher:
             "gitingest_output_path": gitingest_path,
             "researched_at": datetime.now().isoformat(),
         }
-        
+
         # Update database
         self._update_submission_research(submission_id, research_results)
-        
+
         # Save to cache
         self._save_to_cache(submission_id, research_results)
-        
+
         # Simple audit logging
         from hackathon.backend.simple_audit import log_system_action
+
         log_system_action("research_completed", submission_id)
-        
+
         logger.info(f"Research completed for submission {submission_id}")
         return research_results
 
-    def research_all_pending(self) -> List[Dict[str, Any]]:
+    def research_all_pending(self) -> list[dict[str, Any]]:
         """Research all submissions that don't have research data yet."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        
+
         # When force is enabled, process ALL submissions; otherwise only those without research
         if getattr(self, "force", False):
             query = f"""
@@ -332,9 +335,9 @@ class HackathonResearcher:
         cursor.execute(query)
         pending_ids = [row[0] for row in cursor.fetchall()]
         conn.close()
-        
+
         logger.info(f"Found {len(pending_ids)} submissions pending research")
-        
+
         results = []
         for submission_id in pending_ids:
             try:
@@ -342,17 +345,15 @@ class HackathonResearcher:
                 results.append(result)
             except Exception as e:
                 logger.error(f"Failed to research submission {submission_id}: {e}")
-                results.append({
-                    "submission_id": submission_id,
-                    "error": str(e)
-                })
-        
+                results.append({"submission_id": submission_id, "error": str(e)})
+
         return results
 
-    def _update_submission_research(self, submission_id: str, research_data: Dict[str, Any]):
+    def _update_submission_research(self, submission_id: str, research_data: dict[str, Any]):
         """Insert or update research results in hackathon_research table."""
         import sqlite3
         from datetime import datetime
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
@@ -395,13 +396,9 @@ class HackathonResearcher:
 
 def main():
     """Main function with CLI interface."""
-    parser = argparse.ArgumentParser(
-        description="AI-powered hackathon project research"
-    )
+    parser = argparse.ArgumentParser(description="AI-powered hackathon project research")
     parser.add_argument("--submission-id", help="Research a specific submission by ID")
-    parser.add_argument(
-        "--all", action="store_true", help="Research all pending submissions"
-    )
+    parser.add_argument("--all", action="store_true", help="Research all pending submissions")
     parser.add_argument("--output", help="Output file for research results (JSON)")
     parser.add_argument(
         "--force",

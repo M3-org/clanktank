@@ -70,8 +70,8 @@ python scripts/upload_to_youtube.py --from-json metadata.json                   
 
 ### Python Style
 ```bash
-black <file>    # Format
-flake8 <file>   # Lint
+ruff check <file>  # Lint
+ruff format <file> # Format
 ```
 
 ## Architecture

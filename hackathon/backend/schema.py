@@ -3,16 +3,16 @@
 
 import json
 import os
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 # Get the path to the shared schema file
 SCHEMA_FILE_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
 
 # Cache for loaded schema
-_cached_schema: Optional[Dict[str, Any]] = None
+_cached_schema: dict[str, Any] | None = None
 
 
-def load_shared_schema() -> Dict[str, Any]:
+def load_shared_schema() -> dict[str, Any]:
     """Load the shared schema from JSON file with caching."""
     global _cached_schema
 
@@ -20,7 +20,7 @@ def load_shared_schema() -> Dict[str, Any]:
         return _cached_schema
 
     try:
-        with open(SCHEMA_FILE_PATH, "r") as f:
+        with open(SCHEMA_FILE_PATH) as f:
             _cached_schema = json.load(f)
         return _cached_schema
     except FileNotFoundError:
@@ -38,9 +38,7 @@ try:
     # Extract field lists from the detailed schemas
     SUBMISSION_FIELDS = {}
     for version in SUBMISSION_VERSIONS:
-        SUBMISSION_FIELDS[version] = [
-            field["name"] for field in schema_data["schemas"][version]
-        ]
+        SUBMISSION_FIELDS[version] = [field["name"] for field in schema_data["schemas"][version]]
 
     # Use the detailed schemas directly
     SUBMISSION_SCHEMA = schema_data["schemas"]
@@ -120,12 +118,12 @@ def reload_schema():
     return load_shared_schema()
 
 
-def get_field_names_by_version() -> Dict[str, List[str]]:
+def get_field_names_by_version() -> dict[str, list[str]]:
     """Get all field names organized by version."""
     return SUBMISSION_FIELDS.copy()
 
 
-def get_supported_versions() -> List[str]:
+def get_supported_versions() -> list[str]:
     """Get list of supported schema versions."""
     return SUBMISSION_VERSIONS.copy()
 

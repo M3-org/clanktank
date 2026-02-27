@@ -4,25 +4,22 @@ GitHub repository analyzer for hackathon projects.
 Analyzes code quality, structure, and technical details.
 """
 
-import os
 import json
-import requests
 import logging
+import os
+import re
+from collections import defaultdict
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
-import re
-import math
-from collections import defaultdict
 
-from dotenv import load_dotenv, find_dotenv
+import requests
+from dotenv import find_dotenv, load_dotenv
 
 # Load environment variables (automatically finds .env in parent directories)
 load_dotenv(find_dotenv())
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Enable debug logging if needed
@@ -101,54 +98,54 @@ class GitHubAnalyzer:
             if not deadline_str:
                 logger.warning("SUBMISSION_DEADLINE not configured in environment")
                 return {"error": "submission_deadline_not_configured"}
-            
-            deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+
+            deadline = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
             month_ago = deadline - timedelta(days=30)
-            
+
             url = f"{self.base_url}/repos/{owner}/{repo}/commits"
             params = {"since": month_ago.isoformat(), "per_page": 50}
             resp = requests.get(url, headers=self.headers, params=params)
             resp.raise_for_status()
             commits = resp.json()
-            
+
             if not commits:
                 return {"total_commits": 0}
-            
+
             # Extract raw data
-            commit_messages = [c.get('commit', {}).get('message', '') for c in commits]
-            commit_dates = [c.get('commit', {}).get('author', {}).get('date', '') for c in commits]
-            commit_authors = [c.get('commit', {}).get('author', {}).get('name', '') for c in commits]
-            
+            commit_messages = [c.get("commit", {}).get("message", "") for c in commits]
+            commit_dates = [c.get("commit", {}).get("author", {}).get("date", "") for c in commits]
+            commit_authors = [c.get("commit", {}).get("author", {}).get("name", "") for c in commits]
+
             # Filter out empty dates
             valid_dates = [d for d in commit_dates if d]
-            
+
             # Build result with only relevant data
             result = {
                 "total_commits": len(commits),
                 "commit_messages": commit_messages,
                 "commit_dates": valid_dates,
                 "commit_authors": list(set(commit_authors)),
-                "days_with_commits": len(set(d[:10] for d in valid_dates if d))
+                "days_with_commits": len(set(d[:10] for d in valid_dates if d)),
             }
-            
+
             # Only include web uploads if they exist
-            web_upload_commits = sum(1 for msg in commit_messages if 'Add files via upload' in msg)
+            web_upload_commits = sum(1 for msg in commit_messages if "Add files via upload" in msg)
             if web_upload_commits > 0:
                 result["web_upload_commits"] = web_upload_commits
-            
+
             # Add timing data if available
             if valid_dates:
                 result["first_commit_date"] = valid_dates[-1]
                 result["last_commit_date"] = valid_dates[0]
-                
-                last_date = datetime.fromisoformat(valid_dates[0].replace('Z', '+00:00'))
+
+                last_date = datetime.fromisoformat(valid_dates[0].replace("Z", "+00:00"))
                 result["days_before_deadline"] = (deadline - last_date).days
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Error collecting commit data: {e}")
-            return {"error": f"commit_data_collection_failed: {str(e)}"}
+            return {"error": f"commit_data_collection_failed: {e!s}"}
 
     def get_readme(self, owner, repo):
         """Get README content and analyze its structure."""
@@ -194,10 +191,10 @@ class GitHubAnalyzer:
             url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
             resp = requests.get(url, headers=self.headers)
             resp.raise_for_status()
-            
+
             tree = resp.json().get("tree", [])
             files = []
-            
+
             # Build file list and cache sizes
             for item in tree:
                 if item["type"] == "blob":
@@ -205,31 +202,31 @@ class GitHubAnalyzer:
                     size = item.get("size", 0)
                     files.append(path)
                     self._blob_size_cache[path] = size
-            
+
             # Analyze file types and structure
             file_extensions = {}
             config_files = []
-            
+
             for file_path in files:
                 # Get file extension
-                if '.' in file_path:
-                    ext = file_path.split('.')[-1].lower()
+                if "." in file_path:
+                    ext = file_path.split(".")[-1].lower()
                     file_extensions[ext] = file_extensions.get(ext, 0) + 1
-                
+
                 # Check for config files
-                filename = file_path.split('/')[-1].lower()
-                if filename in ['package.json', 'requirements.txt', 'cargo.toml', 'go.mod', 'pom.xml', 'build.gradle']:
+                filename = file_path.split("/")[-1].lower()
+                if filename in ["package.json", "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "build.gradle"]:
                     config_files.append(file_path)
-            
+
             return {
                 "total_files": len(files),
                 "file_extensions": file_extensions,
                 "config_files": config_files,
                 "is_large_repo": len(files) > 500,
-                "is_mono_repo": len([f for f in files if '/' in f]) > len(files) * 0.8,
-                "has_docs": any('doc' in f.lower() or 'readme' in f.lower() for f in files),
-                "has_tests": any('test' in f.lower() or 'spec' in f.lower() for f in files),
-                "files": files  # Include full file list for manifest generation
+                "is_mono_repo": len([f for f in files if "/" in f]) > len(files) * 0.8,
+                "has_docs": any("doc" in f.lower() or "readme" in f.lower() for f in files),
+                "has_tests": any("test" in f.lower() or "spec" in f.lower() for f in files),
+                "files": files,  # Include full file list for manifest generation
             }
         except Exception as e:
             logger.error(f"Error analyzing file structure: {e}")
@@ -238,20 +235,29 @@ class GitHubAnalyzer:
     def label_file_relevance(self, files):
         """Stage-1 critic: tag each file with relevance and rationale using cheap heuristics."""
         manifest = []
-        
+
         # Define patterns for different relevance levels
         core_globs = [r"/src/", r"/lib/", r"/contracts/", r"/cmd/", r"/app/"]
         test_globs = ["test", "spec", "__tests__"]
         doc_exts = {".md", ".rst", ".adoc", ".txt"}
-        config_files = {"package.json", "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "build.gradle", "dockerfile", ".env"}
-        
+        config_files = {
+            "package.json",
+            "requirements.txt",
+            "cargo.toml",
+            "go.mod",
+            "pom.xml",
+            "build.gradle",
+            "dockerfile",
+            ".env",
+        }
+
         for file_path in files:
             ext = os.path.splitext(file_path)[1].lower()
-            filename = file_path.split('/')[-1].lower()
+            filename = file_path.split("/")[-1].lower()
             size = self._blob_size_cache.get(file_path, 0)
-            
+
             rel, why = "low", "generated/boilerplate"
-            
+
             # High relevance: core source directories
             if any(glob in file_path.lower() for glob in core_globs):
                 rel, why = "high", "core source directory"
@@ -270,36 +276,35 @@ class GitHubAnalyzer:
                 rel, why = "low", "generated/temporary file"
             elif filename.startswith("."):
                 rel, why = "low", "hidden/config file"
-            
-            manifest.append({
-                "path": file_path,
-                "bytes": size,
-                "ext": ext.lstrip("."),
-                "relevance": rel,
-                "why": why
-            })
-        
+
+            manifest.append({"path": file_path, "bytes": size, "ext": ext.lstrip("."), "relevance": rel, "why": why})
+
         return manifest
 
     def extract_dependency_info(self, owner, repo, manifest):
         """Extract first 40 lines of key dependency files."""
         deps_info = {}
-        dep_files = [f["path"] for f in manifest if f["path"].split("/")[-1].lower() in 
-                    ["package.json", "requirements.txt", "cargo.toml", "go.mod", "pom.xml"]]
-        
+        dep_files = [
+            f["path"]
+            for f in manifest
+            if f["path"].split("/")[-1].lower()
+            in ["package.json", "requirements.txt", "cargo.toml", "go.mod", "pom.xml"]
+        ]
+
         for dep_file in dep_files[:3]:  # Limit to 3 files to avoid rate limits
             try:
                 url = f"{self.base_url}/repos/{owner}/{repo}/contents/{dep_file}"
                 resp = requests.get(url, headers=self.headers)
                 if resp.status_code == 200:
                     import base64
+
                     content = base64.b64decode(resp.json()["content"]).decode("utf-8")
                     # Get first 40 lines
                     lines = content.splitlines()[:40]
                     deps_info[dep_file] = "\n".join(lines)
             except Exception as e:
                 logger.warning(f"Could not fetch {dep_file}: {e}")
-        
+
         return deps_info
 
     def get_loc_histogram(self, manifest):
@@ -316,7 +321,7 @@ class GitHubAnalyzer:
             else:
                 bucket = "xlarge (>50KB)"
             size_buckets[bucket] += 1
-        
+
         return dict(size_buckets)
 
     def get_gitingest_settings(self, repo_analysis):
@@ -326,83 +331,82 @@ class GitHubAnalyzer:
             "exclude_patterns": [],
             "include_patterns": [],
         }
-        
+
         # Adjust based on repo size
         if repo_analysis.get("is_large_repo", False):
             settings["max_size"] = 50000  # 50KB for large repos
-            settings["exclude_patterns"].extend([
-                "*.log", "*.tmp", "*.cache", "node_modules/**", 
-                "build/**", "dist/**", "__pycache__/**", ".git/**"
-            ])
-        
+            settings["exclude_patterns"].extend(
+                ["*.log", "*.tmp", "*.cache", "node_modules/**", "build/**", "dist/**", "__pycache__/**", ".git/**"]
+            )
+
         # Adjust based on file types
         file_extensions = repo_analysis.get("file_extensions", {})
         if file_extensions.get("js", 0) > 10 or file_extensions.get("jsx", 0) > 5:
             settings["exclude_patterns"].extend(["node_modules/**", "build/**", "dist/**"])
-        
+
         if file_extensions.get("py", 0) > 10:
             settings["exclude_patterns"].extend(["__pycache__/**", "*.pyc", ".venv/**"])
-        
+
         if file_extensions.get("java", 0) > 5:
             settings["exclude_patterns"].extend(["target/**", "*.class"])
-        
+
         # Include important files
         if repo_analysis.get("has_docs", False):
             settings["include_patterns"].append("**/*.md")
-        
+
         if repo_analysis.get("config_files"):
             for config_file in repo_analysis["config_files"]:
                 settings["include_patterns"].append(config_file)
-        
+
         return settings
 
     def get_gitingest_agentic_recommendation(self, repo_analysis, manifest, deps_info, loc_histogram):
         """Use an LLM to recommend GitIngest config based on comprehensive repo analysis."""
-        import requests
         import jsonschema
-        
+        import requests
+
         OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
         if not OPENROUTER_API_KEY:
             logger.warning("No OPENROUTER_API_KEY set, using heuristic fallback.")
             return self._get_heuristic_fallback(repo_analysis)
-        
+
         BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
         AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "moonshotai/kimi-k2:free")
         MODEL = AI_MODEL_NAME
-        
+
         # Calculate token budget
         total_bytes = sum(f["bytes"] for f in manifest)
         token_budget = 50000 - int(total_bytes / 4)  # Rough bytes to tokens conversion
-        
+
         prompt = f"""You are RepoSage-GPT, a code-curation expert specializing in preparing GitHub repositories for AI analysis.
 
 ### Consumers & their needs
-• Hackathon AI judges – care about novelty, technical complexity, and code quality  
+• Hackathon AI judges – care about novelty, technical complexity, and code quality
 • Summary bots – need architecture docs & project structure
 • Market bots – inspect dependencies, license, and competitive landscape
 
 ### Constraints
-Total raw text budget: 50,000 tokens (≈ 200 kB).  
-Current repo size: {total_bytes} bytes ({int(total_bytes/4)} estimated tokens).
+Total raw text budget: 50,000 tokens (≈ 200 kB).
+Current repo size: {total_bytes} bytes ({int(total_bytes / 4)} estimated tokens).
 Remaining budget: {token_budget} tokens.
 
 ### Task
-1. From the FILE_MANIFEST below, decide which glob patterns to **include**, which to **exclude**, and where to **truncate**.  
+1. From the FILE_MANIFEST below, decide which glob patterns to **include**, which to **exclude**, and where to **truncate**.
 2. Use tiered file size limits: `core_code_max` for critical source files, `other_file_max` for docs/configs.
 3. Output strict JSON with keys: `include_patterns`, `exclude_patterns`, `core_code_max`, `other_file_max`, `rationale`.
 4. Rationale should be ≤120 words, bullet format, ranked by impact.
 
 ### FILE_MANIFEST (showing first 50 high-relevance entries)
-{json.dumps([f for f in manifest[:100] if f.get('relevance') in ['high', 'medium-high']][:50], indent=2)}
+{json.dumps([f for f in manifest[:100] if f.get("relevance") in ["high", "medium-high"]][:50], indent=2)}
 
 ### DEPENDENCY_INFO
-{json.dumps({k: v for k, v in deps_info.items() if k in ['package_managers', 'primary_language', 'frameworks']}, indent=2)}
+{json.dumps({k: v for k, v in deps_info.items() if k in ["package_managers", "primary_language", "frameworks"]}, indent=2)}
 
 ### LOC_HISTOGRAM
 {json.dumps(loc_histogram, indent=2)}
 
 ### REPO_STATS
-{json.dumps({k: v for k, v in repo_analysis.items() if k in ['total_files', 'total_bytes', 'primary_language']}, indent=2)}
+{json.dumps({k: v for k, v in repo_analysis.items() if k in ["total_files", "total_bytes", "primary_language"]}, indent=2)}
 
 Output only valid JSON."""
 
@@ -415,17 +419,19 @@ Output only valid JSON."""
             "temperature": 0.2,
             "max_tokens": 800,
         }
-        
+
         # Debug logging for payload size
         payload_size = len(json.dumps(payload))
-        logger.info(f"GitIngest agentic recommendation payload size: {payload_size:,} chars (~{payload_size//4:,} tokens)")
+        logger.info(
+            f"GitIngest agentic recommendation payload size: {payload_size:,} chars (~{payload_size // 4:,} tokens)"
+        )
         logger.info(f"Using model: {MODEL} for agentic recommendation")
-        
+
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
         }
-        
+
         # JSON schema for validation
         schema = {
             "type": "object",
@@ -435,10 +441,10 @@ Output only valid JSON."""
                 "exclude_patterns": {"type": "array", "items": {"type": "string"}},
                 "core_code_max": {"type": "integer", "minimum": 1000},
                 "other_file_max": {"type": "integer", "minimum": 500},
-                "rationale": {"type": "string", "maxLength": 500}
-            }
+                "rationale": {"type": "string", "maxLength": 500},
+            },
         }
-        
+
         try:
             logger.info("Requesting agentic GitIngest config recommendation from LLM...")
             logger.debug(f"Request payload: {json.dumps(payload, indent=2)}")
@@ -448,21 +454,22 @@ Output only valid JSON."""
             content = result["choices"][0]["message"]["content"]
             logger.info(f"LLM Response status: {response.status_code}")
             logger.info(f"Raw LLM response content:\n{content}")
-            
+
             # Try to parse JSON from response
-            import re
             import json as pyjson
-            match = re.search(r'\{.*\}', content, re.DOTALL)
+            import re
+
+            match = re.search(r"\{.*\}", content, re.DOTALL)
             if match:
                 try:
                     json_content = match.group(0)
                     logger.debug(f"Extracted JSON content: {json_content}")
                     parsed_json = pyjson.loads(json_content)
-                    
+
                     # Handle rationale field - convert array to string if needed
                     if isinstance(parsed_json.get("rationale"), list):
                         parsed_json["rationale"] = " • ".join(parsed_json["rationale"])
-                    
+
                     # Validate against schema
                     jsonschema.validate(parsed_json, schema)
                     logger.info("JSON schema validation passed")
@@ -480,7 +487,7 @@ Output only valid JSON."""
                 logger.warning("No JSON found in response, falling back to heuristics")
                 logger.warning(f"Response content: {content}")
                 return self._get_heuristic_fallback(repo_analysis)
-                
+
         except Exception as e:
             logger.error(f"Agentic config step failed: {e}")
             logger.error(f"Request URL: {BASE_URL}")
@@ -490,36 +497,76 @@ Output only valid JSON."""
     def _get_heuristic_fallback(self, repo_analysis):
         """Fallback heuristic config when LLM fails."""
         base_settings = self.get_gitingest_settings(repo_analysis)
-        
+
         # Get comprehensive exclusion patterns for media and binary files
         exclude_patterns = base_settings.get("exclude_patterns", [])
-        exclude_patterns.extend([
-            # Media files (images, videos, audio)
-            "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.svg", "**/*.webp",
-            "**/*.mp4", "**/*.avi", "**/*.mov", "**/*.wmv", "**/*.flv", "**/*.webm",
-            "**/*.mp3", "**/*.wav", "**/*.flac", "**/*.aac", "**/*.ogg",
-            # 3D models and assets
-            "**/*.glb", "**/*.gltf", "**/*.obj", "**/*.fbx", "**/*.dae",
-            # Archives and binaries
-            "**/*.zip", "**/*.rar", "**/*.tar", "**/*.gz", "**/*.7z",
-            "**/*.exe", "**/*.bin", "**/*.dll", "**/*.so", "**/*.dylib",
-            # Build outputs and caches
-            "node_modules/**", "build/**", "dist/**", ".next/**", 
-            "__pycache__/**", ".git/**", ".cache/**", "*.log", "*.tmp",
-            # Large data files
-            "**/*.db", "**/*.sqlite", "**/*.sqlite3", "**/*.csv",
-            # Documentation images (often large)
-            "**/docs/**/*.png", "**/docs/**/*.jpg", "**/assets/**/*.png", "**/assets/**/*.jpg"
-        ])
-        
+        exclude_patterns.extend(
+            [
+                # Media files (images, videos, audio)
+                "**/*.png",
+                "**/*.jpg",
+                "**/*.jpeg",
+                "**/*.gif",
+                "**/*.svg",
+                "**/*.webp",
+                "**/*.mp4",
+                "**/*.avi",
+                "**/*.mov",
+                "**/*.wmv",
+                "**/*.flv",
+                "**/*.webm",
+                "**/*.mp3",
+                "**/*.wav",
+                "**/*.flac",
+                "**/*.aac",
+                "**/*.ogg",
+                # 3D models and assets
+                "**/*.glb",
+                "**/*.gltf",
+                "**/*.obj",
+                "**/*.fbx",
+                "**/*.dae",
+                # Archives and binaries
+                "**/*.zip",
+                "**/*.rar",
+                "**/*.tar",
+                "**/*.gz",
+                "**/*.7z",
+                "**/*.exe",
+                "**/*.bin",
+                "**/*.dll",
+                "**/*.so",
+                "**/*.dylib",
+                # Build outputs and caches
+                "node_modules/**",
+                "build/**",
+                "dist/**",
+                ".next/**",
+                "__pycache__/**",
+                ".git/**",
+                ".cache/**",
+                "*.log",
+                "*.tmp",
+                # Large data files
+                "**/*.db",
+                "**/*.sqlite",
+                "**/*.sqlite3",
+                "**/*.csv",
+                # Documentation images (often large)
+                "**/docs/**/*.png",
+                "**/docs/**/*.jpg",
+                "**/assets/**/*.png",
+                "**/assets/**/*.jpg",
+            ]
+        )
+
         return {
             "include_patterns": ["**/*.md", "**/*.py", "**/*.js", "**/*.ts", "**/*.json"],  # Focus on key files only
             "exclude_patterns": exclude_patterns,
-            "core_code_max": 2000,    # 2K tokens for core code (~8KB text)
-            "other_file_max": 1000,   # 1K tokens for other files (~4KB text)
-            "rationale": "• Ultra-conservative token limits to prevent 413 errors • Focus only on essential documentation and source code • Exclude all media and large files"
+            "core_code_max": 2000,  # 2K tokens for core code (~8KB text)
+            "other_file_max": 1000,  # 1K tokens for other files (~4KB text)
+            "rationale": "• Ultra-conservative token limits to prevent 413 errors • Focus only on essential documentation and source code • Exclude all media and large files",
         }
-
 
     def summarize_repo(self, repo_url, max_files=200, readme_lines=40):
         """Produce a holistic, objective summary of the repo for AI analysis."""
@@ -538,7 +585,7 @@ Output only valid JSON."""
             resp.raise_for_status()
             tree = resp.json().get("tree", [])
             files = [item["path"] for item in tree if item["type"] == "blob"]
-            file_list = files if len(files) <= max_files else files[:max_files] + ["...truncated"]
+            file_list = files if len(files) <= max_files else [*files[:max_files], "...truncated"]
         except Exception as e:
             logger.error(f"Error fetching file tree: {e}")
             file_list = []
@@ -552,6 +599,7 @@ Output only valid JSON."""
             else:
                 resp.raise_for_status()
                 import base64
+
                 content = base64.b64decode(resp.json()["content"]).decode("utf-8")
                 readme_head = "\n".join(content.splitlines()[:readme_lines])
         except Exception as e:
@@ -610,41 +658,41 @@ Output only valid JSON."""
         if not self._validate_github_url(repo_url):
             logger.error(f"Invalid GitHub URL rejected: {repo_url}")
             return None
-        
+
         try:
             # Use GitIngest Python library (original simple approach)
             from gitingest import ingest
-            
+
             # Get GitHub token for private repos
             github_token = os.getenv("GITHUB_TOKEN")
-            
+
             logger.info(f"Running GitIngest (Python library) for {repo_url}")
-            
+
             # Log settings for debugging but let GitIngest handle filtering internally
             if settings and settings.get("rationale"):
                 logger.info(f"GitIngest rationale: {settings['rationale']}")
-            
+
             # Use GitIngest's built-in intelligence (as in original implementation)
-            summary, tree, content = ingest(repo_url, token=github_token)
-            
+            _summary, _tree, content = ingest(repo_url, token=github_token)
+
             # Post-process to ensure reasonable size for AI research (dynamic scaling)
             # Based on original implementation: small repos (~13k tokens), large repos (~144k tokens)
-            
+
             # Get repository analysis from GitHub data
             owner, repo = self.extract_repo_info(repo_url)
             if owner and repo:
                 try:
-                    repo_data = self.get_repo_data(owner, repo)
+                    self.get_repo_data(owner, repo)
                     file_structure = self.get_file_structure(owner, repo)
                     total_files = file_structure.get("total_files", 0)
                     is_large_repo = file_structure.get("is_large_repo", False)
-                except:
+                except Exception:
                     total_files = 0
                     is_large_repo = False
             else:
                 total_files = 0
                 is_large_repo = False
-            
+
             # Dynamic token limits based on repository characteristics
             if total_files > 1000:
                 max_chars = 800000  # ~170k tokens for very large repos
@@ -658,16 +706,17 @@ Output only valid JSON."""
             else:
                 max_chars = 300000  # ~64k tokens for small repos
                 reason = f"small repo ({total_files} files)"
-            
+
             logger.info(f"Using dynamic token limit: {max_chars:,} chars for {reason}")
-            
+
             # Calculate actual token count for better metrics
             try:
                 import tiktoken
-                enc = tiktoken.get_encoding('cl100k_base')
+
+                enc = tiktoken.get_encoding("cl100k_base")
                 original_tokens = len(enc.encode(content))
                 logger.info(f"Original GitIngest output: {len(content):,} chars, {original_tokens:,} tokens")
-                
+
                 if len(content) > max_chars:
                     logger.info(f"Truncating GitIngest output: {len(content):,} chars -> {max_chars:,} chars")
                     content = content[:max_chars] + "\n\n[Content truncated due to size limits for AI analysis]"
@@ -675,25 +724,25 @@ Output only valid JSON."""
                     logger.info(f"Final GitIngest output: {len(content):,} chars, {final_tokens:,} tokens")
                 else:
                     logger.info(f"No truncation needed - within {max_chars:,} char limit")
-                    
+
             except ImportError:
                 logger.warning("tiktoken not available - using character count estimation")
                 if len(content) > max_chars:
                     logger.info(f"Truncating GitIngest output: {len(content):,} chars -> {max_chars:,} chars")
                     content = content[:max_chars] + "\n\n[Content truncated due to size limits for AI analysis]"
-            
+
             # Save to output file if specified
             if output_path:
                 os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                with open(output_path, 'w', encoding='utf-8') as f:
+                with open(output_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 logger.info(f"GitIngest saved to: {output_path}")
                 return output_path
             else:
                 # Return content directly if no output path specified
-                logger.info(f"GitIngest completed successfully")
+                logger.info("GitIngest completed successfully")
                 return content
-                
+
         except Exception as e:
             logger.error(f"GitIngest failed: {e}")
             return None
@@ -701,20 +750,18 @@ Output only valid JSON."""
     def _validate_github_url(self, url: str) -> bool:
         """Validate that URL is a legitimate GitHub repository URL."""
         from urllib.parse import urlparse
-        
+
         try:
             parsed = urlparse(url)
             # Only allow GitHub domains
-            if parsed.hostname not in ['github.com']:
+            if parsed.hostname not in ["github.com"]:
                 return False
             # Must be HTTPS
-            if parsed.scheme != 'https':
+            if parsed.scheme != "https":
                 return False
             # Must match GitHub repo pattern (owner/repo with optional additional paths)
-            if not re.match(r'^/[\w.-]+/[\w.-]+(/.*)?$', parsed.path):
-                return False
-            return True
-        except:
+            return re.match(r"^/[\w.-]+/[\w.-]+(/.*)?$", parsed.path)
+        except Exception:
             return False
 
     def analyze_repository(self, repo_url):
@@ -726,34 +773,34 @@ Output only valid JSON."""
         repo_data = self.get_repo_data(owner, repo)
         if "error" in repo_data:
             return repo_data
-        
+
         # Get file structure for GitIngest optimization
         logger.info("Getting file structure...")
         file_structure = self.get_file_structure(owner, repo)
         if "error" in file_structure:
             logger.error(f"File structure error: {file_structure}")
             return file_structure
-        
+
         # Stage-1 critic: label file relevance
         files = file_structure.get("files", [])
         logger.info(f"Found {len(files)} files in repository")
         manifest = self.label_file_relevance(files)
         logger.info(f"Generated file manifest with {len(manifest)} files")
-        
+
         # Extract additional repo signals
         logger.info("Extracting dependency info...")
         deps_info = self.extract_dependency_info(owner, repo, manifest)
         logger.info(f"Extracted dependency info for {len(deps_info)} files")
-        
+
         logger.info("Generating LOC histogram...")
         loc_histogram = self.get_loc_histogram(manifest)
         logger.info(f"LOC histogram: {loc_histogram}")
-        
+
         # Calculate token budget
         total_bytes = sum(f["bytes"] for f in manifest)
         token_budget = 50000 - int(total_bytes / 4)
         logger.info(f"Repository analysis: {total_bytes} bytes, {token_budget} token budget remaining")
-        
+
         analysis = {
             "url": repo_url,
             "owner": owner,
@@ -761,11 +808,7 @@ Output only valid JSON."""
             "description": repo_data.get("description", ""),
             "created_at": repo_data.get("created_at", ""),
             "updated_at": repo_data.get("updated_at", ""),
-            "license": (
-                repo_data.get("license", {}).get("name", "None")
-                if repo_data.get("license")
-                else "None"
-            ),
+            "license": (repo_data.get("license", {}).get("name", "None") if repo_data.get("license") else "None"),
             "readme_analysis": self.get_readme(owner, repo),
             "file_structure": file_structure,
             "commit_activity": self.get_commit_data(owner, repo),
@@ -776,21 +819,19 @@ Output only valid JSON."""
             "total_bytes": total_bytes,
             "analyzed_at": datetime.now().isoformat(),
         }
-        
+
         # Add GitIngest settings based on analysis
         analysis["gitingest_settings"] = self.get_gitingest_settings(file_structure)
-        
+
         # Stage-2 architect: get LLM recommendation for GitIngest config
         logger.info("Getting agentic GitIngest recommendation...")
-        agentic_recommendation = self.get_gitingest_agentic_recommendation(
-            analysis, manifest, deps_info, loc_histogram
-        )
+        agentic_recommendation = self.get_gitingest_agentic_recommendation(analysis, manifest, deps_info, loc_histogram)
         if agentic_recommendation:
             logger.info("Agentic recommendation obtained successfully")
             analysis["gitingest_agentic_recommendation"] = agentic_recommendation
         else:
             logger.warning("Agentic recommendation failed - using heuristic fallback")
-        
+
         return analysis
 
 
@@ -813,7 +854,7 @@ def main():
         results = analyzer.summarize_repo(args.repo_url)
     else:
         results = analyzer.analyze_repository(args.repo_url)
-        
+
         # Run GitIngest if requested
         if args.gitingest:
             owner, repo = analyzer.extract_repo_info(args.repo_url)
