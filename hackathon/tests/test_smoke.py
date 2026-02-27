@@ -3,9 +3,10 @@
 Minimal smoke test for the hackathon data pipeline.
 Verifies that the core pipeline scripts run without error.
 """
-import subprocess
-import sqlite3
+
 import os
+import sqlite3
+import subprocess
 import sys
 import uuid
 
@@ -41,8 +42,19 @@ def setup_db():
     # Insert a test record
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute(f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, discord_handle, description, category, github_url, demo_video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                   (TEST_ID, "Smoke Test Project", "smoketest#1234", "A test submission for smoke testing.", "Infrastructure", "https://github.com/test/smoke", "https://youtube.com/smoke", "submitted"))
+    cursor.execute(
+        f"INSERT INTO {DEFAULT_TABLE} (submission_id, project_name, discord_handle, description, category, github_url, demo_video_url, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            TEST_ID,
+            "Smoke Test Project",
+            "smoketest#1234",
+            "A test submission for smoke testing.",
+            "Infrastructure",
+            "https://github.com/test/smoke",
+            "https://youtube.com/smoke",
+            "submitted",
+        ),
+    )
     conn.commit()
     conn.close()
     print(f"Inserted test submission with ID {TEST_ID}")
@@ -54,14 +66,14 @@ def unique_name(base):
 
 def test_smoke_pipeline():
     # ...
-    payload = {
+    {
         "project_name": unique_name("SMOKE_TEST_001"),
         "team_name": "Smoke Test Team",
         "category": "AI/Agents",
         "description": "Smoke test project description.",
         "discord_handle": "smoke#1234",
         "github_url": "https://github.com/test/smoke",
-        "demo_video_url": "https://youtube.com/smoke"
+        "demo_video_url": "https://youtube.com/smoke",
         # Optional fields can be added as needed
     }
     # ...rest of the test remains unchanged, but all POSTs should use this payload and add any missing required fields if needed...
@@ -77,5 +89,6 @@ def main():
     run("hackathon/scripts/generate_episode.py", "--submission-id", TEST_ID, "--version", DEFAULT_VERSION)
     print("Smoke test completed successfully.")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

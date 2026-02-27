@@ -49,7 +49,7 @@ HTTP_RATE_LIMITED = 429
 
 # Image Testing Constants
 TEST_IMAGE_SIZE = (400, 300)
-TEST_IMAGE_COLOR = 'lightblue'
+TEST_IMAGE_COLOR = "lightblue"
 TEST_IMAGE_TEXT = "Test Image"
 SMALL_IMAGE_SIZE = (10, 10)
 MAX_IMAGE_SIZE_MB = 5

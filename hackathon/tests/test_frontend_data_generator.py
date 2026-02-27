@@ -3,15 +3,13 @@
 Frontend Data Generator Test
 
 Creates realistic test submissions via API endpoints to populate the frontend
-for visual testing and development. This test generates submissions that 
+for visual testing and development. This test generates submissions that
 appear on the web app dashboard.
 """
 
-import requests
-import json
 import time
-import uuid
-from typing import Dict, List
+
+import requests
 
 # API Configuration
 API_BASE_URL = "http://localhost:8000"
@@ -28,18 +26,18 @@ FRONTEND_TEST_SUBMISSIONS = [
         "github_url": "https://github.com/defi-labs/yield-optimizer",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "DeFi users struggle to find optimal yield opportunities and often lose money due to manual management. Our protocol automates this process.",
-        "favorite_part": "The auto-compounding mechanism that can increase yields by 15-30% compared to manual farming."
+        "favorite_part": "The auto-compounding mechanism that can increase yields by 15-30% compared to manual farming.",
     },
     {
         "project_name": "Solana Mobile Wallet",
         "discord_handle": "mobilewallet#5678",
-        "category": "Infrastructure", 
+        "category": "Infrastructure",
         "description": "A secure, user-friendly mobile wallet specifically designed for Solana ecosystem with built-in DeFi integrations.",
         "twitter_handle": "@solanamobile",
         "github_url": "https://github.com/solana-mobile/wallet-app",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "Current Solana wallets are complex and intimidating for mainstream users. We built a simple, secure solution.",
-        "favorite_part": "The biometric authentication system that makes transactions both secure and seamless."
+        "favorite_part": "The biometric authentication system that makes transactions both secure and seamless.",
     },
     {
         "project_name": "GameFi Arena",
@@ -50,7 +48,7 @@ FRONTEND_TEST_SUBMISSIONS = [
         "github_url": "https://github.com/gamefi/arena-platform",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "Traditional gaming doesn't reward skilled players financially. We created a fair, skill-based earning mechanism.",
-        "favorite_part": "The anti-cheat system powered by on-chain verification that ensures fair play."
+        "favorite_part": "The anti-cheat system powered by on-chain verification that ensures fair play.",
     },
     {
         "project_name": "AI Code Auditor",
@@ -61,7 +59,7 @@ FRONTEND_TEST_SUBMISSIONS = [
         "github_url": "https://github.com/ai-audit/smart-contract-analyzer",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "Smart contract audits are expensive and time-consuming. Our AI provides instant, comprehensive analysis.",
-        "favorite_part": "The machine learning model that can detect novel attack vectors by analyzing thousands of exploits."
+        "favorite_part": "The machine learning model that can detect novel attack vectors by analyzing thousands of exploits.",
     },
     {
         "project_name": "Social Impact DAO",
@@ -72,7 +70,7 @@ FRONTEND_TEST_SUBMISSIONS = [
         "github_url": "https://github.com/social-dao/governance-platform",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "Traditional charity lacks transparency and community involvement. We enable direct, transparent, community-driven impact.",
-        "favorite_part": "The quadratic voting system that ensures fair representation while preventing plutocracy."
+        "favorite_part": "The quadratic voting system that ensures fair representation while preventing plutocracy.",
     },
     {
         "project_name": "NFT Creator Studio",
@@ -83,44 +81,30 @@ FRONTEND_TEST_SUBMISSIONS = [
         "github_url": "https://github.com/nft-studio/creator-platform",
         "demo_video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         "problem_solved": "Artists struggle with the technical complexity of NFT creation. We make it accessible to everyone.",
-        "favorite_part": "The AI-powered trait generation system that helps artists create unique, valuable collections."
-    }
+        "favorite_part": "The AI-powered trait generation system that helps artists create unique, valuable collections.",
+    },
 ]
+
 
 def generate_unique_submission_id() -> int:
     """Generate a unique submission ID for testing."""
     return int(time.time() * 1000) % 1000000  # Use timestamp to ensure uniqueness
 
-def submit_via_api(submission_data: Dict) -> Dict:
+
+def submit_via_api(submission_data: dict) -> dict:
     """Submit a single submission via API."""
     try:
         response = requests.post(
-            API_SUBMISSIONS_URL,
-            json=submission_data,
-            headers={
-                "Content-Type": "application/json"
-            },
-            timeout=30
+            API_SUBMISSIONS_URL, json=submission_data, headers={"Content-Type": "application/json"}, timeout=30
         )
-        
+
         if response.status_code == 201:
-            return {
-                "success": True,
-                "submission_id": response.json().get("submission_id"),
-                "data": submission_data
-            }
+            return {"success": True, "submission_id": response.json().get("submission_id"), "data": submission_data}
         else:
-            return {
-                "success": False,
-                "error": f"HTTP {response.status_code}: {response.text}",
-                "data": submission_data
-            }
+            return {"success": False, "error": f"HTTP {response.status_code}: {response.text}", "data": submission_data}
     except requests.exceptions.RequestException as e:
-        return {
-            "success": False,
-            "error": f"Request failed: {str(e)}",
-            "data": submission_data
-        }
+        return {"success": False, "error": f"Request failed: {e!s}", "data": submission_data}
+
 
 def check_api_health() -> bool:
     """Check if the API is running and accessible."""
@@ -130,61 +114,63 @@ def check_api_health() -> bool:
     except requests.exceptions.RequestException:
         return False
 
+
 def populate_frontend_data():
     """Main function to populate frontend with test data."""
     print("🚀 Frontend Data Generator")
     print("=" * 50)
-    
+
     # Check API health
     print("1. Checking API health...")
     if not check_api_health():
         print("❌ API is not accessible. Please start the backend server:")
         print("   uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000")
         return False
-    
+
     print("✅ API is running and accessible")
-    
+
     # Submit test data
     print(f"\n2. Submitting {len(FRONTEND_TEST_SUBMISSIONS)} test submissions...")
     successful_submissions = []
     failed_submissions = []
-    
+
     for i, submission in enumerate(FRONTEND_TEST_SUBMISSIONS, 1):
         print(f"   [{i}/{len(FRONTEND_TEST_SUBMISSIONS)}] Submitting: {submission['project_name']}")
-        
+
         result = submit_via_api(submission)
-        
+
         if result["success"]:
             successful_submissions.append(result)
             print(f"   ✅ Success - ID: {result['submission_id']}")
         else:
             failed_submissions.append(result)
             print(f"   ❌ Failed - {result['error']}")
-        
+
         # Small delay to avoid overwhelming the API
         time.sleep(0.5)
-    
+
     # Summary
     print("\n3. Summary:")
     print(f"   ✅ Successful submissions: {len(successful_submissions)}")
     print(f"   ❌ Failed submissions: {len(failed_submissions)}")
-    
+
     if successful_submissions:
-        print(f"\n🎉 Frontend data populated successfully!")
-        print(f"   Visit: http://localhost:5173 to see the submissions")
+        print("\n🎉 Frontend data populated successfully!")
+        print("   Visit: http://localhost:5173 to see the submissions")
         print(f"   API Dashboard: {API_BASE_URL}/api/submissions")
-        
+
         # Show submission IDs
         print("\n📋 Created Submission IDs:")
         for result in successful_submissions:
             print(f"   - {result['submission_id']}: {result['data']['project_name']}")
-    
+
     if failed_submissions:
-        print(f"\n⚠️  Some submissions failed:")
+        print("\n⚠️  Some submissions failed:")
         for result in failed_submissions:
             print(f"   - {result['data']['project_name']}: {result['error']}")
-    
+
     return len(successful_submissions) > 0
+
 
 if __name__ == "__main__":
     success = populate_frontend_data()

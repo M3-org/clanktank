@@ -5,38 +5,37 @@ Implements personality-based evaluation with weighted scoring for hackathon subm
 Works exclusively with the hackathon database.
 """
 
-import os
+import argparse
 import json
 import logging
-import sqlite3
-import requests
-import argparse
+import os
 import re
+import sqlite3
 import time
 from datetime import datetime
-from typing import Dict, Any, List
-from dotenv import load_dotenv, find_dotenv
+from typing import Any
+
+import requests
+from dotenv import find_dotenv, load_dotenv
 
 # Load environment variables (automatically finds .env in parent directories)
 load_dotenv(find_dotenv())
 
 # Import versioned schema helpers
-from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields  # noqa: E402
 
 # Import judge personas and weights
-from hackathon.prompts.judge_personas import (
+from hackathon.prompts.judge_personas import (  # noqa: E402
     JUDGE_PERSONAS,
     JUDGE_WEIGHTS,
     get_judge_persona,
+    get_round2_template,
     get_score_scale,
     get_scoring_task,
-    get_round2_template,
 )
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Configuration
@@ -50,39 +49,43 @@ BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
 
+
 def get_judge_recent_evaluations(db_path, judge_name, limit=3):
     """Get judge's recent evaluation notes for variety checking."""
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         # Get last N evaluations by this judge, ordered by most recent
-        cursor.execute("""
-            SELECT notes FROM hackathon_scores 
-            WHERE judge_name = ? AND notes IS NOT NULL 
-            ORDER BY created_at DESC 
+        cursor.execute(
+            """
+            SELECT notes FROM hackathon_scores
+            WHERE judge_name = ? AND notes IS NOT NULL
+            ORDER BY created_at DESC
             LIMIT ?
-        """, (judge_name, limit))
-        
+        """,
+            (judge_name, limit),
+        )
+
         results = cursor.fetchall()
         recent_notes = [row[0] for row in results if row[0]]
         return recent_notes
-        
+
     except sqlite3.Error as e:
         logger.warning(f"Could not fetch recent evaluations for {judge_name}: {e}")
         return []
     finally:
         conn.close()
 
+
 def add_variety_instruction(db_path, judge_name, base_prompt):
     """Add variety instruction based on judge's recent database evaluations."""
     recent_notes = get_judge_recent_evaluations(db_path, judge_name)
-    
+
     if recent_notes:
         # Show judge their recent evaluation patterns to encourage variety
-        recent_summary = "\n".join([f"• {note[:100]}..." if len(note) > 100 else f"• {note}" 
-                                   for note in recent_notes])
-        
+        recent_summary = "\n".join([f"• {note[:100]}..." if len(note) > 100 else f"• {note}" for note in recent_notes])
+
         variety_instruction = f"""
 EVALUATION VARIETY REMINDER:
 Your last {len(recent_notes)} evaluation(s) for reference (avoid repeating similar patterns):
@@ -91,7 +94,7 @@ Your last {len(recent_notes)} evaluation(s) for reference (avoid repeating simil
 When evaluating this project, vary your language, sentence structure, and critical angles to keep your assessments fresh and distinctive.
 """
         return base_prompt + variety_instruction
-    
+
     return base_prompt
 
 
@@ -126,12 +129,12 @@ class HackathonManager:
     def create_scoring_prompt(
         self,
         judge_name: str,
-        project_data: Dict[str, Any],
-        research_data: Dict[str, Any],
+        project_data: dict[str, Any],
+        research_data: dict[str, Any],
     ) -> str:
         """Create a detailed scoring prompt for a specific judge."""
         persona = JUDGE_PERSONAS.get(judge_name, "")
-        
+
         # Score scale loaded from JUDGE_CONFIG env var
         SCALE = get_score_scale()
 
@@ -164,10 +167,8 @@ class HackathonManager:
 
         # Extract key insights and red flags from research
         is_fork = github_analysis.get("is_fork", False) if github_analysis else False
-        contributors = (
-            github_analysis.get("contributors_count", 1) if github_analysis else 1
-        )
-        
+        contributors = github_analysis.get("contributors_count", 1) if github_analysis else 1
+
         # Extract red flags from AI research if available
         red_flags = ai_research.get("Red Flags", []) if isinstance(ai_research.get("Red Flags"), list) else []
         red_flags_section = ""
@@ -184,19 +185,19 @@ RESEARCH-IDENTIFIED RED FLAGS:
 You are judging this hackathon project for Clank Tank. Evaluate it based on your unique perspective.
 
 PROJECT DETAILS:
-Name: {project_data.get('project_name', 'Untitled')}
-Category: {project_data.get('category', 'Unknown')}
-Description: {project_data.get('description', 'No description')}
+Name: {project_data.get("project_name", "Untitled")}
+Category: {project_data.get("category", "Unknown")}
+Description: {project_data.get("description", "No description")}
 
-Problem solved: {project_data.get('problem_solved', 'Not provided')}
-Favorite part: {project_data.get('favorite_part', 'Not provided')}
-Solana Address: {project_data.get('solana_address', 'Not provided')}
+Problem solved: {project_data.get("problem_solved", "Not provided")}
+Favorite part: {project_data.get("favorite_part", "Not provided")}
+Solana Address: {project_data.get("solana_address", "Not provided")}
 
 RESEARCH FINDINGS:
 Is Fork: {is_fork}
 Contributors: {contributors}
 {red_flags_section}
-AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI research available'}
+AI Research: {json.dumps(ai_research, indent=2) if ai_research else "No AI research available"}
 
 {get_scoring_task()}"""
 
@@ -204,7 +205,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         prompt_with_variety = add_variety_instruction(self.db_path, judge_name, prompt)
         return prompt_with_variety
 
-    def parse_scoring_response(self, response_text: str) -> Dict[str, Any]:
+    def parse_scoring_response(self, response_text: str) -> dict[str, Any]:
         """Parse the AI's scoring response into structured data.
 
         Raises:
@@ -269,20 +270,18 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         """Post-hoc score normalization to prevent grade inflation."""
         if not scores:
             return scores
-        
+
         cur_mean = sum(scores) / len(scores)
         if cur_mean == 0:
             return scores
-            
+
         factor = target_mean / cur_mean
         normalized = [max(0, min(10, round(s * factor, 1))) for s in scores]
-        
-        logger.info(f"Score normalization: mean {cur_mean:.1f} → {sum(normalized)/len(normalized):.1f}")
+
+        logger.info(f"Score normalization: mean {cur_mean:.1f} → {sum(normalized) / len(normalized):.1f}")
         return normalized
 
-    def calculate_weighted_score(
-        self, judge_name: str, raw_scores: Dict[str, float], normalize: bool = False
-    ) -> float:
+    def calculate_weighted_score(self, judge_name: str, raw_scores: dict[str, float], normalize: bool = False) -> float:
         """Calculate the weighted total score for a judge."""
         weights = JUDGE_WEIGHTS.get(judge_name, {})
         weighted_total = 0
@@ -298,10 +297,10 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         # Apply normalization if requested
         if normalize:
             # Fail if any required score is missing (caller should have validated)
-            missing = [k for k in score_mapping.keys() if k not in raw_scores]
+            missing = [k for k in score_mapping if k not in raw_scores]
             if missing:
                 raise ValueError(f"Missing required scores for normalization: {missing}")
-            score_values = [raw_scores[key] for key in score_mapping.keys()]
+            score_values = [raw_scores[key] for key in score_mapping]
             normalized_values = self.renormalize_scores(score_values)
             normalized_scores = dict(zip(score_mapping.keys(), normalized_values))
         else:
@@ -316,9 +315,9 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
     def get_ai_scores(
         self,
         judge_name: str,
-        project_data: Dict[str, Any],
-        research_data: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        project_data: dict[str, Any],
+        research_data: dict[str, Any],
+    ) -> dict[str, Any]:
         """Get AI-generated scores for a specific judge."""
         prompt = self.create_scoring_prompt(judge_name, project_data, research_data)
 
@@ -336,9 +335,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         }
 
         try:
-            logger.info(
-                f"Getting scores from {judge_name} for {project_data['project_name']}"
-            )
+            logger.info(f"Getting scores from {judge_name} for {project_data['project_name']}")
             response = requests.post(BASE_URL, json=payload, headers=self.headers)
             response.raise_for_status()
 
@@ -382,9 +379,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             logger.error(f"Unexpected error getting scores from {judge_name}: {e}")
             raise RuntimeError(f"Unexpected AI scoring error for judge {judge_name}: {e}") from e
 
-    def score_submission(
-        self, submission_id: str, round_num: int = 1
-    ) -> List[Dict[str, Any]]:
+    def score_submission(self, submission_id: str, round_num: int = 1) -> list[dict[str, Any]]:
         """Score a single submission with all judges."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -392,7 +387,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         try:
             cursor.execute(
                 f"""
-                SELECT * FROM {self.table} 
+                SELECT * FROM {self.table}
                 WHERE submission_id = ?
             """,
                 (submission_id,),
@@ -400,9 +395,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
 
             row = cursor.fetchone()
             if not row:
-                raise ValueError(
-                    f"Submission {submission_id} not found in {self.table}"
-                )
+                raise ValueError(f"Submission {submission_id} not found in {self.table}")
 
             # Convert to dictionary
             columns = [desc[0] for desc in cursor.description]
@@ -411,7 +404,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             # Fetch research data
             cursor.execute(
                 """
-                SELECT * FROM hackathon_research 
+                SELECT * FROM hackathon_research
                 WHERE submission_id = ?
             """,
                 (submission_id,),
@@ -428,16 +421,14 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             judges = ["aimarc", "aishaw", "spartan", "peepo"]
 
             for judge_name in judges:
-                judge_scores = self.get_ai_scores(
-                    judge_name, project_data, research_data
-                )
+                judge_scores = self.get_ai_scores(judge_name, project_data, research_data)
                 judge_scores["submission_id"] = submission_id
                 judge_scores["round"] = round_num
 
                 # Save to database (UPSERT: replace existing score for same submission/judge/round)
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO hackathon_scores 
+                    INSERT OR REPLACE INTO hackathon_scores
                     (submission_id, judge_name, round, innovation, technical_execution,
                      market_potential, user_experience, weighted_total, notes, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -464,7 +455,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             # Update submission status
             cursor.execute(
                 f"""
-                UPDATE {self.table} 
+                UPDATE {self.table}
                 SET status = 'scored', updated_at = ?
                 WHERE submission_id = ?
             """,
@@ -472,11 +463,12 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             )
 
             conn.commit()
-            
+
             # Simple audit logging
             from hackathon.backend.simple_audit import log_system_action
+
             log_system_action("submission_scored", submission_id)
-            
+
             logger.info(f"Scoring completed for {submission_id}")
 
             return all_scores
@@ -488,7 +480,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         finally:
             conn.close()
 
-    def score_all_researched(self, round_num: int = 1) -> Dict[str, Any]:
+    def score_all_researched(self, round_num: int = 1) -> dict[str, Any]:
         """Score all submissions with research data (or force re-score all if force=True)."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -497,8 +489,8 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             # Force mode: score all submissions that have research data, regardless of existing scores
             cursor.execute(
                 f"""
-                SELECT s.submission_id, s.project_name 
-                FROM {self.table} s 
+                SELECT s.submission_id, s.project_name
+                FROM {self.table} s
                 INNER JOIN hackathon_research r ON s.submission_id = r.submission_id
                 ORDER BY s.created_at
                 """
@@ -508,8 +500,8 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             # Normal mode: only score submissions with status 'researched'
             cursor.execute(
                 f"""
-                SELECT submission_id, project_name 
-                FROM {self.table} 
+                SELECT submission_id, project_name
+                FROM {self.table}
                 WHERE status = 'researched'
                 ORDER BY created_at
                 """
@@ -539,7 +531,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
 
         return results
 
-    def get_leaderboard(self, round_num: int = None) -> List[Dict[str, Any]]:
+    def get_leaderboard(self, round_num: int | None = None) -> list[dict[str, Any]]:
         """Get the current leaderboard with average scores from the latest available round."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -552,7 +544,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
 
         cursor.execute(
             f"""
-            SELECT 
+            SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
@@ -583,15 +575,15 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
         conn.close()
         return leaderboard
 
-    def analyze_score_distribution(self, round_num: int = 1) -> Dict[str, Any]:
+    def analyze_score_distribution(self, round_num: int = 1) -> dict[str, Any]:
         """Analyze the distribution of scores across all submissions for comparative reasoning."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Get all scores for the round
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
@@ -609,54 +601,65 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             """,
             (round_num,),
         )
-        
+
         results = cursor.fetchall()
         conn.close()
-        
+
         if not results:
             return {"error": "No scores found for this round"}
-        
+
         # Organize data
         projects = {}
         all_scores = []
-        
+
         for row in results:
-            submission_id, project_name, category, judge_name, innovation, technical, market, experience, weighted_total, notes = row
-            
+            (
+                submission_id,
+                project_name,
+                category,
+                judge_name,
+                innovation,
+                technical,
+                market,
+                experience,
+                weighted_total,
+                notes,
+            ) = row
+
             if submission_id not in projects:
                 projects[submission_id] = {
                     "project_name": project_name,
                     "category": category,
                     "judges": {},
                     "avg_score": 0,
-                    "score_variance": 0
+                    "score_variance": 0,
                 }
-            
+
             # Parse notes to extract reasoning
             try:
                 judge_notes = json.loads(notes) if notes else {}
-            except:
+            except Exception:
                 judge_notes = {"raw": notes}
-            
+
             projects[submission_id]["judges"][judge_name] = {
                 "innovation": innovation,
                 "technical_execution": technical,
                 "market_potential": market,
                 "user_experience": experience,
                 "weighted_total": weighted_total,
-                "notes": judge_notes
+                "notes": judge_notes,
             }
-            
+
             all_scores.append(weighted_total)
-        
+
         # Calculate statistics
         import statistics
-        
+
         for project_id in projects:
             judge_scores = [judge_data["weighted_total"] for judge_data in projects[project_id]["judges"].values()]
             projects[project_id]["avg_score"] = statistics.mean(judge_scores)
             projects[project_id]["score_variance"] = statistics.variance(judge_scores) if len(judge_scores) > 1 else 0
-        
+
         # Overall distribution stats
         distribution_stats = {
             "mean": statistics.mean(all_scores),
@@ -667,51 +670,52 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
             "total_projects": len(projects),
             "score_ranges": {
                 "excellent": len([s for s in all_scores if s >= 32]),  # 8+ avg
-                "good": len([s for s in all_scores if 24 <= s < 32]),   # 6-8 avg
-                "average": len([s for s in all_scores if 16 <= s < 24]), # 4-6 avg
-                "poor": len([s for s in all_scores if s < 16])          # <4 avg
-            }
+                "good": len([s for s in all_scores if 24 <= s < 32]),  # 6-8 avg
+                "average": len([s for s in all_scores if 16 <= s < 24]),  # 4-6 avg
+                "poor": len([s for s in all_scores if s < 16]),  # <4 avg
+            },
         }
-        
+
         # Rank projects
         ranked_projects = sorted(projects.items(), key=lambda x: x[1]["avg_score"], reverse=True)
-        
+
         return {
             "distribution_stats": distribution_stats,
             "projects": dict(ranked_projects),
-            "rankings": [(project_id, data["project_name"], data["avg_score"]) for project_id, data in ranked_projects]
+            "rankings": [(project_id, data["project_name"], data["avg_score"]) for project_id, data in ranked_projects],
         }
 
     def generate_comparative_reasoning(self, target_project_id: str, round_num: int = 1) -> str:
         """Generate comparative reasoning for a project against others in the same round."""
         distribution_data = self.analyze_score_distribution(round_num)
-        
+
         if "error" in distribution_data:
             return "No comparative data available for reasoning."
-        
+
         projects = distribution_data["projects"]
         stats = distribution_data["distribution_stats"]
         rankings = distribution_data["rankings"]
-        
+
         if target_project_id not in projects:
             return "Target project not found in score distribution."
-        
+
         target_project = projects[target_project_id]
         target_score = target_project["avg_score"]
-        
+
         # Find project's rank
         target_rank = next((i + 1 for i, (pid, _, _) in enumerate(rankings) if pid == target_project_id), None)
-        
+
         # Identify comparative context
         better_projects = [p for p in projects.values() if p["avg_score"] > target_score]
         worse_projects = [p for p in projects.values() if p["avg_score"] < target_score]
-        
+
         # Find most similar projects (within 2 points)
         similar_projects = [
-            (pid, data) for pid, data in projects.items() 
+            (pid, data)
+            for pid, data in projects.items()
             if pid != target_project_id and abs(data["avg_score"] - target_score) <= 2.0
         ]
-        
+
         # Extract common criticisms from better projects
         better_criticisms = []
         for project_data in better_projects[:3]:  # Top 3 better projects
@@ -720,7 +724,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
                 for criterion, reason in reasons.items():
                     if "but" in reason.lower() or "however" in reason.lower() or "concern" in reason.lower():
                         better_criticisms.append(f"{criterion}: {reason}")
-        
+
         # Extract common strengths from worse projects
         worse_strengths = []
         for project_data in worse_projects[-3:]:  # Bottom 3 worse projects
@@ -729,18 +733,18 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else 'No AI resea
                 for criterion, reason in reasons.items():
                     if any(word in reason.lower() for word in ["good", "strong", "impressive", "solid"]):
                         worse_strengths.append(f"{criterion}: {reason}")
-        
+
         # Generate comparative summary
         percentile = (len(worse_projects) / len(projects)) * 100 if projects else 0
-        
+
         reasoning = f"""
 COMPARATIVE ANALYSIS FOR {target_project["project_name"]}:
 
 RANKING CONTEXT:
-- Ranked #{target_rank} out of {stats['total_projects']} projects
-- Score: {target_score:.1f} (Hackathon mean: {stats['mean']:.1f}, median: {stats['median']:.1f})
+- Ranked #{target_rank} out of {stats["total_projects"]} projects
+- Score: {target_score:.1f} (Hackathon mean: {stats["mean"]:.1f}, median: {stats["median"]:.1f})
 - Percentile: {percentile:.0f}th percentile
-- Judge consensus: {'High' if target_project['score_variance'] < 2 else 'Low'} (variance: {target_project['score_variance']:.1f})
+- Judge consensus: {"High" if target_project["score_variance"] < 2 else "Low"} (variance: {target_project["score_variance"]:.1f})
 
 COMPETITIVE LANDSCAPE:
 - {len(better_projects)} projects scored higher{f" (avg gap: {(sum(p['avg_score'] for p in better_projects) / len(better_projects) - target_score):.1f} points)" if better_projects else ""}
@@ -748,14 +752,14 @@ COMPETITIVE LANDSCAPE:
 - {len(similar_projects)} projects in similar score range (±2 points)
 
 RELATIVE POSITIONING:
-{f"This project outperformed {percentile:.0f}% of submissions" if percentile > 50 else f"This project underperformed compared to {100-percentile:.0f}% of submissions"}
+{f"This project outperformed {percentile:.0f}% of submissions" if percentile > 50 else f"This project underperformed compared to {100 - percentile:.0f}% of submissions"}
 {"" if len(better_criticisms) == 0 else f"Common issues in higher-ranked projects that this project might share: {'; '.join(better_criticisms[:2])}"}
 {"" if len(worse_strengths) == 0 else f"Potential advantages over lower-ranked projects: {'; '.join(worse_strengths[:2])}"}
 """
-        
+
         return reasoning.strip()
 
-    def run_round2_synthesis(self, project_id: str = None):
+    def run_round2_synthesis(self, project_id: str | None = None):
         """Enhanced Round 2 synthesis with comparative reasoning and distribution analysis."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -767,9 +771,7 @@ RELATIVE POSITIONING:
                 (project_id,),
             )
         else:
-            cursor.execute(
-                f"SELECT submission_id FROM {self.table} WHERE status = 'community-voting'"
-            )
+            cursor.execute(f"SELECT submission_id FROM {self.table} WHERE status = 'community-voting'")
 
         project_ids = [row[0] for row in cursor.fetchall()]
 
@@ -781,7 +783,7 @@ RELATIVE POSITIONING:
         # Get comparative analysis for all projects
         print(f"Analyzing score distribution across {len(project_ids)} projects...")
         distribution_analysis = self.analyze_score_distribution(round_num=1)
-        
+
         # Get community feedback data (as context, not bonus)
         community_data = self._get_community_feedback_context(cursor, project_ids)
 
@@ -793,10 +795,7 @@ RELATIVE POSITIONING:
                 "SELECT judge_name, weighted_total, notes FROM hackathon_scores WHERE submission_id = ? AND round = 1",
                 (project_id,),
             )
-            r1_scores = {
-                row[0]: {"score": row[1], "notes": json.loads(row[2] or "{}")}
-                for row in cursor.fetchall()
-            }
+            r1_scores = {row[0]: {"score": row[1], "notes": json.loads(row[2] or "{}")} for row in cursor.fetchall()}
 
             # Generate comparative reasoning
             comparative_reasoning = self.generate_comparative_reasoning(project_id, round_num=1)
@@ -808,17 +807,17 @@ RELATIVE POSITIONING:
 
                 # Get structured Round 2 response
                 round2_response = self._generate_final_verdict_with_comparison(
-                    project_id, 
-                    judge, 
-                    r1_scores[judge], 
+                    project_id,
+                    judge,
+                    r1_scores[judge],
                     community_data[project_id],
                     comparative_reasoning,
-                    distribution_analysis
+                    distribution_analysis,
                 )
-                
+
                 # Parse structured response
                 parsed_response = self._parse_round2_response(round2_response)
-                
+
                 # Calculate Round 2 score based on structured response
                 final_score = self._calculate_judge_round2_score(
                     judge, r1_scores[judge]["score"], round2_response, community_data[project_id]
@@ -827,7 +826,7 @@ RELATIVE POSITIONING:
                 # Store Round 2 data with flattened, logical structure (UPSERT)
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO hackathon_scores 
+                    INSERT OR REPLACE INTO hackathon_scores
                     (submission_id, judge_name, round, weighted_total, notes, created_at)
                     VALUES (?, ?, 2, ?, ?, ?)
                 """,
@@ -835,24 +834,24 @@ RELATIVE POSITIONING:
                         project_id,
                         judge,
                         final_score,
-                        json.dumps({
-                            # Round 2 core data
-                            "round2_final_verdict": parsed_response.get("final_verdict", ""),
-                            "round2_reasoning": parsed_response.get("reasoning", ""),
-                            "score_revision": parsed_response.get("score_revision", {}),
-                            "community_influence": parsed_response.get("community_influence", "unknown"),
-                            "confidence": parsed_response.get("confidence", "medium"),
-                            
-                            # Context data
-                            "round1_score": r1_scores[judge]["score"],
-                            "comparative_reasoning": comparative_reasoning,
-                            "community_context": community_data[project_id],
-                            
-                            # Metadata
-                            "judge_persona": judge,
-                            "submission_id": project_id,
-                            "synthesis_timestamp": datetime.now().isoformat()
-                        }),
+                        json.dumps(
+                            {
+                                # Round 2 core data
+                                "round2_final_verdict": parsed_response.get("final_verdict", ""),
+                                "round2_reasoning": parsed_response.get("reasoning", ""),
+                                "score_revision": parsed_response.get("score_revision", {}),
+                                "community_influence": parsed_response.get("community_influence", "unknown"),
+                                "confidence": parsed_response.get("confidence", "medium"),
+                                # Context data
+                                "round1_score": r1_scores[judge]["score"],
+                                "comparative_reasoning": comparative_reasoning,
+                                "community_context": community_data[project_id],
+                                # Metadata
+                                "judge_persona": judge,
+                                "submission_id": project_id,
+                                "synthesis_timestamp": datetime.now().isoformat(),
+                            }
+                        ),
                         datetime.now().isoformat(),
                     ),
                 )
@@ -865,20 +864,21 @@ RELATIVE POSITIONING:
             print(f"✓ Round 2 completed for {project_id}")
 
         conn.commit()
-        
+
         # Simple audit logging
         from hackathon.backend.simple_audit import log_system_action
+
         log_system_action("round2_synthesis_completed", project_id or f"bulk_{len(project_ids)}_projects")
-        
+
         conn.close()
 
     def _get_community_feedback_context(self, cursor, project_ids):
         """Get community feedback data from unified likes_dislikes table as context for Round 2 synthesis."""
         import statistics
-        
+
         community_data = {}
         all_reaction_counts = []
-        
+
         # First pass: collect all like/dislike data and counts for statistical analysis
         for project_id in project_ids:
             # Get total votes for this project from likes_dislikes table
@@ -888,47 +888,47 @@ RELATIVE POSITIONING:
             )
             total_reactions = cursor.fetchone()[0]
             all_reaction_counts.append(total_reactions)
-            
+
             # Get like/dislike breakdown from likes_dislikes table
             cursor.execute(
                 "SELECT action, COUNT(*) FROM likes_dislikes WHERE submission_id = ? GROUP BY action",
                 (project_id,),
             )
             vote_breakdown = {row[0]: row[1] for row in cursor.fetchall()}
-            
+
             # Get unique voters from likes_dislikes table
             cursor.execute(
                 "SELECT COUNT(DISTINCT discord_id) FROM likes_dislikes WHERE submission_id = ?",
                 (project_id,),
             )
             unique_voters = cursor.fetchone()[0]
-            
+
             # Store basic data for now
             community_data[project_id] = {
                 "total_reactions": total_reactions,
                 "unique_voters": unique_voters,
                 "reaction_breakdown": vote_breakdown,  # Now contains 'like' and 'dislike' counts
-                "engagement_level": "pending"  # Will calculate after getting distribution
+                "engagement_level": "pending",  # Will calculate after getting distribution
             }
-        
+
         # Calculate statistical thresholds based on distribution
         if len(all_reaction_counts) > 1:
             try:
                 median_reactions = statistics.median(all_reaction_counts)
                 mean_reactions = statistics.mean(all_reaction_counts)
-                
+
                 # Use median-based thresholds for more robust classification
                 # High: Above median + (median * 0.5)
                 # Medium: Above median
                 # Low: Below median
                 high_threshold = median_reactions + (median_reactions * 0.5)
                 medium_threshold = median_reactions
-                
+
                 # Fallback to mean-based if median is 0
                 if median_reactions == 0:
                     high_threshold = mean_reactions * 1.5
                     medium_threshold = mean_reactions * 0.5
-                    
+
             except statistics.StatisticsError:
                 # Fallback to simple thresholds if statistics fail
                 high_threshold = 5
@@ -937,98 +937,98 @@ RELATIVE POSITIONING:
             # Single project fallback
             high_threshold = 5
             medium_threshold = 2
-        
+
         # Second pass: assign engagement levels based on calculated thresholds
         for project_id in community_data:
             total_reactions = community_data[project_id]["total_reactions"]
-            
+
             if total_reactions >= high_threshold:
                 engagement_level = "high"
             elif total_reactions >= medium_threshold:
                 engagement_level = "medium"
             else:
                 engagement_level = "low"
-                
+
             community_data[project_id]["engagement_level"] = engagement_level
-            
+
             # Add threshold info for transparency
             community_data[project_id]["thresholds"] = {
                 "high": high_threshold,
                 "medium": medium_threshold,
                 "median": median_reactions if len(all_reaction_counts) > 1 else 0,
-                "mean": mean_reactions if len(all_reaction_counts) > 1 else 0
+                "mean": mean_reactions if len(all_reaction_counts) > 1 else 0,
             }
 
         return community_data
 
-    def _parse_round2_response(self, response_text: str) -> Dict[str, Any]:
+    def _parse_round2_response(self, response_text: str) -> dict[str, Any]:
         """Parse Round 2 judge response with structured JSON format."""
         import json
         import re
-        
+
         # Try to extract JSON from the response
-        json_match = re.search(r'```json\s*\n(.*?)\n```', response_text, re.DOTALL)
+        json_match = re.search(r"```json\s*\n(.*?)\n```", response_text, re.DOTALL)
         if not json_match:
             # Try to find JSON without code blocks
-            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
-        
+            json_match = re.search(r"(\{.*\})", response_text, re.DOTALL)
+
         if json_match:
             try:
                 json_data = json.loads(json_match.group(1))
-                
+
                 # Validate required fields
-                required_fields = ['final_verdict', 'score_revision']
+                required_fields = ["final_verdict", "score_revision"]
                 if all(field in json_data for field in required_fields):
                     return {
-                        'final_verdict': json_data.get('final_verdict', ''),
-                        'score_revision': json_data.get('score_revision', {}),
-                        'reasoning': json_data.get('reasoning', ''),
-                        'community_influence': json_data.get('community_influence', 'none'),
-                        'confidence': json_data.get('confidence', 'medium')
+                        "final_verdict": json_data.get("final_verdict", ""),
+                        "score_revision": json_data.get("score_revision", {}),
+                        "reasoning": json_data.get("reasoning", ""),
+                        "community_influence": json_data.get("community_influence", "none"),
+                        "confidence": json_data.get("confidence", "medium"),
                     }
             except json.JSONDecodeError as e:
                 logger.warning(f"Failed to parse JSON from Round 2 response: {e}")
-        
+
         # Fallback: treat entire response as final_verdict
         logger.warning("Round 2 response not in expected JSON format, using as final_verdict")
         return {
-            'final_verdict': response_text.strip(),
-            'score_revision': {'type': 'none'},
-            'reasoning': 'Non-structured response',
-            'community_influence': 'unknown',
-            'confidence': 'low'
+            "final_verdict": response_text.strip(),
+            "score_revision": {"type": "none"},
+            "reasoning": "Non-structured response",
+            "community_influence": "unknown",
+            "confidence": "low",
         }
 
     def _calculate_judge_round2_score(self, judge_name, round1_score, round2_response, community_context):
         """Calculate Round 2 score based on structured judge response."""
-        
+
         # Parse the structured response
         parsed_response = self._parse_round2_response(round2_response)
-        score_revision = parsed_response.get('score_revision', {})
-        
+        score_revision = parsed_response.get("score_revision", {})
+
         # Handle different types of score revisions
-        revision_type = score_revision.get('type', 'none')
-        
-        if revision_type == 'explicit':
+        revision_type = score_revision.get("type", "none")
+
+        if revision_type == "explicit":
             # Direct score override
-            new_score = score_revision.get('new_score')
+            new_score = score_revision.get("new_score")
             if new_score is not None and 0 <= new_score <= 40:
                 logger.info(f"{judge_name} provided explicit score revision: {new_score}/40")
                 return round(float(new_score), 2)
-        
-        elif revision_type == 'adjustment':
+
+        elif revision_type == "adjustment":
             # Relative adjustment from Round 1
-            adjustment = score_revision.get('adjustment', 0)
-            reason = score_revision.get('reason', '')
+            adjustment = score_revision.get("adjustment", 0)
+            reason = score_revision.get("reason", "")
             final_score = max(0, min(40, round1_score + adjustment))
             logger.info(f"{judge_name} adjusted score by {adjustment:+.1f}: {round1_score} → {final_score} ({reason})")
             return round(final_score, 2)
-        
-        elif revision_type == 'none':
+
+        elif revision_type == "none":
             # No score change, maintain Round 1 score
             logger.info(f"{judge_name} maintained Round 1 score: {round1_score}/40")
             return round1_score
-        
+
         # Fallback for malformed responses
         logger.warning(f"{judge_name} provided invalid score revision format, maintaining Round 1 score")
         return round1_score
@@ -1041,7 +1041,9 @@ RELATIVE POSITIONING:
             community_data[project_id] = {"reactions": 0, "bonus": 0}
         return community_data
 
-    def _generate_final_verdict_with_comparison(self, project_id, judge, r1_data, community_context, comparative_reasoning, distribution_analysis):
+    def _generate_final_verdict_with_comparison(
+        self, project_id, judge, r1_data, community_context, comparative_reasoning, distribution_analysis
+    ):
         """Generate final verdict with comparative context and community feedback as reasoning signal."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -1059,31 +1061,32 @@ RELATIVE POSITIONING:
         vote_breakdown = community_context.get("reaction_breakdown", {})
         likes = vote_breakdown.get("like", 0)
         dislikes = vote_breakdown.get("dislike", 0)
-        
+
         if likes + dislikes > 0:
             total_votes = likes + dislikes
             like_percentage = (likes / total_votes) * 100 if total_votes > 0 else 0
-            feedback_summary = f"- Likes: {likes} ({like_percentage:.0f}%)\n- Dislikes: {dislikes} ({100-like_percentage:.0f}%)"
+            feedback_summary = (
+                f"- Likes: {likes} ({like_percentage:.0f}%)\n- Dislikes: {dislikes} ({100 - like_percentage:.0f}%)"
+            )
         else:
             feedback_summary = "No community votes yet"
 
         # Find this project's ranking context
         projects = distribution_analysis.get("projects", {})
-        target_rank = None
         if project_id in projects:
             ranked_projects = sorted(projects.items(), key=lambda x: x[1]["avg_score"], reverse=True)
-            target_rank = next((i + 1 for i, (pid, _) in enumerate(ranked_projects) if pid == project_id), None)
+            next((i + 1 for i, (pid, _) in enumerate(ranked_projects) if pid == project_id), None)
 
         # Round 2 template loaded from JUDGE_CONFIG env var
         round2_tpl = get_round2_template()
         prompt = round2_tpl.format(
             judge=judge.upper(),
-            overall_comment=r1_data.get('notes', {}).get('overall_comment', 'No specific notes available'),
+            overall_comment=r1_data.get("notes", {}).get("overall_comment", "No specific notes available"),
             r1_score=f"{r1_data['score']:.1f}",
             feedback_summary=feedback_summary,
-            total_reactions=community_context['total_reactions'],
-            unique_voters=community_context['unique_voters'],
-            engagement_level=community_context['engagement_level'],
+            total_reactions=community_context["total_reactions"],
+            unique_voters=community_context["unique_voters"],
+            engagement_level=community_context["engagement_level"],
             comparative_reasoning=comparative_reasoning,
             project_name=project_name,
             category=category,
@@ -1113,7 +1116,7 @@ RELATIVE POSITIONING:
 
         # Fallback response in JSON format
         return f"""{{
-  "final_verdict": "Maintaining Round 1 assessment of {r1_data['score']:.1f}/40 considering community feedback pattern and competitive ranking.",
+  "final_verdict": "Maintaining Round 1 assessment of {r1_data["score"]:.1f}/40 considering community feedback pattern and competitive ranking.",
   "score_revision": {{"type": "none"}},
   "reasoning": "API error occurred during Round 2 synthesis",
   "community_influence": "unknown",
@@ -1132,9 +1135,7 @@ def main():
         action="store_true",
         help="Score submissions (use with --submission-id or --all)",
     )
-    score_group.add_argument(
-        "--leaderboard", action="store_true", help="Show current leaderboard"
-    )
+    score_group.add_argument("--leaderboard", action="store_true", help="Show current leaderboard")
     score_group.add_argument(
         "--synthesize",
         action="store_true",
@@ -1143,12 +1144,8 @@ def main():
 
     # Scoring options
     parser.add_argument("--submission-id", help="Score a specific submission by ID")
-    parser.add_argument(
-        "--all", action="store_true", help="Score all researched submissions"
-    )
-    parser.add_argument(
-        "--round", type=int, default=1, help="Round number (default: 1)"
-    )
+    parser.add_argument("--all", action="store_true", help="Score all researched submissions")
+    parser.add_argument("--round", type=int, default=1, help="Round number (default: 1)")
     parser.add_argument("--output", help="Output file for results (JSON)")
     parser.add_argument(
         "--version",
@@ -1164,7 +1161,8 @@ def main():
         help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
     )
     parser.add_argument(
-        "--force", "-f",
+        "--force",
+        "-f",
         action="store_true",
         help="Force re-score all submissions, even if they already have scores",
     )
@@ -1199,9 +1197,7 @@ def main():
 
         elif args.all:
             results = manager.score_all_researched(args.round)
-            logger.info(
-                f"Scoring complete: {results['scored']} succeeded, {results['failed']} failed"
-            )
+            logger.info(f"Scoring complete: {results['scored']} succeeded, {results['failed']} failed")
 
             if args.output:
                 with open(args.output, "w") as f:
@@ -1218,18 +1214,18 @@ def main():
                 json.dump(leaderboard, f, indent=2)
             logger.info(f"Leaderboard saved to {args.output}")
         else:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"CLANK TANK HACKATHON LEADERBOARD - ROUND {args.round}")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(f"{'Rank':<6}{'Project':<30}{'Team':<20}{'Score':<10}")
-            print(f"{'-'*60}")
+            print(f"{'-' * 60}")
 
             for entry in leaderboard:
                 print(
                     f"{entry['rank']:<6}{entry['project_name'][:28]:<30}{entry['team_name'][:18]:<20}{entry['avg_score']:<10}"
                 )
 
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
     elif args.synthesize:
         if args.submission_id:

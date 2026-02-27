@@ -22,9 +22,8 @@ This makes it easier to:
 """
 
 import os
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
-
+from typing import Any
 
 # Embedded submission schema data (from submission_schema.json)
 SUBMISSION_SCHEMA_DATA = {
@@ -45,8 +44,13 @@ SUBMISSION_SCHEMA_DATA = {
             {"name": "tech_stack", "label": "Tech Stack", "type": "textarea", "required": False},
             {"name": "how_it_works", "label": "How It Works", "type": "textarea", "required": False},
             {"name": "problem_solved", "label": "Problem Solved", "type": "textarea", "required": False},
-            {"name": "coolest_tech", "label": "What's the most impressive part of your project?", "type": "textarea", "required": False},
-            {"name": "next_steps", "label": "Next Steps", "type": "textarea", "required": False}
+            {
+                "name": "coolest_tech",
+                "label": "What's the most impressive part of your project?",
+                "type": "textarea",
+                "required": False,
+            },
+            {"name": "next_steps", "label": "Next Steps", "type": "textarea", "required": False},
         ],
         "v2": [
             {"name": "project_name", "label": "Project Name", "type": "text", "required": True},
@@ -58,28 +62,37 @@ SUBMISSION_SCHEMA_DATA = {
             {"name": "demo_video_url", "label": "Demo Video URL", "type": "url", "required": True},
             {"name": "project_image", "label": "Project Image", "type": "file", "required": False},
             {"name": "problem_solved", "label": "Problem Solved", "type": "textarea", "required": False},
-            {"name": "favorite_part", "label": "What's your favorite part of this project?", "type": "textarea", "required": False},
-            {"name": "solana_address", "label": "Solana Wallet Address", "type": "text", "required": False}
-        ]
-    }
+            {
+                "name": "favorite_part",
+                "label": "What's your favorite part of this project?",
+                "type": "textarea",
+                "required": False,
+            },
+            {"name": "solana_address", "label": "Solana Wallet Address", "type": "text", "required": False},
+        ],
+    },
 }
+
 
 # Schema helper functions (replacing schema.py functionality)
 def get_latest_version() -> str:
     """Get the latest submission version."""
     return SUBMISSION_SCHEMA_DATA["latest"]
 
-def get_fields(version: str) -> List[str]:
+
+def get_fields(version: str) -> list[str]:
     """Get field list for a specific version."""
     if version == "latest":
         version = get_latest_version()
     return [field["name"] for field in SUBMISSION_SCHEMA_DATA["schemas"][version]]
 
-def get_schema(version: str) -> List[Dict[str, Any]]:
+
+def get_schema(version: str) -> list[dict[str, Any]]:
     """Get detailed schema for a specific version."""
     if version == "latest":
         version = get_latest_version()
     return SUBMISSION_SCHEMA_DATA["schemas"][version]
+
 
 # Export for compatibility with schema module
 LATEST_SUBMISSION_VERSION = get_latest_version()
@@ -112,45 +125,25 @@ class EpisodeConfig:
     required_scene_count: int = 7
 
     # Cast Configuration
-    required_characters: Dict[str, Dict[str, Any]] = None
+    required_characters: dict[str, dict[str, Any]] = None
 
     # Judge Personalities
-    judge_personalities: Dict[str, str] = None
+    judge_personalities: dict[str, str] = None
 
     def __post_init__(self):
         """Initialize complex default values after dataclass creation"""
         if self.required_characters is None:
             self.required_characters = {
-                "elizahost": {
-                    "name": "Eliza",
-                    "role": "host",
-                    "required_in": ["all_scenes"]
-                },
-                "aimarc": {
-                    "name": "AIXVC",
-                    "role": "judge",
-                    "required_in": ["main_stage_scenes", "deliberation"]
-                },
-                "aishaw": {
-                    "name": "AI Shaw",
-                    "role": "judge",
-                    "required_in": ["main_stage_scenes", "deliberation"]
-                },
-                "peepo": {
-                    "name": "Peepo",
-                    "role": "judge",
-                    "required_in": ["main_stage_scenes", "deliberation"]
-                },
+                "elizahost": {"name": "Eliza", "role": "host", "required_in": ["all_scenes"]},
+                "aimarc": {"name": "AIXVC", "role": "judge", "required_in": ["main_stage_scenes", "deliberation"]},
+                "aishaw": {"name": "AI Shaw", "role": "judge", "required_in": ["main_stage_scenes", "deliberation"]},
+                "peepo": {"name": "Peepo", "role": "judge", "required_in": ["main_stage_scenes", "deliberation"]},
                 "spartan": {
                     "name": "Degen Spartan",
                     "role": "judge",
-                    "required_in": ["main_stage_scenes", "deliberation"]
+                    "required_in": ["main_stage_scenes", "deliberation"],
                 },
-                "pitchbot": {
-                    "name": "PitchBot",
-                    "role": "pitcher",
-                    "required_in": ["most_scenes"]
-                }
+                "pitchbot": {"name": "PitchBot", "role": "pitcher", "required_in": ["most_scenes"]},
             }
 
         if self.judge_personalities is None:
@@ -158,10 +151,10 @@ class EpisodeConfig:
                 "aimarc": "Visionary and contrarian techno-optimist. Direct, analytical, makes bold claims. Focuses on business models and market dynamics.",
                 "aishaw": "Technical founder who emphasizes building over talking. Direct but kind, focuses on code quality and open source principles.",
                 "peepo": "Jive cool frog with slick commentary. Focuses on user experience and cultural trends. Uses casual language.",
-                "spartan": "Conflict-loving warrior focused purely on numbers and profit. Aggressive, shouty, only cares about monetization."
+                "spartan": "Conflict-loving warrior focused purely on numbers and profit. Aggressive, shouty, only cares about monetization.",
             }
 
-    def get_episode_structure(self) -> List[Dict[str, Any]]:
+    def get_episode_structure(self) -> list[dict[str, Any]]:
         """Returns the required 7-scene structure for every episode."""
         return [
             {
@@ -170,12 +163,9 @@ class EpisodeConfig:
                 "type": "teaser",
                 "description": "Brief teaser where Eliza and pitcher mention the topic and make a quick joke",
                 "required_cast": ["elizahost", "pitcher"],
-                "cast_positions": {
-                    "standing00": "elizahost",
-                    "standing01": "pitcher"
-                },
+                "cast_positions": {"standing00": "elizahost", "standing01": "pitcher"},
                 "dialogue_length": "short",  # 2-4 lines
-                "transitions": {"in": "fade", "out": "cut"}
+                "transitions": {"in": "fade", "out": "cut"},
             },
             {
                 "scene_num": 1,
@@ -189,11 +179,11 @@ class EpisodeConfig:
                     "judge02": "peepo",
                     "judge03": "spartan",
                     "host": "elizahost",
-                    "standing00": "pitcher"
+                    "standing00": "pitcher",
                 },
                 "dialogue_length": "long",  # 8-12 lines
                 "producer_commands": ["user-avatar", "roll-video"],  # Jin commands possible here
-                "transitions": {"in": "cut", "out": "cut"}
+                "transitions": {"in": "cut", "out": "cut"},
             },
             {
                 "scene_num": 2,
@@ -201,12 +191,9 @@ class EpisodeConfig:
                 "type": "interview",
                 "description": "Private interview between pitcher and host",
                 "required_cast": ["elizahost", "pitcher"],
-                "cast_positions": {
-                    "interviewer_seat": "elizahost",
-                    "contestant_seat": "pitcher"
-                },
+                "cast_positions": {"interviewer_seat": "elizahost", "contestant_seat": "pitcher"},
                 "dialogue_length": "medium",  # 4-6 lines
-                "transitions": {"in": "cut", "out": "cut"}
+                "transitions": {"in": "cut", "out": "cut"},
             },
             {
                 "scene_num": 3,
@@ -220,10 +207,10 @@ class EpisodeConfig:
                     "judge02": "peepo",
                     "judge03": "spartan",
                     "host": "elizahost",
-                    "standing00": "pitcher"
+                    "standing00": "pitcher",
                 },
                 "dialogue_length": "long",  # 8-12 lines
-                "transitions": {"in": "cut", "out": "cut"}
+                "transitions": {"in": "cut", "out": "cut"},
             },
             {
                 "scene_num": 4,
@@ -231,14 +218,9 @@ class EpisodeConfig:
                 "type": "deliberation",
                 "description": "Judges discuss the pitch privately",
                 "required_cast": ["all_judges"],
-                "cast_positions": {
-                    "judge00": "aimarc",
-                    "judge01": "aishaw",
-                    "judge02": "peepo",
-                    "judge03": "spartan"
-                },
+                "cast_positions": {"judge00": "aimarc", "judge01": "aishaw", "judge02": "peepo", "judge03": "spartan"},
                 "dialogue_length": "medium",  # 4-6 lines
-                "transitions": {"in": "cut", "out": "cut"}
+                "transitions": {"in": "cut", "out": "cut"},
             },
             {
                 "scene_num": 5,
@@ -252,11 +234,11 @@ class EpisodeConfig:
                     "judge02": "peepo",
                     "judge03": "spartan",
                     "host": "elizahost",
-                    "standing00": "pitcher"
+                    "standing00": "pitcher",
                 },
                 "dialogue_length": "long",  # 8-12 lines
                 "verdict_required": True,  # Each judge must vote
-                "transitions": {"in": "cut", "out": "cut"}
+                "transitions": {"in": "cut", "out": "cut"},
             },
             {
                 "scene_num": 6,  # Final outro
@@ -264,16 +246,15 @@ class EpisodeConfig:
                 "type": "outro",
                 "description": "Funny post-show interview to end the episode",
                 "required_cast": ["elizahost", "pitcher"],
-                "cast_positions": {
-                    "standing00": "elizahost",
-                    "standing01": "pitcher"
-                },
+                "cast_positions": {"standing00": "elizahost", "standing01": "pitcher"},
                 "dialogue_length": "short",  # 2-4 lines
-                "transitions": {"in": "cut", "out": "fade"}
-            }
+                "transitions": {"in": "cut", "out": "fade"},
+            },
         ]
 
-    def build_episode_prompt(self, project_info: str, submission_id: str, video_url: str = None, avatar_url: str = None) -> str:
+    def build_episode_prompt(
+        self, project_info: str, submission_id: str, video_url: str | None = None, avatar_url: str | None = None
+    ) -> str:
         """
         Builds the complete episode generation prompt with dynamic project data.
 
@@ -377,7 +358,7 @@ Use "actor", "line", "action" for dialogue. Use "in"/"out" for transitions. Use 
 
         return core_prompt + project_context + formatted_format_spec
 
-    def validate_episode_cast(self, episode_json: Dict[str, Any]) -> List[str]:
+    def validate_episode_cast(self, episode_json: dict[str, Any]) -> list[str]:
         """
         Validates that an episode has the correct cast in all scenes.
 
@@ -435,16 +416,24 @@ Use "actor", "line", "action" for dialogue. Use "in"/"out" for transitions. Use 
                     # Check user-avatar format
                     if "user-avatar" in command:
                         if command != "user-avatar":
-                            errors.append(f"Scene {i}, line {j}: Jin user-avatar command has incorrect format. Line should be exactly 'user-avatar', not '{command}'")
+                            errors.append(
+                                f"Scene {i}, line {j}: Jin user-avatar command has incorrect format. Line should be exactly 'user-avatar', not '{command}'"
+                            )
                         if not action.startswith("https://cdn.discordapp.com/avatars/"):
-                            errors.append(f"Scene {i}, line {j}: Jin user-avatar action should be avatar URL, not '{action}'")
+                            errors.append(
+                                f"Scene {i}, line {j}: Jin user-avatar action should be avatar URL, not '{action}'"
+                            )
 
                     # Check roll-video format
                     if "roll-video" in command:
                         if command != "roll-video":
-                            errors.append(f"Scene {i}, line {j}: Jin roll-video command has incorrect format. Line should be exactly 'roll-video', not '{command}'")
+                            errors.append(
+                                f"Scene {i}, line {j}: Jin roll-video command has incorrect format. Line should be exactly 'roll-video', not '{command}'"
+                            )
                         if not action.startswith("http"):
-                            errors.append(f"Scene {i}, line {j}: Jin roll-video action should be video URL, not '{action}'")
+                            errors.append(
+                                f"Scene {i}, line {j}: Jin roll-video action should be video URL, not '{action}'"
+                            )
 
         return errors
 
@@ -467,18 +456,24 @@ SHOW_INFO = {
     "creator": default_config.show_creator,
 }
 
+
 def get_episode_structure():
     """Legacy compatibility function"""
     return default_config.get_episode_structure()
+
 
 def get_judge_personalities():
     """Legacy compatibility function"""
     return default_config.judge_personalities
 
-def build_episode_prompt(project_info: str, submission_id: str, video_url: str = None, avatar_url: str = None) -> str:
+
+def build_episode_prompt(
+    project_info: str, submission_id: str, video_url: str | None = None, avatar_url: str | None = None
+) -> str:
     """Legacy compatibility function"""
     return default_config.build_episode_prompt(project_info, submission_id, video_url, avatar_url)
 
-def validate_episode_cast(episode_json: Dict[str, Any]) -> List[str]:
+
+def validate_episode_cast(episode_json: dict[str, Any]) -> list[str]:
     """Legacy compatibility function"""
     return default_config.validate_episode_cast(episode_json)

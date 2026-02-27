@@ -6,10 +6,11 @@ All gameable content (personas, weights, criteria, score scale, scoring task,
 round2 template) is loaded from the JUDGE_CONFIG environment variable (JSON).
 """
 
-import os
 import json
 import logging
-from dotenv import load_dotenv, find_dotenv
+import os
+
+from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
 logger = logging.getLogger(__name__)
@@ -37,7 +38,7 @@ SCORING_CRITERIA = _CONFIG.get("criteria", {})
 
 def get_judge_persona(judge_name):
     """Get the personality description for a judge."""
-    return JUDGE_PERSONAS.get(judge_name.lower(), '')
+    return JUDGE_PERSONAS.get(judge_name.lower(), "")
 
 
 def get_judge_weights(judge_name):

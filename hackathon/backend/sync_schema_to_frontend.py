@@ -2,14 +2,13 @@
 """
 Syncs the backend submission_schema.json to the frontend and generates TypeScript types.
 """
+
+import json
 import os
 import shutil
-import json
 
 # Update BACKEND_SCHEMA path to reflect new location in backend/
-BACKEND_SCHEMA = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "submission_schema.json")
-)
+BACKEND_SCHEMA = os.path.abspath(os.path.join(os.path.dirname(__file__), "submission_schema.json"))
 FRONTEND_SCHEMA = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),

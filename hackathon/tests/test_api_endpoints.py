@@ -1,11 +1,12 @@
 import os
-import pytest
 import sqlite3
-import uuid
 import subprocess
-from fastapi.testclient import TestClient
+import uuid
+
+import pytest
 
 DB_PATH = "data/hackathon.db"
+
 
 @pytest.fixture(scope="session", autouse=True)
 def reset_db():
@@ -16,14 +17,19 @@ def reset_db():
     yield
     # Cleanup if needed
 
+
 @pytest.fixture
 def client():
     from fastapi.testclient import TestClient
+
     from hackathon.backend.app import app
+
     return TestClient(app)
+
 
 def unique_name(base):
     return f"{base}-{uuid.uuid4().hex[:8]}"
+
 
 # v1 required fields
 v1_submission = {
@@ -41,7 +47,7 @@ v1_submission = {
     "how_it_works": "",
     "problem_solved": "",
     "coolest_tech": "",
-    "next_steps": ""
+    "next_steps": "",
 }
 
 # v2 required fields + recommended optional fields for full coverage
@@ -60,21 +66,23 @@ v2_submission = {
     "how_it_works": "Explains how v2 project works.",
     "problem_solved": "Describes the problem solved by v2.",
     "favorite_part": "The best part of v2.",
-    "solana_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
+    "solana_address": "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM",
 }
+
 
 def test_post_submission_v1():
     subprocess.run(["python3", "-m", "hackathon.backend.create_db"], check=True)
-    payload = {
+    {
         "project_name": unique_name("Test Project V1"),
         "team_name": "Team V1",
         "category": "AI/Agents",
         "description": "Test V1 description",
         "discord_handle": "testv1#1234",
         "github_url": "https://github.com/test/v1",
-        "demo_video_url": "https://youtube.com/testv1"
+        "demo_video_url": "https://youtube.com/testv1",
     }
     # ... rest of test ...
+
 
 def test_get_submissions(client):
     # Create a submission first
@@ -86,6 +94,7 @@ def test_get_submissions(client):
     submissions = resp.json()
     assert isinstance(submissions, list)
     assert any(s["project_name"] == v2_submission["project_name"] for s in submissions)
+
 
 def test_get_submission_detail(client):
     # Create a submission first
@@ -101,6 +110,7 @@ def test_get_submission_detail(client):
     assert data["submission_id"] == sub_id
     assert data["project_name"] == unique_submission["project_name"]
 
+
 def test_v1_stats(client):
     resp = client.get("/api/v1/stats")
     assert resp.status_code == 200
@@ -109,6 +119,7 @@ def test_v1_stats(client):
     assert "by_status" in data
     assert "by_category" in data
     assert data["total_submissions"] >= 0
+
 
 def test_v2_stats(client):
     resp = client.get("/api/v2/stats")
@@ -119,17 +130,20 @@ def test_v2_stats(client):
     assert "by_category" in data
     assert data["total_submissions"] >= 0
 
+
 def test_v1_leaderboard(client):
     resp = client.get("/api/v1/leaderboard")
     assert resp.status_code == 200
     leaderboard = resp.json()
     assert isinstance(leaderboard, list)
 
+
 def test_v2_leaderboard(client):
     resp = client.get("/api/v2/leaderboard")
     assert resp.status_code == 200
     leaderboard = resp.json()
     assert isinstance(leaderboard, list)
+
 
 def test_feedback_no_data(client):
     # Use a random submission_id that does not exist
@@ -139,6 +153,7 @@ def test_feedback_no_data(client):
     assert data["submission_id"] == "NO_SUCH_ID"
     assert data["total_votes"] == 0
     assert data["feedback"] == []
+
 
 def test_feedback_with_data(client):
     # Create a submission first
@@ -151,10 +166,13 @@ def test_feedback_with_data(client):
     # Insert feedback directly into DB
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO community_feedback (submission_id, discord_user_id, discord_user_nickname, reaction_type, score_adjustment)
         VALUES (?, ?, ?, ?, ?)
-    """, (sub_id, "12345", "TestUser", "hype", 1.0))
+    """,
+        (sub_id, "12345", "TestUser", "hype", 1.0),
+    )
     conn.commit()
     conn.close()
     # Now check feedback endpoint
@@ -165,6 +183,7 @@ def test_feedback_with_data(client):
     assert data["total_votes"] == 1
     assert data["feedback"][0]["reaction_type"] == "hype"
     assert "TestUser" in data["feedback"][0]["voters"]
+
 
 def insert_sample_feedback(submission_id):
     feedback_data = [
@@ -177,12 +196,16 @@ def insert_sample_feedback(submission_id):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     for user_id, nickname, reaction, score in feedback_data:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO community_feedback (submission_id, discord_user_id, discord_user_nickname, reaction_type, score_adjustment)
             VALUES (?, ?, ?, ?, ?)
-        """, (submission_id, user_id, nickname, reaction, score))
+        """,
+            (submission_id, user_id, nickname, reaction, score),
+        )
     conn.commit()
     conn.close()
+
 
 def test_feedback_all_categories(client):
     # Create a new v1 submission for this test
@@ -203,6 +226,7 @@ def test_feedback_all_categories(client):
         voters.update(f["voters"])
     assert voters == {"Alice", "Bob", "Charlie", "Dana", "Eve"}
 
+
 def test_get_v2_submission_schema(client):
     resp = client.get("/api/v2/submission-schema")
     assert resp.status_code == 200
@@ -216,6 +240,7 @@ def test_get_v2_submission_schema(client):
         assert "label" in field
         assert "type" in field
         assert "required" in field
+
 
 def test_post_latest_submission(client):
     # Use v2_submission but with v2 field names mapped to v2 schema
@@ -241,6 +266,7 @@ def test_post_latest_submission(client):
     assert data["success"] is True
     assert "submission_id" in data
 
+
 def test_get_latest_submissions(client):
     resp = client.get("/api/submissions")
     assert resp.status_code == 200
@@ -248,11 +274,13 @@ def test_get_latest_submissions(client):
     assert isinstance(submissions, list)
     assert any(s["project_name"] == "Test Latest Project" for s in submissions)
 
+
 def test_get_latest_leaderboard(client):
     resp = client.get("/api/leaderboard")
     assert resp.status_code == 200
     leaderboard = resp.json()
     assert isinstance(leaderboard, list)
+
 
 def test_get_latest_stats(client):
     resp = client.get("/api/stats")
@@ -263,11 +291,13 @@ def test_get_latest_stats(client):
     assert "by_category" in data
     assert data["total_submissions"] >= 0
 
+
 def test_get_latest_submission_schema(client):
-    resp = client.get('/api/submission-schema')
+    resp = client.get("/api/submission-schema")
     assert resp.status_code == 200
     schema = resp.json()
     assert isinstance(schema["fields"], list)
+
 
 def test_get_feedback_latest(client):
     # Use a known submission_id with feedback in the test DB
@@ -287,12 +317,14 @@ def test_get_feedback_latest(client):
         assert "vote_count" in item
         assert "voters" in item
 
+
 def test_get_feedback_versioned(client):
     submission_id = "test-feedback-001"
     resp = client.get(f"/api/v2/feedback/{submission_id}")
     assert resp.status_code == 200
     data = resp.json()
     assert data["submission_id"] == submission_id
+
 
 def test_get_feedback_legacy(client):
     submission_id = "test-feedback-001"
@@ -301,32 +333,34 @@ def test_get_feedback_legacy(client):
     data = resp.json()
     assert data["submission_id"] == submission_id
 
+
 def test_feedback_not_found(client):
     resp = client.get("/api/feedback/doesnotexist123")
     assert resp.status_code == 200  # Returns empty feedback, not 404
+
 
 def test_prize_pool_endpoint(client):
     """Test the crypto-native prize pool endpoint returns proper structure"""
     resp = client.get("/api/prize-pool")
     assert resp.status_code == 200
     data = resp.json()
-    
+
     # Check required fields (crypto-native structure)
     assert "total_sol" in data
-    assert "target_sol" in data  
+    assert "target_sol" in data
     assert "progress_percentage" in data
     assert "token_breakdown" in data
     assert "recent_contributions" in data
-    
+
     # Check data types
     assert isinstance(data["total_sol"], (int, float))
     assert isinstance(data["target_sol"], (int, float))
     assert isinstance(data["progress_percentage"], (int, float))
     assert isinstance(data["token_breakdown"], dict)
     assert isinstance(data["recent_contributions"], list)
-    
+
     # Check token breakdown structure (Helius DAS format)
-    for symbol, token_data in data["token_breakdown"].items():
+    for _symbol, token_data in data["token_breakdown"].items():
         assert "mint" in token_data
         assert "symbol" in token_data
         assert "amount" in token_data
@@ -336,11 +370,11 @@ def test_prize_pool_endpoint(client):
         # logo is optional
         if "logo" in token_data:
             assert isinstance(token_data["logo"], (str, type(None)))
-    
+
     # Check recent contributions structure
     for contrib in data["recent_contributions"]:
         assert "wallet" in contrib
         assert "token" in contrib
         assert "amount" in contrib
         assert "source" in contrib
-        assert "timestamp" in contrib 
+        assert "timestamp" in contrib

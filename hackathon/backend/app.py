@@ -4,58 +4,60 @@ FastAPI backend for the Hackathon Admin Dashboard and Public Leaderboard.
 Serves data from hackathon.db via REST API endpoints.
 """
 
-import os
-import json
 import argparse
-import sqlite3
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+import json
 import logging
+import math
+import os
+import re
+
 # import random  # CLEANUP: Unused import - commented out for testing
-import secrets  # Used for submission ID generation
+import sqlite3
+import time  # Needed for timestamp handling
+
 # import hashlib  # CLEANUP: Unused import - commented out for testing
 # import base64   # CLEANUP: Unused import - commented out for testing
 import urllib.parse  # Needed for Discord OAuth URL generation
-import aiohttp  # Needed for Enhanced Transactions API
-from fastapi import Form
-import re
-import math
-import time  # Needed for timestamp handling
-# import requests  # CLEANUP: Imported locally where needed, commented out for testing
+from datetime import datetime, timedelta, timezone
+from io import BytesIO
+from pathlib import Path
+from typing import Any, Optional
 
-from fastapi import (
-    FastAPI,
-    HTTPException,
-    Request,
-    status,
-    UploadFile,
-    File as FastAPIFile,
-    WebSocket,
-    WebSocketDisconnect,
-)
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import BaseModel, create_model
+import aiohttp  # Needed for Enhanced Transactions API
+import requests  # Used by HeliusPriceService
 import uvicorn
 from dotenv import load_dotenv
+from fastapi import (
+    FastAPI,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
+from fastapi import (
+    File as FastAPIFile,
+)
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from PIL import Image
+from pydantic import BaseModel, create_model
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sqlalchemy import create_engine, text
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
-
 # Add path for importing schema module
-from hackathon.backend.schema import get_fields, get_schema, reload_schema
+from hackathon.backend.schema import get_fields, get_schema
 from hackathon.backend.simple_audit import log_security_event, log_user_action
 from hackathon.backend.websocket_service import prize_pool_service
-
-from PIL import Image
-from io import BytesIO
 
 # Setup rate limiter (can be disabled for testing)
 ENABLE_RATE_LIMITING = os.getenv("ENABLE_RATE_LIMITING", "true").lower() not in ["false", "0", "no"]
 limiter = Limiter(key_func=get_remote_address)
+
 
 # Conditional rate limiting decorator
 def conditional_rate_limit(rate_limit_str):
@@ -66,7 +68,9 @@ def conditional_rate_limit(rate_limit_str):
         # Return a no-op decorator for testing
         def no_op_decorator(func):
             return func
+
         return no_op_decorator
+
 
 # Configuration
 # Get the repository root directory (3 levels up from hackathon/dashboard/app.py)
@@ -74,9 +78,7 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 
 # Load environment variables from repo root
 load_dotenv(REPO_ROOT / ".env")
-HACKATHON_DB_PATH = os.getenv(
-    "HACKATHON_DB_PATH", str(REPO_ROOT / "data" / "hackathon.db")
-)
+HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", str(REPO_ROOT / "data" / "hackathon.db"))
 STATIC_DATA_DIR = os.getenv(
     "STATIC_DATA_DIR", str(REPO_ROOT / "hackathon" / "dashboard" / "frontend" / "public" / "data")
 )
@@ -96,9 +98,7 @@ logging.basicConfig(
 # Discord OAuth configuration
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")
 DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET")
-DISCORD_REDIRECT_URI = os.getenv(
-    "DISCORD_REDIRECT_URI", "http://localhost:5173/auth/discord/callback"
-)
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "http://localhost:5173/auth/discord/callback")
 
 # Discord Guild/Bot configuration
 DISCORD_GUILD_ID = os.getenv("DISCORD_GUILD_ID")
@@ -146,9 +146,7 @@ async def debug_request_middleware(request: Request, call_next):
 
         try:
             json_body = json.loads(body)
-            logging.info(
-                f"Parsed JSON keys: {list(json_body.keys()) if isinstance(json_body, dict) else 'not a dict'}"
-            )
+            logging.info(f"Parsed JSON keys: {list(json_body.keys()) if isinstance(json_body, dict) else 'not a dict'}")
         except Exception as e:
             logging.info(f"Could not parse body as JSON: {e}")
 
@@ -190,12 +188,13 @@ async def ensure_db_schema_startup():
     try:
         create_users_table()
         logging.info("Users table ensured (including roles column)")
-        
+
         # Start WebSocket service for real-time prize pool updates
         await prize_pool_service.start()
         logging.info("WebSocket service started for real-time prize pool updates")
     except Exception as e:
         logging.error(f"Startup schema ensure failed: {e}")
+
 
 @app.on_event("shutdown")
 async def shutdown_websocket_service():
@@ -214,23 +213,17 @@ def get_allowed_origins():
     cors_origins = os.getenv("CORS_ALLOWED_ORIGINS")
     if cors_origins:
         return cors_origins.split(",")
-    
+
     # Environment-specific defaults
     environment = os.getenv("ENVIRONMENT", "development").lower()
-    
+
     if environment == "production":
         # Production: Restrict to actual domain
-        return [
-            "https://clanktank.tv"
-        ]
+        return ["https://clanktank.tv"]
     else:
         # Development: Allow local development
-        return [
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173"
-        ]
+        return ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+
 
 allowed_origins = get_allowed_origins()
 app.add_middleware(
@@ -241,26 +234,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Security headers middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     """Add security headers to all responses."""
     response = await call_next(request)
-    
+
     # Prevent MIME type sniffing
     response.headers["X-Content-Type-Options"] = "nosniff"
-    
+
     # Prevent clickjacking
     response.headers["X-Frame-Options"] = "DENY"
-    
+
     # XSS protection (legacy browsers)
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    
+
     # HTTPS enforcement for production
     environment = os.getenv("ENVIRONMENT", "development").lower()
     if environment == "production":
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    
+
     # Content Security Policy
     # Note: 'unsafe-inline' for styles only - required for React/Vite CSS-in-JS
     # Scripts use strict-dynamic with CDN allowlist instead of unsafe-eval
@@ -273,8 +267,9 @@ async def add_security_headers(request: Request, call_next):
         "frame-ancestors 'none';"
     )
     response.headers["Content-Security-Policy"] = csp_policy
-    
+
     return response
+
 
 # Database Engine
 engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
@@ -283,64 +278,56 @@ engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
 # Token Voting Functions
 def calculate_vote_weight(total_tokens_sent):
     """Calculate vote weight using logarithmic formula from voting spec."""
-    min_vote = float(os.getenv('MIN_VOTE_AMOUNT', 1))
+    min_vote = float(os.getenv("MIN_VOTE_AMOUNT", 1))
     if total_tokens_sent < min_vote:
         return 0
-    
-    multiplier = float(os.getenv('VOTE_WEIGHT_MULTIPLIER', 3))
-    cap = float(os.getenv('VOTE_WEIGHT_CAP', 10))
-    
+
+    multiplier = float(os.getenv("VOTE_WEIGHT_MULTIPLIER", 3))
+    cap = float(os.getenv("VOTE_WEIGHT_CAP", 10))
+
     return min(math.log10(total_tokens_sent + 1) * multiplier, cap)
 
 
 class BirdeyePriceService:
     """Service for fetching token prices from Birdeye API."""
+
     def __init__(self):
         self.base_url = "https://public-api.birdeye.so/defi/multi_price"
         self.cache = {}
         self.cache_ttl = 300  # 5 minutes
-        
-    def get_token_prices(self, mint_addresses: list) -> Dict[str, float]:
+
+    def get_token_prices(self, mint_addresses: list) -> dict[str, float]:
         """Get current USD prices for multiple tokens"""
-        cache_key = ','.join(sorted(mint_addresses))
+        cache_key = ",".join(sorted(mint_addresses))
         now = time.time()
-        
+
         # Check cache
-        if (cache_key in self.cache and 
-            now - self.cache[cache_key]['timestamp'] < self.cache_ttl):
-            return self.cache[cache_key]['prices']
-        
+        if cache_key in self.cache and now - self.cache[cache_key]["timestamp"] < self.cache_ttl:
+            return self.cache[cache_key]["prices"]
+
         # Fetch from Birdeye
-        params = {
-            'list_address': ','.join(mint_addresses),
-            'ui_amount_mode': 'raw'
-        }
-        headers = {
-            'accept': 'application/json',
-            'x-chain': 'solana'
-        }
-        
+        params = {"list_address": ",".join(mint_addresses), "ui_amount_mode": "raw"}
+        headers = {"accept": "application/json", "x-chain": "solana"}
+
         try:
             response = requests.get(self.base_url, headers=headers, params=params)
             response.raise_for_status()
             data = response.json()
-            
+
             prices = {}
-            if data.get('success') and 'data' in data:
-                for mint, price_data in data['data'].items():
-                    prices[mint] = price_data.get('value', 0)
-            
+            if data.get("success") and "data" in data:
+                for mint, price_data in data["data"].items():
+                    prices[mint] = price_data.get("value", 0)
+
             # Cache results
-            self.cache[cache_key] = {
-                'prices': prices,
-                'timestamp': now
-            }
-            
+            self.cache[cache_key] = {"prices": prices, "timestamp": now}
+
             return prices
-            
+
         except Exception as e:
             logging.error(f"Birdeye API error: {e}")
             return {mint: 0 for mint in mint_addresses}
+
 
 # Global price service instance
 price_service = BirdeyePriceService()
@@ -353,17 +340,17 @@ class SubmissionSummary(BaseModel):
     category: str
     status: str
     created_at: str
-    avg_score: Optional[float] = None
-    judge_count: Optional[int] = None
-    project_image: Optional[str] = None
-    description: Optional[str] = None
-    discord_handle: Optional[str] = None
+    avg_score: float | None = None
+    judge_count: int | None = None
+    project_image: str | None = None
+    description: str | None = None
+    discord_handle: str | None = None
     # Add Discord user info
-    discord_id: Optional[str] = None
-    discord_username: Optional[str] = None
-    discord_discriminator: Optional[str] = None
-    discord_avatar: Optional[str] = None
-    twitter_handle: Optional[str] = None
+    discord_id: str | None = None
+    discord_username: str | None = None
+    discord_discriminator: str | None = None
+    discord_avatar: str | None = None
+    twitter_handle: str | None = None
 
 
 class SubmissionDetail(BaseModel):
@@ -374,24 +361,25 @@ class SubmissionDetail(BaseModel):
     status: str
     created_at: str
     updated_at: str
-    github_url: Optional[str] = None
-    demo_video_url: Optional[str] = None
-    project_image: Optional[str] = None
-    problem_solved: Optional[str] = None
-    favorite_part: Optional[str] = None
-    scores: Optional[List[Dict[str, Any]]] = None
-    research: Optional[Dict[str, Any]] = None
-    avg_score: Optional[float] = None
-    solana_address: Optional[str] = None
-    discord_handle: Optional[str] = None
+    github_url: str | None = None
+    demo_video_url: str | None = None
+    project_image: str | None = None
+    problem_solved: str | None = None
+    favorite_part: str | None = None
+    scores: list[dict[str, Any]] | None = None
+    research: dict[str, Any] | None = None
+    avg_score: float | None = None
+    solana_address: str | None = None
+    discord_handle: str | None = None
     # Add Discord user info for detail view
-    discord_id: Optional[str] = None
-    discord_username: Optional[str] = None
-    discord_avatar: Optional[str] = None
-    community_score: Optional[float] = None  # Add community score field
-    can_edit: Optional[bool] = None
-    is_creator: Optional[bool] = None
-    twitter_handle: Optional[str] = None
+    discord_id: str | None = None
+    discord_username: str | None = None
+    discord_avatar: str | None = None
+    community_score: float | None = None  # Add community score field
+    can_edit: bool | None = None
+    is_creator: bool | None = None
+    twitter_handle: str | None = None
+
 
 # Dynamically create the SubmissionCreate models from versioned manifests
 submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
@@ -420,18 +408,18 @@ class LeaderboardEntry(BaseModel):
     project_name: str
     category: str
     final_score: float
-    community_score: Optional[float] = None  # Add community score field
-    youtube_url: Optional[str] = None
+    community_score: float | None = None  # Add community score field
+    youtube_url: str | None = None
     status: str
-    discord_handle: Optional[str] = None
+    discord_handle: str | None = None
     # Add these fields for avatar and linking
-    discord_id: Optional[str] = None
-    discord_username: Optional[str] = None
-    discord_avatar: Optional[str] = None
+    discord_id: str | None = None
+    discord_username: str | None = None
+    discord_avatar: str | None = None
 
 
 # Helper to get available columns in hackathon_scores
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection  # noqa: E402
 
 
 def get_score_columns(conn: "Connection", required_fields):
@@ -498,7 +486,7 @@ def create_users_table():
             columns = {row[1] for row in pragma_result.fetchall()}
             if "roles" not in columns:
                 conn.execute(text("ALTER TABLE users ADD COLUMN roles TEXT"))
-            
+
             # Create likes_dislikes table
             conn.execute(
                 text(
@@ -515,7 +503,7 @@ def create_users_table():
             """
                 )
             )
-            
+
             conn.commit()
             logging.info("Users and likes_dislikes tables created successfully")
     except Exception as e:
@@ -561,27 +549,25 @@ async def exchange_discord_code(code: str) -> dict:
         ) as resp:
             if resp.status != 200:
                 error_text = await resp.text()
-                logging.error(
-                    f"Discord token exchange failed: {resp.status} - {error_text}"
-                )
+                logging.error(f"Discord token exchange failed: {resp.status} - {error_text}")
 
                 # Provide more specific error messages based on Discord's response
                 if resp.status == 400:
                     try:
-                        error_data = (
-                            await resp.json()
-                            if resp.content_type == "application/json"
-                            else {}
-                        )
+                        error_data = await resp.json() if resp.content_type == "application/json" else {}
                         if error_data.get("error") == "invalid_grant":
                             from hackathon.backend.simple_audit import log_security_event
-                            log_security_event("oauth_invalid_grant", f"expired or reused authorization code: {error_data}")
+
+                            log_security_event(
+                                "oauth_invalid_grant", f"expired or reused authorization code: {error_data}"
+                            )
                             raise HTTPException(
                                 status_code=400,
                                 detail="Authorization code expired or already used",
                             )
                         elif error_data.get("error") == "invalid_client":
                             from hackathon.backend.simple_audit import log_security_event
+
                             log_security_event("oauth_invalid_client", f"client configuration error: {error_data}")
                             raise HTTPException(
                                 status_code=500,
@@ -589,15 +575,14 @@ async def exchange_discord_code(code: str) -> dict:
                             )
                         else:
                             from hackathon.backend.simple_audit import log_security_event
+
                             log_security_event("oauth_error", f"Discord OAuth error: {error_data}")
                             raise HTTPException(
                                 status_code=400,
                                 detail=f"Discord OAuth error: {error_data.get('error', 'invalid_request')}",
                             )
-                    except:
-                        raise HTTPException(
-                            status_code=400, detail="Invalid authorization code"
-                        )
+                    except Exception:
+                        raise HTTPException(status_code=400, detail="Invalid authorization code")
                 else:
                     raise HTTPException(
                         status_code=400,
@@ -614,18 +599,14 @@ async def exchange_discord_code(code: str) -> dict:
         ) as resp:
             if resp.status != 200:
                 error_text = await resp.text()
-                logging.error(
-                    f"Discord user info fetch failed: {resp.status} - {error_text}"
-                )
-                raise HTTPException(
-                    status_code=400, detail="Failed to get Discord user info"
-                )
+                logging.error(f"Discord user info fetch failed: {resp.status} - {error_text}")
+                raise HTTPException(status_code=400, detail="Failed to get Discord user info")
             user_data = await resp.json()
 
     return {"access_token": access_token, "user": user_data}
 
 
-async def fetch_user_guild_roles(discord_user_id: str) -> List[str]:
+async def fetch_user_guild_roles(discord_user_id: str) -> list[str]:
     """Fetch list of role IDs for a user in the configured guild using the bot token.
 
     Returns [] if missing configuration or on error.
@@ -635,15 +616,14 @@ async def fetch_user_guild_roles(discord_user_id: str) -> List[str]:
             return []
         url = f"https://discord.com/api/guilds/{DISCORD_GUILD_ID}/members/{discord_user_id}"
         headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    logging.warning(f"Guild roles fetch failed {resp.status}: {body}")
-                    return []
-                data = await resp.json()
-                roles = data.get("roles", [])
-                return [str(r) for r in roles] if isinstance(roles, list) else []
+        async with aiohttp.ClientSession() as session, session.get(url, headers=headers) as resp:
+            if resp.status != 200:
+                body = await resp.text()
+                logging.warning(f"Guild roles fetch failed {resp.status}: {body}")
+                return []
+            data = await resp.json()
+            roles = data.get("roles", [])
+            return [str(r) for r in roles] if isinstance(roles, list) else []
     except Exception as e:
         logging.error(f"Error fetching guild roles: {e}")
         return []
@@ -660,16 +640,16 @@ class SubmissionFieldSchema(BaseModel):
     required: bool
     placeholder: str = None
     maxLength: int = None
-    options: List[str] = None
+    options: list[str] = None
     pattern: str = None
     helperText: str = None
 
 
 # Enhanced submission schema response with window information
 class SubmissionSchemaResponse(BaseModel):
-    fields: List[SubmissionFieldSchema]
+    fields: list[SubmissionFieldSchema]
     submission_window_open: bool
-    submission_deadline: Optional[str] = None
+    submission_deadline: str | None = None
     current_time: str
 
 
@@ -687,22 +667,22 @@ class FeedbackItem(BaseModel):
     emoji: str
     name: str
     vote_count: int
-    voters: List[str]
+    voters: list[str]
 
 
 class FeedbackSummary(BaseModel):
     submission_id: int
     total_votes: int
-    feedback: List[FeedbackItem]
+    feedback: list[FeedbackItem]
 
 
 # Discord OAuth models
 class DiscordUser(BaseModel):
     discord_id: str
     username: str
-    discriminator: Optional[str] = None
-    avatar: Optional[str] = None
-    roles: Optional[List[str]] = None
+    discriminator: str | None = None
+    avatar: str | None = None
+    roles: list[str] | None = None
 
 
 class DiscordAuthResponse(BaseModel):
@@ -713,17 +693,19 @@ class DiscordAuthResponse(BaseModel):
 class DiscordCallbackRequest(BaseModel):
     code: str
 
+
 class LikeDislikeRequest(BaseModel):
     submission_id: int
     action: str  # "like" or "dislike" or "remove"
 
+
 class LikeDislikeResponse(BaseModel):
     likes: int
     dislikes: int
-    user_action: Optional[str] = None  # "like", "dislike", or None
+    user_action: str | None = None  # "like", "dislike", or None
 
 
-def create_or_update_user(discord_user_data: dict, roles: Optional[List[str]] = None) -> DiscordUser:
+def create_or_update_user(discord_user_data: dict, roles: list[str] | None = None) -> DiscordUser:
     """Create or update user in database."""
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
@@ -732,7 +714,7 @@ def create_or_update_user(discord_user_data: dict, roles: Optional[List[str]] = 
             username = discord_user_data["username"]
             discriminator = discord_user_data.get("discriminator")
             avatar_hash = discord_user_data.get("avatar")
-            
+
             # Construct full Discord CDN avatar URL if avatar hash exists
             avatar = None
             if avatar_hash:
@@ -771,9 +753,9 @@ def create_or_update_user(discord_user_data: dict, roles: Optional[List[str]] = 
         raise HTTPException(status_code=500, detail="Failed to create user")
 
 
-async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
+async def validate_discord_token(request: Request) -> DiscordUser | None:
     """Validate Discord access token and return user if valid."""
-    
+
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
@@ -794,26 +776,31 @@ async def validate_discord_token(request: Request) -> Optional[DiscordUser]:
             avatar=None,
         )
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
+        async with (
+            aiohttp.ClientSession() as session,
+            session.get(
                 "https://discord.com/api/users/@me",
                 headers={"Authorization": f"Bearer {token}"},
-            ) as resp:
-                if resp.status != 200:
-                    from hackathon.backend.simple_audit import log_security_event
-                    log_security_event("auth_failed")
-                    return None
-                user_data = await resp.json()
-                # Fetch roles via bot token (best effort)
-                roles = await fetch_user_guild_roles(str(user_data.get("id")))
-                # Update user in database including roles
-                discord_user = create_or_update_user(user_data, roles)
-                from hackathon.backend.simple_audit import log_user_action
-                log_user_action("auth_success", discord_user.discord_id)
-                return discord_user
+            ) as resp,
+        ):
+            if resp.status != 200:
+                from hackathon.backend.simple_audit import log_security_event
+
+                log_security_event("auth_failed")
+                return None
+            user_data = await resp.json()
+            # Fetch roles via bot token (best effort)
+            roles = await fetch_user_guild_roles(str(user_data.get("id")))
+            # Update user in database including roles
+            discord_user = create_or_update_user(user_data, roles)
+            from hackathon.backend.simple_audit import log_user_action
+
+            log_user_action("auth_success", discord_user.discord_id)
+            return discord_user
     except Exception as e:
         logging.error(f"Error validating Discord token: {e}")
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("auth_error")
         return None
 
@@ -823,7 +810,7 @@ def validate_github_url(url: str) -> bool:
     if not url:
         return False
     # Pattern: https://github.com/username/repo (with optional additional paths)
-    pattern = r'^https://github\.com/[\w.-]+/[\w.-]+(/.*)?$'
+    pattern = r"^https://github\.com/[\w.-]+/[\w.-]+(/.*)?$"
     return bool(re.match(pattern, url))
 
 
@@ -832,23 +819,26 @@ def validate_submission_github_url(data_dict: dict, action: str = "submission"):
     github_url = data_dict.get("github_url")
     if github_url and not validate_github_url(github_url):
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("invalid_github_url", f"rejected in {action}: {github_url}")
         raise HTTPException(
             status_code=422,
-            detail="Invalid GitHub repository URL format. Please use: https://github.com/username/repository"
+            detail="Invalid GitHub repository URL format. Please use: https://github.com/username/repository",
         )
 
 
 # Allowed table names for SQL queries (prevents SQL injection via table name interpolation)
-ALLOWED_TABLES = frozenset([
-    "hackathon_submissions_v1",
-    "hackathon_submissions_v2",
-    "hackathon_scores",
-    "hackathon_research",
-    "users",
-    "token_votes",
-    "token_metadata",
-])
+ALLOWED_TABLES = frozenset(
+    [
+        "hackathon_submissions_v1",
+        "hackathon_submissions_v2",
+        "hackathon_scores",
+        "hackathon_research",
+        "users",
+        "token_votes",
+        "token_metadata",
+    ]
+)
 
 
 def validate_table_name(table_name: str) -> str:
@@ -878,7 +868,7 @@ def get_next_submission_id(conn, version: str = "v2") -> int:
 
     try:
         # Check if this is a raw SQLite connection or SQLAlchemy connection
-        if hasattr(conn, 'cursor'):
+        if hasattr(conn, "cursor"):
             # Raw SQLite connection
             cursor = conn.cursor()
             cursor.execute(f"SELECT MAX(submission_id) FROM {table_name}")
@@ -886,9 +876,10 @@ def get_next_submission_id(conn, version: str = "v2") -> int:
         else:
             # SQLAlchemy connection
             from sqlalchemy import text
+
             result = conn.execute(text(f"SELECT MAX(submission_id) FROM {table_name}"))
             result = result.fetchone()
-        
+
         max_id = result[0] if result and result[0] is not None else 0
         return max_id + 1
     except Exception:
@@ -915,9 +906,7 @@ async def root():
                 "GET /api/{version}/submission-schema": "Get submission schema (versioned)",
                 "POST /api/upload-image": "Upload a project image and get a URL",
             },
-            "judging": {
-                "GET /api/submission/{submission_id}/feedback": "Get community feedback for a submission"
-            },
+            "judging": {"GET /api/submission/{submission_id}/feedback": "Get community feedback for a submission"},
             "public": {
                 "GET /api/leaderboard": "Get public leaderboard (latest)",
                 "GET /api/stats": "Get overall hackathon stats (latest)",
@@ -937,9 +926,7 @@ async def discord_login():
     return {"auth_url": auth_url}
 
 
-@app.post(
-    "/api/auth/discord/callback", tags=["auth"], response_model=DiscordAuthResponse
-)
+@app.post("/api/auth/discord/callback", tags=["auth"], response_model=DiscordAuthResponse)
 async def discord_callback(callback_data: DiscordCallbackRequest):
     """Handle Discord OAuth callback."""
     try:
@@ -950,9 +937,7 @@ async def discord_callback(callback_data: DiscordCallbackRequest):
         roles = await fetch_user_guild_roles(str(oauth_data["user"].get("id")))
         discord_user = create_or_update_user(oauth_data["user"], roles)
 
-        return DiscordAuthResponse(
-            user=discord_user, access_token=oauth_data["access_token"]
-        )
+        return DiscordAuthResponse(user=discord_user, access_token=oauth_data["access_token"])
     except Exception as e:
         logging.error(f"Discord OAuth callback error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -965,10 +950,10 @@ async def get_current_user(request: Request):
     discord_user = await validate_discord_token(request)
     if not discord_user:
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("auth_me_failed", "invalid or missing token")
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    from hackathon.backend.simple_audit import log_user_action
+
     log_user_action("auth_me_success", discord_user.discord_id)
     return discord_user
 
@@ -986,65 +971,71 @@ async def toggle_like_dislike(submission_id: int, like_request: LikeDislikeReque
     discord_user = await validate_discord_token(request)
     if not discord_user:
         raise HTTPException(status_code=401, detail="Discord authentication required")
-    
+
     discord_id = discord_user.discord_id
-    
+
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
         with engine.connect() as conn:
             # Check current user action
             current_action = conn.execute(
-                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
-                {"discord_id": discord_id, "submission_id": submission_id}
+                text(
+                    "SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"
+                ),
+                {"discord_id": discord_id, "submission_id": submission_id},
             ).fetchone()
-            
+
             if like_request.action == "remove":
                 # Remove any existing like/dislike
                 conn.execute(
-                    text("DELETE FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
-                    {"discord_id": discord_id, "submission_id": submission_id}
+                    text(
+                        "DELETE FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"
+                    ),
+                    {"discord_id": discord_id, "submission_id": submission_id},
                 )
             else:
                 # Insert or update like/dislike
                 if current_action:
                     conn.execute(
-                        text("UPDATE likes_dislikes SET action = :action, created_at = CURRENT_TIMESTAMP WHERE discord_id = :discord_id AND submission_id = :submission_id"),
-                        {"action": like_request.action, "discord_id": discord_id, "submission_id": submission_id}
+                        text(
+                            "UPDATE likes_dislikes SET action = :action, created_at = CURRENT_TIMESTAMP WHERE discord_id = :discord_id AND submission_id = :submission_id"
+                        ),
+                        {"action": like_request.action, "discord_id": discord_id, "submission_id": submission_id},
                     )
                 else:
                     conn.execute(
-                        text("INSERT INTO likes_dislikes (discord_id, submission_id, action) VALUES (:discord_id, :submission_id, :action)"),
-                        {"discord_id": discord_id, "submission_id": submission_id, "action": like_request.action}
+                        text(
+                            "INSERT INTO likes_dislikes (discord_id, submission_id, action) VALUES (:discord_id, :submission_id, :action)"
+                        ),
+                        {"discord_id": discord_id, "submission_id": submission_id, "action": like_request.action},
                     )
-            
+
             conn.commit()
-            
+
             # Get updated counts
             result = conn.execute(
                 text("""
-                    SELECT 
+                    SELECT
                         SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
                         SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes
-                    FROM likes_dislikes 
+                    FROM likes_dislikes
                     WHERE submission_id = :submission_id
                 """),
-                {"submission_id": submission_id}
+                {"submission_id": submission_id},
             ).fetchone()
-            
+
             # Get user's current action
             user_action_result = conn.execute(
-                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
-                {"discord_id": discord_id, "submission_id": submission_id}
+                text(
+                    "SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"
+                ),
+                {"discord_id": discord_id, "submission_id": submission_id},
             ).fetchone()
-            
+
             user_action = user_action_result[0] if user_action_result else None
-            
-            return LikeDislikeResponse(
-                likes=result[0] or 0,
-                dislikes=result[1] or 0,
-                user_action=user_action
-            )
-            
+
+            return LikeDislikeResponse(likes=result[0] or 0, dislikes=result[1] or 0, user_action=user_action)
+
     except Exception as e:
         logging.error(f"Error toggling like/dislike: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -1056,75 +1047,61 @@ async def get_like_dislike_counts(submission_id: int, request: Request):
     # Get authenticated Discord user (optional for viewing counts)
     discord_user = await validate_discord_token(request)
     discord_id = discord_user.discord_id if discord_user else None
-    
+
     try:
         engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
         with engine.connect() as conn:
             # Get counts
             result = conn.execute(
                 text("""
-                    SELECT 
+                    SELECT
                         SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
                         SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes
-                    FROM likes_dislikes 
+                    FROM likes_dislikes
                     WHERE submission_id = :submission_id
                 """),
-                {"submission_id": submission_id}
+                {"submission_id": submission_id},
             ).fetchone()
-            
+
             # Get user's current action
             user_action_result = conn.execute(
-                text("SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"),
-                {"discord_id": discord_id, "submission_id": submission_id}
+                text(
+                    "SELECT action FROM likes_dislikes WHERE discord_id = :discord_id AND submission_id = :submission_id"
+                ),
+                {"discord_id": discord_id, "submission_id": submission_id},
             ).fetchone()
-            
+
             user_action = user_action_result[0] if user_action_result else None
-            
-            return LikeDislikeResponse(
-                likes=result[0] or 0,
-                dislikes=result[1] or 0,
-                user_action=user_action
-            )
-            
+
+            return LikeDislikeResponse(likes=result[0] or 0, dislikes=result[1] or 0, user_action=user_action)
+
     except Exception as e:
         logging.error(f"Error getting like/dislike counts: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@app.get(
-    "/api/submissions", tags=["latest"], response_model=List[SubmissionSummary]
-)
+@app.get("/api/submissions", tags=["latest"], response_model=list[SubmissionSummary])
 async def list_submissions_latest(
     include: str = "scores,research,community",
-    status: str = None,
-    category: str = None,
+    status: str | None = None,
+    category: str | None = None,
 ):
-    return await list_submissions(
-        version="v2", include=include, status=status, category=category, detail=False
-    )
+    return await list_submissions(version="v2", include=include, status=status, category=category, detail=False)
 
 
 @app.get("/api/submissions/full", tags=["latest"])
 async def list_submissions_full(
     include: str = "scores,research,community",
-    status: str = None,
-    category: str = None,
+    status: str | None = None,
+    category: str | None = None,
 ):
-    data = await list_submissions(
-        version="v2", include=include, status=status, category=category, detail=True
-    )
+    data = await list_submissions(version="v2", include=include, status=status, category=category, detail=True)
     return JSONResponse(content=data)
 
 
-@app.get(
-    "/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail
-)
-async def get_submission_latest(
-    submission_id: int, request: Request, include: str = "scores,research,community"
-):
-    return await get_submission(
-        submission_id=submission_id, version="v2", include=include, request=request
-    )
+@app.get("/api/submissions/{submission_id}", tags=["latest"], response_model=SubmissionDetail)
+async def get_submission_latest(submission_id: int, request: Request, include: str = "scores,research,community"):
+    return await get_submission(submission_id=submission_id, version="v2", include=include, request=request)
 
 
 @conditional_rate_limit("5/minute")
@@ -1136,6 +1113,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     # Check if submission window is open
     if not is_submission_window_open():
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("submission_window_closed", "attempted submission outside window")
         raise HTTPException(
             status_code=403,
@@ -1146,6 +1124,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     discord_user = await validate_discord_token(request)
     if not discord_user:
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("unauthorized_submission", "attempted submission without auth")
         raise HTTPException(
             status_code=401,
@@ -1156,10 +1135,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     data_dict = submission.dict()
 
     # Auto-populate Discord username if not provided or empty
-    if (
-        not data_dict.get("discord_handle")
-        or data_dict.get("discord_handle").strip() == ""
-    ):
+    if not data_dict.get("discord_handle") or data_dict.get("discord_handle").strip() == "":
         data_dict["discord_handle"] = discord_user.username
         print(f"🔄 Auto-populated Discord handle: {discord_user.username}")
 
@@ -1174,9 +1150,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
                 status_code=422,
                 detail="Invalid file object detected in project_image. Please upload the image first and submit the URL instead.",
             )
-        elif isinstance(project_image, str) and not project_image.startswith(
-            "/api/uploads/"
-        ):
+        elif isinstance(project_image, str) and not project_image.startswith("/api/uploads/"):
             # Remove invalid URLs that aren't our upload URLs
             print(f"⚠️  Invalid project_image URL detected, removing: {project_image}")
             data_dict["project_image"] = None
@@ -1204,19 +1178,18 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
             # Database insertion
             table = validate_table_name("hackathon_submissions_v2")
             columns = ", ".join(data.keys())
-            placeholders = ", ".join([f":{key}" for key in data.keys()])
-            conn.execute(
-                text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data
-            )
+            placeholders = ", ".join([f":{key}" for key in data])
+            conn.execute(text(f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"), data)
             conn.commit()
 
         # Simple audit logging
         from hackathon.backend.simple_audit import log_user_action
+
         log_user_action("submission_created", discord_user.discord_id, submission_id)
 
         print(f"✅ Submission saved: {submission_id}")
         # Backup creation logic
-        import os, json
+        import json
 
         backup_dir = REPO_ROOT / "data" / "submission_backups"
         backup_dir.mkdir(parents=True, exist_ok=True)
@@ -1233,7 +1206,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
         print(f"❌ Database error: {e}")
         # Only include submission_id if it was successfully generated
         error_content = {"success": False, "error": "Internal server error. Please try again later."}
-        if 'submission_id' in locals():
+        if "submission_id" in locals():
             error_content["submission_id"] = submission_id
         return JSONResponse(
             status_code=500,
@@ -1243,9 +1216,7 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
 
 @app.put("/api/submissions/{submission_id}", tags=["latest"], response_model=dict)
 @conditional_rate_limit("5/minute")
-async def edit_submission_latest(
-    submission_id: int, submission: SubmissionCreateV2, request: Request
-):
+async def edit_submission_latest(submission_id: int, submission: SubmissionCreateV2, request: Request):
     """
     Edit an existing submission. Requires Discord authentication and user must be the original creator.
     Only allowed during the submission window.
@@ -1253,6 +1224,7 @@ async def edit_submission_latest(
     # Check if submission window is open
     if not is_submission_window_open():
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("edit_window_closed", "attempted edit outside window")
         raise HTTPException(
             status_code=403,
@@ -1263,6 +1235,7 @@ async def edit_submission_latest(
     discord_user = await validate_discord_token(request)
     if not discord_user:
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("unauthorized_edit", "attempted edit without auth")
         raise HTTPException(
             status_code=401,
@@ -1276,22 +1249,23 @@ async def edit_submission_latest(
         with engine.connect() as conn:
             # Verify the submission exists and check ownership
             result = conn.execute(
-                text(
-                    "SELECT owner_discord_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"
-                ),
+                text("SELECT owner_discord_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
                 {"submission_id": submission_id},
             )
             row = result.mappings().first()
             if not row:
                 from hackathon.backend.simple_audit import log_security_event
+
                 log_security_event("edit_nonexistent", f"attempted edit of non-existent submission: {submission_id}")
                 raise HTTPException(status_code=404, detail="Submission not found")
             if row["owner_discord_id"] != discord_user.discord_id:
                 from hackathon.backend.simple_audit import log_security_event
-                log_security_event("unauthorized_edit_attempt", f"user {discord_user.discord_id} attempted to edit submission {submission_id} owned by {row['owner_discord_id']}")
-                raise HTTPException(
-                    status_code=403, detail="You can only edit your own submissions"
+
+                log_security_event(
+                    "unauthorized_edit_attempt",
+                    f"user {discord_user.discord_id} attempted to edit submission {submission_id} owned by {row['owner_discord_id']}",
                 )
+                raise HTTPException(status_code=403, detail="You can only edit your own submissions")
 
             # Prepare data for update
             now = datetime.now().isoformat()
@@ -1302,25 +1276,20 @@ async def edit_submission_latest(
             validate_submission_github_url(data, "edit")
 
             # Auto-populate Discord username if field is empty
-            if (
-                not data.get("discord_handle")
-                or data.get("discord_handle").strip() == ""
-            ):
+            if not data.get("discord_handle") or data.get("discord_handle").strip() == "":
                 data["discord_handle"] = discord_user.username
-                print(
-                    f"🔄 Auto-populated Discord handle during edit: {discord_user.username}"
-                )
+                print(f"🔄 Auto-populated Discord handle during edit: {discord_user.username}")
 
             # Remove invite_code field before DB update (not a column)
             if "invite_code" in data:
                 del data["invite_code"]
 
             # Build UPDATE statement
-            set_clauses = [f"{key} = :{key}" for key in data.keys()]
+            set_clauses = [f"{key} = :{key}" for key in data]
             update_stmt = text(
                 f"""
-                UPDATE hackathon_submissions_v2 
-                SET {', '.join(set_clauses)}
+                UPDATE hackathon_submissions_v2
+                SET {", ".join(set_clauses)}
                 WHERE submission_id = :submission_id
             """
             )
@@ -1328,18 +1297,16 @@ async def edit_submission_latest(
             # Add submission_id to parameters
             data["submission_id"] = submission_id
 
-            
             # Execute update
             conn.execute(update_stmt, data)
             conn.commit()
 
             # Simple audit logging
             from hackathon.backend.simple_audit import log_user_action
+
             log_user_action("submission_edited", discord_user.discord_id, submission_id)
 
-            logging.info(
-                f"Submission {submission_id} edited successfully by {discord_user.username}"
-            )
+            logging.info(f"Submission {submission_id} edited successfully by {discord_user.username}")
             return {
                 "success": True,
                 "submission_id": submission_id,
@@ -1364,51 +1331,59 @@ async def upload_image(
     # Check if submission window is open
     if not is_submission_window_open():
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("upload_window_closed", "attempted upload outside window")
         raise HTTPException(
             status_code=403,
             detail="Image upload is no longer allowed. The submission window has closed.",
         )
-    
+
     # Require Discord authentication
     discord_user = await validate_discord_token(request)
     if not discord_user:
         from hackathon.backend.simple_audit import log_security_event
+
         log_security_event("unauthorized_upload", "attempted upload without auth")
         raise HTTPException(status_code=401, detail="Discord authentication required.")
     # Check submission ownership
     with engine.connect() as conn:
         result = conn.execute(
-            text(
-                "SELECT owner_discord_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"
-            ),
+            text("SELECT owner_discord_id FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"),
             {"submission_id": submission_id},
         )
         row = result.mappings().first()
         if not row:
             from hackathon.backend.simple_audit import log_security_event
+
             log_security_event("upload_nonexistent", f"attempted upload to non-existent submission: {submission_id}")
             raise HTTPException(status_code=404, detail="Submission not found")
         if row["owner_discord_id"] != discord_user.discord_id:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("unauthorized_upload_attempt", f"user {discord_user.discord_id} attempted to upload to submission {submission_id} owned by {row['owner_discord_id']}")
-            raise HTTPException(
-                status_code=403, detail="You do not own this submission."
+
+            log_security_event(
+                "unauthorized_upload_attempt",
+                f"user {discord_user.discord_id} attempted to upload to submission {submission_id} owned by {row['owner_discord_id']}",
             )
+            raise HTTPException(status_code=403, detail="You do not own this submission.")
     try:
         # Validate filename (basic sanitization)
         if file.filename:
             import string
-            safe_chars = string.ascii_letters + string.digits + '.-_'
+
+            safe_chars = string.ascii_letters + string.digits + ".-_"
             if not all(c in safe_chars for c in file.filename):
                 from hackathon.backend.simple_audit import log_security_event
+
                 log_security_event("malicious_filename", f"attempted upload with suspicious filename: {file.filename}")
                 raise HTTPException(status_code=400, detail="Filename contains invalid characters")
 
         # Validate file type by content-type
         if not file.content_type or not file.content_type.startswith("image/"):
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("invalid_file_type", f"attempted upload of {file.content_type} to submission {submission_id}")
+
+            log_security_event(
+                "invalid_file_type", f"attempted upload of {file.content_type} to submission {submission_id}"
+            )
             raise HTTPException(status_code=400, detail="File must be an image")
 
         # Validate file size (2MB limit)
@@ -1416,40 +1391,47 @@ async def upload_image(
         content = await file.read()
         if len(content) > MAX_SIZE:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("file_too_large", f"attempted upload of {len(content)} bytes to submission {submission_id} (max: {MAX_SIZE})")
-            raise HTTPException(
-                status_code=400, detail="File size must be less than 2MB"
+
+            log_security_event(
+                "file_too_large",
+                f"attempted upload of {len(content)} bytes to submission {submission_id} (max: {MAX_SIZE})",
             )
+            raise HTTPException(status_code=400, detail="File size must be less than 2MB")
 
         # Check minimum file size to prevent empty files
         MIN_SIZE = 100  # 100 bytes minimum
         if len(content) < MIN_SIZE:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("file_too_small", f"attempted upload of {len(content)} bytes to submission {submission_id} (min: {MIN_SIZE})")
+
+            log_security_event(
+                "file_too_small",
+                f"attempted upload of {len(content)} bytes to submission {submission_id} (min: {MIN_SIZE})",
+            )
             raise HTTPException(status_code=400, detail="File is too small to be a valid image")
 
         # Validate file signature/magic bytes for additional security
         image_signatures = {
-            b'\xFF\xD8\xFF': 'jpeg',
-            b'\x89PNG\r\n\x1a\n': 'png',
-            b'GIF87a': 'gif',
-            b'GIF89a': 'gif',
-            b'WEBP': 'webp'
+            b"\xff\xd8\xff": "jpeg",
+            b"\x89PNG\r\n\x1a\n": "png",
+            b"GIF87a": "gif",
+            b"GIF89a": "gif",
+            b"WEBP": "webp",
         }
-        
+
         file_header = content[:10]
         valid_signature = False
-        detected_format = None
-        
-        for signature, format_name in image_signatures.items():
+
+        for signature, _format_name in image_signatures.items():
             if file_header.startswith(signature) or signature in file_header[:8]:
                 valid_signature = True
-                detected_format = format_name
                 break
-                
+
         if not valid_signature:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("invalid_file_signature", f"attempted upload with invalid image signature to submission {submission_id}")
+
+            log_security_event(
+                "invalid_file_signature", f"attempted upload with invalid image signature to submission {submission_id}"
+            )
             raise HTTPException(status_code=400, detail="File does not appear to be a valid image format")
 
         # Verify and sanitize image using Pillow
@@ -1458,34 +1440,48 @@ async def upload_image(
             img.verify()  # Verify image integrity
         except Exception:
             from hackathon.backend.simple_audit import log_security_event
+
             log_security_event("invalid_image", f"attempted upload of corrupted image to submission {submission_id}")
-            raise HTTPException(
-                status_code=400, detail="Uploaded file is not a valid image"
-            )
-            
+            raise HTTPException(status_code=400, detail="Uploaded file is not a valid image")
+
         # Re-open and validate image properties
         img = Image.open(BytesIO(content))
-        
+
         # Check image dimensions for reasonableness
         MAX_DIMENSION = 4000  # 4000x4000 max
-        MIN_DIMENSION = 50    # 50x50 min
+        MIN_DIMENSION = 50  # 50x50 min
         width, height = img.size
-        
+
         if width > MAX_DIMENSION or height > MAX_DIMENSION:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("image_too_large", f"attempted upload of {width}x{height} image to submission {submission_id} (max: {MAX_DIMENSION})")
-            raise HTTPException(status_code=400, detail=f"Image dimensions too large (max: {MAX_DIMENSION}x{MAX_DIMENSION})")
-            
+
+            log_security_event(
+                "image_too_large",
+                f"attempted upload of {width}x{height} image to submission {submission_id} (max: {MAX_DIMENSION})",
+            )
+            raise HTTPException(
+                status_code=400, detail=f"Image dimensions too large (max: {MAX_DIMENSION}x{MAX_DIMENSION})"
+            )
+
         if width < MIN_DIMENSION or height < MIN_DIMENSION:
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("image_too_small", f"attempted upload of {width}x{height} image to submission {submission_id} (min: {MIN_DIMENSION})")
-            raise HTTPException(status_code=400, detail=f"Image dimensions too small (min: {MIN_DIMENSION}x{MIN_DIMENSION})")
+
+            log_security_event(
+                "image_too_small",
+                f"attempted upload of {width}x{height} image to submission {submission_id} (min: {MIN_DIMENSION})",
+            )
+            raise HTTPException(
+                status_code=400, detail=f"Image dimensions too small (min: {MIN_DIMENSION}x{MIN_DIMENSION})"
+            )
 
         # Check for and remove EXIF data for privacy/security
-        if hasattr(img, '_getexif') and img._getexif():
+        if hasattr(img, "_getexif") and img._getexif():
             from hackathon.backend.simple_audit import log_security_event
-            log_security_event("exif_data_removed", f"removed EXIF data from image upload to submission {submission_id}")
-        
+
+            log_security_event(
+                "exif_data_removed", f"removed EXIF data from image upload to submission {submission_id}"
+            )
+
         # Convert to RGB for consistent JPEG output (removes EXIF data)
         img = img.convert("RGB")
 
@@ -1509,6 +1505,7 @@ async def upload_image(
 
         # Simple audit logging
         from hackathon.backend.simple_audit import log_user_action
+
         log_user_action("file_uploaded", discord_user.discord_id, submission_id)
 
         return {
@@ -1520,7 +1517,7 @@ async def upload_image(
 
     except Exception as e:
         print(f"❌ Image upload error: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {e!s}")
 
 
 # Serve uploaded files
@@ -1547,16 +1544,14 @@ async def serve_upload(filename: str):
     return FileResponse(candidate_path)
 
 
-@app.get(
-    "/api/submission-schema", tags=["latest"], response_model=SubmissionSchemaResponse
-)
+@app.get("/api/submission-schema", tags=["latest"], response_model=SubmissionSchemaResponse)
 async def get_submission_schema_latest():
     fields = get_schema("v2")  # returns a list of field dicts
     window_info = get_submission_window_info()
     return SubmissionSchemaResponse(fields=fields, **window_info)
 
 
-@app.get("/api/leaderboard", tags=["latest"], response_model=List[LeaderboardEntry])
+@app.get("/api/leaderboard", tags=["latest"], response_model=list[LeaderboardEntry])
 async def get_leaderboard_latest():
     # Use v2 as the default version
     table = "hackathon_submissions_v2"
@@ -1566,14 +1561,14 @@ async def get_leaderboard_latest():
             text(
                 f"""
             WITH latest_scores AS (
-                SELECT 
+                SELECT
                     sc.submission_id,
                     MAX(sc.round) as latest_round
                 FROM hackathon_scores sc
                 GROUP BY sc.submission_id
             ),
             project_scores AS (
-                SELECT 
+                SELECT
                     sc.submission_id,
                     AVG(sc.weighted_total) as avg_score,
                     COUNT(DISTINCT sc.judge_name) as judge_count
@@ -1582,22 +1577,22 @@ async def get_leaderboard_latest():
                 GROUP BY sc.submission_id
             ),
             community_scores AS (
-                SELECT 
+                SELECT
                     CAST(ld.submission_id AS INTEGER) as submission_id,
                     COUNT(*) as total_reactions,
                     COUNT(DISTINCT ld.discord_id) as unique_voters,
                     SUM(CASE WHEN ld.action = 'like' THEN 1 ELSE 0 END) as likes,
                     SUM(CASE WHEN ld.action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
-                    -- Simple community score: likes ratio * 10 
-                    CASE 
-                        WHEN COUNT(*) > 0 THEN 
+                    -- Simple community score: likes ratio * 10
+                    CASE
+                        WHEN COUNT(*) > 0 THEN
                             (SUM(CASE WHEN ld.action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
                         ELSE 0
                     END as community_score
                 FROM likes_dislikes ld
                 GROUP BY ld.submission_id
             )
-            SELECT 
+            SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
@@ -1650,7 +1645,7 @@ async def get_stats_latest():
 async def get_config():
     """Get configuration including submission deadline information."""
     info = get_submission_window_info()
-    
+
     # Add grace period logic here (not in frontend)
     GRACE_PERIOD_MINUTES = 60  # 60 minutes grace (feeling generous!)
     grace_period = GRACE_PERIOD_MINUTES * 60
@@ -1660,14 +1655,14 @@ async def get_config():
         info["can_submit"] = now < (deadline + timedelta(seconds=grace_period))
     else:
         info["can_submit"] = True
-    
+
     # Add wallet and token configuration
-    prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+    prize_wallet = os.getenv("PRIZE_WALLET_ADDRESS")
     if not prize_wallet:
         raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
     info["prize_wallet_address"] = prize_wallet
     info["ai16z_mint"] = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
-        
+
     return info
 
 
@@ -1689,23 +1684,23 @@ async def get_community_scores():
             # Get raw vote data grouped by wallet and submission
             result = conn.execute(
                 text("""
-                SELECT 
+                SELECT
                   submission_id,
                   sender,
                   SUM(amount) as total_tokens,
                   MAX(timestamp) as last_tx_time
-                FROM sol_votes 
+                FROM sol_votes
                 GROUP BY submission_id, sender
                 """)
             )
-            
+
             # Calculate vote weights in Python (inline to avoid scope issues)
             submission_scores = {}
             for row in result.fetchall():
                 row_dict = dict(row._mapping)
                 submission_id = row_dict["submission_id"]
                 total_tokens = row_dict["total_tokens"]
-                
+
                 # Inline vote weight calculation to avoid import issues
                 min_vote = 1.0
                 if total_tokens < min_vote:
@@ -1714,31 +1709,28 @@ async def get_community_scores():
                     multiplier = 3.0
                     cap = 10.0
                     vote_weight = min(math.log10(total_tokens + 1) * multiplier, cap)
-                
+
                 if submission_id not in submission_scores:
-                    submission_scores[submission_id] = {
-                        "total_score": 0,
-                        "unique_voters": 0,
-                        "last_vote_time": 0
-                    }
-                
+                    submission_scores[submission_id] = {"total_score": 0, "unique_voters": 0, "last_vote_time": 0}
+
                 submission_scores[submission_id]["total_score"] += vote_weight
                 submission_scores[submission_id]["unique_voters"] += 1
                 submission_scores[submission_id]["last_vote_time"] = max(
-                    submission_scores[submission_id]["last_vote_time"], 
-                    row_dict["last_tx_time"]
+                    submission_scores[submission_id]["last_vote_time"], row_dict["last_tx_time"]
                 )
-            
+
             # Format response
             scores = []
             for submission_id, data in submission_scores.items():
-                scores.append({
-                    "submission_id": submission_id,
-                    "community_score": round(data["total_score"], 2),
-                    "unique_voters": data["unique_voters"],
-                    "last_vote_time": data["last_vote_time"]
-                })
-            
+                scores.append(
+                    {
+                        "submission_id": submission_id,
+                        "community_score": round(data["total_score"], 2),
+                        "unique_voters": data["unique_voters"],
+                        "last_vote_time": data["last_vote_time"],
+                    }
+                )
+
             return scores
     except Exception as e:
         logging.error(f"Error in community scores: {e}")
@@ -1751,14 +1743,15 @@ async def get_recent_transactions_helius(wallet_address: str, helius_api_key: st
     NOTE: Helius RPC requires API key in URL (Solana RPC standard). This is server-side
     only and keys are never exposed to clients. Ensure access logs are secured.
     """
-    import aiohttp
     import time
+
+    import aiohttp
 
     try:
         # First get recent transaction signatures
         # SECURITY: API key in URL is required by Helius RPC - ensure logs don't expose keys
         helius_rpc_url = f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
-        
+
         async with aiohttp.ClientSession() as session:
             # Get recent transaction signatures
             rpc_payload = {
@@ -1767,80 +1760,87 @@ async def get_recent_transactions_helius(wallet_address: str, helius_api_key: st
                 "method": "getSignaturesForAddress",
                 "params": [
                     wallet_address,
-                    {"limit": limit * 2}  # Get more to filter for incoming transfers
-                ]
+                    {"limit": limit * 2},  # Get more to filter for incoming transfers
+                ],
             }
-            
+
             async with session.post(helius_rpc_url, json=rpc_payload) as resp:
                 rpc_data = await resp.json()
-                
-            if 'result' not in rpc_data or not rpc_data['result']:
+
+            if "result" not in rpc_data or not rpc_data["result"]:
                 return []
-            
+
             # Extract transaction signatures
-            signatures = [tx['signature'] for tx in rpc_data['result'][:limit]]
-            
+            signatures = [tx["signature"] for tx in rpc_data["result"][:limit]]
+
             if not signatures:
                 return []
-            
+
             # Get enhanced transaction data
             enhanced_url = f"https://api.helius.xyz/v0/transactions?api-key={helius_api_key}"
-            enhanced_payload = {
-                "transactions": signatures
-            }
-            
+            enhanced_payload = {"transactions": signatures}
+
             async with session.post(enhanced_url, json=enhanced_payload) as resp:
                 enhanced_data = await resp.json()
-            
+
             # Process enhanced transactions into contributions
             contributions = []
             for tx in enhanced_data[:limit]:
                 if not isinstance(tx, dict):
                     continue
-                    
+
                 # Look for native (SOL) transfers TO our wallet
-                if 'nativeTransfers' in tx:
-                    for transfer in tx['nativeTransfers']:
-                        if transfer.get('toUserAccount') == wallet_address:
-                            contributions.append({
-                                'wallet': transfer.get('fromUserAccount', 'Unknown')[:4] + '...' + transfer.get('fromUserAccount', 'Unknown')[-4:] if transfer.get('fromUserAccount') else 'Unknown',
-                                'token': 'SOL',
-                                'amount': transfer.get('amount', 0) / 1_000_000_000,  # Convert lamports to SOL
-                                'timestamp': tx.get('timestamp', int(time.time())),
-                                'description': tx.get('description', 'SOL transfer')
-                            })
-                
+                if "nativeTransfers" in tx:
+                    for transfer in tx["nativeTransfers"]:
+                        if transfer.get("toUserAccount") == wallet_address:
+                            contributions.append(
+                                {
+                                    "wallet": transfer.get("fromUserAccount", "Unknown")[:4]
+                                    + "..."
+                                    + transfer.get("fromUserAccount", "Unknown")[-4:]
+                                    if transfer.get("fromUserAccount")
+                                    else "Unknown",
+                                    "token": "SOL",
+                                    "amount": transfer.get("amount", 0) / 1_000_000_000,  # Convert lamports to SOL
+                                    "timestamp": tx.get("timestamp", int(time.time())),
+                                    "description": tx.get("description", "SOL transfer"),
+                                }
+                            )
+
                 # Look for token transfers TO our wallet
-                if 'tokenTransfers' in tx:
-                    for transfer in tx['tokenTransfers']:
-                        if transfer.get('toUserAccount') == wallet_address:
+                if "tokenTransfers" in tx:
+                    for transfer in tx["tokenTransfers"]:
+                        if transfer.get("toUserAccount") == wallet_address:
                             # Get token symbol from metadata or use mint short form
-                            token_symbol = 'Unknown'
-                            if transfer.get('mint'):
+                            token_symbol = "Unknown"
+                            if transfer.get("mint"):
                                 # Try to get symbol from our token metadata cache
                                 try:
                                     with engine.connect() as conn:
                                         result = conn.execute(
                                             text("SELECT symbol FROM token_metadata WHERE token_mint = :token_mint"),
-                                            {'token_mint': transfer['mint']}
+                                            {"token_mint": transfer["mint"]},
                                         ).fetchone()
-                                        if result:
-                                            token_symbol = result[0]
-                                        else:
-                                            token_symbol = transfer['mint'][:8]
-                                except:
-                                    token_symbol = transfer['mint'][:8]
-                            
-                            contributions.append({
-                                'wallet': transfer.get('fromUserAccount', 'Unknown')[:4] + '...' + transfer.get('fromUserAccount', 'Unknown')[-4:] if transfer.get('fromUserAccount') else 'Unknown',
-                                'token': token_symbol,
-                                'amount': transfer.get('tokenAmount', 0),
-                                'timestamp': tx.get('timestamp', int(time.time())),
-                                'description': tx.get('description', f'{token_symbol} transfer')
-                            })
-            
+                                        token_symbol = result[0] if result else transfer["mint"][:8]
+                                except Exception:
+                                    token_symbol = transfer["mint"][:8]
+
+                            contributions.append(
+                                {
+                                    "wallet": transfer.get("fromUserAccount", "Unknown")[:4]
+                                    + "..."
+                                    + transfer.get("fromUserAccount", "Unknown")[-4:]
+                                    if transfer.get("fromUserAccount")
+                                    else "Unknown",
+                                    "token": token_symbol,
+                                    "amount": transfer.get("tokenAmount", 0),
+                                    "timestamp": tx.get("timestamp", int(time.time())),
+                                    "description": tx.get("description", f"{token_symbol} transfer"),
+                                }
+                            )
+
             return contributions[:limit]  # Return only the requested number
-            
+
     except Exception as e:
         logging.error(f"Error getting recent transactions: {e}")
         return []  # Return empty list on error to avoid breaking the API
@@ -1850,17 +1850,17 @@ async def get_recent_transactions_helius(wallet_address: str, helius_api_key: st
 async def get_prize_pool():
     """Get crypto-native prize pool data using Helius DAS API."""
     try:
-        helius_api_key = os.getenv('HELIUS_API_KEY')
-        prize_wallet = os.getenv('PRIZE_WALLET_ADDRESS')
+        helius_api_key = os.getenv("HELIUS_API_KEY")
+        prize_wallet = os.getenv("PRIZE_WALLET_ADDRESS")
         if not prize_wallet:
             raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
-        target_sol = float(os.getenv('PRIZE_POOL_TARGET_SOL', 10))
-        
+        target_sol = float(os.getenv("PRIZE_POOL_TARGET_SOL", 10))
+
         if not helius_api_key:
             raise HTTPException(status_code=500, detail="Helius API key not configured")
-        
+
         helius_url = f"https://mainnet.helius-rpc.com/?api-key={helius_api_key}"
-        
+
         # Fetch real-time token holdings from Helius DAS API
         payload = {
             "jsonrpc": "2.0",
@@ -1870,10 +1870,7 @@ async def get_prize_pool():
                 "ownerAddress": prize_wallet,
                 "page": 1,
                 "limit": 100,
-                "sortBy": {
-                    "sortBy": "created",
-                    "sortDirection": "desc"
-                },
+                "sortBy": {"sortBy": "created", "sortDirection": "desc"},
                 "options": {
                     "showUnverifiedCollections": False,
                     "showCollectionMetadata": False,
@@ -1881,73 +1878,75 @@ async def get_prize_pool():
                     "showFungible": True,
                     "showNativeBalance": True,
                     "showInscription": False,
-                    "showZeroBalance": False
-                }
-            }
+                    "showZeroBalance": False,
+                },
+            },
         }
-        
-        import requests
+
         import json
         import time
+
+        import requests
+
         response = requests.post(helius_url, json=payload)
         response.raise_for_status()
         data = response.json()
-        
-        if 'error' in data:
+
+        if "error" in data:
             raise HTTPException(status_code=500, detail=f"Helius API error: {data['error']}")
-        
-        if not data.get('result', {}).get('items'):
+
+        if not data.get("result", {}).get("items"):
             # Return empty but valid structure
             return {
-                'total_sol': 0,
-                'target_sol': target_sol,
-                'progress_percentage': 0,
-                'token_breakdown': {},
-                'recent_contributions': []
+                "total_sol": 0,
+                "target_sol": target_sol,
+                "progress_percentage": 0,
+                "token_breakdown": {},
+                "recent_contributions": [],
             }
-        
+
         # Process tokens
         token_breakdown = {}
         total_sol = 0
-        
+
         def get_token_metadata_from_helius(mint_address):
             """Fetch token metadata from Helius DAS API and cache it"""
             try:
                 # Check cache first (24 hour cache)
                 with engine.connect() as conn:
                     result = conn.execute(
-                        text("SELECT * FROM token_metadata WHERE token_mint = :token_mint AND last_updated > :min_time"),
-                        {'token_mint': mint_address, 'min_time': int(time.time()) - 86400}  # 24 hours
+                        text(
+                            "SELECT * FROM token_metadata WHERE token_mint = :token_mint AND last_updated > :min_time"
+                        ),
+                        {"token_mint": mint_address, "min_time": int(time.time()) - 86400},  # 24 hours
                     )
                     cached = result.fetchone()
                     if cached:
                         return {
-                            'symbol': cached[2],
-                            'name': cached[3], 
-                            'decimals': cached[4],
-                            'logo': cached[6] or cached[5],  # prefer cdn_uri over logo_uri
-                            'interface': cached[8]
+                            "symbol": cached[2],
+                            "name": cached[3],
+                            "decimals": cached[4],
+                            "logo": cached[6] or cached[5],  # prefer cdn_uri over logo_uri
+                            "interface": cached[8],
                         }
-                
+
                 # Fetch from Helius DAS API
                 payload = {
                     "jsonrpc": "2.0",
                     "id": f"token-metadata-{mint_address}",
                     "method": "getAsset",
-                    "params": {
-                        "id": mint_address
-                    }
+                    "params": {"id": mint_address},
                 }
-                
+
                 response = requests.post(helius_url, json=payload)
                 response.raise_for_status()
                 asset_data = response.json()
-                
-                if 'error' in asset_data or not asset_data.get('result'):
+
+                if "error" in asset_data or not asset_data.get("result"):
                     return None
-                
-                asset = asset_data['result']
-                
+
+                asset = asset_data["result"]
+
                 # Extract metadata
                 symbol = None
                 name = None
@@ -1955,134 +1954,138 @@ async def get_prize_pool():
                 logo_uri = None
                 cdn_uri = None
                 json_uri = None
-                interface_type = asset.get('interface', 'Unknown')
-                
+                interface_type = asset.get("interface", "Unknown")
+
                 # Get symbol and name from token_info or content
-                if asset.get('token_info'):
-                    symbol = asset['token_info'].get('symbol')
-                    decimals = asset['token_info'].get('decimals', 6)
-                
-                if asset.get('content'):
-                    content = asset['content']
-                    if not symbol and content.get('metadata'):
-                        symbol = content['metadata'].get('symbol')
-                        name = content['metadata'].get('name')
-                    
-                    json_uri = content.get('json_uri')
-                    
+                if asset.get("token_info"):
+                    symbol = asset["token_info"].get("symbol")
+                    decimals = asset["token_info"].get("decimals", 6)
+
+                if asset.get("content"):
+                    content = asset["content"]
+                    if not symbol and content.get("metadata"):
+                        symbol = content["metadata"].get("symbol")
+                        name = content["metadata"].get("name")
+
+                    json_uri = content.get("json_uri")
+
                     # Get image URLs
-                    if content.get('files') and len(content['files']) > 0:
-                        first_file = content['files'][0]
-                        logo_uri = first_file.get('uri')
-                        cdn_uri = first_file.get('cdn_uri')
-                
+                    if content.get("files") and len(content["files"]) > 0:
+                        first_file = content["files"][0]
+                        logo_uri = first_file.get("uri")
+                        cdn_uri = first_file.get("cdn_uri")
+
                 # Cache the metadata
                 with engine.begin() as conn:
                     conn.execute(
                         text("""
-                            INSERT OR REPLACE INTO token_metadata 
+                            INSERT OR REPLACE INTO token_metadata
                             (token_mint, symbol, name, decimals, logo_uri, cdn_uri, json_uri, interface_type, content_metadata, last_updated)
                             VALUES (:token_mint, :symbol, :name, :decimals, :logo_uri, :cdn_uri, :json_uri, :interface_type, :content_metadata, :last_updated)
                         """),
                         {
-                            'token_mint': mint_address,
-                            'symbol': symbol,
-                            'name': name,
-                            'decimals': decimals,
-                            'logo_uri': logo_uri,
-                            'cdn_uri': cdn_uri,
-                            'json_uri': json_uri,
-                            'interface_type': interface_type,
-                            'content_metadata': json.dumps(asset.get('content', {})),
-                            'last_updated': int(time.time())
-                        }
+                            "token_mint": mint_address,
+                            "symbol": symbol,
+                            "name": name,
+                            "decimals": decimals,
+                            "logo_uri": logo_uri,
+                            "cdn_uri": cdn_uri,
+                            "json_uri": json_uri,
+                            "interface_type": interface_type,
+                            "content_metadata": json.dumps(asset.get("content", {})),
+                            "last_updated": int(time.time()),
+                        },
                     )
-                
+
                 return {
-                    'symbol': symbol,
-                    'name': name,
-                    'decimals': decimals,
-                    'logo': cdn_uri or logo_uri,  # prefer CDN
-                    'interface': interface_type
+                    "symbol": symbol,
+                    "name": name,
+                    "decimals": decimals,
+                    "logo": cdn_uri or logo_uri,  # prefer CDN
+                    "interface": interface_type,
                 }
-                
+
             except Exception as e:
                 logging.error(f"Error fetching token metadata for {mint_address}: {e}")
                 return None
-        
+
         # Process native SOL balance (special case - always has consistent metadata)
-        native_balance = data['result'].get('nativeBalance', {})
-        if native_balance and native_balance.get('lamports', 0) > 0:
-            sol_amount = native_balance['lamports'] / 1_000_000_000
+        native_balance = data["result"].get("nativeBalance", {})
+        if native_balance and native_balance.get("lamports", 0) > 0:
+            sol_amount = native_balance["lamports"] / 1_000_000_000
             total_sol = sol_amount
-            token_breakdown['SOL'] = {
-                'mint': 'So11111111111111111111111111111111111111112',
-                'symbol': 'SOL',
-                'name': 'Solana',
-                'amount': sol_amount,
-                'decimals': 9,
-                'logo': 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png'
+            token_breakdown["SOL"] = {
+                "mint": "So11111111111111111111111111111111111111112",
+                "symbol": "SOL",
+                "name": "Solana",
+                "amount": sol_amount,
+                "decimals": 9,
+                "logo": "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png",
             }
-        
+
         # Process SPL tokens using enhanced metadata
-        for asset in data['result']['items']:
-            if asset.get('token_info') and float(asset['token_info'].get('balance', 0)) > 0:
-                mint_address = asset['id']
-                raw_balance = float(asset['token_info']['balance'])
-                
+        for asset in data["result"]["items"]:
+            if asset.get("token_info") and float(asset["token_info"].get("balance", 0)) > 0:
+                mint_address = asset["id"]
+                raw_balance = float(asset["token_info"]["balance"])
+
                 # Get enhanced metadata from Helius
                 metadata = get_token_metadata_from_helius(mint_address)
-                
+
                 if metadata:
-                    decimals = metadata.get('decimals', 6)
-                    symbol = metadata.get('symbol') or mint_address[:8]
-                    name = metadata.get('name')
-                    logo = metadata.get('logo')
+                    decimals = metadata.get("decimals", 6)
+                    symbol = metadata.get("symbol") or mint_address[:8]
+                    name = metadata.get("name")
+                    logo = metadata.get("logo")
                 else:
                     # Fallback to basic data from getAssetsByOwner
-                    decimals = asset['token_info'].get('decimals', 6) 
-                    symbol = asset['token_info'].get('symbol') or asset.get('content', {}).get('metadata', {}).get('symbol') or mint_address[:8]
-                    name = asset.get('content', {}).get('metadata', {}).get('name')
+                    decimals = asset["token_info"].get("decimals", 6)
+                    symbol = (
+                        asset["token_info"].get("symbol")
+                        or asset.get("content", {}).get("metadata", {}).get("symbol")
+                        or mint_address[:8]
+                    )
+                    name = asset.get("content", {}).get("metadata", {}).get("name")
                     logo = None
-                    if asset.get('content', {}).get('files'):
-                        logo = asset['content']['files'][0].get('cdn_uri') or asset['content']['files'][0].get('uri')
-                
-                amount = raw_balance / (10 ** decimals)
-                
+                    if asset.get("content", {}).get("files"):
+                        logo = asset["content"]["files"][0].get("cdn_uri") or asset["content"]["files"][0].get("uri")
+
+                amount = raw_balance / (10**decimals)
+
                 token_breakdown[symbol] = {
-                    'mint': mint_address,
-                    'symbol': symbol,
-                    'name': name,
-                    'amount': amount,
-                    'decimals': decimals,
-                    'logo': logo
+                    "mint": mint_address,
+                    "symbol": symbol,
+                    "name": name,
+                    "amount": amount,
+                    "decimals": decimals,
+                    "logo": logo,
                 }
-        
+
         # Sort tokens: SOL, ai16z, USDC first, then by amount
-        priority_tokens = ['SOL', 'ai16z', 'USDC']
+        priority_tokens = ["SOL", "ai16z", "USDC"]
         sorted_tokens = {}
-        
+
         # Add priority tokens first
         for token in priority_tokens:
             if token in token_breakdown:
                 sorted_tokens[token] = token_breakdown[token]
-        
+
         # Add remaining tokens sorted by amount
         remaining_tokens = {k: v for k, v in token_breakdown.items() if k not in priority_tokens}
-        for token, data in sorted(remaining_tokens.items(), key=lambda x: x[1]['amount'], reverse=True):
+        for token, data in sorted(remaining_tokens.items(), key=lambda x: x[1]["amount"], reverse=True):
             sorted_tokens[token] = data
-        
+
         # Get recent transactions using Helius Enhanced Transactions API
         recent_contributions = await get_recent_transactions_helius(prize_wallet, helius_api_key)
-        
+
         return {
-            'total_sol': total_sol,
-            'target_sol': target_sol,
-            'progress_percentage': (total_sol / target_sol) * 100 if target_sol > 0 else 0,
-            'token_breakdown': sorted_tokens,
-            'recent_contributions': recent_contributions
+            "total_sol": total_sol,
+            "target_sol": target_sol,
+            "progress_percentage": (total_sol / target_sol) * 100 if target_sol > 0 else 0,
+            "token_breakdown": sorted_tokens,
+            "recent_contributions": recent_contributions,
         }
-            
+
     except Exception as e:
         logging.error(f"Error in prize pool: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -2094,7 +2097,7 @@ async def websocket_prize_pool_endpoint(websocket: WebSocket):
     try:
         await websocket.accept()
         await prize_pool_service.add_client(websocket)
-        
+
         # Keep connection alive and handle disconnection
         try:
             while True:
@@ -2102,7 +2105,7 @@ async def websocket_prize_pool_endpoint(websocket: WebSocket):
                 await websocket.receive_text()
         except WebSocketDisconnect:
             pass
-            
+
     except Exception as e:
         logging.error(f"WebSocket error: {e}")
     finally:
@@ -2115,28 +2118,28 @@ def process_ai16z_transaction(tx_sig: str, submission_id: int, sender: str, amou
         # Calculate vote weight (inline to avoid scope issues)
         min_vote = 1.0
         if amount < min_vote:
-            vote_weight = 0
+            pass
         else:
             multiplier = 3.0
             cap = 10.0
-            vote_weight = min(math.log10(amount + 1) * multiplier, cap)
-        
+            min(math.log10(amount + 1) * multiplier, cap)
+
         # Calculate tokens used for voting vs overflow
-        max_vote_tokens = float(os.getenv('MAX_VOTE_TOKENS', 100))
+        max_vote_tokens = float(os.getenv("MAX_VOTE_TOKENS", 100))
         vote_tokens = min(amount, max_vote_tokens)
         overflow_tokens = max(0, amount - max_vote_tokens)
-        
+
         with engine.begin() as conn:
             # Record the vote in sol_votes table
             conn.execute(
                 text("""
-                    INSERT OR IGNORE INTO sol_votes 
+                    INSERT OR IGNORE INTO sol_votes
                     (tx_sig, submission_id, sender, amount, timestamp)
                     VALUES (?, ?, ?, ?, ?)
-                """), 
-                (tx_sig, submission_id, sender, vote_tokens, int(time.time()))
+                """),
+                (tx_sig, submission_id, sender, vote_tokens, int(time.time())),
             )
-            
+
             # Record overflow as prize pool contribution
             if overflow_tokens > 0:
                 conn.execute(
@@ -2144,21 +2147,21 @@ def process_ai16z_transaction(tx_sig: str, submission_id: int, sender: str, amou
                         INSERT OR IGNORE INTO prize_pool_contributions
                         (tx_sig, token_mint, token_symbol, amount, contributor_wallet, source, timestamp)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """), 
+                    """),
                     (
                         f"{tx_sig}_overflow",  # Unique ID for overflow portion
-                        'HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC',  # ai16z mint
-                        'ai16z',
+                        "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",  # ai16z mint
+                        "ai16z",
                         overflow_tokens,
                         sender,
-                        'vote_overflow',
-                        int(time.time())
-                    )
+                        "vote_overflow",
+                        int(time.time()),
+                    ),
                 )
             # Transaction automatically commits on context exit
             logging.info(f"Processed vote: {vote_tokens} ai16z vote, {overflow_tokens} ai16z to prize pool")
             return True
-            
+
     except Exception as e:
         logging.error(f"Transaction processing error: {e}")
         return False
@@ -2169,42 +2172,44 @@ async def helius_webhook(request: Request):
     """Handle Helius webhook for Solana transaction processing."""
     try:
         data = await request.json()
-        
+
         # Extract transaction details
-        tx_sig = data.get('signature')
+        tx_sig = data.get("signature")
         if not tx_sig:
             logging.warning("Webhook received without transaction signature")
             return {"processed": 0, "error": "No transaction signature"}
-        
-        transfers = data.get('tokenTransfers', [])
+
+        transfers = data.get("tokenTransfers", [])
         if not transfers:
             logging.warning(f"No token transfers in transaction {tx_sig}")
             return {"processed": 0, "error": "No token transfers"}
-        
+
         processed_count = 0
         AI16Z_MINT = "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC"
         SOL_MINT = "So11111111111111111111111111111111111111112"
-        
+
         for transfer in transfers:
-            mint = transfer.get('mint')
-            
+            mint = transfer.get("mint")
+
             # Handle ai16z voting transactions
             if mint == AI16Z_MINT:
-                submission_id = transfer.get('memo', '').strip()
-                sender = transfer.get('fromUserAccount')
-                amount = float(transfer.get('tokenAmount', 0))
-                
+                submission_id = transfer.get("memo", "").strip()
+                sender = transfer.get("fromUserAccount")
+                amount = float(transfer.get("tokenAmount", 0))
+
                 if submission_id and sender and amount >= 1:  # Minimum 1 ai16z
                     if process_ai16z_transaction(tx_sig, submission_id, sender, amount):
                         processed_count += 1
                 else:
-                    logging.warning(f"Invalid ai16z transaction: submission_id={submission_id}, sender={sender}, amount={amount}")
-            
+                    logging.warning(
+                        f"Invalid ai16z transaction: submission_id={submission_id}, sender={sender}, amount={amount}"
+                    )
+
             # Handle direct SOL donations to prize pool (no memo needed)
             elif mint == SOL_MINT:
-                sender = transfer.get('fromUserAccount') 
-                amount = float(transfer.get('tokenAmount', 0))
-                
+                sender = transfer.get("fromUserAccount")
+                amount = float(transfer.get("tokenAmount", 0))
+
                 if sender and amount > 0:
                     try:
                         with engine.begin() as conn:
@@ -2213,17 +2218,17 @@ async def helius_webhook(request: Request):
                                     INSERT OR IGNORE INTO prize_pool_contributions
                                     (tx_sig, token_mint, token_symbol, amount, contributor_wallet, source, timestamp)
                                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                                """), 
-                                (tx_sig, SOL_MINT, 'SOL', amount, sender, 'direct_donation', int(time.time()))
+                                """),
+                                (tx_sig, SOL_MINT, "SOL", amount, sender, "direct_donation", int(time.time())),
                             )
                             # Transaction automatically commits on context exit
                             processed_count += 1
                             logging.info(f"Processed SOL donation: {amount} SOL from {sender}")
                     except Exception as e:
                         logging.error(f"SOL donation processing error: {e}")
-        
+
         return {"processed": processed_count, "signature": tx_sig}
-        
+
     except Exception as e:
         logging.error(f"Webhook processing error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -2240,32 +2245,28 @@ async def test_webhook():
                 "mint": "HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC",  # ai16z
                 "memo": "test-submission-1",
                 "fromUserAccount": "wallet_webhook_test",
-                "tokenAmount": 150.0  # 150 ai16z - should split into 100 vote + 50 overflow
+                "tokenAmount": 150.0,  # 150 ai16z - should split into 100 vote + 50 overflow
             }
-        ]
+        ],
     }
-    
+
     # Process the transaction directly
     try:
         tx_sig = test_payload["signature"]
         transfer = test_payload["tokenTransfers"][0]
         submission_id = transfer["memo"]
-        sender = transfer["fromUserAccount"]  
+        sender = transfer["fromUserAccount"]
         amount = transfer["tokenAmount"]
-        
+
         success = process_ai16z_transaction(tx_sig, submission_id, sender, amount)
-        
+
         return {
             "test_payload": test_payload,
             "processing_result": {"processed": 1 if success else 0, "signature": tx_sig},
-            "status": "Test webhook processed successfully" if success else "Test webhook failed"
+            "status": "Test webhook processed successfully" if success else "Test webhook failed",
         }
     except Exception as e:
-        return {
-            "test_payload": test_payload,
-            "error": str(e),
-            "status": "Test webhook failed"
-        }
+        return {"test_payload": test_payload, "error": str(e), "status": "Test webhook failed"}
 
 
 # Community voting endpoints (must be before versioned routes)
@@ -2274,21 +2275,24 @@ async def get_vote_stats():
     """Get overall community voting statistics."""
     try:
         from hackathon.backend.collect_votes import VoteProcessor
+
         processor = VoteProcessor(HACKATHON_DB_PATH)
         stats = processor.get_vote_stats()
         return stats
     except Exception as e:
         import traceback
+
         error_details = traceback.format_exc()
         logging.error(f"Error getting vote stats: {e}\n{error_details}")
-        raise HTTPException(status_code=500, detail=f"Failed to get vote statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get vote statistics: {e!s}")
 
 
 @app.get("/api/community-votes/scores", tags=["voting"])
-async def get_community_scores():
+async def get_community_vote_scores():
     """Get community scores for all submissions."""
     try:
         from hackathon.backend.collect_votes import VoteProcessor
+
         processor = VoteProcessor(HACKATHON_DB_PATH)
         scores = processor.get_community_scores()
         return scores
@@ -2305,32 +2309,34 @@ async def get_submission_votes(submission_id: int):
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 transaction_signature,
                 sender_address,
                 amount,
                 timestamp,
                 processed_at
-            FROM community_votes 
+            FROM community_votes
             WHERE submission_id = ?
             ORDER BY timestamp DESC
             """,
-            (submission_id,)
+            (submission_id,),
         )
-        
+
         votes = []
         for row in cursor.fetchall():
             sig, sender, amount, timestamp, processed_at = row
-            votes.append({
-                "transaction_signature": sig,
-                "sender_address": sender,
-                "amount": amount,
-                "timestamp": timestamp,
-                "processed_at": processed_at
-            })
-        
+            votes.append(
+                {
+                    "transaction_signature": sig,
+                    "sender_address": sender,
+                    "amount": amount,
+                    "timestamp": timestamp,
+                    "processed_at": processed_at,
+                }
+            )
+
         conn.close()
-        
+
         # Calculate summary stats
         if votes:
             total_amount = sum(vote["amount"] for vote in votes)
@@ -2338,16 +2344,16 @@ async def get_submission_votes(submission_id: int):
             avg_amount = total_amount / len(votes)
         else:
             total_amount = unique_voters = avg_amount = 0
-        
+
         return {
             "submission_id": submission_id,
             "vote_count": len(votes),
             "unique_voters": unique_voters,
             "total_amount": total_amount,
             "avg_amount": avg_amount,
-            "votes": votes
+            "votes": votes,
         }
-        
+
     except Exception as e:
         logging.error(f"Error getting votes for {submission_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get submission votes")
@@ -2356,25 +2362,23 @@ async def get_submission_votes(submission_id: int):
 @app.get(
     "/api/{version}/submissions",
     tags=["versioned"],
-    response_model=List[SubmissionSummary],
+    response_model=list[SubmissionSummary],
 )
 async def list_submissions(
     version: str = "v1",
     include: str = "scores,research,community",
-    status: str = None,
-    category: str = None,
+    status: str | None = None,
+    category: str | None = None,
     detail: bool = False,
 ):
     if version not in ("v1", "v2"):
-        raise HTTPException(
-            status_code=400, detail="Invalid version. Use 'v1' or 'v2'."
-        )
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     from hackathon.backend.schema import get_database_field_names
 
     # Get only database fields (excludes UI-only fields like 'invite_code')
     db_field_names = get_database_field_names(version)
-    base_fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
+    base_fields = ["submission_id", *db_field_names, "status", "created_at", "updated_at"]
     # If detail is requested, ensure extended fields are present
     extended_detail_fields = [
         "github_url",
@@ -2403,12 +2407,10 @@ async def list_submissions(
         where_conditions.append("category = :category")
         params["category"] = category
 
-    where_clause = (
-        f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
-    )
+    where_clause = f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
     # Join users table for Discord info
     select_stmt = text(f"""
-        SELECT {', '.join([f's.{f}' for f in fields])},
+        SELECT {", ".join([f"s.{f}" for f in fields])},
                u.discord_id AS discord_id,
                u.username AS discord_username,
                u.discriminator AS discord_discriminator,
@@ -2477,11 +2479,7 @@ async def list_submissions(
                         score_dict = dict(score_row._mapping)
                         if "notes" in score_dict:
                             try:
-                                score_dict["notes"] = (
-                                    json.loads(score_dict["notes"])
-                                    if score_dict["notes"]
-                                    else {}
-                                )
+                                score_dict["notes"] = json.loads(score_dict["notes"]) if score_dict["notes"] else {}
                             except (json.JSONDecodeError, TypeError):
                                 # Handle plain text notes from database seeder
                                 score_dict["notes"] = {"raw": score_dict["notes"]} if score_dict["notes"] else {}
@@ -2506,14 +2504,10 @@ async def list_submissions(
                     research_dict = dict(research_row._mapping)
                     research = {
                         "github_analysis": (
-                            json.loads(research_dict["github_analysis"])
-                            if research_dict["github_analysis"]
-                            else None
+                            json.loads(research_dict["github_analysis"]) if research_dict["github_analysis"] else None
                         ),
                         "market_research": (
-                            json.loads(research_dict["market_research"])
-                            if research_dict["market_research"]
-                            else None
+                            json.loads(research_dict["market_research"]) if research_dict["market_research"] else None
                         ),
                         "technical_assessment": (
                             json.loads(research_dict["technical_assessment"])
@@ -2529,11 +2523,11 @@ async def list_submissions(
                 feedback_result = conn.execute(
                     text(
                         """
-                    SELECT 
+                    SELECT
                         reaction_type,
                         COUNT(*) as vote_count,
                         GROUP_CONCAT(discord_user_nickname) as voters
-                    FROM community_feedback 
+                    FROM community_feedback
                     WHERE submission_id = :submission_id
                     GROUP BY reaction_type
                     ORDER BY vote_count DESC
@@ -2564,8 +2558,7 @@ async def list_submissions(
                 }
             # For summary responses, remove free-form handle to avoid duplication
             if not detail:
-                if "discord_handle" in submission_dict:
-                    del submission_dict["discord_handle"]
+                submission_dict.pop("discord_handle", None)
             submissions.append(submission_dict)
     return submissions
 
@@ -2581,15 +2574,13 @@ async def get_submission_versioned(
     request: Request,
     include: str = "scores,research,community",
 ):
-    return await get_submission(
-        submission_id=submission_id, version=version, include=include, request=request
-    )
+    return await get_submission(submission_id=submission_id, version=version, include=include, request=request)
 
 
 @app.get(
     "/api/{version}/submission-schema",
     tags=["versioned"],
-    response_model=List[SubmissionFieldSchema],
+    response_model=list[SubmissionFieldSchema],
 )
 async def get_submission_schema_versioned(version: str):
     if version in ("v1", "v2"):
@@ -2601,13 +2592,11 @@ async def get_submission_schema_versioned(version: str):
 @app.get(
     "/api/{version}/leaderboard",
     tags=["versioned"],
-    response_model=List[LeaderboardEntry],
+    response_model=list[LeaderboardEntry],
 )
 async def get_leaderboard(version: str):
     if version not in ("v1", "v2"):
-        raise HTTPException(
-            status_code=400, detail="Invalid version. Use 'v1' or 'v2'."
-        )
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
         # Get each project's latest available round and score
@@ -2615,14 +2604,14 @@ async def get_leaderboard(version: str):
             text(
                 f"""
             WITH latest_scores AS (
-                SELECT 
+                SELECT
                     sc.submission_id,
                     MAX(sc.round) as latest_round
                 FROM hackathon_scores sc
                 GROUP BY sc.submission_id
             ),
             project_scores AS (
-                SELECT 
+                SELECT
                     sc.submission_id,
                     AVG(sc.weighted_total) as avg_score,
                     COUNT(DISTINCT sc.judge_name) as judge_count
@@ -2630,7 +2619,7 @@ async def get_leaderboard(version: str):
                 JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
                 GROUP BY sc.submission_id
             )
-            SELECT 
+            SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
@@ -2674,9 +2663,7 @@ async def get_leaderboard(version: str):
 @app.get("/api/{version}/stats", tags=["versioned"], response_model=StatsModel)
 async def get_stats(version: str):
     if version not in ("v1", "v2"):
-        raise HTTPException(
-            status_code=400, detail="Invalid version. Use 'v1' or 'v2'."
-        )
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
         # Count by status
@@ -2712,9 +2699,7 @@ async def get_stats(version: str):
         }
 
 
-@app.get(
-    "/api/feedback/{submission_id}", tags=["latest"], response_model=FeedbackSummary
-)
+@app.get("/api/feedback/{submission_id}", tags=["latest"], response_model=FeedbackSummary)
 async def get_feedback_latest(submission_id: int):
     return await get_feedback_versioned(version="v2", submission_id=submission_id)
 
@@ -2727,18 +2712,16 @@ async def get_feedback_latest(submission_id: int):
 async def get_feedback_versioned(version: str, submission_id: int):
     # Only v2 supported for now
     if version not in ("v1", "v2"):
-        raise HTTPException(
-            status_code=400, detail="Invalid version. Use 'v1' or 'v2'."
-        )
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     with engine.connect() as conn:
         result = conn.execute(
             text(
                 """
-            SELECT 
+            SELECT
                 reaction_type,
                 COUNT(*) as vote_count,
                 GROUP_CONCAT(discord_user_nickname) as voters
-            FROM community_feedback 
+            FROM community_feedback
             WHERE submission_id = :submission_id
             GROUP BY reaction_type
             ORDER BY vote_count DESC
@@ -2763,9 +2746,7 @@ async def get_feedback_versioned(version: str, submission_id: int):
                 row_dict["voters"],
             )
             total_votes += vote_count
-            reaction_info = reaction_map.get(
-                reaction_type, {"emoji": "❓", "name": reaction_type}
-            )
+            reaction_info = reaction_map.get(reaction_type, {"emoji": "❓", "name": reaction_type})
             feedback_summary.append(
                 FeedbackItem(
                     reaction_type=reaction_type,
@@ -2832,14 +2813,8 @@ def generate_static_data():
                     "category": row_dict["category"],
                     "status": row_dict["status"],
                     "created_at": row_dict["created_at"],
-                    "avg_score": (
-                        round(row_dict["avg_score"], 2)
-                        if row_dict["avg_score"]
-                        else None
-                    ),
-                    "judge_count": (
-                        row_dict["judge_count"] if row_dict["judge_count"] else 0
-                    ),
+                    "avg_score": (round(row_dict["avg_score"], 2) if row_dict["avg_score"] else None),
+                    "judge_count": (row_dict["judge_count"] if row_dict["judge_count"] else 0),
                     "discord_handle": row_dict["discord_handle"],
                     "discord_username": row_dict["discord_handle"],
                     "discord_id": row_dict.get("discord_id"),
@@ -2875,17 +2850,25 @@ def generate_static_data():
 
             # --- Scores ---
             score_fields = [
-                "judge_name", "innovation", "technical_execution",
-                "market_potential", "user_experience", "weighted_total",
-                "notes", "round", "community_bonus", "final_verdict", "created_at",
+                "judge_name",
+                "innovation",
+                "technical_execution",
+                "market_potential",
+                "user_experience",
+                "weighted_total",
+                "notes",
+                "round",
+                "community_bonus",
+                "final_verdict",
+                "created_at",
             ]
             actual_score_fields = get_score_columns(conn, score_fields)
             if actual_score_fields:
                 scores_result = conn.execute(
                     text(
                         f"""
-                        SELECT {', '.join(actual_score_fields)} FROM (
-                            SELECT {', '.join(actual_score_fields)},
+                        SELECT {", ".join(actual_score_fields)} FROM (
+                            SELECT {", ".join(actual_score_fields)},
                                    ROW_NUMBER() OVER (PARTITION BY judge_name, round ORDER BY created_at DESC) as rn
                             FROM hackathon_scores
                             WHERE submission_id = :submission_id
@@ -2911,7 +2894,9 @@ def generate_static_data():
 
             # --- Avg score ---
             avg_result = conn.execute(
-                text("SELECT AVG(weighted_total) as avg_score FROM hackathon_scores WHERE submission_id = :submission_id"),
+                text(
+                    "SELECT AVG(weighted_total) as avg_score FROM hackathon_scores WHERE submission_id = :submission_id"
+                ),
                 {"submission_id": sid},
             )
             avg_row = avg_result.fetchone()
@@ -2931,7 +2916,9 @@ def generate_static_data():
                 detail_dict["research"] = {
                     "github_analysis": json.loads(r["github_analysis"]) if r["github_analysis"] else None,
                     "market_research": None,  # Deprecated: included in technical_assessment
-                    "technical_assessment": json.loads(r["technical_assessment"]) if r["technical_assessment"] else None,
+                    "technical_assessment": json.loads(r["technical_assessment"])
+                    if r["technical_assessment"]
+                    else None,
                 }
             else:
                 detail_dict["research"] = None
@@ -2973,7 +2960,7 @@ def generate_static_data():
         leaderboard_result = conn.execute(
             text(
                 """
-            SELECT 
+            SELECT
                 s.project_name,
                 s.category,
                 s.demo_video_url as youtube_url,
@@ -3063,7 +3050,6 @@ async def deprecated_post_v2_submissions(request: Request, *args, **kwargs):
     )
 
 
-
 def main():
     """Main function to run the API server or generate static data."""
     parser = argparse.ArgumentParser(description="Hackathon Dashboard API")
@@ -3072,12 +3058,8 @@ def main():
         action="store_true",
         help="Generate static JSON files instead of running the server",
     )
-    parser.add_argument(
-        "--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--port", type=int, default=8000, help="Port to bind to (default: 8000)"
-    )
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to (default: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind to (default: 8000)")
 
     args = parser.parse_args()
 
@@ -3130,32 +3112,30 @@ async def get_submission(
     request: Request = None,
 ):
     if version not in ("v1", "v2"):
-        raise HTTPException(
-            status_code=400, detail="Invalid version. Use 'v1' or 'v2'."
-        )
+        raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
     table = f"hackathon_submissions_{version}"
     from hackathon.backend.schema import get_database_field_names
 
     # Get only database fields (excludes UI-only fields like 'invite_code')
     db_field_names = get_database_field_names(version)
-    fields = ["submission_id"] + db_field_names + ["status", "created_at", "updated_at"]
+    fields = ["submission_id", *db_field_names, "status", "created_at", "updated_at"]
 
     # project_image field is handled properly via schema
     # Join users to include Discord info for detail view
     select_stmt = text(
         f"""
-        SELECT {', '.join([f's.{f}' for f in fields])},
+        SELECT {", ".join([f"s.{f}" for f in fields])},
                u.discord_id AS discord_id,
                u.username AS discord_username,
                u.avatar AS discord_avatar
         FROM {table} s
-        LEFT JOIN users u 
+        LEFT JOIN users u
           ON (
                s.owner_discord_id = u.discord_id
                OR (
-                    s.owner_discord_id IS NULL 
-                AND u.username IS NOT NULL 
-                AND s.discord_handle IS NOT NULL 
+                    s.owner_discord_id IS NULL
+                AND u.username IS NOT NULL
+                AND s.discord_handle IS NOT NULL
                 AND LOWER(u.username) = LOWER(s.discord_handle)
                )
              )
@@ -3190,10 +3170,10 @@ async def get_submission(
                 scores_result = conn.execute(
                     text(
                         f"""
-                        SELECT {', '.join(actual_score_fields)} FROM (
-                            SELECT {', '.join(actual_score_fields)},
+                        SELECT {", ".join(actual_score_fields)} FROM (
+                            SELECT {", ".join(actual_score_fields)},
                                    ROW_NUMBER() OVER (PARTITION BY judge_name, round ORDER BY created_at DESC) as rn
-                            FROM hackathon_scores 
+                            FROM hackathon_scores
                             WHERE submission_id = :submission_id
                         ) ranked_scores
                         WHERE rn = 1
@@ -3207,11 +3187,7 @@ async def get_submission(
                     score_dict = dict(score_row._mapping)
                     if "notes" in score_dict:
                         try:
-                            score_dict["notes"] = (
-                                json.loads(score_dict["notes"])
-                                if score_dict["notes"]
-                                else {}
-                            )
+                            score_dict["notes"] = json.loads(score_dict["notes"]) if score_dict["notes"] else {}
                         except (json.JSONDecodeError, TypeError):
                             # Handle plain text notes from database seeder
                             score_dict["notes"] = {"raw": score_dict["notes"]} if score_dict["notes"] else {}
@@ -3236,14 +3212,10 @@ async def get_submission(
                 research_dict = dict(research_row._mapping)
                 research = {
                     "github_analysis": (
-                        json.loads(research_dict["github_analysis"])
-                        if research_dict["github_analysis"]
-                        else None
+                        json.loads(research_dict["github_analysis"]) if research_dict["github_analysis"] else None
                     ),
                     "market_research": (
-                        json.loads(research_dict["market_research"])
-                        if research_dict["market_research"]
-                        else None
+                        json.loads(research_dict["market_research"]) if research_dict["market_research"] else None
                     ),
                     "technical_assessment": (
                         json.loads(research_dict["technical_assessment"])
@@ -3260,11 +3232,11 @@ async def get_submission(
             feedback_result = conn.execute(
                 text(
                     """
-                SELECT 
+                SELECT
                     reaction_type,
                     COUNT(*) as vote_count,
                     GROUP_CONCAT(discord_user_nickname) as voters
-                FROM community_feedback 
+                FROM community_feedback
                 WHERE submission_id = :submission_id
                 GROUP BY reaction_type
                 ORDER BY vote_count DESC
@@ -3298,13 +3270,13 @@ async def get_submission(
             community_score_result = conn.execute(
                 text(
                     """
-                SELECT 
+                SELECT
                     COUNT(*) as total_reactions,
                     COUNT(DISTINCT discord_id) as unique_voters,
                     SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
                     SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
-                    CASE 
-                        WHEN COUNT(*) > 0 THEN 
+                    CASE
+                        WHEN COUNT(*) > 0 THEN
                             (SUM(CASE WHEN action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
                         ELSE 0
                     END as community_score
@@ -3328,9 +3300,7 @@ async def get_submission(
             "submission_id": safe_str(submission_dict.get("submission_id")),
             "project_name": safe_str(submission_dict.get("project_name")),
             "category": safe_str(submission_dict.get("category")),
-            "description": safe_str(
-                submission_dict.get("description") or submission_dict.get("summary")
-            ),
+            "description": safe_str(submission_dict.get("description") or submission_dict.get("summary")),
             "status": safe_str(submission_dict.get("status")),
             "created_at": safe_str(submission_dict.get("created_at")),
             "updated_at": safe_str(submission_dict.get("updated_at")),

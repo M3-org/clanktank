@@ -4,50 +4,45 @@ YouTube Upload Pipeline for Hackathon Episodes.
 Uploads recorded videos to YouTube with metadata from the hackathon database.
 """
 
-import os
-import sys
-import json
-import sqlite3
-import logging
 import argparse
+import json
+import logging
+import os
+import sqlite3
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 from dotenv import load_dotenv
 
 # Google/YouTube imports
 try:
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
+    import pickle
+
     from google.auth.transport.requests import Request
+    from google_auth_oauthlib.flow import InstalledAppFlow
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
-    import pickle
 except ImportError:
     print("Please install required packages:")
-    print(
-        "pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client"
-    )
+    print("pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client")
     sys.exit(1)
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv
 
 # Load environment variables (automatically finds .env in parent directories)
 load_dotenv(find_dotenv())
 
 # Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Configuration
 HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
 RECORDINGS_DIR = os.getenv("HACKATHON_RECORDINGS_DIR", "recordings/hackathon")
-YOUTUBE_CREDENTIALS_PATH = os.getenv(
-    "YOUTUBE_CREDENTIALS_PATH", "youtube_credentials.json"
-)
+YOUTUBE_CREDENTIALS_PATH = os.getenv("YOUTUBE_CREDENTIALS_PATH", "youtube_credentials.json")
 CLIENT_SECRETS_PATH = os.getenv("YOUTUBE_CLIENT_SECRETS_PATH", "client_secrets.json")
 
 # YouTube API scopes
@@ -91,15 +86,11 @@ class YouTubeUploader:
                 creds.refresh(Request())
             else:
                 if not os.path.exists(CLIENT_SECRETS_PATH):
-                    logger.error(
-                        f"Client secrets file not found: {CLIENT_SECRETS_PATH}"
-                    )
+                    logger.error(f"Client secrets file not found: {CLIENT_SECRETS_PATH}")
                     logger.error("Please download from Google Cloud Console")
                     sys.exit(1)
 
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    CLIENT_SECRETS_PATH, SCOPES
-                )
+                flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_PATH, SCOPES)
                 creds = flow.run_local_server(port=0)
 
             # Save the credentials for the next run
@@ -108,7 +99,7 @@ class YouTubeUploader:
 
         return build("youtube", "v3", credentials=creds)
 
-    def get_project_metadata(self, submission_id: str) -> Dict[str, Any]:
+    def get_project_metadata(self, submission_id: str) -> dict[str, Any]:
         """Fetch project metadata from database."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -116,7 +107,7 @@ class YouTubeUploader:
         # Get submission details
         cursor.execute(
             f"""
-            SELECT * FROM {self.table} 
+            SELECT * FROM {self.table}
             WHERE submission_id = ?
         """,
             (submission_id,),
@@ -133,8 +124,8 @@ class YouTubeUploader:
         # Get average score
         cursor.execute(
             """
-            SELECT AVG(weighted_total), COUNT(*) 
-            FROM hackathon_scores 
+            SELECT AVG(weighted_total), COUNT(*)
+            FROM hackathon_scores
             WHERE submission_id = ? AND round = 1
         """,
             (submission_id,),
@@ -146,8 +137,8 @@ class YouTubeUploader:
         # Get judge comments (for description)
         cursor.execute(
             """
-            SELECT judge_name, notes 
-            FROM hackathon_scores 
+            SELECT judge_name, notes
+            FROM hackathon_scores
             WHERE submission_id = ? AND round = 1
             ORDER BY judge_name
         """,
@@ -170,7 +161,7 @@ class YouTubeUploader:
             "judge_comments": judge_comments,
         }
 
-    def generate_video_metadata(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_video_metadata(self, project_data: dict[str, Any]) -> dict[str, Any]:
         """Generate YouTube metadata for a project."""
         submission = project_data["submission"]
 
@@ -211,9 +202,7 @@ class YouTubeUploader:
                     "👨‍⚖️ Judge Comments:",
                 ]
             )
-            description_parts.extend(
-                project_data["judge_comments"][:4]
-            )  # Limit to 4 comments
+            description_parts.extend(project_data["judge_comments"][:4])  # Limit to 4 comments
 
         description_parts.extend(
             [
@@ -240,9 +229,7 @@ class YouTubeUploader:
 
         # Add tech stack tags
         if submission.get("tech_stack"):
-            tech_tags = [
-                t.strip().lower() for t in submission["tech_stack"].split(",")
-            ][:5]
+            tech_tags = [t.strip().lower() for t in submission["tech_stack"].split(",")][:5]
             tags.extend(tech_tags)
 
         return {
@@ -253,9 +240,7 @@ class YouTubeUploader:
             "privacy_status": "public",
         }
 
-    def upload_video(
-        self, video_path: str, metadata: Dict[str, Any], submission_id: str
-    ) -> Optional[str]:
+    def upload_video(self, video_path: str, metadata: dict[str, Any], submission_id: str) -> str | None:
         """Upload a video to YouTube."""
         try:
             # Prepare the upload
@@ -274,9 +259,7 @@ class YouTubeUploader:
 
             logger.info(f"Uploading: {metadata['title']}")
 
-            request = self.youtube.videos().insert(
-                part=",".join(body.keys()), body=body, media_body=media
-            )
+            request = self.youtube.videos().insert(part=",".join(body.keys()), body=body, media_body=media)
 
             # Execute the upload
             response = None
@@ -308,8 +291,8 @@ class YouTubeUploader:
             # Store YouTube URL in a new column or in existing field
             cursor.execute(
                 f"""
-                UPDATE {self.table} 
-                SET status = 'published', 
+                UPDATE {self.table}
+                SET status = 'published',
                     demo_video_url = ?,
                     updated_at = ?
                 WHERE submission_id = ?
@@ -326,7 +309,7 @@ class YouTubeUploader:
         finally:
             conn.close()
 
-    def find_video_for_submission(self, submission_id: str) -> Optional[str]:
+    def find_video_for_submission(self, submission_id: str) -> str | None:
         """Find video file for a submission."""
         # Look for video files matching the submission ID
         patterns = [
@@ -371,7 +354,7 @@ class YouTubeUploader:
             logger.error(f"Failed to process {submission_id}: {e}")
             return False
 
-    def get_uploadable_submissions(self) -> List[str]:
+    def get_uploadable_submissions(self) -> list[str]:
         """Get all submissions ready for upload."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -379,12 +362,12 @@ class YouTubeUploader:
         # Find scored submissions that aren't published yet
         cursor.execute(
             f"""
-            SELECT submission_id 
-            FROM {self.table} 
+            SELECT submission_id
+            FROM {self.table}
             WHERE status IN ('scored', 'completed')
             AND submission_id NOT IN (
-                SELECT submission_id 
-                FROM {self.table} 
+                SELECT submission_id
+                FROM {self.table}
                 WHERE status = 'published'
             )
             ORDER BY created_at
@@ -482,9 +465,7 @@ def main():
                 time.sleep(30)  # YouTube has upload quotas
 
         if not args.dry_run:
-            logger.info(
-                f"Upload complete: {success_count}/{len(submission_ids)} successful"
-            )
+            logger.info(f"Upload complete: {success_count}/{len(submission_ids)} successful")
 
 
 if __name__ == "__main__":
