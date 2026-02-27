@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Upload, Users, PlayCircle, FlaskConical, Copy, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { VoteModal } from '../components/VoteModal';
-import { SubmissionModal } from '../components/SubmissionModal';
 import { DiscordAvatar } from '../components/DiscordAvatar';
 import { hackathonApi } from '../lib/api';
 import { LeaderboardEntry } from '../types';
@@ -70,6 +70,7 @@ const faqs = [
 const VOTING_WALLET = '7ErPek9uyReCBwiLkTi3DbqNDRf2Kmz4BShGhXmWLebx'
 
 export default function Frontpage() {
+  const navigate = useNavigate()
   // Phase-based logic using SUBMISSION_DEADLINE
   const submissionDeadline = import.meta.env.VITE_SUBMISSION_DEADLINE
   const isAfterDeadline = submissionDeadline ? new Date() > new Date(submissionDeadline) : false
@@ -88,7 +89,6 @@ export default function Frontpage() {
   // Leaderboard state and modals
   const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([])
   const [leaderboardLoading, setLeaderboardLoading] = useState(false)
-  const [selectedSubmission, setSelectedSubmission] = useState<LeaderboardEntry | null>(null)
   const [votingSubmission, setVotingSubmission] = useState<LeaderboardEntry | null>(null)
   const { copied, copyToClipboard } = useCopyToClipboard()
 
@@ -452,7 +452,7 @@ export default function Frontpage() {
                       <div
                         key={entry.submission_id}
                         className="grid grid-cols-1 md:grid-cols-[64px_1fr_100px_280px] gap-4 hover:bg-slate-700/30 transition-colors cursor-pointer"
-                        onClick={() => setSelectedSubmission(entry)}
+                        onClick={() => navigate(`/submission/${entry.submission_id}`)}
                       >
                         {/* Mobile: Card-style layout */}
                         <div className="md:hidden p-4 space-y-4">
@@ -877,14 +877,6 @@ export default function Frontpage() {
         </div>
       </section>
 
-      {/* Submission Detail Modal */}
-      {selectedSubmission && (
-        <SubmissionModal
-          submissionId={selectedSubmission.submission_id}
-          onClose={() => setSelectedSubmission(null)}
-          allSubmissionIds={leaderboardEntries.map(e => e.submission_id)}
-        />
-      )}
 
       {/* Vote Modal */}
       {votingSubmission && (

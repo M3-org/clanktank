@@ -281,6 +281,7 @@ export const hackathonApi = {
 
   // Get submission feedback (goes through axios cache)
   getSubmissionFeedback: async (submissionId: string) => {
+    if (USE_STATIC) return null;
     const response = await api.get(`/submission/${submissionId}/feedback`);
     return response.data;
   },
