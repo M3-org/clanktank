@@ -2858,18 +2858,22 @@ def generate_static_data():
         submission_dir.mkdir(exist_ok=True)
 
         for submission in submissions:
-            # Use the get_submission logic to generate detailed data
-            # (This is a simplified version - in production, refactor to share code)
             details_result = conn.execute(
                 text(
-                    "SELECT * FROM hackathon_submissions_v2 WHERE submission_id = :submission_id"
+                    "SELECT s.*, u.avatar as discord_avatar FROM hackathon_submissions_v2 s "
+                    "JOIN users u ON s.owner_discord_id = u.discord_id "
+                    "WHERE s.submission_id = :submission_id"
                 ),
                 {"submission_id": submission["submission_id"]},
             )
             details = details_result.fetchone()
+            detail_dict = dict(details._mapping)
+            # Add frontend-expected field aliases
+            detail_dict["discord_id"] = detail_dict.get("owner_discord_id")
+            detail_dict["discord_username"] = detail_dict.get("discord_handle")
 
             with open(submission_dir / f"{submission['submission_id']}.json", "w") as f:
-                json.dump(dict(details._mapping), f, indent=2)
+                json.dump(detail_dict, f, indent=2)
 
         # Generate leaderboard.json
         leaderboard_result = conn.execute(
@@ -2933,6 +2937,16 @@ def generate_static_data():
 
         with open(output_dir / "stats.json", "w") as f:
             json.dump(stats, f, indent=2)
+
+        # Generate config.json
+        config = {
+            "submission_deadline": None,
+            "current_time": datetime.now().isoformat(),
+            "can_submit": False,
+            "submission_window_open": False,
+        }
+        with open(output_dir / "config.json", "w") as f:
+            json.dump(config, f, indent=2)
 
         print("Static data generation complete!")
 

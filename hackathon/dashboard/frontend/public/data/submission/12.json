@@ -16,5 +16,8 @@
   "problem_solved": "Discord communities struggle with:\nComplex bot setups requiring server permissions and technical knowledge\nDisconnected AI experiences that feel like external tools\nLimited context awareness in traditional chatbots\nPoor user experience switching between Discord and AI tools",
   "favorite_part": "The \"Aha!\" moment when Discord Activities just... work.\nYou know what really gets me excited about this project? It's that magical moment when a Discord user clicks the Activities button, and suddenly they're chatting with an AI agent - no permissions, no setup, no \"invite bot to server\" dance. Just pure, frictionless innovation.\n\nBut if I had to pick my absolute favorite part, it's the Discord ID to UUID mapping system.\n\nThis seemingly simple function is actually brilliant - it bridges two completely different identity systems seamlessly. Discord uses snowflake IDs, ElizaOS expects UUIDs, and this function creates a deterministic, collision-free mapping between them. Every Discord user gets a consistent identity across sessions without any database lookups!\n\nBut beyond the technical elegance, what I really love is how this project respects the user's context. The AI knows you're in the #gaming channel talking about strategies, or in #study-group working through calculus problems. It's not just another chatbot - it's a context-aware companion that fits naturally into the Discord experience.",
   "solana_address": "Dpc1AVb7bmFHPUpYhcysceKvMVfRqgG3WTjW4qY75Psk",
-  "ethereum_address": null
+  "ethereum_address": null,
+  "discord_avatar": "https://cdn.discordapp.com/avatars/141677977929777152/6f1e54b99ed8c385a422a642f468f4c8.png",
+  "discord_id": "141677977929777152",
+  "discord_username": "cjft"
 }

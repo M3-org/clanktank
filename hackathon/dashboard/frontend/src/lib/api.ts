@@ -281,6 +281,10 @@ export const hackathonApi = {
 
   // Get config (cached properly through axios)
   getConfig: async () => {
+    if (USE_STATIC) {
+      const response = await api.get('/config.json');
+      return response.data;
+    }
     const response = await api.get('/config');
     return response.data;
   },
