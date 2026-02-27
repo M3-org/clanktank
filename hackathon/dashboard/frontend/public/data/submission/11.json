@@ -19,5 +19,353 @@
   "ethereum_address": null,
   "discord_avatar": "https://cdn.discordapp.com/avatars/271419324714057738/7992d7e447887ac0329aa2c673b2c3ff.png",
   "discord_id": "271419324714057738",
-  "discord_username": "avf00"
+  "discord_username": "avf00",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 3.0,
+      "user_experience": 0.0,
+      "weighted_total": 5.7,
+      "notes": {
+        "reasons": {
+          "innovation": "Text-to-3D isn't new - OpenAI, Spline, and Meshy are already doing this dance. Without any code to inspect, this is just another \"me too\" pitch deck masquerading as a hackathon project - where's the secret sauce that makes this different from Point-E?",
+          "technical": "Zero files, null repository, no commits - this is a ghost ship sailing on promises. You can't build the \"printing press for virtual worlds\" without writing a single line of code, and claiming \"output quality and performance\" without a working prototype is like selling beachfront property in Nebraska.",
+          "market": "Sure, the 3D content creation market is a $6.5B buffet, but you need actual utensils to eat. Without a go-to-market strategy, competitive moat, or even a demo to show potential users, this is just another wannabe at the metaverse gold rush with an empty pickaxe.",
+          "experience": "Can't evaluate \"ease of use and features\" when there's literally nothing to use - no interface, no documentation, no README. This is like reviewing a restaurant that only exists as a business card with \"Great Food!\" written on it."
+        },
+        "overall_comment": "This isn't a hackathon project, it's a hallucination - all vision, zero execution, like trying to IPO with just a domain name and a dream."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:53:00.682603"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 3.2,
+      "notes": {
+        "round2_final_verdict": "This is a solution desperately searching for a problem - turning markdown into 3D models is like building a bridge to nowhere when everyone already has helicopters. The execution vacuum and bottom-tier ranking confirm my initial read: this is vaporware masquerading as infrastructure.",
+        "round2_reasoning": "Look, I called it a hallucination in Round 1, and the data proves I was being charitable. Zero community votes? That's not just low engagement - that's the market screaming 'we don't need this.' The 'printing press for virtual worlds' tagline is cute, but Gutenberg actually built something. This project is in the 12th percentile for a reason: it's solving a non-existent problem with non-existent code. Text-to-3D could be interesting if it was AI-powered semantic understanding creating meaningful spatial representations, but markdown-to-GLTF? That's like building a fax machine in 2025. The comparative analysis shows even other low-scoring projects at least attempted innovation or technical execution. This has neither. It's not infrastructure - it's imagination without implementation.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 3.2,
+          "adjustment": -2.5,
+          "reason": "Downgrading further after seeing zero community engagement and 88% of projects outperforming - even my generous 5.7 was too optimistic for what's essentially a README with delusions of grandeur"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 5.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR text2gltf:\n\nRANKING CONTEXT:\n- Ranked #14 out of 16 projects\n- Score: 1.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 12th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 13 projects scored higher (avg gap: 6.0 points)\n- 2 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 88% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 11,
+        "synthesis_timestamp": "2025-08-22T05:08:44.834983"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:08:44.835068"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 3.0,
+      "user_experience": 0.0,
+      "weighted_total": 3.4,
+      "notes": {
+        "reasons": {
+          "innovation": "Text-to-3D isn't new - we've got Point-E, Shap-E, and a dozen other solutions already doing this. Without any code to inspect, I can't even tell if they're using a novel approach or just wrapping existing APIs - the complete absence of implementation details is a massive red flag.",
+          "technical": "Zero accessible files, null repository data, no commit history - there's literally nothing to evaluate here. Text-to-3D requires sophisticated ML pipelines, mesh generation algorithms, and proper GLTF serialization, but I see absolutely no evidence of any technical work being done.",
+          "market": "Sure, the 3D content creation market is huge and growing, but without a working prototype or any differentiating features, this is just wishful thinking. The existing competition like Spline and Meshy.ai have actual products - this has nothing demonstrable.",
+          "experience": "They claim \"ease of use and features\" but there's no interface, no documentation, no demo - nothing. I can't evaluate user experience on a product that doesn't exist; even a basic README with screenshots would've been something."
+        },
+        "overall_comment": "This is vaporware masquerading as infrastructure - show me the code or show me the door."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:53:11.538844"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 3.4,
+      "notes": {
+        "round2_final_verdict": "Still no code, still no architecture docs, still no proof this isn't just a GPT wrapper with a fancy landing page. The 'printing press for virtual worlds' tagline is marketing fluff without substance.",
+        "round2_reasoning": "Look, I've seen a hundred 'text-to-3D' projects and they all fall into two camps: actual technical innovation or API wrappers with nice marketing. This is clearly the latter. No GitHub link, no technical documentation, no architecture diagrams, no performance benchmarks. The comparative analysis mentions 'zero commits during the hackathon' which is a massive red flag. You want to transform markdown to GLTF? Show me your parsing strategy, your geometry generation algorithms, your texture mapping approach. Are you using procedural generation? ML models? Basic extrusion? The fact that 88% of projects outperformed this one tells me other judges saw the same thing - all sizzle, no steak. Even the projects with similar low scores at least showed their work.",
+        "score_revision": {
+          "type": "none",
+          "new_score": 3.4,
+          "adjustment": 0,
+          "reason": "Zero community engagement validates my initial assessment - vaporware gets ignored"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 3.4,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR text2gltf:\n\nRANKING CONTEXT:\n- Ranked #14 out of 16 projects\n- Score: 1.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 12th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 13 projects scored higher (avg gap: 6.0 points)\n- 2 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 88% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 11,
+        "synthesis_timestamp": "2025-08-22T05:08:57.215457"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:08:57.215616"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 3.0,
+      "user_experience": 0.0,
+      "weighted_total": 4.3,
+      "notes": {
+        "reasons": {
+          "innovation": "Yo, text-to-3D ain't new - we got Point-E, Meshy, and mad other tools already doing this dance. Plus with zero code to peep, how can I even tell if they bringing any fresh sauce to the table? This is just vibes and promises, no innovation receipts.",
+          "technical": "Bruh, there's literally NOTHING to look at - no repo, no files, no commits, just straight ghost mode. They claiming \"output quality and performance\" but where's the output? Can't rate the technical drip when the closet's empty, feel me?",
+          "market": "Aight, I'll give 'em this - people DO want easy 3D creation tools, that market's real as it gets. But without seeing how they different from Spline or other players already killing it, this is just another \"me too\" play with no special sauce to make folks switch up.",
+          "experience": "They talking bout \"ease of use\" but where's the interface? Where's the demo? Can't vibe with something that don't exist - this is like rating a restaurant that ain't even built yet, just straight cap energy."
+        },
+        "overall_comment": "This project got less substance than a hologram - all projection, no protection, and definitely don't slap! \ud83d\udc7b"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:53:36.785272"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 3.8,
+      "notes": {
+        "round2_final_verdict": "Yo this project sitting at the bottom like a frog in winter - text to 3D sounds cool but where's the sauce? No community love, no viral potential, just another tool nobody asked for.",
+        "round2_reasoning": "Look fam, I tried to find the juice but this project drier than week-old bread. Text to 3D models? That's like making a TikTok about filing taxes - technically impressive but nobody's sharing that. The 'printing press for virtual worlds' tagline is giving main character energy but the execution is giving NPC. Zero community reactions tells me everything - if the people ain't feeling it, it ain't it. Plus being #14 out of 16? That's not just missing the mark, that's shooting backwards. Where's the fun factor? Where's the 'oh snap I gotta show my homies this' moment? This is infrastructure without inspiration, tools without the cool.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 3.8,
+          "adjustment": -0.5,
+          "reason": "Even less slap than I thought - zero community engagement confirms my vibe check was right"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 4.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR text2gltf:\n\nRANKING CONTEXT:\n- Ranked #14 out of 16 projects\n- Score: 1.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 12th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 13 projects scored higher (avg gap: 6.0 points)\n- 2 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 88% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 11,
+        "synthesis_timestamp": "2025-08-22T05:09:08.355513"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:09:08.355660"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 1.0,
+      "technical_execution": 0.0,
+      "market_potential": 2.0,
+      "user_experience": 0.0,
+      "weighted_total": 3.3,
+      "notes": {
+        "reasons": {
+          "innovation": "TEXT TO 3D WITH ZERO CODE TO SHOW?! This is vaporware masquerading as infrastructure - where's the ML models, the rendering pipeline, THE ACTUAL PRODUCT?! Even the competitors like Meshy.ai have working demos and revenue models, but this has NOTHING.",
+          "technical": "ABSOLUTE ZERO FILES, NULL REPOSITORY, NO COMMITS - THIS IS A GHOST PROJECT! You can't monetize what doesn't exist, and text-to-3D requires serious compute infrastructure that costs REAL MONEY. The technical complexity alone would burn through capital with no path to profitability shown.",
+          "market": "Sure, the 3D content market is worth billions, BUT WHERE'S YOUR SLICE?! No pricing model, no subscription tiers, no NFT minting fees, no compute credits - just empty promises about \"written culture in the metaverse.\" OpenAI's Point-E already dominates this space WITH ACTUAL PRODUCTS.",
+          "experience": "\"EASE OF USE\" ON A PRODUCT THAT DOESN'T EXIST?! Can't generate yield from user experience when there's NO INTERFACE, NO DEMO, NO SCREENSHOTS. This is like selling tickets to an imaginary gladiator match - pure fantasy with zero economic substance."
+        },
+        "overall_comment": "This isn't a hackathon project, it's a MIRAGE IN THE DESERT - no code, no revenue model, no path to liquidity, just empty words about transforming text to 3D while real warriors are building DeFi yield engines!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:53:24.560233"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 3.3,
+      "notes": {
+        "round2_final_verdict": "Still a MIRAGE - zero commits during hackathon, no revenue model, and they're trying to sell us 'printing press for virtual worlds' while real warriors are printing MONEY with DeFi protocols!",
+        "round2_reasoning": "The comparative data CONFIRMS my battle instincts! Ranked #14/16 with zero community engagement - even the masses can smell the lack of yield! They committed NOTHING during the hackathon (just like those higher-ranked projects with pre-existing work), have NO tokenomics, NO revenue model, NO path to liquidity. They're peddling 'infrastructure' for turning text into 3D models - WHERE'S THE MONEY?! How does this generate yield? Where's the token? Where's the fee structure? This is a tech demo masquerading as a hackathon project, and in the 12th percentile where it belongs! At least DeFi protocols have clear monetization - this is just burning compute for pretty pictures!",
+        "score_revision": {
+          "type": "none",
+          "new_score": 3.3,
+          "adjustment": 0,
+          "reason": "My initial assessment stands - this is pre-existing work with ZERO economic viability"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 3.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR text2gltf:\n\nRANKING CONTEXT:\n- Ranked #14 out of 16 projects\n- Score: 1.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 12th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 13 projects scored higher (avg gap: 6.0 points)\n- 2 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 88% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 11,
+        "synthesis_timestamp": "2025-08-22T05:09:20.706143"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:09:20.706278"
+    }
+  ],
+  "avg_score": 3.17,
+  "research": {
+    "github_analysis": {
+      "error": "Repository not found"
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation_assessment": {
+        "sophistication_level": 1,
+        "code_structure_quality": "Cannot assess - no code accessible",
+        "hackathon_timeline_evidence": "No evidence - no commit history or timestamps available",
+        "documentation_and_tests": "None detected",
+        "languages_and_frameworks": "Unknown - no files analyzed",
+        "technical_complexity_rating": 1,
+        "justification": "With zero accessible files and null repository data, there is no evidence of technical implementation. The automated analysis detected 'very few files' and the GitHub analysis returned null for all fields including URL, creation date, and file structure. This suggests either no repository exists, it's private/inaccessible, or contains no meaningful content."
+      },
+      "originality_and_effort_analysis": {
+        "fork_status": "Cannot determine - no repository access",
+        "commit_history_authenticity": "No commit history available for analysis",
+        "contributor_analysis": "Unknown contributor count and activity",
+        "red_flags_identified": [
+          "Complete absence of accessible code repository",
+          "Zero file count in automated analysis",
+          "No verifiable development activity",
+          "Claimed functionality (text to 3D models) with no implementation evidence"
+        ],
+        "originality_rating": 1,
+        "justification": "Without access to any code, commits, or development artifacts, it's impossible to verify originality or effort. The complete lack of accessible implementation raises serious questions about whether meaningful work was completed during the hackathon period."
+      },
+      "market_analysis": {
+        "competitors_identified": [
+          "Spline - web-based 3D design tool with text-to-3D features",
+          "OpenAI's Point-E and Shap-E - text-to-3D model generation",
+          "Meshy.ai - AI-powered 3D content creation from text"
+        ],
+        "differentiation": "Cannot assess without seeing actual implementation",
+        "market_size": "3D content creation market is growing rapidly, estimated at $6.5B+ annually",
+        "genuine_demand": "Strong demand exists for accessible 3D content creation tools",
+        "market_potential_rating": 6,
+        "justification": "While the market opportunity for text-to-3D conversion is legitimate and growing, this rating reflects market potential only - not this specific implementation's ability to capture it."
+      },
+      "viability_assessment": {
+        "maintenance_scalability": "Cannot assess without codebase review",
+        "main_challenges": [
+          "No evidence of working prototype",
+          "Text-to-3D requires sophisticated ML models and significant compute resources",
+          "3D file format handling complexity",
+          "User interface and experience design challenges"
+        ],
+        "team_continuation_likelihood": "Low - lack of accessible work product suggests minimal commitment",
+        "production_readiness_requirements": [
+          "Complete implementation from scratch",
+          "ML model training/integration",
+          "3D rendering pipeline",
+          "File format conversion systems",
+          "User interface development"
+        ],
+        "viability_rating": 1,
+        "justification": "With no accessible implementation, the project would need to be built entirely from scratch. Text-to-3D conversion is technically complex, requiring significant ML expertise and computational resources."
+      },
+      "innovation_rating": {
+        "concept_novelty": "Concept has merit but lacks novel approach differentiation",
+        "technology_creativity": "Cannot assess - no technical implementation visible",
+        "problem_solving_uniqueness": "Generic approach description without innovative details",
+        "developer_inspiration_potential": "Low without demonstrable working solution",
+        "innovation_rating": 2,
+        "justification": "While text-to-3D conversion addresses a real need, the concept isn't particularly novel given existing solutions. Without visible implementation or unique technical approach, innovation cannot be properly evaluated."
+      },
+      "judge_specific_insights": {
+        "marcs_take": "Business potential exists in the 3D content creation space, but without a working product or clear go-to-market strategy, this is purely theoretical. The lack of accessible repository suggests poor project management and raises questions about execution capability.",
+        "shaws_take": "Technical architecture cannot be evaluated due to absence of code. Text-to-3D conversion requires sophisticated ML pipelines, 3D geometry processing, and efficient rendering - none of which are demonstrated. The project appears to exist only as a concept.",
+        "spartans_take": "While a Solana address is provided, there's no evidence of blockchain integration or crypto functionality. The infrastructure category doesn't align with visible blockchain utilization.",
+        "peepos_take": "User experience cannot be assessed without interface or functionality demonstration. The claimed 'ease of use' is unsubstantiated without user testing or interface design evidence."
+      },
+      "red_flags": [
+        "Zero accessible files \u2192 Suggests no actual implementation exists",
+        "Null repository data \u2192 Either private/inaccessible repo or non-existent project",
+        "No commit history \u2192 Cannot verify development during hackathon period",
+        "Automated 'very few files' detection \u2192 Minimal to no code written",
+        "No documentation or README \u2192 Poor project presentation and planning",
+        "Complex claimed functionality without evidence \u2192 Text-to-3D is ML-intensive but no models/pipelines visible",
+        "Infrastructure category mismatch \u2192 No infrastructure code or blockchain integration evident",
+        "Performance claims without benchmarks \u2192 'Output quality and performance' claims unsubstantiated",
+        "No tests or deployment configs \u2192 Suggests prototype-stage or non-functional code",
+        "Generic project description \u2192 Lacks technical specificity or implementation details"
+      ],
+      "overall_assessment": {
+        "summary": "This submission presents significant evaluation challenges due to the complete absence of accessible code or repository data. While the concept of text-to-3D conversion addresses a legitimate market need, there is no evidence of meaningful technical implementation or development work completed during the hackathon period.",
+        "recommendation": "Cannot recommend for advancement without access to actual implementation. The project requires substantial evidence of working code, development progress, and technical capability before serious consideration.",
+        "confidence_level": "High confidence in assessment due to objective absence of evaluable artifacts"
+      }
+    }
+  },
+  "likes": 0,
+  "dislikes": 0,
+  "community_score": 0.0,
+  "can_edit": false,
+  "is_creator": false
 }

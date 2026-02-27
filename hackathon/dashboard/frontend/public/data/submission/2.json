@@ -19,5 +19,534 @@
   "ethereum_address": null,
   "discord_avatar": "https://cdn.discordapp.com/avatars/779363634789744690/eabbf4c0c43d8e40d7c7074ed4e80a72.png",
   "discord_id": "779363634789744690",
-  "discord_username": "thecreative.eth"
+  "discord_username": "thecreative.eth",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 2.0,
+      "technical_execution": 1.0,
+      "market_potential": 3.0,
+      "user_experience": 2.0,
+      "weighted_total": 9.7,
+      "notes": {
+        "reasons": {
+          "innovation": "Property management software with AI? That's like claiming you invented the wheel because you put spinners on it. The real kicker is they're selling ElizaOS integration that doesn't exist - that's not innovation, that's imagination.",
+          "technical": "This is a Potemkin village of code - all facade, no substance. They built a landing page and called it an AI agent system, which is like calling a paper airplane a SpaceX rocket because they both technically fly.",
+          "market": "Sure, property management is a $3.4B market, but you can't capture it with HTML and dreams. The gap between their TAM story and their MVP reality is wider than the Grand Canyon - no go-to-market strategy survives first contact with \"we don't actually have a product.\"",
+          "experience": "The user experience is literally just a marketing website with a third-party chatbox slapped on. That's like saying you built a Tesla because you hot-glued an iPad to a shopping cart - technically there's a screen involved, but come on."
+        },
+        "overall_comment": "This is what happens when your pitch deck writes checks your codebase can't cash - all sizzle, no steak, and the grill isn't even plugged in."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:45:24.184940"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 7.2,
+      "notes": {
+        "round2_final_verdict": "REMI is a vitamin solution in a painkiller market - property management needs disruption, but this is just ChatGPT with a real estate prompt template. The fact that it's beating 44% of projects tells me this hackathon has a serious quality problem.",
+        "round2_reasoning": "Look, I've seen a thousand 'AI for X' pitches, and this is textbook lazy execution. Property management is a $100B+ TAM crying out for disruption - broken maintenance workflows, terrible tenant communication, zero data insights - but slapping an AI agent on top isn't the answer. Where's the proprietary data moat? Where's the network effect? You're competing with Buildium, AppFolio, and every YC batch has three of these. The ElizaOS framework choice tells me you're following trends, not building defensible tech. And hosting on Fleek? That's like putting racing stripes on a golf cart. The community's lukewarm response (1 like? Really?) confirms what the code tells us: this is a weekend project masquerading as a startup.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 7.2,
+          "adjustment": -2.5,
+          "reason": "Zero commits during hackathon confirms this is recycled work, and ElizaOS integration is table stakes, not innovation"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 9.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Real Estate Management Intelligence (REMI):\n\nRANKING CONTEXT:\n- Ranked #9 out of 16 projects\n- Score: 4.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 44th percentile\n- Judge consensus: Low (variance: 2.4)\n\nCOMPETITIVE LANDSCAPE:\n- 8 projects scored higher (avg gap: 5.7 points)\n- 7 projects scored lower\n- 3 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 2,
+        "synthesis_timestamp": "2025-08-22T05:00:54.085159"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:00:54.085268"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 1.0,
+      "technical_execution": 2.0,
+      "market_potential": 3.0,
+      "user_experience": 2.0,
+      "weighted_total": 8.8,
+      "notes": {
+        "reasons": {
+          "innovation": "*checks codebase* Wait, where's the ElizaOS integration? This is just a static HTML page with a Fleek chatbox widget slapped on - there's literally zero AI agent architecture here. The innovation claims are completely fabricated; even the \"knowledge training\" they're proud of doesn't exist in the code.",
+          "technical": "Oh man, this hurts to look at... server.js is trying to serve 'remi-demo.html' but the file is named 'Index.html' - basic stuff! The entire \"AI agent\" is just `<script src=\"https://fleek.xyz/chat/widget.js\">` and they're claiming ElizaOS framework usage? No database, no state management, just a proxy for Gemini API keys.",
+          "market": "Property management software is a real $3B+ market with genuine pain points, I'll give them that. But this implementation wouldn't survive 5 minutes in production - it's a landing page pretending to be a product, with zero actual property management features implemented.",
+          "experience": "The user gets a basic marketing website with Tailwind styling and... that's it. No property management dashboard, no tenant portal, no maintenance tracking - just promises and a third-party chatbot that has nothing to do with real estate."
+        },
+        "overall_comment": "Classic case of \"fake it till you make it\" gone wrong - claiming ElizaOS integration while shipping a static website is like saying you built a rocket when you just drew one in MS Paint."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:45:36.580964"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 6.3,
+      "notes": {
+        "round2_final_verdict": "Look, claiming ElizaOS integration without a single API call or agent implementation is straight-up vaporware - this is just a static landing page with zero commits during the hackathon. The community's minimal engagement (1 like? really?) confirms what we already knew: this isn't a real project.",
+        "round2_reasoning": "After seeing the comparative context, I'm even more frustrated. They're sitting at 44th percentile with a 4.7 score, and honestly that's generous. Zero commits during the hackathon? Check. No actual ElizaOS integration despite claiming it as the core feature? Check. Just a Fleek-hosted static site that could've been built in 30 minutes? Triple check. The fact that they're only 2.4 points below median shows how many projects phoned it in. At least the cymatics visualization project (which also had pre-existing work) delivered something functional. This is literally just promises and mockups - the GitHub equivalent of 'trust me bro.'",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 6.3,
+          "adjustment": -2.5,
+          "reason": "Docking points for the audacity of submitting pre-existing static content as a hackathon project - at least other low scorers tried to build something"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 8.8,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Real Estate Management Intelligence (REMI):\n\nRANKING CONTEXT:\n- Ranked #9 out of 16 projects\n- Score: 4.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 44th percentile\n- Judge consensus: Low (variance: 2.4)\n\nCOMPETITIVE LANDSCAPE:\n- 8 projects scored higher (avg gap: 5.7 points)\n- 7 projects scored lower\n- 3 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 2,
+        "synthesis_timestamp": "2025-08-22T05:01:07.736902"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:01:07.737044"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 2.0,
+      "technical_execution": 2.0,
+      "market_potential": 3.0,
+      "user_experience": 1.0,
+      "weighted_total": 8.2,
+      "notes": {
+        "reasons": {
+          "innovation": "Yo, this is giving me \"I watched a YouTube video about AI and property management\" vibes - they're talking big game about ElizaOS integration and multi-agent systems but the actual code is just a basic website with a chatbox widget. The innovation here is about as real as my chances of becoming a real estate mogul tomorrow, fam.",
+          "technical": "Bruh, they said they built on ElizaOS but I'm seeing ZERO evidence - it's like saying you made a gourmet meal but all you did was microwave some leftovers. The \"AI agent\" is literally just a third-party Fleek widget slapped on a static site, and that server.js is trying to serve files that don't even exist with the right names!",
+          "market": "Okay real talk, property management IS a legit problem space with mad potential, but this ain't the solution chief - it's like showing up to a car race with a skateboard. The market's there waiting for someone to actually build something, not just talk about building something while serving up a landing page.",
+          "experience": "Does it slap? Nah fam, it doesn't even clap - we got a basic marketing website pretending to be a whole property management system! Where's the tenant portal? Where's the maintenance tracking? This is like ordering a pizza and getting just the box with a picture of pizza on it."
+        },
+        "overall_comment": "This project got more cap than a New Era store - talking about AI agents and blockchain integration while serving up HTML and vibes! \ud83e\udde2"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:46:01.394350"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 6.2,
+      "notes": {
+        "round2_final_verdict": "Yo this project sitting at #9 with only 1 like? That's telling me everything - it's solving a real problem but ain't nobody getting excited about property management AI. The vibe check failed harder than a landlord trying to be cool.",
+        "round2_reasoning": "Look, I was being generous in Round 1 cause property management is a real pain point, but let's keep it 100 - this ain't it chief. They took ElizaOS (someone else's framework), slapped a property management theme on it, and called it a day. Zero commits during the hackathon? That's not building, that's copy-pasting. The single lonely like tells the whole story - even property managers ain't hyped about this. Where's the demo? Where's the sauce? This is like showing up to a dance battle with someone else's choreography. At least make it fun or give it personality! Property management could be gamified, could have tenant achievements, could have SOMETHING that makes people want to use it instead of just tolerating it.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 6.2,
+          "adjustment": -2.0,
+          "reason": "Community engagement is ice cold and the pre-built ElizaOS framework means they basically just configured someone else's work"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 8.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Real Estate Management Intelligence (REMI):\n\nRANKING CONTEXT:\n- Ranked #9 out of 16 projects\n- Score: 4.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 44th percentile\n- Judge consensus: Low (variance: 2.4)\n\nCOMPETITIVE LANDSCAPE:\n- 8 projects scored higher (avg gap: 5.7 points)\n- 7 projects scored lower\n- 3 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 2,
+        "synthesis_timestamp": "2025-08-22T05:01:18.909637"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:01:18.909787"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 2.0,
+      "technical_execution": 1.0,
+      "market_potential": 3.0,
+      "user_experience": 2.0,
+      "weighted_total": 8.7,
+      "notes": {
+        "reasons": {
+          "innovation": "PROPERTY MANAGEMENT AI? EVERY PROPTECH STARTUP CLAIMS THIS! Where's the actual AI implementation - it's just a Fleek chatbox widget pretending to be ElizaOS! No smart contracts, no yield mechanisms, just marketing fluff with ZERO substance!",
+          "technical": "THIS IS A SCAM! Claims \"sophisticated multi-agent system\" but delivers a static HTML page with third-party widgets! Server.js can't even find its own files - tries to serve 'remi-demo.html' when the file is 'Index.html'! PATHETIC!",
+          "market": "Sure, $3.4B property management market exists, but WHERE'S YOUR REVENUE MODEL?! No pricing, no tokenomics, no subscription tiers - just empty promises about NFT ownership that doesn't exist! AppFolio actually makes money while you make EXCUSES!",
+          "experience": "It's a LANDING PAGE, not a product! Zero property management features, no tenant portal, no maintenance tracking - just marketing copy and a chatbot that probably costs more than it'll ever earn! Users can't even LOG IN!"
+        },
+        "overall_comment": "Another \"AI\" project with no AI, no revenue model, and no shame - THIS IS WHY WE CAN'T HAVE NICE YIELDS!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:45:48.204003"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 6.2,
+      "notes": {
+        "round2_final_verdict": "Another AI wrapper with ZERO revenue model - property management without tokenomics is just a glorified chatbot! WHERE'S THE YIELD, WHERE'S THE LIQUIDITY, WHERE'S THE MONEY?!",
+        "round2_reasoning": "This 'AI-powered' property management tool is EVERYTHING wrong with hackathons - no tokenomics, no fee structure, no yield generation, NOTHING! They built a chatbot on ElizaOS and called it revolutionary? WHERE'S THE MONEY?! Property management is a GOLDMINE for transaction fees, maintenance escrows, rental yield tokenization, but these builders gave us... a demo on Fleek? The comparative data shows 56% of projects outperformed this, and I bet ALL of them at least TRIED to explain how they'd generate revenue. Zero commits during hackathon means they couldn't even be bothered to add a basic fee mechanism. This is a tech demo masquerading as a business, and in the 44th percentile, it's exactly where it belongs - in the UNPROFITABLE MIDDLE!",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 6.2,
+          "adjustment": -2.5,
+          "reason": "Docking points for complete absence of monetization strategy and being below median with no economic innovation"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 8.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Real Estate Management Intelligence (REMI):\n\nRANKING CONTEXT:\n- Ranked #9 out of 16 projects\n- Score: 4.7 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 44th percentile\n- Judge consensus: Low (variance: 2.4)\n\nCOMPETITIVE LANDSCAPE:\n- 8 projects scored higher (avg gap: 5.7 points)\n- 7 projects scored lower\n- 3 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 2,
+        "synthesis_timestamp": "2025-08-22T05:01:33.204543"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:01:33.204846"
+    }
+  ],
+  "avg_score": 6.81,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/sirgawain0x/remi-demo",
+      "owner": "sirgawain0x",
+      "name": "remi-demo",
+      "description": "REMI quick demo",
+      "created_at": "2025-08-01T15:29:07Z",
+      "updated_at": "2025-08-04T22:29:10Z",
+      "license": "MIT License",
+      "readme_analysis": {
+        "exists": true,
+        "size": 4024,
+        "word_count": 526,
+        "has_sections": true,
+        "has_setup_section": true,
+        "has_license_section": false
+      },
+      "file_structure": {
+        "total_files": 9,
+        "file_extensions": {
+          "gitignore": 1,
+          "html": 1,
+          "md": 1,
+          "json": 2,
+          "yaml": 1,
+          "js": 1
+        },
+        "config_files": [
+          "package.json"
+        ],
+        "is_large_repo": false,
+        "is_mono_repo": false,
+        "has_docs": true,
+        "has_tests": false,
+        "files": [
+          ".gitignore",
+          "Index.html",
+          "LICENSE",
+          "Procfile",
+          "README.md",
+          "package.json",
+          "render.yaml",
+          "server.js",
+          "vercel.json"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 7,
+        "commit_messages": [
+          "Update README.md\n\nMarkdown update",
+          "Update README.md\n\nmore valuable information.",
+          "bugfix",
+          "bugfix",
+          "updates",
+          "init",
+          "Initial commit"
+        ],
+        "commit_dates": [
+          "2025-08-04T22:29:06Z",
+          "2025-08-04T22:26:48Z",
+          "2025-08-01T16:04:16Z",
+          "2025-08-01T16:00:02Z",
+          "2025-08-01T15:55:38Z",
+          "2025-08-01T15:48:15Z",
+          "2025-08-01T15:29:07Z"
+        ],
+        "commit_authors": [
+          "sirgawain0x",
+          "G2"
+        ],
+        "days_with_commits": 2,
+        "first_commit_date": "2025-08-01T15:29:07Z",
+        "last_commit_date": "2025-08-04T22:29:06Z",
+        "days_before_deadline": 1
+      },
+      "file_manifest": [
+        {
+          "path": ".gitignore",
+          "bytes": 162,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "Index.html",
+          "bytes": 26484,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 1059,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "Procfile",
+          "bytes": 15,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "README.md",
+          "bytes": 4024,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "package.json",
+          "bytes": 428,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "render.yaml",
+          "bytes": 240,
+          "ext": "yaml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "server.js",
+          "bytes": 3797,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "vercel.json",
+          "bytes": 229,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        }
+      ],
+      "dependency_info": {
+        "package.json": "{\n  \"name\": \"remi-demo\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Remi Demo with secure API key handling\",\n  \"main\": \"server.js\",\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"dev\": \"nodemon server.js\",\n    \"build\": \"echo 'No build step required'\"\n  },\n  \"engines\": {\n    \"node\": \">=18.0.0\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.18.2\",\n    \"dotenv\": \"^16.3.1\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.0.1\"\n  }\n}"
+      },
+      "loc_histogram": {
+        "small (<1KB)": 5,
+        "large (10-50KB)": 1,
+        "medium (1-10KB)": 3
+      },
+      "token_budget": 40891,
+      "total_bytes": 36438,
+      "analyzed_at": "2025-08-08T05:23:21.622262",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [],
+        "include_patterns": [
+          "**/*.md",
+          "package.json"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "**/*.js",
+          "**/*.json",
+          "**/*.md",
+          "**/*.html",
+          "**/*.css"
+        ],
+        "exclude_patterns": [
+          "node_modules/**",
+          ".git/**",
+          "**/*.log",
+          "**/*.lock",
+          ".env*",
+          "dist/**",
+          "build/**"
+        ],
+        "core_code_max": 15000,
+        "other_file_max": 5000,
+        "rationale": "\u2022 Include all JS files (server.js is core backend logic)\n\u2022 Package.json reveals dependencies and project scope\n\u2022 README/docs essential for hackathon context\n\u2022 HTML/CSS show frontend implementation\n\u2022 Exclude build artifacts and dependencies to maximize source code\n\u2022 Generous limits given small repo size (36KB total)"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation_assessment": {
+        "sophistication_level": 2,
+        "code_structure_rating": 3,
+        "hackathon_timeline_evidence": 7,
+        "documentation_quality": 4,
+        "deployment_configuration": 6,
+        "frameworks_used": [
+          "Node.js/Express",
+          "Tailwind CSS",
+          "Gemini API",
+          "Fleek"
+        ],
+        "technical_complexity_rating": 2,
+        "technical_complexity_justification": "This is essentially a static website with basic JavaScript. Claims to use ElizaOS framework but shows zero evidence of actual implementation. The 'AI agent' is just a third-party Fleek chatbox widget. Server.js is a basic Express app that only serves static files and proxies API keys. No database, no complex logic, no real AI agent architecture."
+      },
+      "originality_effort_analysis": {
+        "is_fork": false,
+        "authentic_hackathon_work": true,
+        "contributor_count": 2,
+        "commit_authenticity": 6,
+        "development_timeline": "4 days within hackathon window",
+        "originality_rating": 3,
+        "originality_justification": "While not a fork, this is a very basic website implementation that doesn't deliver on its ambitious claims. The core 'innovation' (property management AI) is not actually implemented - just described. Most functionality relies on third-party services (Fleek chatbox, Gemini API) with minimal custom integration."
+      },
+      "market_analysis": {
+        "direct_competitors": [
+          "AppFolio - comprehensive property management software",
+          "Buildium - property management platform with automation",
+          "RentSpree - AI-powered rental platform"
+        ],
+        "differentiation": "Claims AI-first approach with ElizaOS integration, but actual implementation doesn't deliver this differentiation",
+        "addressable_market_size": "Property management software market is $3.4B+ globally",
+        "genuine_demand": true,
+        "market_potential_rating": 7,
+        "market_potential_justification": "Property management is a real problem with genuine market demand, but this solution doesn't actually address the core issues beyond surface-level claims. The market exists, but this implementation won't capture it."
+      },
+      "viability_assessment": {
+        "maintainability": 2,
+        "scalability": 1,
+        "team_continuation_likelihood": 3,
+        "production_readiness_requirements": "Complete rebuild needed - current implementation is just a demo website",
+        "main_challenges": [
+          "No actual AI agent implementation",
+          "No property management features",
+          "No database or data persistence",
+          "No user authentication or management",
+          "Misleading technical claims vs reality"
+        ],
+        "viability_rating": 2,
+        "viability_justification": "Current implementation is not viable as a product. Would require 95%+ rebuild to become functional property management software. The gap between claims and reality is enormous."
+      },
+      "innovation_rating": {
+        "core_concept_novelty": 2,
+        "technology_creativity": 2,
+        "problem_solving_uniqueness": 2,
+        "developer_inspiration_potential": 1,
+        "innovation_score": 2,
+        "innovation_justification": "Property management software with AI assistance is not novel. The claimed ElizaOS integration would be interesting but doesn't exist in the codebase. Uses standard tools in standard ways without creative implementation."
+      },
+      "judge_specific_insights": {
+        "marcs_take": "Business potential exists in property management, but this implementation has no go-to-market viability. It's a landing page claiming to be a product. No revenue model, user acquisition strategy, or actual product to market.",
+        "shaws_take": "Technical architecture is non-existent. Claims ElizaOS integration but shows zero evidence. The 'AI agent' is a third-party widget. Server architecture is basic static file serving. Would need complete technical rebuild.",
+        "spartans_take": "Mentions blockchain/NFT ownership via Unlock Protocol but no implementation exists. Just marketing copy. No Web3 integration beyond wishful thinking.",
+        "peepos_take": "User experience is a basic marketing website. The actual user interface for property management doesn't exist. Community appeal limited by lack of substance behind claims."
+      },
+      "red_flags": [
+        "Claims ElizaOS framework usage \u2192 Zero evidence in codebase, no ElizaOS imports or implementation",
+        "Misleading technical description \u2192 Repository contains only basic HTML/JS website, not AI agent system",
+        "Server configuration error \u2192 server.js tries to serve 'remi-demo.html' but file is named 'Index.html'",
+        "Hollow technical claims \u2192 Mentions 'sophisticated multi-agent system' but implements only third-party chatbox",
+        "No core functionality \u2192 Zero property management features implemented despite detailed problem description",
+        "Automated flag confirmed \u2192 High ratio of config files to actual source code (package.json, vercel.json, render.yaml vs minimal implementation)",
+        "Feature-implementation gap \u2192 Describes complex AI workflows, maintenance management, NFT integration but implements none of it",
+        "Copy-paste potential \u2192 README contains sophisticated technical descriptions that don't match the basic codebase",
+        "Deployment mismatch \u2192 Multiple deployment configs (Vercel, Render, Heroku) suggest template usage rather than targeted development"
+      ],
+      "overall_assessment": {
+        "summary": "This submission is primarily a marketing website masquerading as a technical product. While the problem space is valid and the market exists, the actual implementation is fundamentally dishonest about its capabilities. Claims to be built on ElizaOS framework with sophisticated AI agent functionality, but delivers only a static website with a third-party chatbox widget.",
+        "recommendation": "Not suitable for advancement. The gap between claims and reality is too significant to overlook. Would require complete rebuild to deliver on any of the stated functionality."
+      }
+    }
+  },
+  "likes": 1,
+  "dislikes": 0,
+  "community_score": 10.0,
+  "can_edit": false,
+  "is_creator": false
 }

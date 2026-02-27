@@ -19,5 +19,1747 @@
   "ethereum_address": null,
   "discord_avatar": "https://cdn.discordapp.com/avatars/573475033515819009/c8a112b4abd3d670a8630fdefa666005.png",
   "discord_id": "573475033515819009",
-  "discord_username": "_.sayonara"
+  "discord_username": "_.sayonara",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 6.0,
+      "technical_execution": 5.0,
+      "market_potential": 7.0,
+      "user_experience": 4.0,
+      "weighted_total": 25.7,
+      "notes": {
+        "reasons": {
+          "innovation": "Conversational AI for DeFi is clever positioning, but it's essentially a chatbot wrapper around existing protocols - where's the moat when OpenAI releases a plugin? The real innovation would be novel DeFi mechanisms, not just making Morpho Blue speak English.",
+          "technical": "Clean plugin architecture gets points, but this is 70% ElizaOS boilerplate masquerading as original work - I've seen more original code in a WordPress theme. The lack of frontend implementation for a \"user-facing\" product screams MVP theater rather than serious technical execution.",
+          "market": "DeFi accessibility is a real $100B+ problem, and Base integration is smart given Coinbase's distribution power. But here's the rub: your target users either know DeFi (and prefer direct interaction) or don't (and won't trust an AI with their money) - classic product-market fit paradox.",
+          "experience": "Where's the UI? You built a conversational interface with no conversation demo - that's like shipping a car without wheels. The missing frontend, absent user validation, and template-heavy implementation suggest this is more proof-of-concept than polished experience."
+        },
+        "overall_comment": "Another AI wrapper playing dress-up as innovation - this is what happens when you confuse integrating APIs with building defensible technology, but at least they picked the right chain to ride Coinbase's coattails."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T06:05:28.463054"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 23.2,
+      "notes": {
+        "round2_final_verdict": "Another DeFi wrapper masquerading as innovation - 19 actions across 5 plugins is just feature bloat when you're fundamentally reskinning existing protocols. This is the hackathon equivalent of putting racing stripes on a Honda Civic and calling it Formula 1.",
+        "round2_reasoning": "Look, I was already harsh at 25.7, but seeing it's in the bottom third confirms my instincts. They built a Swiss Army knife of DeFi integrations - Morpho, Clanker, LiFi - but that's exactly the problem. Where's the moat? Any competent dev can wire up these protocols in a weekend. The 'AI agent' angle is just ChatGPT with a wallet - we've seen this movie before. Zero technical innovation, zero defensibility, and in a market where every other project is doing the same thing but better. The single like with 'medium' engagement tells the whole story - even the community can smell the mediocrity.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 23.2,
+          "adjustment": -2.5,
+          "reason": "Downgrading for lack of differentiation in a crowded field - even the bottom 31st percentile is generous for API aggregation"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 25.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Otaku - DeFi AI Agent on Base:\n\nRANKING CONTEXT:\n- Ranked #11 out of 16 projects\n- Score: 3.4 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 31th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 10 projects scored higher (avg gap: 5.8 points)\n- 5 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 69% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 10,
+        "synthesis_timestamp": "2025-08-22T05:07:51.659803"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:07:51.659876"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 6.0,
+      "technical_execution": 7.0,
+      "market_potential": 8.0,
+      "user_experience": 5.0,
+      "weighted_total": 28.9,
+      "notes": {
+        "reasons": {
+          "innovation": "Conversational AI for DeFi is clever, but this is essentially ElizaOS with protocol integrations bolted on - the real innovation would be novel on-chain mechanisms or custom language models trained on DeFi data. The multi-protocol orchestration shows promise but follows predictable patterns.",
+          "technical": "Clean plugin architecture and proper TypeScript setup, though 70% is ElizaOS boilerplate - I'm seeing copy-pasted test utils and character templates everywhere. The Morpho and LiFi integrations are solid, but where's the custom state management for complex DeFi positions?",
+          "market": "DeFi accessibility is a real problem worth solving, and Base L2 focus is smart positioning, but the lack of frontend or user validation makes me question if they understand their audience. Who exactly wants to manage yield farming through chat instead of dashboards?",
+          "experience": "No UI implementation for a \"user-facing\" DeFi agent is a massive red flag - how do users even interact with this beyond terminal commands? The README is anemic for such a complex integration, and there's zero evidence of actual user testing or feedback loops."
+        },
+        "overall_comment": "Solid ElizaOS integration work that mistakes framework proficiency for innovation - show me the custom risk models and novel DeFi primitives, not just another chatbot wrapper around existing protocols."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T06:05:46.075243"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 26.4,
+      "notes": {
+        "round2_final_verdict": "Another ElizaOS wrapper that confuses plugin quantity with quality - 19 actions across 5 plugins but where's the custom DeFi logic? This is paint-by-numbers agent development when we need artists pushing protocol boundaries.",
+        "round2_reasoning": "Looking at the competitive landscape, I was too generous initially. This project sits in the 31st percentile for good reason - it's competent ElizaOS integration but nothing more. The Morpho Blue lending integration? Standard SDK calls. Clanker v4.0.0? They're using the library, not extending it. Cross-chain via LiFi? Again, just wrapper code. Where are the custom risk models I asked for? Where's the novel DeFi primitive that makes me go 'oh shit, that's clever'? The high judge consensus at 0.4 variance tells me we all saw the same thing: technically competent but creatively bankrupt. They built a Swiss Army knife of existing DeFi tools when we needed a new blade entirely. The single community like with 'medium' engagement suggests users aren't excited either - probably because they can get these features elsewhere without the AI middleman.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 26.4,
+          "adjustment": -2.5,
+          "reason": "Downgrading for lack of innovation - comparative analysis confirms this is standard framework integration without novel contributions"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 28.9,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Otaku - DeFi AI Agent on Base:\n\nRANKING CONTEXT:\n- Ranked #11 out of 16 projects\n- Score: 3.4 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 31th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 10 projects scored higher (avg gap: 5.8 points)\n- 5 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 69% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 10,
+        "synthesis_timestamp": "2025-08-22T05:08:06.630001"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:08:06.630148"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 6.0,
+      "technical_execution": 5.0,
+      "market_potential": 7.0,
+      "user_experience": 4.0,
+      "weighted_total": 23.1,
+      "notes": {
+        "reasons": {
+          "innovation": "Aight so they mashed up conversational AI with DeFi which is kinda fresh, but real talk - it's mostly ElizaOS doing the heavy lifting while they just plug in some protocols. The Base L2 focus got that strategic drip, but where's the secret sauce that makes this more than a fancy wrapper?",
+          "technical": "Look, the plugin architecture is clean and all, but my guy literally copy-pasted 70% from ElizaOS templates - that test-utils.ts file is THICC with borrowed code. They got the integrations working which takes some skill, but building on someone else's framework ain't the same as cooking from scratch, ya feel me?",
+          "market": "DeFi's got that $100B+ TVL energy and making it accessible through chat could hit different, but here's the tea - DeFi degens already know their way around protocols, and normies might get rekt even with an AI holding their hand. Plus where's the business model? AI ain't free and neither is gas, so who's paying for all this?",
+          "experience": "Bruh, they claiming to solve UX problems but WHERE'S THE FRONTEND? This is all backend vibes with zero UI to show - how am I supposed to know if it slaps when there's nothing to actually interact with? No user testing, no community feedback, just promises that it'll make DeFi easy without showing the receipts."
+        },
+        "overall_comment": "It's giving \"we put ChatGPT in your DeFi\" energy but forgot to ask if the streets actually wanted that - needs less template copying and more user-facing drip to really pop off."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T06:06:12.549276"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 20.6,
+      "notes": {
+        "round2_final_verdict": "Look, slapping ChatGPT on DeFi without any sauce is like putting ketchup on wagyu - the community's silence speaks volumes about this mid energy fr fr.",
+        "round2_reasoning": "Yo, the comparative data just confirmed what I was already feeling - this joint is giving 'we followed a tutorial' energy. Being ranked #11 out of 16? That's not the flex they think it is. The fact that only ONE person even bothered to react tells me everything - when you can't even get the degens excited about a DeFi agent, you know you fumbled the bag. They got all these plugins and actions but forgot the most important ingredient: making people actually want to use it. It's like they built a Ferrari engine but forgot to add the wheels, steering wheel, and that new car smell that makes people post about it.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 20.6,
+          "adjustment": -2.5,
+          "reason": "Community gave it the cold shoulder with just 1 like, and being in the bottom 31% means the streets ain't feeling this copy-paste vibe"
+        },
+        "community_influence": "significant",
+        "confidence": "high",
+        "round1_score": 23.1,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Otaku - DeFi AI Agent on Base:\n\nRANKING CONTEXT:\n- Ranked #11 out of 16 projects\n- Score: 3.4 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 31th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 10 projects scored higher (avg gap: 5.8 points)\n- 5 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 69% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 10,
+        "synthesis_timestamp": "2025-08-22T05:08:18.132538"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:08:18.132721"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 5.0,
+      "technical_execution": 6.0,
+      "market_potential": 7.0,
+      "user_experience": 4.0,
+      "weighted_total": 22.6,
+      "notes": {
+        "reasons": {
+          "innovation": "CONVERSATIONAL AI FOR DEFI? That's cute, but WHERE'S THE YIELD INNOVATION?! You're just wrapping existing protocols in a chatbot - no novel tokenomics, no new yield mechanisms, just UI sugar coating that costs money to run!",
+          "technical": "The plugin architecture is clean enough to handle my DeFi operations, but 70% TEMPLATE CODE doesn't impress this warrior! Your Morpho and LiFi integrations work, but any code gladiator could've assembled these pre-built weapons in a week.",
+          "market": "Base L2 focus with Coinbase backing? NOW we're talking money! DeFi automation has massive profit potential, but your business model is MISSING IN ACTION - how do you extract value without becoming a regulated financial advisor?!",
+          "experience": "NO FRONTEND?! You expect degens to interact through terminal commands like it's 1995? The conversational interface might help normies, but WHERE'S THE DASHBOARD showing my yields, my positions, my PROFITS?!"
+        },
+        "overall_comment": "Another AI wrapper masquerading as DeFi innovation - show me the TOKENOMICS or get out of my arena!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T06:05:58.203206"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 20.1,
+      "notes": {
+        "round2_final_verdict": "Still no clear tokenomics or revenue model - just another AI wrapper with fancy integrations. WHERE'S THE YIELD, WARRIOR?",
+        "round2_reasoning": "This project is economic COWARDICE! They slapped together some DeFi integrations (Morpho, Clanker, LiFi) but WHERE'S THE TOKEN? WHERE'S THE FEE STRUCTURE? No yield farming, no revenue share, no innovative tokenomics - just an AI chatbot that can call existing protocols. The comparative data shows 69% of projects outperformed this, and I see why - at least they tried to create value! Even that cymatics visualization project had more economic creativity than this. You want to impress a SPARTAN? Show me how users MAKE MONEY, not just move it around!",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 20.1,
+          "adjustment": -2.5,
+          "reason": "Downgrading for zero economic innovation - even bottom-tier projects showed more profit potential"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 22.6,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Otaku - DeFi AI Agent on Base:\n\nRANKING CONTEXT:\n- Ranked #11 out of 16 projects\n- Score: 3.4 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 31th percentile\n- Judge consensus: High (variance: 0.4)\n\nCOMPETITIVE LANDSCAPE:\n- 10 projects scored higher (avg gap: 5.8 points)\n- 5 projects scored lower\n- 5 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 69% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 10,
+        "synthesis_timestamp": "2025-08-22T05:08:28.213476"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:08:28.213588"
+    }
+  ],
+  "avg_score": 20.86,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/wtfsayo/otaku",
+      "owner": "wtfsayo",
+      "name": "otaku",
+      "description": null,
+      "created_at": "2025-07-15T11:54:57Z",
+      "updated_at": "2025-08-06T08:15:34Z",
+      "license": "None",
+      "readme_analysis": {
+        "exists": true,
+        "size": 2531,
+        "word_count": 340,
+        "has_sections": true,
+        "has_setup_section": true,
+        "has_license_section": false
+      },
+      "file_structure": {
+        "total_files": 146,
+        "file_extensions": {
+          "gitignore": 1,
+          "md": 9,
+          "lock": 5,
+          "toml": 2,
+          "json": 19,
+          "ts": 101,
+          "npmignore": 3,
+          "sol": 3,
+          "example": 1
+        },
+        "config_files": [
+          "package.json",
+          "src/plugins/plugin-bootstrap/package.json",
+          "src/plugins/plugin-clanker/package.json",
+          "src/plugins/plugin-ethwallet/package.json",
+          "src/plugins/plugin-evm/package.json",
+          "src/plugins/plugin-morpho/package.json"
+        ],
+        "is_large_repo": false,
+        "is_mono_repo": true,
+        "has_docs": true,
+        "has_tests": true,
+        "files": [
+          ".gitignore",
+          "CLAUDE.md",
+          "README.md",
+          "bun.lock",
+          "bunfig.toml",
+          "package.json",
+          "src/character.ts",
+          "src/index.ts",
+          "src/plugin.ts",
+          "src/plugins/plugin-bootstrap/.npmignore",
+          "src/plugins/plugin-bootstrap/LICENSE",
+          "src/plugins/plugin-bootstrap/README.md",
+          "src/plugins/plugin-bootstrap/bunfig.toml",
+          "src/plugins/plugin-bootstrap/package.json",
+          "src/plugins/plugin-bootstrap/src/__tests__/README.md",
+          "src/plugins/plugin-bootstrap/src/__tests__/actions.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/ambiguity-handling.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/attachments.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/evaluators.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/logic.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/plugin.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/providers.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/services.test.ts",
+          "src/plugins/plugin-bootstrap/src/__tests__/test-utils.ts",
+          "src/plugins/plugin-bootstrap/src/actions/ignore.ts",
+          "src/plugins/plugin-bootstrap/src/actions/index.ts",
+          "src/plugins/plugin-bootstrap/src/actions/none.ts",
+          "src/plugins/plugin-bootstrap/src/actions/reply.ts",
+          "src/plugins/plugin-bootstrap/src/evaluators/index.ts",
+          "src/plugins/plugin-bootstrap/src/evaluators/reflection.ts",
+          "src/plugins/plugin-bootstrap/src/index.ts",
+          "src/plugins/plugin-bootstrap/src/providers/actionState.ts",
+          "src/plugins/plugin-bootstrap/src/providers/actions.ts",
+          "src/plugins/plugin-bootstrap/src/providers/character.ts",
+          "src/plugins/plugin-bootstrap/src/providers/evaluators.ts",
+          "src/plugins/plugin-bootstrap/src/providers/index.ts",
+          "src/plugins/plugin-bootstrap/src/providers/providers.ts",
+          "src/plugins/plugin-bootstrap/src/providers/recentMessages.ts",
+          "src/plugins/plugin-bootstrap/src/providers/time.ts",
+          "src/plugins/plugin-bootstrap/src/providers/world.ts",
+          "src/plugins/plugin-bootstrap/src/services/index.ts",
+          "src/plugins/plugin-bootstrap/src/services/task.ts",
+          "src/plugins/plugin-bootstrap/tsconfig.build.json",
+          "src/plugins/plugin-bootstrap/tsconfig.json",
+          "src/plugins/plugin-bootstrap/tsup.config.ts",
+          "src/plugins/plugin-clanker/.npmignore",
+          "src/plugins/plugin-clanker/README.md",
+          "src/plugins/plugin-clanker/bun.lock",
+          "src/plugins/plugin-clanker/package.json",
+          "src/plugins/plugin-clanker/src/actions/index.ts",
+          "src/plugins/plugin-clanker/src/actions/token-deploy.action.ts",
+          "src/plugins/plugin-clanker/src/actions/token-info.action.ts",
+          "src/plugins/plugin-clanker/src/index.ts",
+          "src/plugins/plugin-clanker/src/plugin.ts",
+          "src/plugins/plugin-clanker/src/services/clanker.service.ts",
+          "src/plugins/plugin-clanker/src/services/index.ts",
+          "src/plugins/plugin-clanker/src/types/index.ts",
+          "src/plugins/plugin-clanker/src/utils/config.ts",
+          "src/plugins/plugin-clanker/src/utils/errors.ts",
+          "src/plugins/plugin-clanker/src/utils/format.ts",
+          "src/plugins/plugin-clanker/src/utils/transactions.ts",
+          "src/plugins/plugin-clanker/tests/actions/balance-check.action.test.ts",
+          "src/plugins/plugin-clanker/tests/actions/liquidity-management.action.test.ts",
+          "src/plugins/plugin-clanker/tests/actions/token-deploy.action.test.ts",
+          "src/plugins/plugin-clanker/tests/actions/token-info.action.test.ts",
+          "src/plugins/plugin-clanker/tests/actions/token-swap.action.test.ts",
+          "src/plugins/plugin-clanker/tests/plugin.test.ts",
+          "src/plugins/plugin-clanker/tests/services/clanker.service.test.ts",
+          "src/plugins/plugin-clanker/tests/services/wallet.service.test.ts",
+          "src/plugins/plugin-clanker/tests/utils/errors.test.ts",
+          "src/plugins/plugin-clanker/tests/utils/format.test.ts",
+          "src/plugins/plugin-clanker/tsconfig.build.json",
+          "src/plugins/plugin-clanker/tsconfig.json",
+          "src/plugins/plugin-clanker/tsup.config.ts",
+          "src/plugins/plugin-ethwallet/README.md",
+          "src/plugins/plugin-ethwallet/actions/act_eth_wallet_create.ts",
+          "src/plugins/plugin-ethwallet/actions/act_eth_wallet_import.ts",
+          "src/plugins/plugin-ethwallet/actions/act_eth_wallet_info.ts",
+          "src/plugins/plugin-ethwallet/actions/act_eth_wallet_list.ts",
+          "src/plugins/plugin-ethwallet/bun.lock",
+          "src/plugins/plugin-ethwallet/config/chains.ts",
+          "src/plugins/plugin-ethwallet/examples/usage.ts",
+          "src/plugins/plugin-ethwallet/index.ts",
+          "src/plugins/plugin-ethwallet/package.json",
+          "src/plugins/plugin-ethwallet/providers/ethWallet.ts",
+          "src/plugins/plugin-ethwallet/providers/ethWalletBalance.ts",
+          "src/plugins/plugin-ethwallet/providers/walletStatusProvider.ts",
+          "src/plugins/plugin-ethwallet/services/evmChainService.ts",
+          "src/plugins/plugin-ethwallet/services/evmWalletService.ts",
+          "src/plugins/plugin-ethwallet/types.ts",
+          "src/plugins/plugin-evm/LICENSE",
+          "src/plugins/plugin-evm/README.md",
+          "src/plugins/plugin-evm/bun.lock",
+          "src/plugins/plugin-evm/package.json",
+          "src/plugins/plugin-evm/src/actions/bridge.ts",
+          "src/plugins/plugin-evm/src/actions/swap.ts",
+          "src/plugins/plugin-evm/src/actions/transfer.ts",
+          "src/plugins/plugin-evm/src/constants.ts",
+          "src/plugins/plugin-evm/src/contracts/artifacts/OZGovernor.json",
+          "src/plugins/plugin-evm/src/contracts/artifacts/TimelockController.json",
+          "src/plugins/plugin-evm/src/contracts/artifacts/VoteToken.json",
+          "src/plugins/plugin-evm/src/contracts/src/OZGovernor.sol",
+          "src/plugins/plugin-evm/src/contracts/src/TimelockController.sol",
+          "src/plugins/plugin-evm/src/contracts/src/VoteToken.sol",
+          "src/plugins/plugin-evm/src/index.ts",
+          "src/plugins/plugin-evm/src/providers/wallet.ts",
+          "src/plugins/plugin-evm/src/templates/index.ts",
+          "src/plugins/plugin-evm/src/tests/README.md",
+          "src/plugins/plugin-evm/src/tests/bridge.test.ts",
+          "src/plugins/plugin-evm/src/tests/custom-chain.ts",
+          "src/plugins/plugin-evm/src/tests/swap.test.ts",
+          "src/plugins/plugin-evm/src/tests/transfer.test.ts",
+          "src/plugins/plugin-evm/src/tests/wallet.test.ts",
+          "src/plugins/plugin-evm/src/types/index.ts",
+          "src/plugins/plugin-evm/tsconfig.build.json",
+          "src/plugins/plugin-evm/tsconfig.json",
+          "src/plugins/plugin-evm/tsup.config.ts",
+          "src/plugins/plugin-morpho/.env.example",
+          "src/plugins/plugin-morpho/.npmignore",
+          "src/plugins/plugin-morpho/README.md",
+          "src/plugins/plugin-morpho/bun.lock",
+          "src/plugins/plugin-morpho/package.json",
+          "src/plugins/plugin-morpho/src/actions/index.ts",
+          "src/plugins/plugin-morpho/src/actions/marketDataAction.ts",
+          "src/plugins/plugin-morpho/src/actions/marketPositionAction.ts",
+          "src/plugins/plugin-morpho/src/actions/marketTransfer.ts",
+          "src/plugins/plugin-morpho/src/actions/utils.ts",
+          "src/plugins/plugin-morpho/src/actions/vaultDataAction.ts",
+          "src/plugins/plugin-morpho/src/actions/vaultPositionAction.ts",
+          "src/plugins/plugin-morpho/src/actions/vaultTransfer.ts",
+          "src/plugins/plugin-morpho/src/index.ts",
+          "src/plugins/plugin-morpho/src/plugin.ts",
+          "src/plugins/plugin-morpho/src/services/index.ts",
+          "src/plugins/plugin-morpho/src/services/morphoService.ts",
+          "src/plugins/plugin-morpho/src/services/queries.ts",
+          "src/plugins/plugin-morpho/src/types/index.ts",
+          "src/plugins/plugin-morpho/src/utils/errorHandler.ts",
+          "src/plugins/plugin-morpho/src/utils/gasOptimizer.ts",
+          "src/plugins/plugin-morpho/src/utils/index.ts",
+          "src/plugins/plugin-morpho/tsconfig.build.json",
+          "src/plugins/plugin-morpho/tsconfig.json",
+          "src/plugins/plugin-morpho/tsup.config.ts",
+          "src/utils/entity.ts",
+          "tsconfig.build.json",
+          "tsconfig.json",
+          "tsup.config.ts"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 50,
+        "commit_messages": [
+          "Merge pull request #16 from wtfsayo/feature/add-transaction-confirmations\n\nfeat: add confirmations parameter to transaction receipts in Morpho service",
+          "feat: add confirmations parameter to transaction receipts in Morpho service\n\n- Add confirmations: 2 to all waitForTransactionReceipt calls\n- Ensures transactions wait for 2 confirmations before being considered final\n- Improves transaction reliability and reduces risk of reorg issues",
+          "Merge pull request #15 from wtfsayo/feature/morpho-token-clarity-improvements\n\nfeat(morpho): improve token clarity in user instructions and examples",
+          "feat(morpho): improve token clarity in user instructions and examples\n\n- Add explicit token symbols (USDC, WETH) in all usage examples\n- Clarify loan token vs collateral token roles in market operations\n- Update error messages with clear token specifications\n- Enhance README with market structure explanations\n- Add comprehensive token operation mapping documentation\n- Improve XML prompts with token mapping rules\n- Update all action examples with emojis and clear descriptions\n\nFixes ambiguity where users couldn't tell which token (USDC vs WETH)\nwould be used for operations like 'Supply 1 to WETH/USDC market'",
+          "Update ElizaOS dependencies to latest versions\n\nBumped @elizaos/cli, @elizaos/core, @elizaos/plugin-anthropic, @elizaos/plugin-bootstrap, @elizaos/plugin-google-genai, @elizaos/plugin-ollama, @elizaos/plugin-openai, and @elizaos/plugin-sql to their latest stable releases in package.json. This ensures compatibility and includes recent bug fixes and improvements from upstream.",
+          "Merge pull request #14 from wtfsayo/tcm/fix2\n\nretry",
+          "retry",
+          "Merge pull request #13 from wtfsayo/tcm/fix2\n\nfix reply template",
+          "fix reply template",
+          "Merge pull request #12 from wtfsayo/tcm/fix2\n\nfix eth link",
+          "fix eth link",
+          "Merge pull request #11 from wtfsayo/tcm/fix2\n\nfix eth info & formatting",
+          "fix eth info & formatting",
+          "Merge pull request #10 from wtfsayo/tcm/fix-tokens-holding\n\nfix tokens holding",
+          "fix tokens holding",
+          "Merge pull request #9 from wtfsayo/tcm/improve-prompt\n\nUpdate bun.lock to match package.json changes",
+          "Update bun.lock",
+          "Update bun.lock to match package.json changes",
+          "Merge pull request #8 from wtfsayo/tcm/improve-prompt\n\nimprove prompt",
+          "improve prompt",
+          "Update character.ts",
+          "Update character.ts",
+          "Merge pull request #7 from wtfsayo/tcm/customize-bootstrap\n\nfix prompt",
+          "fix prompt",
+          "Rename Wise to Otaku throughout codebase\n\nUpdated all references of 'Wise' to 'Otaku' in configuration, character definitions, and plugin providers to reflect the new project and character name. Also fixed related comments and instructions to match the new naming convention.",
+          "Merge pull request #6 from wtfsayo/tcm/fix-action-examples\n\nfix action examples name",
+          "fix action examples name",
+          "Merge pull request #4 from wtfsayo/tcm/onboarding\n\nboarding wallet creation",
+          "Merge pull request #5 from wtfsayo/tcm/fix-token-deploy\n\nfix token deploy",
+          "clean code",
+          "fix token deploying",
+          "Merge branch 'main' into tcm/onboarding",
+          "boarding wallet creation",
+          "Merge pull request #3 from wtfsayo/tcm/update\n\nupdate wallet/token actions",
+          "update wallet/token actions",
+          "Refactor Clanker token deployment and service logic\n\nImproves token deployment action by adding safe serialization for BigInt values, updating logging, and aligning socialMediaUrls and auditUrls with Clanker SDK v4.0.0 requirements. Refactors ClankerService to enhance error handling, logging, and default configuration for pool positions and fees, and ensures compatibility with the latest Clanker SDK API.",
+          "Update token-deploy.action.ts",
+          "Update token-deploy.action.ts",
+          "Create bun.lock",
+          "Merge pull request #2 from wtfsayo/tcm-package\n\nupdate package",
+          "update package",
+          "Merge pull request #1 from wtfsayo/tcm-custom-plugin\n\nuser wallet",
+          "Merge branch 'main' into tcm-custom-plugin",
+          "Remove submodules and re-add plugins as regular directories",
+          "remove readme",
+          "custom plugins",
+          "Update character to Wise and enhance DeFi focus\n\nReplaces the default character Eliza with Wise, a DeFi and portfolio analysis expert. Updates character attributes, plugins, system prompt, bio, topics, message examples, and style to prioritize data-driven financial insights and actionable recommendations for DeFi and crypto portfolio management. Also updates dependencies in package.json to use specific versions and adds new plugins relevant to DeFi analysis.",
+          "Re-add plugin-evm as regular directory, not submodule",
+          "import evm plugin",
+          "Add CoinMarketCap plugin and update character config\n\nAdded '@elizaos/plugin-coinmarketcap' and improved plugin loading logic in the Eliza character definition. Also updated all string quotes to double quotes for consistency and added '/.eliza' to .gitignore."
+        ],
+        "commit_dates": [
+          "2025-08-05T10:59:38Z",
+          "2025-08-05T10:52:26Z",
+          "2025-08-05T10:42:56Z",
+          "2025-08-05T10:34:41Z",
+          "2025-08-05T09:25:23Z",
+          "2025-08-05T07:05:38Z",
+          "2025-08-05T07:05:04Z",
+          "2025-08-05T06:38:19Z",
+          "2025-08-05T06:37:51Z",
+          "2025-08-05T02:27:12Z",
+          "2025-08-05T02:26:24Z",
+          "2025-08-05T02:02:52Z",
+          "2025-08-05T02:00:46Z",
+          "2025-08-04T18:11:59Z",
+          "2025-08-04T18:11:08Z",
+          "2025-08-04T17:33:04Z",
+          "2025-08-04T17:32:50Z",
+          "2025-08-04T17:32:35Z",
+          "2025-08-04T17:24:54Z",
+          "2025-08-04T17:24:05Z",
+          "2025-08-04T17:23:23Z",
+          "2025-08-04T17:21:07Z",
+          "2025-08-04T17:10:53Z",
+          "2025-08-04T17:09:11Z",
+          "2025-08-04T16:51:02Z",
+          "2025-08-04T15:47:39Z",
+          "2025-08-04T15:46:15Z",
+          "2025-08-04T12:37:03Z",
+          "2025-08-04T12:36:15Z",
+          "2025-08-04T12:35:46Z",
+          "2025-08-04T12:34:53Z",
+          "2025-08-04T12:08:35Z",
+          "2025-08-04T12:00:29Z",
+          "2025-08-04T11:12:44Z",
+          "2025-08-04T11:09:18Z",
+          "2025-08-03T14:09:15Z",
+          "2025-08-03T13:59:51Z",
+          "2025-08-03T13:59:02Z",
+          "2025-08-03T12:51:00Z",
+          "2025-08-03T12:46:12Z",
+          "2025-08-03T12:08:45Z",
+          "2025-08-01T12:48:57Z",
+          "2025-08-01T12:48:43Z",
+          "2025-08-01T11:29:30Z",
+          "2025-08-01T11:25:34Z",
+          "2025-08-01T11:19:39Z",
+          "2025-07-30T12:09:30Z",
+          "2025-07-25T18:57:41Z",
+          "2025-07-25T18:52:53Z",
+          "2025-07-17T14:32:55Z"
+        ],
+        "commit_authors": [
+          "tcm390",
+          "Ting Chien Meng",
+          "Sayo"
+        ],
+        "days_with_commits": 7,
+        "first_commit_date": "2025-07-17T14:32:55Z",
+        "last_commit_date": "2025-08-05T10:59:38Z",
+        "days_before_deadline": 0
+      },
+      "file_manifest": [
+        {
+          "path": ".gitignore",
+          "bytes": 396,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "CLAUDE.md",
+          "bytes": 2606,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "README.md",
+          "bytes": 2531,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "bun.lock",
+          "bytes": 183857,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "bunfig.toml",
+          "bytes": 262,
+          "ext": "toml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "package.json",
+          "bytes": 3024,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/character.ts",
+          "bytes": 5381,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/index.ts",
+          "bytes": 1026,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugin.ts",
+          "bytes": 7264,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/.npmignore",
+          "bytes": 52,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/LICENSE",
+          "bytes": 1094,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/README.md",
+          "bytes": 166,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/bunfig.toml",
+          "bytes": 135,
+          "ext": "toml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/package.json",
+          "bytes": 1341,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/README.md",
+          "bytes": 3553,
+          "ext": "md",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/actions.test.ts",
+          "bytes": 35650,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/ambiguity-handling.test.ts",
+          "bytes": 6765,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/attachments.test.ts",
+          "bytes": 9689,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/evaluators.test.ts",
+          "bytes": 20980,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/logic.test.ts",
+          "bytes": 18767,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/plugin.test.ts",
+          "bytes": 12073,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/providers.test.ts",
+          "bytes": 36908,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/services.test.ts",
+          "bytes": 15760,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/__tests__/test-utils.ts",
+          "bytes": 15655,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/actions/ignore.ts",
+          "bytes": 6708,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/actions/index.ts",
+          "bytes": 118,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/actions/none.ts",
+          "bytes": 3833,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/actions/reply.ts",
+          "bytes": 6557,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/evaluators/index.ts",
+          "bytes": 52,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/evaluators/reflection.ts",
+          "bytes": 16891,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/index.ts",
+          "bytes": 43410,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/actionState.ts",
+          "bytes": 7260,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/actions.ts",
+          "bytes": 3273,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/character.ts",
+          "bytes": 7041,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/evaluators.ts",
+          "bytes": 4738,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/index.ts",
+          "bytes": 386,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/providers.ts",
+          "bytes": 2322,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/recentMessages.ts",
+          "bytes": 16613,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/time.ts",
+          "bytes": 1332,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/providers/world.ts",
+          "bytes": 6654,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/services/index.ts",
+          "bytes": 67,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/src/services/task.ts",
+          "bytes": 10180,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/tsconfig.build.json",
+          "bytes": 287,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/tsconfig.json",
+          "bytes": 730,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-bootstrap/tsup.config.ts",
+          "bytes": 629,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/.npmignore",
+          "bytes": 122,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/README.md",
+          "bytes": 12643,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/bun.lock",
+          "bytes": 92146,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/package.json",
+          "bytes": 1900,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/actions/index.ts",
+          "bytes": 114,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/actions/token-deploy.action.ts",
+          "bytes": 10348,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/actions/token-info.action.ts",
+          "bytes": 7145,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/index.ts",
+          "bytes": 519,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/plugin.ts",
+          "bytes": 2088,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/services/clanker.service.ts",
+          "bytes": 15895,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/services/index.ts",
+          "bytes": 51,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/types/index.ts",
+          "bytes": 8828,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/utils/config.ts",
+          "bytes": 517,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/utils/errors.ts",
+          "bytes": 2662,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/utils/format.ts",
+          "bytes": 2819,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/src/utils/transactions.ts",
+          "bytes": 4025,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/actions/balance-check.action.test.ts",
+          "bytes": 11684,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/actions/liquidity-management.action.test.ts",
+          "bytes": 14213,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/actions/token-deploy.action.test.ts",
+          "bytes": 4556,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/actions/token-info.action.test.ts",
+          "bytes": 14457,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/actions/token-swap.action.test.ts",
+          "bytes": 16121,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/plugin.test.ts",
+          "bytes": 3770,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/services/clanker.service.test.ts",
+          "bytes": 4957,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/services/wallet.service.test.ts",
+          "bytes": 2456,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/utils/errors.test.ts",
+          "bytes": 4536,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tests/utils/format.test.ts",
+          "bytes": 3791,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tsconfig.build.json",
+          "bytes": 261,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tsconfig.json",
+          "bytes": 766,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-clanker/tsup.config.ts",
+          "bytes": 345,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/README.md",
+          "bytes": 0,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/actions/act_eth_wallet_create.ts",
+          "bytes": 7554,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/actions/act_eth_wallet_import.ts",
+          "bytes": 7392,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/actions/act_eth_wallet_info.ts",
+          "bytes": 10477,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/actions/act_eth_wallet_list.ts",
+          "bytes": 4530,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/bun.lock",
+          "bytes": 48963,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/config/chains.ts",
+          "bytes": 2382,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/examples/usage.ts",
+          "bytes": 5584,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/index.ts",
+          "bytes": 1092,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/package.json",
+          "bytes": 612,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/providers/ethWallet.ts",
+          "bytes": 1861,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/providers/ethWalletBalance.ts",
+          "bytes": 2409,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/providers/walletStatusProvider.ts",
+          "bytes": 3834,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/services/evmChainService.ts",
+          "bytes": 3970,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/services/evmWalletService.ts",
+          "bytes": 7929,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-ethwallet/types.ts",
+          "bytes": 919,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-evm/LICENSE",
+          "bytes": 1094,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-evm/README.md",
+          "bytes": 7011,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "src/plugins/plugin-evm/bun.lock",
+          "bytes": 101754,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-evm/package.json",
+          "bytes": 3951,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/actions/bridge.ts",
+          "bytes": 27868,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/actions/swap.ts",
+          "bytes": 31795,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/actions/transfer.ts",
+          "bytes": 11298,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/constants.ts",
+          "bytes": 172,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/artifacts/OZGovernor.json",
+          "bytes": 111681,
+          "ext": "json",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/artifacts/TimelockController.json",
+          "bytes": 50347,
+          "ext": "json",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/artifacts/VoteToken.json",
+          "bytes": 51510,
+          "ext": "json",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/src/OZGovernor.sol",
+          "bytes": 3710,
+          "ext": "sol",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/src/TimelockController.sol",
+          "bytes": 16290,
+          "ext": "sol",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/contracts/src/VoteToken.sol",
+          "bytes": 1345,
+          "ext": "sol",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/index.ts",
+          "bytes": 595,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/providers/wallet.ts",
+          "bytes": 7041,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/templates/index.ts",
+          "bytes": 6568,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/README.md",
+          "bytes": 4824,
+          "ext": "md",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/bridge.test.ts",
+          "bytes": 14527,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/custom-chain.ts",
+          "bytes": 952,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/swap.test.ts",
+          "bytes": 11494,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/transfer.test.ts",
+          "bytes": 8833,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/tests/wallet.test.ts",
+          "bytes": 9347,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/src/types/index.ts",
+          "bytes": 4213,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-evm/tsconfig.build.json",
+          "bytes": 319,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-evm/tsconfig.json",
+          "bytes": 458,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-evm/tsup.config.ts",
+          "bytes": 561,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/.env.example",
+          "bytes": 810,
+          "ext": "example",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/.npmignore",
+          "bytes": 88,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/README.md",
+          "bytes": 10933,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/bun.lock",
+          "bytes": 77854,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/package.json",
+          "bytes": 2727,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/index.ts",
+          "bytes": 346,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/marketDataAction.ts",
+          "bytes": 7007,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/marketPositionAction.ts",
+          "bytes": 11114,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/marketTransfer.ts",
+          "bytes": 14176,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/utils.ts",
+          "bytes": 3017,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/vaultDataAction.ts",
+          "bytes": 7662,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/vaultPositionAction.ts",
+          "bytes": 7609,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/actions/vaultTransfer.ts",
+          "bytes": 8672,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/index.ts",
+          "bytes": 554,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/plugin.ts",
+          "bytes": 4427,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/services/index.ts",
+          "bytes": 49,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/services/morphoService.ts",
+          "bytes": 74729,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/services/queries.ts",
+          "bytes": 2636,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/types/index.ts",
+          "bytes": 12181,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/utils/errorHandler.ts",
+          "bytes": 9507,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/utils/gasOptimizer.ts",
+          "bytes": 9941,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/src/utils/index.ts",
+          "bytes": 192,
+          "ext": "ts",
+          "relevance": "high",
+          "why": "core source directory"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/tsconfig.build.json",
+          "bytes": 91,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/tsconfig.json",
+          "bytes": 776,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/plugins/plugin-morpho/tsup.config.ts",
+          "bytes": 398,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/utils/entity.ts",
+          "bytes": 3575,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "tsconfig.build.json",
+          "bytes": 459,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsconfig.json",
+          "bytes": 953,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsup.config.ts",
+          "bytes": 606,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        }
+      ],
+      "dependency_info": {
+        "package.json": "{\n  \"name\": \"otaku\",\n  \"description\": \"Project starter for elizaOS\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"main\": \"dist/src/index.js\",\n  \"module\": \"dist/src/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"keywords\": [\n    \"project\",\n    \"elizaos\"\n  ],\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"\"\n  },\n  \"exports\": {\n    \"./package.json\": \"./package.json\",\n    \".\": {\n      \"import\": {\n        \"types\": \"./dist/index.d.ts\",\n        \"default\": \"./dist/src/index.js\"\n      }\n    }\n  },\n  \"files\": [\n    \"dist\"\n  ],\n  \"dependencies\": {\n    \"@elizaos/cli\": \"^1.3.2\",\n    \"@elizaos/core\": \"^1.3.2\",\n    \"@elizaos/plugin-anthropic\": \"^1.0.5\",\n    \"@elizaos/plugin-bootstrap\": \"^1.3.2\",\n    \"@elizaos/plugin-coinmarketcap\": \"1.0.1\",\n    \"@elizaos/plugin-defillama\": \"^1.3.5\",\n    \"@elizaos/plugin-google-genai\": \"^1.0.2\",\n    \"@elizaos/plugin-ollama\": \"^1.2.3\",\n    \"@elizaos/plugin-openai\": \"^1.0.9\",\n    \"@elizaos/plugin-sql\": \"^1.3.2\",\n    \"@tanstack/react-query\": \"^5.29.0\",",
+        "src/plugins/plugin-bootstrap/package.json": "{\n  \"name\": \"@elizaos/plugin-bootstrap\",\n  \"version\": \"1.3.1\",\n  \"type\": \"module\",\n  \"main\": \"dist/index.js\",\n  \"module\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"https://github.com/elizaos-plugins/plugin-bootstrap\"\n  },\n  \"exports\": {\n    \"./package.json\": \"./package.json\",\n    \".\": {\n      \"import\": {\n        \"types\": \"./dist/index.d.ts\",\n        \"default\": \"./dist/index.js\"\n      }\n    }\n  },\n  \"files\": [\n    \"dist\",\n    \"scripts\",\n    \"package.json\",\n    \"LICENSE\",\n    \"tsup.config.ts\"\n  ],\n  \"dependencies\": {\n    \"@elizaos/plugin-sql\": \"1.3.1\",\n    \"bun\": \"^1.2.17\"\n  },\n  \"devDependencies\": {\n    \"@types/bun\": \"^1.2.16\",\n    \"@types/node\": \"^22.15.3\",\n    \"prettier\": \"3.5.3\",\n    \"tsup\": \"8.5.0\",\n    \"zod\": \"^3.22.4\"\n  },\n  \"scripts\": {\n    \"build\": \"tsup\",",
+        "src/plugins/plugin-clanker/package.json": "{\n  \"name\": \"@elizaos/plugin-clanker\",\n  \"description\": \"Clanker protocol integration plugin for ElizaOS - enables token deployment, management, and trading on Base L2\",\n  \"version\": \"1.2.12\",\n  \"type\": \"module\",\n  \"main\": \"dist/index.js\",\n  \"module\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"packageType\": \"plugin\",\n  \"platform\": \"node\",\n  \"license\": \"MIT\",\n  \"author\": \"ElizaOS Team\",\n  \"keywords\": [\n    \"plugin\",\n    \"elizaos\",\n    \"clanker\",\n    \"base\",\n    \"defi\",\n    \"tokens\",\n    \"trading\"\n  ],\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"https://github.com/elizaos/eliza\"\n  },\n  \"homepage\": \"https://elizaos.ai\",\n  \"bugs\": {\n    \"url\": \"https://github.com/elizaos/eliza/issues\"\n  },\n  \"exports\": {\n    \"./package.json\": \"./package.json\",\n    \".\": {\n      \"import\": {\n        \"types\": \"./dist/index.d.ts\",\n        \"default\": \"./dist/index.js\"\n      }\n    }\n  },\n  \"files\": [\n    \"dist\","
+      },
+      "loc_histogram": {
+        "small (<1KB)": 41,
+        "medium (1-10KB)": 67,
+        "xlarge (>50KB)": 8,
+        "large (10-50KB)": 30
+      },
+      "token_budget": -359976,
+      "total_bytes": 1639906,
+      "analyzed_at": "2025-08-08T06:03:46.377586",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [],
+        "include_patterns": [
+          "**/*.md",
+          "package.json",
+          "src/plugins/plugin-bootstrap/package.json",
+          "src/plugins/plugin-clanker/package.json",
+          "src/plugins/plugin-ethwallet/package.json",
+          "src/plugins/plugin-evm/package.json",
+          "src/plugins/plugin-morpho/package.json"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "src/index.ts",
+          "src/character.ts",
+          "src/plugin.ts",
+          "src/plugins/*/src/index.ts",
+          "src/plugins/*/src/plugin.ts",
+          "src/plugins/*/src/actions/*.ts",
+          "src/plugins/*/src/services/*.ts",
+          "src/plugins/*/src/providers/*.ts",
+          "src/plugins/*/src/evaluators/*.ts",
+          "src/plugins/*/src/types/*.ts",
+          "src/plugins/*/src/utils/*.ts",
+          "README.md",
+          "package.json",
+          "tsconfig.json"
+        ],
+        "exclude_patterns": [
+          "**/__tests__/**",
+          "**/tests/**",
+          "**/test/**",
+          "**/*.test.ts",
+          "**/*.spec.ts",
+          "**/node_modules/**",
+          "**/dist/**",
+          "**/build/**",
+          "**/.git/**",
+          "**/coverage/**",
+          "**/*.log",
+          "**/*.lock"
+        ],
+        "core_code_max": 8000,
+        "other_file_max": 3000,
+        "rationale": "\u2022 Exclude all test files (>150KB) - judges focus on implementation not tests\n\u2022 Include core plugin architecture files - shows technical complexity\n\u2022 Truncate large source files at 8KB - preserves key logic while fitting budget\n\u2022 Include main entry points and plugin structure - essential for architecture understanding\n\u2022 Keep config files small (3KB) - provides context without consuming budget"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation": {
+        "score": 7,
+        "justification": "Well-structured TypeScript project with comprehensive plugin architecture built on ElizaOS. Shows good separation of concerns with 5 distinct plugins (bootstrap, clanker, morpho, ethwallet, evm). Has extensive test coverage (35KB+ test files) and proper build configuration with tsup/bun. However, heavily relies on ElizaOS framework templates and boilerplate.",
+        "languages_frameworks": [
+          "TypeScript",
+          "React",
+          "ElizaOS",
+          "Ethers.js",
+          "Viem",
+          "Tailwind CSS",
+          "Bun"
+        ],
+        "architecture_quality": "Clean plugin-based architecture with proper dependency injection, but largely follows ElizaOS conventions rather than novel architectural decisions"
+      },
+      "originality_effort": {
+        "score": 6,
+        "justification": "Original repository with 50 commits over 7 days from 3 contributors during hackathon period. Commit history shows authentic iterative development with meaningful messages. However, substantial portions appear to be ElizaOS template adaptations rather than ground-up development.",
+        "is_fork": false,
+        "commit_analysis": "Genuine hackathon development pattern with commits up to deadline (2025-08-05). Multiple authors show collaborative effort.",
+        "red_flags": [
+          "Heavy template usage",
+          "Boilerplate-heavy codebase",
+          "Plugin structure follows exact ElizaOS patterns"
+        ]
+      },
+      "market_analysis": {
+        "score": 8,
+        "justification": "Strong market opportunity in DeFi automation and accessibility. Conversational AI for DeFi operations addresses real pain points around complex yield farming, cross-chain operations, and risk management. Base L2 focus is strategic given Coinbase backing.",
+        "competitors": [
+          "Yearn Finance - yield optimization without conversational interface",
+          "1inch - DeFi aggregation but complex UI",
+          "DeFiLlama - analytics only, no execution"
+        ],
+        "differentiation": "Natural language interface for complex DeFi operations with integrated risk management and cross-chain capabilities",
+        "addressable_market": "Large - DeFi TVL exceeds $100B with growing demand for user-friendly interfaces"
+      },
+      "viability_assessment": {
+        "score": 6,
+        "justification": "Technical foundation is solid but heavily dependent on ElizaOS ecosystem. Scalability concerns around AI model costs and DeFi protocol integrations. Business model unclear beyond technology demonstration. Team appears technically capable but sustainability questionable without revenue model.",
+        "main_challenges": [
+          "AI model inference costs at scale",
+          "Maintaining integrations with evolving DeFi protocols",
+          "Regulatory compliance for automated financial services",
+          "User acquisition in competitive DeFi space"
+        ],
+        "production_readiness": "Significant work needed for production deployment including security audits, user onboarding, and regulatory compliance"
+      },
+      "innovation_rating": {
+        "score": 7,
+        "justification": "Novel application of conversational AI to DeFi operations. Creative integration of multiple protocols through natural language interface. Base L2 focus shows strategic thinking. However, core innovation is more in integration and UX than fundamental technical breakthroughs.",
+        "novel_aspects": [
+          "Conversational interface for complex DeFi operations",
+          "Multi-protocol integration with risk management",
+          "Base L2 ecosystem focus with Coinbase integration potential"
+        ],
+        "technical_creativity": "Good use of existing technologies in new combination rather than breakthrough innovation"
+      },
+      "judge_insights": {
+        "marcs_take": "Business model needs clarification. How do you monetize without becoming a financial advisor? Go-to-market strategy unclear - DeFi users are sophisticated, why need AI agent? Revenue streams and regulatory compliance are major concerns.",
+        "shaws_take": "Architecture is clean but heavily template-driven. ElizaOS dependency creates vendor lock-in risk. Plugin system is well-designed but follows framework conventions. Scalability concerns with AI inference costs and state management across multiple chains.",
+        "spartans_take": "Good DeFi protocol integrations with Morpho, LiFi, and Base ecosystem. However, the AI agent doesn't add novel blockchain functionality - it's primarily a UX layer. Smart contract interactions are standard, no innovative on-chain mechanisms.",
+        "peepos_take": "The conversational interface could make DeFi more accessible, but target audience unclear. DeFi degens might prefer direct protocol interaction. UX design missing - this is backend infrastructure without frontend demonstration. Community building potential exists but no evidence of user validation."
+      },
+      "red_flags": [
+        "ElizaOS template dependency \u2192 70%+ of codebase follows framework patterns in src/plugins/plugin-bootstrap/",
+        "Oversized test utilities \u2192 15KB test-utils.ts suggests copy-paste from examples",
+        "Minimal README \u2192 Only 340 words for complex DeFi integration project",
+        "Character definition templating \u2192 src/character.ts follows exact ElizaOS agent template structure",
+        "No frontend implementation \u2192 Claims to be user-facing but no UI components found",
+        "Missing security considerations \u2192 No audit trails or security documentation for financial operations",
+        "Unclear business model \u2192 No monetization strategy for expensive AI operations",
+        "No user validation \u2192 No evidence of user testing or market feedback",
+        "Plugin boilerplate \u2192 bootstrap plugin contains extensive copy-paste from ElizaOS examples",
+        "Missing deployment configuration \u2192 No production-ready deployment scripts or infrastructure"
+      ],
+      "overall_assessment": {
+        "total_score": 34,
+        "max_possible": 50,
+        "recommendation": "CONDITIONAL ACCEPTANCE - Technically competent integration project with strong market opportunity, but heavy reliance on templates and unclear business model limit potential impact. Good hackathon execution but needs significant work for viability."
+      }
+    }
+  },
+  "likes": 1,
+  "dislikes": 0,
+  "community_score": 10.0,
+  "can_edit": false,
+  "is_creator": false
 }

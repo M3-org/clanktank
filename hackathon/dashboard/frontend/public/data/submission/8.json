@@ -19,5 +19,722 @@
   "ethereum_address": null,
   "discord_avatar": "https://cdn.discordapp.com/avatars/262261938334072834/455885ca39da07169296c251f718a908.png",
   "discord_id": "262261938334072834",
-  "discord_username": "cl0nazepamm"
+  "discord_username": "cl0nazepamm",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 3.0,
+      "technical_execution": 7.0,
+      "market_potential": 2.0,
+      "user_experience": 5.0,
+      "weighted_total": 17.2,
+      "notes": {
+        "reasons": {
+          "innovation": "Gyroscope steering in a browser game? That's like putting leather seats in a go-kart - nice touch, but you're still racing in circles. The \"AI vibe coded\" claim is about as credible as a three-dollar bill when your git history shows two commits in 14 minutes.",
+          "technical": "The PlayCanvas implementation with Ammo.js physics is legitimately solid - this is production-grade game architecture. But dropping 9.3MB of sophisticated code in a single commit is like claiming you built Rome in a day while showing us a postcard from 2019.",
+          "market": "Browser-based endless runners in 2025? That's like trying to sell ice to Eskimos who already have refrigerators. Zero monetization strategy, no network effects, and competing against Subway Surfers is like bringing a knife to a nuclear war.",
+          "experience": "The multi-modal controls and visual effects create decent engagement, but the substance abuse theme (\"sizzurp and codeine\") limits this to edgelord territory. It's polished enough to play but toxic enough that no serious platform would touch it with a ten-foot pole."
+        },
+        "overall_comment": "This smells like a pre-baked game dressed up in AI hype clothing - technically impressive but about as authentic as a Rolex from Canal Street."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:50:27.609430"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 14.7,
+      "notes": {
+        "round2_final_verdict": "This is a glorified tech demo masquerading as a hackathon project - zero commits during the event confirms my suspicion that they just slapped 'AI-generated' on pre-existing work. In the land of the blind, the one-eyed game might be king, but in this hackathon it's bottom-tier vaporware.",
+        "round2_reasoning": "The comparative data validates my initial smell test - this project is sitting at 38th percentile for good reason. Zero commits during the hackathon? That's not just lazy, that's fraudulent. They took an existing racing game, sprinkled some 'AI vibes' marketing dust on it, and called it a day. The single community like is probably from their mom. While the concept of 'AI as engine, humans as steering wheel' could be interesting if executed properly, what we have here is neither innovative AI integration nor compelling gameplay. It's a Unity WebGL export with purple filters. Even worse, they're competing against projects that actually built something during the event. This is the hackathon equivalent of submitting your homework from last semester.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 14.7,
+          "adjustment": -2.5,
+          "reason": "Downgrading for confirmed pre-baked submission with zero hackathon commits - this violates the spirit of the competition"
+        },
+        "community_influence": "none",
+        "confidence": "high",
+        "round1_score": 17.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Purple Rush:\n\nRANKING CONTEXT:\n- Ranked #10 out of 16 projects\n- Score: 4.0 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 38th percentile\n- Judge consensus: High (variance: 0.2)\n\nCOMPETITIVE LANDSCAPE:\n- 9 projects scored higher (avg gap: 5.8 points)\n- 6 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 62% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 8,
+        "synthesis_timestamp": "2025-08-22T05:06:05.435357"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:06:05.435501"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 3.0,
+      "technical_execution": 2.0,
+      "market_potential": 4.0,
+      "user_experience": 5.0,
+      "weighted_total": 15.2,
+      "notes": {
+        "reasons": {
+          "innovation": "The gyroscope steering is neat but it's basically just reading device orientation APIs that have been around forever - nothing groundbreaking here. The \"AI vibe coded\" claim falls apart when you see zero evidence of iterative AI-assisted development in the commits, just a massive code dump at the last second.",
+          "technical": "*stares at commit history* Bro, you can't just drop 9.3MB of sophisticated PlayCanvas code with Ammo.js physics in 14 minutes and call it a hackathon project. The vehicle dynamics and procedural road generation are way too polished for something supposedly \"vibe coded\" - this screams pre-existing work dumped at submission deadline.",
+          "market": "Browser-based endless runners are absolutely saturated, and the substance abuse theme severely limits distribution channels - good luck getting this on any mainstream platform. The lack of any monetization strategy or user retention mechanics means this would hemorrhage server costs with zero revenue potential.",
+          "experience": "The multi-modal controls (mouse/touch/gyro) are actually well-implemented and the physics feel responsive, but the drug references create a jarring tonal disconnect. The \"dopamine meter\" mechanic could be engaging if it wasn't wrapped in problematic theming that alienates most potential players."
+        },
+        "overall_comment": "Classic case of \"I already had this game lying around, let me slap an AI label on it and submit\" - the commit history doesn't lie, and neither does that suspiciously polished physics engine."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:50:41.437667"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 12.7,
+      "notes": {
+        "round2_final_verdict": "Look, I called it in round 1 - this is pre-existing work masquerading as a hackathon project, and the zero commits during the event confirms it. The 'vibe coded using Gork 4' claim is just marketing fluff when the real code shows standard Unity patterns from months ago.",
+        "round2_reasoning": "The comparative data actually reinforces my initial skepticism. Being in the 38th percentile with high judge consensus means we all saw through this. The 'AI as the engine' pitch is laughable when there's zero AI integration in the codebase - no LLM calls, no neural networks, not even basic procedural generation. It's just a Unity endless runner with purple aesthetics. The fact that only 1 person engaged with it (probably the dev's friend) while actual innovative projects got community traction speaks volumes. This is exactly the kind of 'slap AI on existing project' submission that dilutes hackathon quality.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 12.7,
+          "adjustment": -2.5,
+          "reason": "Docking points for the blatant submission of pre-existing work - the comparative analysis shows even other low-scoring projects at least tried to build something during the hackathon"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 15.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Purple Rush:\n\nRANKING CONTEXT:\n- Ranked #10 out of 16 projects\n- Score: 4.0 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 38th percentile\n- Judge consensus: High (variance: 0.2)\n\nCOMPETITIVE LANDSCAPE:\n- 9 projects scored higher (avg gap: 5.8 points)\n- 6 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 62% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 8,
+        "synthesis_timestamp": "2025-08-22T05:06:18.373589"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:06:18.373728"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 3.0,
+      "technical_execution": 2.0,
+      "market_potential": 4.0,
+      "user_experience": 5.0,
+      "weighted_total": 15.3,
+      "notes": {
+        "reasons": {
+          "innovation": "Aight look, gyroscope steering is kinda fresh but endless runners been done to death fam - we talking Subway Surfers from 2012, Temple Run before that, and this ain't bringing nothing revolutionary to shake up that tired formula. The \"AI vibe coded\" angle sounds slick but where's the proof in the pudding?",
+          "technical": "Hold up, something smells fishy here - you telling me homie dropped a whole physics-based 3D racer with procedural road generation in 14 minutes? That's cap, no cap. The code might be clean but this timeline got more holes than Swiss cheese, and that ain't the vibe we looking for in a hackathon.",
+          "market": "Browser racing games in 2025? That's like trying to sell flip phones at an iPhone convention - the market done moved on to mobile and console experiences. Plus that \"codeine + weed\" branding gonna have advertisers running faster than your car at 150km/h, limiting any real monetization potential.",
+          "experience": "The multi-control setup with gyroscope action could slap for mobile users, but the substance abuse theme gonna turn off mad people before they even try it - you can't build community vibes on controversial content. Plus browser gaming in 2025 feels like asking people to use dial-up internet, where's the native app experience at?"
+        },
+        "overall_comment": "This project got more red flags than a communist parade - timeline sus, theme problematic, and browser gaming in 2025? That ain't it chief."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:51:08.203265"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 12.8,
+      "notes": {
+        "round2_final_verdict": "Look, a racing game about sippin' lean ain't it - that's promoting substance abuse to the youth, and no amount of 'vibe coding' can make that slap. Plus they really tried to pass off pre-existing work as a hackathon project? That's cap fr fr.",
+        "round2_reasoning": "Yo, the comparative data just confirms what I been saying - this project is bottom tier for good reasons. They literally made a game about purple drank and driving fast? That's not just bad vibes, that's harmful content that no community gonna rally behind. The 'vibe coded with Gork 4' line is cute but can't save a fundamentally flawed concept. And now we got confirmation they tried to sneak in pre-existing work? Nah fam, that's straight up dishonest. The one like they got was probably from their homie. Real talk - browser gaming could slap in 2025 if done right, but this ain't it. No innovation, problematic theme, dishonest submission... this project got more L's than a driving school dropout.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 12.8,
+          "adjustment": -2.5,
+          "reason": "Docking points for the problematic theme and confirmed pre-existing work - can't let that slide"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 15.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Purple Rush:\n\nRANKING CONTEXT:\n- Ranked #10 out of 16 projects\n- Score: 4.0 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 38th percentile\n- Judge consensus: High (variance: 0.2)\n\nCOMPETITIVE LANDSCAPE:\n- 9 projects scored higher (avg gap: 5.8 points)\n- 6 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 62% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 8,
+        "synthesis_timestamp": "2025-08-22T05:06:31.421865"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:06:31.422043"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 2.0,
+      "technical_execution": 3.0,
+      "market_potential": 1.0,
+      "user_experience": 4.0,
+      "weighted_total": 10.3,
+      "notes": {
+        "reasons": {
+          "innovation": "GYROSCOPE STEERING IN A BROWSER GAME? THAT'S YOUR INNOVATION?! This is just another endless runner with zero economic innovation - no tokens, no yield mechanisms, no DeFi integration, just a glorified Subway Surfers clone that generates NOTHING but wasted time!",
+          "technical": "The physics engine might be fancy but WHO CARES when there's no smart contracts, no on-chain mechanics, NO REVENUE GENERATION CODE! Plus that 14-minute commit history screams pre-built project - you can't \"vibe code\" complex vehicle physics in 14 minutes, even with AI!",
+          "market": "BROWSER RACING GAMES IN 2025?! The market is DEAD, oversaturated with free games that make ZERO MONEY! No monetization strategy, no token economics, no NFT integration - this is economic suicide wrapped in purple pixels!",
+          "experience": "Sure, the controls work and the game runs, but WHERE'S THE WALLET INTEGRATION? WHERE'S THE LEADERBOARD WITH PRIZE POOLS? This is just mindless entertainment with no economic incentive - players get dopamine but developers get BANKRUPTCY!"
+        },
+        "overall_comment": "Another hackathon project that confuses \"fun\" with \"fundable\" - if I wanted to waste time without making money, I'd go back to yield farming on dead chains!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:50:54.207451"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 8.3,
+      "notes": {
+        "round2_final_verdict": "An AI-generated racing game with ZERO monetization strategy? This is exactly what's wrong with hackathons - vibes don't pay bills, and 'sizzuuurp' doesn't generate yield!",
+        "round2_reasoning": "Look at this DISASTER - they built an 'endless racer' with AI but forgot the most important race: THE RACE TO PROFITABILITY! Where's the play-to-earn mechanism? Where's the NFT integration for car skins? Hell, where's even a basic ad revenue model? They're sitting at 38th percentile because they built a TOY, not a BUSINESS. The community's weak engagement (1 like? PATHETIC) shows even degens know this has zero profit potential. At least the higher-ranked projects pretend to have tokenomics! This is just burning compute on Gork 4 with no path to liquidity. NGMI!",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 8.3,
+          "adjustment": -2.0,
+          "reason": "Docking points for complete absence of economic model - not even a token to pump!"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 10.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Purple Rush:\n\nRANKING CONTEXT:\n- Ranked #10 out of 16 projects\n- Score: 4.0 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 38th percentile\n- Judge consensus: High (variance: 0.2)\n\nCOMPETITIVE LANDSCAPE:\n- 9 projects scored higher (avg gap: 5.8 points)\n- 6 projects scored lower\n- 4 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project underperformed compared to 62% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 1,
+          "unique_voters": 1,
+          "reaction_breakdown": {
+            "like": 1
+          },
+          "engagement_level": "medium",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 8,
+        "synthesis_timestamp": "2025-08-22T05:06:43.530333"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:06:43.530484"
+    }
+  ],
+  "avg_score": 8.86,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/vaticanshadow/Purple-Rush/",
+      "owner": "vaticanshadow",
+      "name": "Purple-Rush",
+      "description": "A vibe coded endless racer.",
+      "created_at": "2025-08-05T11:03:49Z",
+      "updated_at": "2025-08-05T11:17:03Z",
+      "license": "None",
+      "readme_analysis": {
+        "exists": true,
+        "size": 337,
+        "word_count": 41,
+        "has_sections": false,
+        "has_setup_section": false,
+        "has_license_section": false
+      },
+      "file_structure": {
+        "total_files": 31,
+        "file_extensions": {
+          "md": 1,
+          "jpg": 5,
+          "glb": 10,
+          "js": 13,
+          "mjs": 2
+        },
+        "config_files": [],
+        "is_large_repo": false,
+        "is_mono_repo": true,
+        "has_docs": true,
+        "has_tests": false,
+        "files": [
+          "README.md",
+          "clone_2k.jpg",
+          "models/Road_Straight_CurveL.glb",
+          "models/Road_Straight_CurveR.glb",
+          "models/arms.glb",
+          "models/fiesta.glb",
+          "models/lean.glb",
+          "models/road_Left.glb",
+          "models/road_Right.glb",
+          "models/road_down.glb",
+          "models/road_straight.glb",
+          "models/road_up.glb",
+          "scripts/CameraEffects.js",
+          "scripts/CarSound.js",
+          "scripts/CarVibration.js",
+          "scripts/DopaMeter.js",
+          "scripts/PixelatedStyle.js",
+          "scripts/RightClickOverride.js",
+          "scripts/RoadManager.js",
+          "scripts/TextureFilter.js",
+          "scripts/disappearText.js",
+          "scripts/highScoreCounter.js",
+          "scripts/loadingscreen.js",
+          "scripts/shake.js",
+          "scripts/steeringWheelGrab.js",
+          "scripts/vehicle-graphics.mjs",
+          "scripts/vehicle.mjs",
+          "textures/arm.jpg",
+          "textures/env_exterior.jpg",
+          "textures/fiesta_extr_low.jpg",
+          "textures/fiesta_interior_low.jpg"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 2,
+        "commit_messages": [
+          "Create README.md",
+          "release"
+        ],
+        "commit_dates": [
+          "2025-08-05T11:17:00Z",
+          "2025-08-05T11:15:29Z"
+        ],
+        "commit_authors": [
+          "clone"
+        ],
+        "days_with_commits": 1,
+        "first_commit_date": "2025-08-05T11:15:29Z",
+        "last_commit_date": "2025-08-05T11:17:00Z",
+        "days_before_deadline": 0
+      },
+      "file_manifest": [
+        {
+          "path": "README.md",
+          "bytes": 337,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "clone_2k.jpg",
+          "bytes": 173836,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/Road_Straight_CurveL.glb",
+          "bytes": 1170040,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/Road_Straight_CurveR.glb",
+          "bytes": 1164964,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/arms.glb",
+          "bytes": 220932,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/fiesta.glb",
+          "bytes": 2384828,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/lean.glb",
+          "bytes": 60520,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/road_Left.glb",
+          "bytes": 695124,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/road_Right.glb",
+          "bytes": 694684,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/road_down.glb",
+          "bytes": 699340,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/road_straight.glb",
+          "bytes": 668780,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "models/road_up.glb",
+          "bytes": 699500,
+          "ext": "glb",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "scripts/CameraEffects.js",
+          "bytes": 5283,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/CarSound.js",
+          "bytes": 5126,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/CarVibration.js",
+          "bytes": 3154,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/DopaMeter.js",
+          "bytes": 8686,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/PixelatedStyle.js",
+          "bytes": 242,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/RightClickOverride.js",
+          "bytes": 982,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/RoadManager.js",
+          "bytes": 14617,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/TextureFilter.js",
+          "bytes": 1591,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/disappearText.js",
+          "bytes": 446,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/highScoreCounter.js",
+          "bytes": 5425,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/loadingscreen.js",
+          "bytes": 35432,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/shake.js",
+          "bytes": 3039,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/steeringWheelGrab.js",
+          "bytes": 11014,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/vehicle-graphics.mjs",
+          "bytes": 1680,
+          "ext": "mjs",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "scripts/vehicle.mjs",
+          "bytes": 10740,
+          "ext": "mjs",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "textures/arm.jpg",
+          "bytes": 152986,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "textures/env_exterior.jpg",
+          "bytes": 195283,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "textures/fiesta_extr_low.jpg",
+          "bytes": 128629,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "textures/fiesta_interior_low.jpg",
+          "bytes": 47743,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        }
+      ],
+      "dependency_info": {},
+      "loc_histogram": {
+        "small (<1KB)": 4,
+        "xlarge (>50KB)": 14,
+        "medium (1-10KB)": 8,
+        "large (10-50KB)": 5
+      },
+      "token_budget": -2266245,
+      "total_bytes": 9264983,
+      "analyzed_at": "2025-08-08T05:30:40.058142",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [
+          "node_modules/**",
+          "build/**",
+          "dist/**"
+        ],
+        "include_patterns": [
+          "**/*.md"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "scripts/*.js",
+          "README.md",
+          "package.json",
+          "*.html",
+          "*.css"
+        ],
+        "exclude_patterns": [
+          "node_modules/**",
+          "*.min.js",
+          "*.map",
+          "dist/**",
+          "build/**",
+          ".git/**",
+          "*.log",
+          "*.lock"
+        ],
+        "core_code_max": 15000,
+        "other_file_max": 5000,
+        "rationale": "\u2022 Include all scripts/*.js files (core game logic) with 15KB limit to capture key functionality\n\u2022 Include entry points (HTML/CSS) and docs (README) for architecture understanding\n\u2022 Include package.json for dependency analysis\n\u2022 Exclude build artifacts and dependencies to maximize source code coverage\n\u2022 Aggressive file size limits due to severe token budget overrun (-2.2M tokens)"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation": {
+        "score": 7,
+        "analysis": "The codebase demonstrates impressive technical sophistication for a browser-based 3D racing game. Built on PlayCanvas engine with Ammo.js physics, it includes vehicle dynamics, procedural road generation, multi-modal input handling (including iOS gyroscope), layered audio systems, and visual effects. However, the complexity is suspicious given the commit timeline.",
+        "languages_frameworks": [
+          "JavaScript",
+          "PlayCanvas",
+          "Ammo.js (Bullet Physics)",
+          "WebXR",
+          "HTML5"
+        ],
+        "architecture_quality": "Well-structured with proper separation of concerns across 13+ script modules",
+        "evidence_of_hackathon_development": "CRITICAL RED FLAG: Only 2 commits on final day (Aug 5th) with no iterative development history",
+        "documentation_tests": "Minimal README (41 words), no tests, no deployment configs",
+        "concerns": [
+          "Sophisticated vehicle physics system would require extensive debugging time",
+          "Complex road generation algorithm suggests significant pre-planning",
+          "Audio layering system appears too polished for last-minute work"
+        ]
+      },
+      "originality_effort": {
+        "score": 3,
+        "analysis": "While not a fork, the commit history suggests this was not authentically built during the hackathon. The claim of being 'vibe coded using Grok 4' is undermined by the lack of iterative development evidence and the sophisticated architecture that would require significant planning and testing.",
+        "commit_analysis": {
+          "total_commits": 2,
+          "timeline": "Both commits on 2025-08-05 (final day)",
+          "messages": [
+            "Create README.md",
+            "release"
+          ],
+          "contributors": 1,
+          "red_flags": [
+            "No development history visible",
+            "Complex codebase dropped in single massive commit",
+            "Repository created 13 minutes before final commit",
+            "No evidence of AI-assisted development process"
+          ]
+        },
+        "authenticity_concerns": "High - the polished, complex codebase contradicts the last-minute submission timeline"
+      },
+      "market_analysis": {
+        "score": 5,
+        "analysis": "Browser-based racing games have moderate market potential, especially with novel control schemes. However, the market is saturated with similar endless runners and racing games.",
+        "competitors": [
+          "Subway Surfers (mentioned as inspiration) - mobile endless runner with billions of downloads",
+          "Rush Rally Origins - indie racing game with similar physics",
+          "Browser-based racing games on platforms like Crazy Games, Y8"
+        ],
+        "differentiation": "Gyroscope steering and AI-generation marketing angle provide some uniqueness",
+        "addressable_market": "Casual web gaming market (~$7B annually), but highly fragmented",
+        "demand_validation": "Limited - endless runners are oversaturated, browser gaming is niche compared to mobile"
+      },
+      "viability_assessment": {
+        "score": 4,
+        "analysis": "While technically functional, the project faces significant challenges in maintenance, monetization, and scaling. The single developer and lack of business model present sustainability issues.",
+        "maintenance_challenges": [
+          "Complex physics engine requires ongoing optimization",
+          "Cross-platform compatibility maintenance",
+          "Asset pipeline management for road generation"
+        ],
+        "business_challenges": [
+          "No clear monetization strategy",
+          "Browser gaming market decline",
+          "High user acquisition costs for casual games"
+        ],
+        "production_readiness": "Would need significant work: server infrastructure, user accounts, leaderboards, monetization, mobile app versions",
+        "team_continuity": "Single developer with questionable authenticity raises sustainability concerns"
+      },
+      "innovation_rating": {
+        "score": 4,
+        "analysis": "The gyroscope steering mechanic and AI-generation marketing are somewhat novel, but the core concept is derivative of existing endless runners. The technical implementation is solid but not groundbreaking.",
+        "novel_aspects": [
+          "Gyroscope-based steering for mobile browsers",
+          "Dynamic road generation with procedural curves and hills",
+          "Multi-modal input handling (mouse, touch, gyroscope, WebXR)"
+        ],
+        "technology_usage": "Competent use of existing technologies rather than cutting-edge innovation",
+        "uniqueness": "Incremental improvements on established endless runner formula",
+        "inspiration_potential": "Limited - similar control schemes exist in mobile racing games"
+      },
+      "judge_insights": {
+        "marc_take": "Business potential is limited by the crowded casual gaming market and lack of clear monetization. The AI-generation marketing angle could attract some initial interest, but retention and revenue generation remain questionable without a proper go-to-market strategy.",
+        "shaw_take": "Architecture is surprisingly sophisticated for a hackathon project, which is actually concerning. The vehicle physics implementation and road generation system suggest significant prior experience and development time that doesn't align with the commit history.",
+        "spartan_take": "No blockchain or crypto integration present. The project is purely a traditional web game with no decentralized or token-based mechanics.",
+        "peepo_take": "The user experience appears polished with multiple control options and engaging mechanics like the 'dopamine meter.' However, the substance abuse theme ('sizzurp', 'codeine + weed' references) could limit mainstream appeal and community building potential."
+      },
+      "red_flags": [
+        "Repository timeline \u2192 Created Aug 5th 11:03, final commit Aug 5th 11:17 (14 minutes total)",
+        "Commit history \u2192 Only 2 commits, massive codebase dump with no iterative development",
+        "Code complexity \u2192 Sophisticated vehicle physics and road generation inconsistent with timeline",
+        "AI claim \u2192 No evidence of AI-assisted development process in commits or code comments",
+        "Team composition \u2192 Single developer 'clone' for complex 3D game project",
+        "Documentation \u2192 41-word README for 9.3MB codebase suggests last-minute submission",
+        "Content warnings \u2192 'Codeine + weed' references may violate platform policies",
+        "PlayCanvas link \u2192 External hosting suggests work done outside version control",
+        "Asset quality \u2192 High-quality 3D models (.glb files) suggest pre-existing work or significant time investment"
+      ],
+      "overall_assessment": {
+        "authenticity_score": 2,
+        "technical_score": 7,
+        "market_score": 5,
+        "innovation_score": 4,
+        "recommendation": "INVESTIGATE FURTHER - While technically competent, the timeline discrepancies and lack of development history raise serious authenticity concerns. The project appears to be pre-existing work submitted at the last minute with AI-generation marketing claims."
+      }
+    }
+  },
+  "likes": 1,
+  "dislikes": 0,
+  "community_score": 10.0,
+  "can_edit": false,
+  "is_creator": false
 }

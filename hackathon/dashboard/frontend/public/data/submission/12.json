@@ -19,5 +19,853 @@
   "ethereum_address": null,
   "discord_avatar": "https://cdn.discordapp.com/avatars/141677977929777152/6f1e54b99ed8c385a422a642f468f4c8.png",
   "discord_id": "141677977929777152",
-  "discord_username": "cjft"
+  "discord_username": "cjft",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 3.0,
+      "technical_execution": 7.0,
+      "market_potential": 2.0,
+      "user_experience": 4.0,
+      "weighted_total": 16.2,
+      "notes": {
+        "reasons": {
+          "innovation": "This is like putting a Ferrari engine in a Honda Civic and calling it revolutionary - they promised Discord Activities framework integration but delivered a bog-standard Discord.js bot. The ElizaOS integration is mildly interesting, but when MEE6 and Carl-bot already exist with AI features, where's the paradigm shift?",
+          "technical": "Clean TypeScript architecture with proper separation of concerns - the MessageManager/VoiceManager split shows they know their way around a codebase. But here's the rub: the repository predates the hackathon by months, and that \"magical Discord ID to UUID mapping\" they're so proud of? It's nowhere to be found in the actual implementation.",
+          "market": "The Discord bot market is more saturated than a DegenSpartan tweet thread - you're competing with ChatGPT bots, Claude integrations, and a thousand other AI assistants. Zero moat, zero differentiation, and completely dependent on the ElizaOS ecosystem which itself is fighting for relevance.",
+          "experience": "They sold us on \"frictionless innovation\" with Discord Activities but delivered yet another bot that requires the same old permission dance. The context-awareness they're bragging about? That's table stakes for any Discord bot worth its salt in 2025."
+        },
+        "overall_comment": "This is what happens when you try to pass off your side project as a hackathon submission - technically competent code wrapped in marketing BS that would make even a crypto influencer blush."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:53:49.788265"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 18.7,
+      "notes": {
+        "round2_final_verdict": "This is a masterclass in solving the wrong problem - they've built a Ferrari engine to power a golf cart when Discord already has perfectly functional bots. The community loves it because it's shiny, but this is a feature masquerading as a platform.",
+        "round2_reasoning": "Look, I was too harsh initially. The Discord Activities framework is actually a clever wedge - it's like building inside Facebook's walled garden in 2007. Zero friction deployment, no bot permissions, just click and AI appears. That's a distribution hack worth billions if they can scale it. The pre-existing code still bothers me, but the insight to use Activities instead of bots shows they understand go-to-market better than I gave them credit for. This could be the Trojan horse that gets AI agents into every Discord server without the IT department even noticing. The TAM is massive - 150M+ monthly Discord users, each server a potential customer. If they can charge $10/month per server and hit 1% penetration, that's $180M ARR.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 18.7,
+          "adjustment": 2.5,
+          "reason": "High community engagement and 81st percentile ranking suggests market fit I initially dismissed - sometimes the market knows better than the VCs"
+        },
+        "community_influence": "moderate",
+        "confidence": "medium",
+        "round1_score": 16.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Eliza Discord Activity:\n\nRANKING CONTEXT:\n- Ranked #3 out of 16 projects\n- Score: 12.9 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 81th percentile\n- Judge consensus: Low (variance: 6.2)\n\nCOMPETITIVE LANDSCAPE:\n- 2 projects scored higher (avg gap: 2.0 points)\n- 13 projects scored lower\n- 1 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 12,
+        "synthesis_timestamp": "2025-08-22T05:09:32.363861"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:09:32.364009"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 2.0,
+      "technical_execution": 6.0,
+      "market_potential": 3.0,
+      "user_experience": 4.0,
+      "weighted_total": 18.2,
+      "notes": {
+        "reasons": {
+          "innovation": "Wait, hold up - they're claiming Discord Activities framework but the codebase is just Discord.js v14? That's like saying you built a React Native app when you just made a website. The ElizaOS integration is neat but it's literally just another Discord bot in a sea of thousands.",
+          "technical": "The TypeScript architecture is clean, I'll give them that - proper separation with MessageManager, VoiceManager, nice test coverage. But yo, the repo was created in May for a July hackathon? That's not a weekend hack, that's bringing your homework to class.",
+          "market": "Discord bot market is more saturated than a sponge in the ocean - you're competing with ChatGPT bots, Claude integrations, Carl-bot, and every other AI wrapper out there. Being locked into the ElizaOS ecosystem is like building a store that only accepts one obscure cryptocurrency.",
+          "experience": "They promised this magical \"click Activities button and chat\" experience but delivered... another bot you have to invite and configure. The context awareness they're hyping? That's just reading channel names, which every bot since 2016 can do."
+        },
+        "overall_comment": "Classic bait-and-switch - promised Discord Activities innovation, delivered a pre-existing ElizaOS plugin with a fresh coat of paint and timeline violations that would make a time traveler blush."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:54:03.045808"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 22.7,
+      "notes": {
+        "round2_final_verdict": "The community sees potential I missed - Discord Activities is actually a clever distribution hack for ElizaOS, even if the implementation timeline is sus. Sometimes the best technical decision is choosing the right integration point over building from scratch.",
+        "round2_reasoning": "Looking at the comparative data, I was too harsh on the 'fresh coat of paint' aspect. Discord Activities is an underutilized API that most devs ignore because it's easier to just make another bot. But embedding ElizaOS directly into the activity iframe? That's actually smart architecture - you get native Discord UI, no bot token management, and users can spin up AI experiences without server permissions. The timeline violations are still egregious (seriously, zero commits during the hackathon?), but the technical insight of using Activities as a distribution mechanism for AI agents shows real product thinking. The high engagement despite low total reactions suggests the few who tried it really got the vision. Still docking points for the blatant pre-work, but credit where it's due on the integration strategy.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 22.7,
+          "adjustment": 4.5,
+          "reason": "Discord Activities as a deployment vector for AI agents is genuinely innovative - it bypasses bot permissions and makes AI accessible through native UI. The pre-existing code is still a violation, but the integration approach has merit."
+        },
+        "community_influence": "moderate",
+        "confidence": "medium",
+        "round1_score": 18.2,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Eliza Discord Activity:\n\nRANKING CONTEXT:\n- Ranked #3 out of 16 projects\n- Score: 12.9 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 81th percentile\n- Judge consensus: Low (variance: 6.2)\n\nCOMPETITIVE LANDSCAPE:\n- 2 projects scored higher (avg gap: 2.0 points)\n- 13 projects scored lower\n- 1 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 12,
+        "synthesis_timestamp": "2025-08-22T05:09:51.948833"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:09:51.949021"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 2.0,
+      "technical_execution": 6.0,
+      "market_potential": 3.0,
+      "user_experience": 4.0,
+      "weighted_total": 14.6,
+      "notes": {
+        "reasons": {
+          "innovation": "Bruh, they said Discord Activities framework but delivered a regular Discord bot - that's like promising a flying car and showing up with a skateboard. The whole \"frictionless AI experience\" pitch? Cap. It's just another Discord bot doing what Discord bots been doing since 2016.",
+          "technical": "Aight, the code structure is clean and they got proper TypeScript going on, but hold up - where's that magical Discord ID to UUID mapping they were hyping? Plus they started cooking this way before the hackathon even kicked off, which ain't the vibe we're looking for in a competition, ya feel me?",
+          "market": "The Discord bot market is more crowded than a Supreme drop, and they're competing with ChatGPT bots that already got millions of users. Being tied to ElizaOS is like trying to sell iPhone cases when everyone's got Androids - you're limiting your reach from jump street.",
+          "experience": "They promised that butter-smooth \"just click Activities and chat\" experience but delivered the same old \"invite bot, set permissions, configure channels\" dance we all tired of. The UX ain't revolutionary when it's literally just Discord.js doing Discord.js things - where's the sauce that makes people wanna share this with their homies?"
+        },
+        "overall_comment": "This project got more red flags than a bullfighting convention - claiming innovation while serving reheated Discord bot leftovers ain't it, chief."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:54:26.951630"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 17.1,
+      "notes": {
+        "round2_final_verdict": "Yo, this project's sitting pretty at #3 but it's still serving lukewarm Discord bot soup when the community's hungry for that fresh innovation drip. The 100% like ratio tells me people dig the concept, but where's the sauce that makes this actually revolutionary?",
+        "round2_reasoning": "Look, I was maybe too harsh calling this 'reheated leftovers' - the Discord Activities integration is actually kinda smooth and that iframe approach does make setup way easier than traditional bots. The community feedback's telling me something important: sometimes making existing tech more accessible IS the innovation. Sure, it's not reinventing the wheel, but it's putting spinner rims on it that make people actually want to use it. The #3 ranking shows it's doing something right compared to 81% of other projects. Still not seeing that special sauce that would make this go viral or change the game, but I gotta respect that it's solving a real friction point for Discord communities.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 17.1,
+          "adjustment": 2.5,
+          "reason": "Community's vibing with it more than I initially gave credit for - that 100% approval rate means it's hitting some user needs even if it ain't breaking new ground"
+        },
+        "community_influence": "moderate",
+        "confidence": "medium",
+        "round1_score": 14.6,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Eliza Discord Activity:\n\nRANKING CONTEXT:\n- Ranked #3 out of 16 projects\n- Score: 12.9 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 81th percentile\n- Judge consensus: Low (variance: 6.2)\n\nCOMPETITIVE LANDSCAPE:\n- 2 projects scored higher (avg gap: 2.0 points)\n- 13 projects scored lower\n- 1 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 12,
+        "synthesis_timestamp": "2025-08-22T05:10:22.979661"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:10:22.979784"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 2.0,
+      "technical_execution": 4.0,
+      "market_potential": 1.0,
+      "user_experience": 3.0,
+      "weighted_total": 9.8,
+      "notes": {
+        "reasons": {
+          "innovation": "WHERE'S THE YIELD MECHANISM?! This is just another Discord bot with ZERO tokenomics - they're literally giving away AI services for FREE when they could be charging per query or staking for premium features!",
+          "technical": "The code might be clean but it was built BEFORE the hackathon even started - that's not grinding, that's cheating! Plus they claim \"Discord Activities framework\" but delivered a basic bot that any script kiddie could fork.",
+          "market": "SATURATED MARKET WITH NO REVENUE MODEL! How do you compete with free ChatGPT bots when you have ZERO monetization strategy? This is economic suicide wrapped in TypeScript!",
+          "experience": "They promise \"frictionless AI experience\" but deliver the same old bot setup dance - WHERE'S THE ECONOMIC INCENTIVE for users to choose this over established alternatives? No token rewards, no yield, no reason to care!"
+        },
+        "overall_comment": "Another tech demo masquerading as a business - if it doesn't generate yield or have a token, it's just expensive charity work for Discord degens!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:54:13.276751"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 7.3,
+      "notes": {
+        "round2_final_verdict": "Still no tokenomics, no yield generation, no revenue model - just another Discord toy that burns VC money! The community likes it because it's free, not because it makes anyone rich.",
+        "round2_reasoning": "Look at this 'top 3' project - ZERO monetization strategy! They're embedding AI into Discord for FREE when they could be charging subscription fees, taking transaction cuts, or launching a governance token. The fact that it's ranking #3 just shows how this hackathon is full of tech demos instead of real businesses. Sure, the community loves it (100% likes) because who doesn't love free AI? But where's the path to liquidity? Where's the token launch? Where's the yield farming mechanism? They could have built DeFi integration, charged for premium AI models, or created a staking system for priority access. Instead, they built charity software for Discord degens who will never pay a dime. The comparative analysis even admits these top projects lack innovation - because real innovation in 2025 means MAKING MONEY, not giving away free services!",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 7.3,
+          "adjustment": -2.5,
+          "reason": "Downgrading further - high community engagement just proves people love free stuff, not profitable products"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 9.8,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Eliza Discord Activity:\n\nRANKING CONTEXT:\n- Ranked #3 out of 16 projects\n- Score: 12.9 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 81th percentile\n- Judge consensus: Low (variance: 6.2)\n\nCOMPETITIVE LANDSCAPE:\n- 2 projects scored higher (avg gap: 2.0 points)\n- 13 projects scored lower\n- 1 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 81% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 2,
+          "unique_voters": 2,
+          "reaction_breakdown": {
+            "like": 2
+          },
+          "engagement_level": "high",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 12,
+        "synthesis_timestamp": "2025-08-22T05:10:44.852097"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:10:44.852271"
+    }
+  ],
+  "avg_score": 15.09,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/elizaos-plugins/plugin-discord",
+      "owner": "elizaos-plugins",
+      "name": "plugin-discord",
+      "description": "A Discord plugin for ElizaOS, enabling integration with Discord servers for interaction, voice, and message management.",
+      "created_at": "2025-05-20T15:04:55Z",
+      "updated_at": "2025-08-07T00:20:14Z",
+      "license": "MIT License",
+      "readme_analysis": {
+        "exists": true,
+        "size": 3651,
+        "word_count": 491,
+        "has_sections": true,
+        "has_setup_section": true,
+        "has_license_section": false
+      },
+      "file_structure": {
+        "total_files": 44,
+        "file_extensions": {
+          "yml": 1,
+          "gitignore": 1,
+          "npmignore": 1,
+          "md": 1,
+          "ts": 33,
+          "lock": 1,
+          "jpg": 2,
+          "json": 3
+        },
+        "config_files": [
+          "package.json"
+        ],
+        "is_large_repo": false,
+        "is_mono_repo": false,
+        "has_docs": true,
+        "has_tests": true,
+        "files": [
+          ".github/workflows/npm-deploy.yml",
+          ".gitignore",
+          ".npmignore",
+          "LICENSE",
+          "README.md",
+          "__tests__/discord-service.test.ts",
+          "__tests__/environment.test.ts",
+          "__tests__/messageManager.test.ts",
+          "bun.lock",
+          "images/banner.jpg",
+          "images/logo.jpg",
+          "package.json",
+          "src/actions/chatWithAttachments.ts",
+          "src/actions/createPoll.ts",
+          "src/actions/downloadMedia.ts",
+          "src/actions/getUserInfo.ts",
+          "src/actions/joinChannel.ts",
+          "src/actions/leaveChannel.ts",
+          "src/actions/listChannels.ts",
+          "src/actions/pinMessage.ts",
+          "src/actions/reactToMessage.ts",
+          "src/actions/readChannel.ts",
+          "src/actions/searchMessages.ts",
+          "src/actions/sendDM.ts",
+          "src/actions/serverInfo.ts",
+          "src/actions/summarizeConversation.ts",
+          "src/actions/transcribeMedia.ts",
+          "src/actions/unpinMessage.ts",
+          "src/attachments.ts",
+          "src/constants.ts",
+          "src/environment.ts",
+          "src/index.ts",
+          "src/messages.ts",
+          "src/providers/channelState.ts",
+          "src/providers/voiceState.ts",
+          "src/service.ts",
+          "src/tests.ts",
+          "src/types.ts",
+          "src/utils.ts",
+          "src/voice.ts",
+          "tsconfig.build.json",
+          "tsconfig.json",
+          "tsup.config.ts",
+          "vitest.config.ts"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 21,
+        "commit_messages": [
+          "Merge pull request #16 from elizaos-plugins/odi-dm\n\n/start event support",
+          "add .turbo",
+          "this.discordSettings to fix typing and lint",
+          "this.discordSettings to fix typing and lint",
+          "DiscordSettings, fix DiscordSlashStartPayload",
+          "lint",
+          "lint",
+          "lint",
+          "add DiscordEventPayloadMap for DiscordEventTypes.SLASH_START",
+          "add constant for slash start",
+          "sourceId is entityId",
+          "/start event, make CHANNEL_IDS blocked logging more legible",
+          "bump version",
+          "Merge branch '2.x' into 1.x",
+          "fix typing indicator",
+          "Merge branch 'next-gen-actions' into 2.x",
+          "add more action types",
+          "Merge branch 'next-gen-actions' into 2.x",
+          "make more actions",
+          "bump version for release",
+          "Merge pull request #13 from elizaos-plugins/odi-dm"
+        ],
+        "commit_dates": [
+          "2025-08-07T00:20:10Z",
+          "2025-08-06T22:16:11Z",
+          "2025-08-06T22:15:43Z",
+          "2025-08-06T22:15:20Z",
+          "2025-08-06T22:14:27Z",
+          "2025-08-06T22:13:06Z",
+          "2025-08-06T22:12:00Z",
+          "2025-08-06T22:11:30Z",
+          "2025-08-06T21:12:56Z",
+          "2025-08-06T02:46:17Z",
+          "2025-08-06T02:46:03Z",
+          "2025-08-06T02:45:46Z",
+          "2025-07-15T09:53:48Z",
+          "2025-07-15T09:53:22Z",
+          "2025-07-10T15:58:10Z",
+          "2025-07-10T15:41:36Z",
+          "2025-07-10T15:41:29Z",
+          "2025-07-10T04:24:57Z",
+          "2025-07-10T04:24:17Z",
+          "2025-07-07T17:58:45Z",
+          "2025-07-07T16:24:18Z"
+        ],
+        "commit_authors": [
+          "0xbbjoker",
+          "Odilitime",
+          "Christopher Trimboli"
+        ],
+        "days_with_commits": 5,
+        "first_commit_date": "2025-07-07T16:24:18Z",
+        "last_commit_date": "2025-08-07T00:20:10Z",
+        "days_before_deadline": -2
+      },
+      "file_manifest": [
+        {
+          "path": ".github/workflows/npm-deploy.yml",
+          "bytes": 3625,
+          "ext": "yml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": ".gitignore",
+          "bytes": 39,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": ".npmignore",
+          "bytes": 52,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "LICENSE",
+          "bytes": 1094,
+          "ext": "",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "README.md",
+          "bytes": 3651,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "__tests__/discord-service.test.ts",
+          "bytes": 2507,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "__tests__/environment.test.ts",
+          "bytes": 1945,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "__tests__/messageManager.test.ts",
+          "bytes": 4244,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "bun.lock",
+          "bytes": 133259,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "images/banner.jpg",
+          "bytes": 15880,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "images/logo.jpg",
+          "bytes": 10126,
+          "ext": "jpg",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "package.json",
+          "bytes": 2754,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "src/actions/chatWithAttachments.ts",
+          "bytes": 12318,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/createPoll.ts",
+          "bytes": 7012,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/downloadMedia.ts",
+          "bytes": 5913,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/getUserInfo.ts",
+          "bytes": 7902,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/joinChannel.ts",
+          "bytes": 13730,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/leaveChannel.ts",
+          "bytes": 18403,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/listChannels.ts",
+          "bytes": 5098,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/pinMessage.ts",
+          "bytes": 7520,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/reactToMessage.ts",
+          "bytes": 8575,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/readChannel.ts",
+          "bytes": 13687,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/searchMessages.ts",
+          "bytes": 10771,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/sendDM.ts",
+          "bytes": 9115,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/serverInfo.ts",
+          "bytes": 5586,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/summarizeConversation.ts",
+          "bytes": 13115,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/transcribeMedia.ts",
+          "bytes": 7335,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/actions/unpinMessage.ts",
+          "bytes": 7140,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/attachments.ts",
+          "bytes": 15302,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/constants.ts",
+          "bytes": 1436,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/environment.ts",
+          "bytes": 1906,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/index.ts",
+          "bytes": 2175,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/messages.ts",
+          "bytes": 14012,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/providers/channelState.ts",
+          "bytes": 3703,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/providers/voiceState.ts",
+          "bytes": 2993,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/service.ts",
+          "bytes": 49993,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/tests.ts",
+          "bytes": 16245,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/types.ts",
+          "bytes": 4312,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/utils.ts",
+          "bytes": 11406,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/voice.ts",
+          "bytes": 35161,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "tsconfig.build.json",
+          "bytes": 319,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsconfig.json",
+          "bytes": 886,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsup.config.ts",
+          "bytes": 652,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "vitest.config.ts",
+          "bytes": 273,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        }
+      ],
+      "dependency_info": {
+        "package.json": "{\n  \"name\": \"@elizaos/plugin-discord\",\n  \"version\": \"1.2.5\",\n  \"type\": \"module\",\n  \"main\": \"dist/index.js\",\n  \"module\": \"dist/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"git+https://github.com/elizaos-plugins/plugin-discord.git\"\n  },\n  \"exports\": {\n    \"./package.json\": \"./package.json\",\n    \".\": {\n      \"import\": {\n        \"types\": \"./dist/index.d.ts\",\n        \"default\": \"./dist/index.js\"\n      }\n    }\n  },\n  \"files\": [\n    \"dist\"\n  ],\n  \"dependencies\": {\n    \"@discordjs/opus\": \"^0.10.0\",\n    \"@discordjs/rest\": \"2.4.3\",\n    \"@discordjs/voice\": \"0.18.0\",\n    \"@elizaos/core\": \"^1.0.4\",\n    \"discord.js\": \"14.18.0\",\n    \"fluent-ffmpeg\": \"^2.1.3\",\n    \"get-func-name\": \"^3.0.0\",\n    \"libsodium-wrappers\": \"^0.7.13\",\n    \"opusscript\": \"^0.1.1\",\n    \"prism-media\": \"1.3.5\",\n    \"typescript\": \"^5.8.3\",\n    \"zod\": \"3.24.2\"\n  },\n  \"devDependencies\": {\n    \"prettier\": \"3.5.3\",\n    \"tsup\": \"8.4.0\","
+      },
+      "loc_histogram": {
+        "medium (1-10KB)": 23,
+        "small (<1KB)": 6,
+        "xlarge (>50KB)": 1,
+        "large (10-50KB)": 14
+      },
+      "token_budget": -73292,
+      "total_bytes": 493170,
+      "analyzed_at": "2025-08-08T05:35:07.103679",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [],
+        "include_patterns": [
+          "**/*.md",
+          "package.json"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "src/**/*.ts",
+          "package.json",
+          "README.md",
+          "tsconfig.json"
+        ],
+        "exclude_patterns": [
+          "__tests__/**",
+          "src/tests.ts",
+          "node_modules/**",
+          "dist/**",
+          "*.log",
+          ".git/**"
+        ],
+        "core_code_max": 8000,
+        "other_file_max": 3000,
+        "rationale": "\u2022 Exclude test files (-23k bytes) to focus on implementation\n\u2022 Truncate large files (service.ts 50KB, voice.ts 35KB) to 8KB each\n\u2022 Include core source files showing Discord bot architecture\n\u2022 Keep package.json for dependencies, README for overview\n\u2022 Prioritize action files demonstrating bot capabilities\n\u2022 Config files (tsconfig) show TypeScript setup"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technical_implementation_assessment": {
+        "sophistication_score": 7,
+        "code_structure_quality": "High - well-organized TypeScript with proper separation of concerns",
+        "hackathon_timeline_evidence": "Mixed - repository created May 20, 2025 (before hackathon), but commits concentrated July 7-Aug 7",
+        "testing_and_documentation": "Good - includes comprehensive test suite, detailed README, and proper TypeScript configurations",
+        "technologies_used": [
+          "TypeScript",
+          "Discord.js v14.18.0",
+          "Node.js",
+          "ElizaOS framework",
+          "FFmpeg for audio processing"
+        ],
+        "architecture_assessment": "Solid plugin architecture with MessageManager, VoiceManager, AttachmentManager separation",
+        "justification": "Well-structured Discord bot plugin with comprehensive features, but significant pre-existing codebase raises timeline concerns"
+      },
+      "originality_effort_analysis": {
+        "is_fork": false,
+        "pre_existing_code_evidence": "Repository created May 20, 2025 - significantly before hackathon window (July 6-Aug 5)",
+        "commit_history_analysis": "21 commits total, only 5 days with commits, concentrated work pattern suggests extension of existing project",
+        "contributors": "3 contributors: 0xbbjoker, Odilitime, Christopher Trimboli",
+        "red_flags": [
+          "Repository predates hackathon",
+          "Last commit 2 days after deadline",
+          "Limited commit activity during hackathon window"
+        ],
+        "originality_score": 3,
+        "justification": "Significant pre-existing work with minimal hackathon-specific development. Timeline violations are concerning."
+      },
+      "market_analysis": {
+        "direct_competitors": [
+          "OpenAI ChatGPT Discord bots (ChatGPT Bot, GPT-3 Discord bots)",
+          "Claude Discord integration bots",
+          "Carl-bot and other feature-rich Discord bots with AI capabilities"
+        ],
+        "differentiation": "ElizaOS integration provides character-based AI personalities, but limited to ElizaOS ecosystem",
+        "addressable_market": "Discord server owners seeking AI integration - large but saturated market",
+        "demand_validation": "Strong demand exists but market is highly competitive with established players",
+        "market_potential_score": 4,
+        "justification": "Saturated Discord bot market with strong incumbents. ElizaOS integration is novel but niche."
+      },
+      "viability_assessment": {
+        "maintainability": "High - clean codebase with proper TypeScript structure and testing",
+        "scalability_challenges": "Depends on ElizaOS ecosystem growth and Discord API rate limits",
+        "team_continuation_likelihood": "Uncertain - appears to be extending existing plugin ecosystem rather than new venture",
+        "production_readiness_requirements": "Already production-ready as ElizaOS plugin, needs marketing and user acquisition",
+        "main_challenges": [
+          "Market competition",
+          "ElizaOS ecosystem dependency",
+          "Discord API compliance"
+        ],
+        "viability_score": 5,
+        "justification": "Technically viable but faces significant market and ecosystem dependency challenges"
+      },
+      "innovation_rating": {
+        "concept_novelty": "Low - traditional Discord bot functionality",
+        "technology_creativity": "Moderate - ElizaOS integration provides some novelty",
+        "problem_solving_uniqueness": "Low - standard Discord bot approaches to common problems",
+        "developer_inspiration_potential": "Moderate - demonstrates ElizaOS plugin development",
+        "innovation_score": 3,
+        "justification": "Minimal innovation - traditional Discord bot with ElizaOS integration. Major disconnect between claimed 'Activities framework' and actual implementation."
+      },
+      "judge_specific_insights": {
+        "marc_take": "Business potential limited by saturated Discord bot market and dependency on ElizaOS ecosystem. Go-to-market would be challenging against established AI bot providers. Revenue model unclear.",
+        "shaw_take": "Solid technical architecture but misleading project description. Claims Discord Activities framework but delivers traditional Discord.js bot. Code quality is good but timeline raises authenticity concerns.",
+        "spartan_take": "No blockchain/crypto aspects identified. Project appears to be traditional web2 Discord integration without decentralized elements.",
+        "peepo_take": "User experience seems standard for Discord bots. Community appeal limited to ElizaOS users. Missing the promised 'frictionless' Activities framework experience described in submission."
+      },
+      "red_flags": [
+        "Repository created before hackathon window \u2192 Created May 20, 2025 vs July 6 start date",
+        "Last commit after deadline \u2192 August 7, 2025 vs August 5 deadline",
+        "Misleading project description \u2192 Claims 'Discord Activities framework' but delivers traditional Discord bot",
+        "Limited hackathon commits \u2192 Only 21 commits total, work concentrated in 5 days",
+        "Pre-existing codebase \u2192 Repository structure suggests extending existing ElizaOS plugin ecosystem",
+        "Technical-description mismatch \u2192 No Discord Activities iframe implementation found in codebase",
+        "Timeline violations \u2192 Development appears to span outside hackathon window",
+        "Missing core claimed feature \u2192 No 'Discord ID to UUID mapping system' prominently featured despite being claimed as favorite part"
+      ],
+      "overall_assessment": {
+        "summary": "Well-implemented Discord bot plugin with solid technical execution, but significant concerns about timeline compliance and misleading project description. Claims to use Discord Activities framework but delivers traditional Discord bot functionality.",
+        "recommendation": "Technical quality is high but multiple red flags around authenticity and timeline compliance make this problematic for hackathon judging. The mismatch between claimed innovation and actual implementation is particularly concerning.",
+        "final_score_breakdown": {
+          "technical": 7,
+          "originality": 3,
+          "market": 4,
+          "viability": 5,
+          "innovation": 3,
+          "weighted_average": 4.4
+        }
+      }
+    }
+  },
+  "likes": 2,
+  "dislikes": 0,
+  "community_score": 10.0,
+  "can_edit": false,
+  "is_creator": false
 }

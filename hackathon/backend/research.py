@@ -356,10 +356,9 @@ class HackathonResearcher:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # Extract Market Analysis section for dedicated column
+        # market_research column is deprecated: market analysis is included in technical_assessment
         ai_research = research_data.get("ai_research", {})
-        market_research_section = ai_research.get("Market Analysis", {})
-        market_research = json.dumps(market_research_section)
+        market_research = "{}"
         technical_assessment = json.dumps(ai_research)
         github_analysis = json.dumps(research_data.get("github_analysis", {}))
 

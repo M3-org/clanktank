@@ -190,6 +190,7 @@ export const hackathonApi = {
 
   // Fetch the latest submission schema from the backend
   fetchSubmissionSchema: async () => {
+    if (USE_STATIC) return null;
     const response = await api.get('/submission-schema');
     return response.data;
   },
@@ -261,6 +262,7 @@ export const hackathonApi = {
 
   // Like/Dislike functionality
   toggleLikeDislike: async (submissionId: string, action: 'like' | 'dislike' | 'remove') => {
+    if (USE_STATIC) return { likes: 0, dislikes: 0, user_action: null };
     const response = await api.post(`/submissions/${submissionId}/like-dislike`, {
       submission_id: submissionId,
       action
@@ -269,6 +271,10 @@ export const hackathonApi = {
   },
 
   getLikeDislikeCounts: async (submissionId: string) => {
+    if (USE_STATIC) {
+      const sub = await hackathonApi.getSubmission(submissionId);
+      return { likes: (sub as any).likes || 0, dislikes: (sub as any).dislikes || 0, user_action: null };
+    }
     const response = await api.get(`/submissions/${submissionId}/like-dislike`);
     return response.data;
   },

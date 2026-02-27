@@ -2858,13 +2858,14 @@ def generate_static_data():
         submission_dir.mkdir(exist_ok=True)
 
         for submission in submissions:
+            sid = submission["submission_id"]
             details_result = conn.execute(
                 text(
                     "SELECT s.*, u.avatar as discord_avatar FROM hackathon_submissions_v2 s "
                     "JOIN users u ON s.owner_discord_id = u.discord_id "
                     "WHERE s.submission_id = :submission_id"
                 ),
-                {"submission_id": submission["submission_id"]},
+                {"submission_id": sid},
             )
             details = details_result.fetchone()
             detail_dict = dict(details._mapping)
@@ -2872,7 +2873,100 @@ def generate_static_data():
             detail_dict["discord_id"] = detail_dict.get("owner_discord_id")
             detail_dict["discord_username"] = detail_dict.get("discord_handle")
 
-            with open(submission_dir / f"{submission['submission_id']}.json", "w") as f:
+            # --- Scores ---
+            score_fields = [
+                "judge_name", "innovation", "technical_execution",
+                "market_potential", "user_experience", "weighted_total",
+                "notes", "round", "community_bonus", "final_verdict", "created_at",
+            ]
+            actual_score_fields = get_score_columns(conn, score_fields)
+            if actual_score_fields:
+                scores_result = conn.execute(
+                    text(
+                        f"""
+                        SELECT {', '.join(actual_score_fields)} FROM (
+                            SELECT {', '.join(actual_score_fields)},
+                                   ROW_NUMBER() OVER (PARTITION BY judge_name, round ORDER BY created_at DESC) as rn
+                            FROM hackathon_scores
+                            WHERE submission_id = :submission_id
+                        ) ranked_scores
+                        WHERE rn = 1
+                        ORDER BY judge_name, round
+                        """
+                    ),
+                    {"submission_id": sid},
+                )
+                scores = []
+                for score_row in scores_result.fetchall():
+                    score_dict = dict(score_row._mapping)
+                    if "notes" in score_dict:
+                        try:
+                            score_dict["notes"] = json.loads(score_dict["notes"]) if score_dict["notes"] else {}
+                        except (json.JSONDecodeError, TypeError):
+                            score_dict["notes"] = {"raw": score_dict["notes"]} if score_dict["notes"] else {}
+                    scores.append(score_dict)
+                detail_dict["scores"] = scores
+            else:
+                detail_dict["scores"] = []
+
+            # --- Avg score ---
+            avg_result = conn.execute(
+                text("SELECT AVG(weighted_total) as avg_score FROM hackathon_scores WHERE submission_id = :submission_id"),
+                {"submission_id": sid},
+            )
+            avg_row = avg_result.fetchone()
+            detail_dict["avg_score"] = round(avg_row.avg_score, 2) if avg_row and avg_row.avg_score else None
+
+            # --- Research ---
+            research_result = conn.execute(
+                text(
+                    "SELECT github_analysis, market_research, technical_assessment "
+                    "FROM hackathon_research WHERE submission_id = :submission_id"
+                ),
+                {"submission_id": sid},
+            )
+            research_row = research_result.fetchone()
+            if research_row:
+                r = dict(research_row._mapping)
+                detail_dict["research"] = {
+                    "github_analysis": json.loads(r["github_analysis"]) if r["github_analysis"] else None,
+                    "market_research": None,  # Deprecated: included in technical_assessment
+                    "technical_assessment": json.loads(r["technical_assessment"]) if r["technical_assessment"] else None,
+                }
+            else:
+                detail_dict["research"] = None
+
+            # --- Community score / likes / dislikes ---
+            community_result = conn.execute(
+                text(
+                    """
+                    SELECT
+                        SUM(CASE WHEN action = 'like' THEN 1 ELSE 0 END) as likes,
+                        SUM(CASE WHEN action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
+                        CASE WHEN COUNT(*) > 0 THEN
+                            (SUM(CASE WHEN action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
+                        ELSE 0 END as community_score
+                    FROM likes_dislikes
+                    WHERE CAST(submission_id AS INTEGER) = :submission_id
+                    """
+                ),
+                {"submission_id": sid},
+            )
+            community_row = community_result.fetchone()
+            if community_row:
+                detail_dict["likes"] = community_row.likes or 0
+                detail_dict["dislikes"] = community_row.dislikes or 0
+                detail_dict["community_score"] = round(community_row.community_score or 0.0, 1)
+            else:
+                detail_dict["likes"] = 0
+                detail_dict["dislikes"] = 0
+                detail_dict["community_score"] = 0.0
+
+            # --- Static flags ---
+            detail_dict["can_edit"] = False
+            detail_dict["is_creator"] = False
+
+            with open(submission_dir / f"{sid}.json", "w") as f:
                 json.dump(detail_dict, f, indent=2)
 
         # Generate leaderboard.json
