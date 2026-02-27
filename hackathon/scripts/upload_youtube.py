@@ -39,8 +39,9 @@ load_dotenv(find_dotenv())
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
+# Configuration — centralized in config module
+from hackathon.backend.config import HACKATHON_DB_PATH  # noqa: E402
+
 RECORDINGS_DIR = os.getenv("HACKATHON_RECORDINGS_DIR", "recordings/hackathon")
 YOUTUBE_CREDENTIALS_PATH = os.getenv("YOUTUBE_CREDENTIALS_PATH", "youtube_credentials.json")
 CLIENT_SECRETS_PATH = os.getenv("YOUTUBE_CLIENT_SECRETS_PATH", "client_secrets.json")
@@ -65,7 +66,7 @@ except ModuleNotFoundError:
 class YouTubeUploader:
     def __init__(self, db_path=None, version=None):
         """Initialize YouTube uploader."""
-        self.db_path = db_path or os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
+        self.db_path = db_path or HACKATHON_DB_PATH
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)

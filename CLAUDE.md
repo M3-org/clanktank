@@ -48,15 +48,20 @@ python -m hackathon.backend.migrate_schema [--dry-run]   # Migrate schema
 python -m hackathon.backend.sync_schema_to_frontend      # Sync schema → frontend types
 ```
 
-### Hackathon Pipeline
+### Hackathon Pipeline (unified CLI)
 ```bash
-python -m hackathon.backend.research --submission-id <id> --version v2          # GitHub + AI research
-python -m hackathon.backend.hackathon_manager --score --submission-id <id> --version v2       # Round 1: AI judge scoring
-python -m hackathon.backend.hackathon_manager --score --all --version v2                      # Score all researched
-python -m hackathon.backend.hackathon_manager --synthesize --submission-id <id> --version v2  # Round 2: AI + community
-python -m hackathon.backend.hackathon_manager --leaderboard --version v2                      # View leaderboard
-python -m hackathon.scripts.generate_episode --submission-id <id> --version v2                # Generate episode
+python -m hackathon research   --submission-id <id> --version v2    # GitHub + AI research
+python -m hackathon score      --submission-id <id> --version v2    # Round 1: AI judge scoring
+python -m hackathon score      --all --version v2                   # Score all researched
+python -m hackathon synthesize --submission-id <id> --version v2    # Round 2: AI + community
+python -m hackathon leaderboard --version v2                        # View leaderboard
+python -m hackathon episode    --submission-id <id> --version v2    # Generate episode
+python -m hackathon serve --host 0.0.0.0 --port 8000               # Start API server
+python -m hackathon db create                                       # Initialize database
+python -m hackathon db migrate --dry-run                            # Migrate schema
 ```
+
+Old `python -m hackathon.backend.hackathon_manager --score ...` paths still work for backward compatibility.
 
 ### Main Platform Pipeline
 ```bash

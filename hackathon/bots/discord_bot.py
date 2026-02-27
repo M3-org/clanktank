@@ -24,9 +24,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 # Configuration
+from hackathon.backend.config import HACKATHON_DB_PATH  # noqa: E402
+
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 DISCORD_CHANNEL_ID = int(os.getenv("DISCORD_VOTING_CHANNEL_ID") or "0")
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
 
 # Simple like/dislike reaction mapping (unified with web interface)
 REACTION_TO_ACTION = {

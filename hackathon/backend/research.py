@@ -5,7 +5,6 @@ Analyzes GitHub repositories, technical implementation, market viability, and in
 Works exclusively with the hackathon database.
 """
 
-import argparse
 import json
 import logging
 import os
@@ -14,7 +13,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-import requests
 from dotenv import load_dotenv
 
 # Import GitHub analyzer
@@ -33,12 +31,14 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration from environment
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
-RESEARCH_CACHE_DIR = os.getenv("RESEARCH_CACHE_DIR", ".cache/research")
-RESEARCH_CACHE_EXPIRY_HOURS = int(os.getenv("RESEARCH_CACHE_EXPIRY_HOURS", "24"))
+# Configuration — centralized in config module
+from hackathon.backend.config import (  # noqa: E402
+    GITHUB_TOKEN,
+    HACKATHON_DB_PATH,
+    OPENROUTER_API_KEY,
+    RESEARCH_CACHE_DIR,
+    RESEARCH_CACHE_EXPIRY_HOURS,
+)
 
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -111,13 +111,19 @@ class HackathonResearcher:
         self.table = f"hackathon_submissions_{self.version}"
         self.force = force
         self.fields = get_fields(self.version)
-        # API headers
-        self.headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/m3-org/clanktank",
-            "X-Title": "Clank Tank Hackathon Research",
-        }
+        # HTTP session with retry/timeout
+        from hackathon.backend.http_client import create_session
+
+        self.session = create_session()
+        self.session.headers.update(
+            {
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/m3-org/clanktank",
+                "X-Title": "Clank Tank Hackathon Research",
+            }
+        )
+        self.headers = dict(self.session.headers)
 
     def _get_cache_path(self, submission_id: str) -> Path:
         """Get cache file path for a submission."""
@@ -191,7 +197,7 @@ class HackathonResearcher:
 
         try:
             logger.info(f"Conducting AI research for {project_data['project_name']}")
-            response = requests.post(BASE_URL, json=payload, headers=self.headers)
+            response = self.session.post(BASE_URL, json=payload, timeout=self.session.timeout)
             response.raise_for_status()
 
             result = response.json()
@@ -392,61 +398,3 @@ class HackathonResearcher:
         conn.commit()
         conn.close()
         logger.info(f"Updated hackathon_research for submission {submission_id}")
-
-
-def main():
-    """Main function with CLI interface."""
-    parser = argparse.ArgumentParser(description="AI-powered hackathon project research")
-    parser.add_argument("--submission-id", help="Research a specific submission by ID")
-    parser.add_argument("--all", action="store_true", help="Research all pending submissions")
-    parser.add_argument("--output", help="Output file for research results (JSON)")
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force recomputation and bypass cached research results",
-    )
-    parser.add_argument(
-        "--version",
-        type=str,
-        default="v2",
-        choices=["v1", "v2"],
-        help="Submission schema version to use (default: v2)",
-    )
-    parser.add_argument(
-        "--db-file",
-        type=str,
-        default=None,
-        help="Path to the hackathon SQLite database file (default: env or data/hackathon.db)",
-    )
-    args = parser.parse_args()
-    if not args.submission_id and not args.all:
-        parser.print_help()
-        return
-    try:
-        researcher = HackathonResearcher(db_path=args.db_file, version=args.version, force=args.force)
-    except ValueError as e:
-        logger.error(f"Initialization failed: {e}")
-        logger.error("Please ensure OPENROUTER_API_KEY is set in your .env file")
-        return
-    if args.submission_id:
-        try:
-            results = researcher.research_submission(args.submission_id)
-            if args.output:
-                with open(args.output, "w") as f:
-                    json.dump(results, f, indent=2)
-                logger.info(f"Results saved to {args.output}")
-            else:
-                print(json.dumps(results, indent=2))
-        except Exception as e:
-            logger.error(f"Research failed: {e}")
-    elif args.all:
-        results = researcher.research_all_pending()
-        logger.info(f"Researched {len(results)} submissions")
-        if args.output:
-            with open(args.output, "w") as f:
-                json.dump(results, f, indent=2)
-            logger.info(f"Results saved to {args.output}")
-
-
-if __name__ == "__main__":
-    main()

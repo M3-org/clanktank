@@ -7,17 +7,11 @@ Serves data from hackathon.db via REST API endpoints.
 import argparse
 import json
 import logging
-import math
 import os
 import re
 import shutil
-
-# import random  # CLEANUP: Unused import - commented out for testing
 import sqlite3
 import time  # Needed for timestamp handling
-
-# import hashlib  # CLEANUP: Unused import - commented out for testing
-# import base64   # CLEANUP: Unused import - commented out for testing
 import urllib.parse  # Needed for Discord OAuth URL generation
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -79,14 +73,19 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 
 # Load environment variables from repo root
 load_dotenv(REPO_ROOT / ".env")
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", str(REPO_ROOT / "data" / "hackathon.db"))
+
+from hackathon.backend.config import (  # noqa: E402
+    HACKATHON_DB_PATH,
+    SUBMISSION_DEADLINE,
+    calculate_vote_weight,
+)
+
 STATIC_DATA_DIR = os.getenv(
     "STATIC_DATA_DIR", str(REPO_ROOT / "hackathon" / "dashboard" / "frontend" / "public" / "data")
 )
 LOG_FILE_PATH = REPO_ROOT / "logs" / "hackathon_api.log"
 
-# Submission window configuration
-SUBMISSION_DEADLINE = os.getenv("SUBMISSION_DEADLINE")  # ISO format datetime string
+# Submission window configuration loaded from config module
 
 # Setup logging first
 LOG_FILE_PATH.parent.mkdir(exist_ok=True)
@@ -125,62 +124,6 @@ app = FastAPI(
 )
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-
-# Debug middleware to see raw request data
-@app.middleware("http")
-async def debug_request_middleware(request: Request, call_next):
-    if request.url.path == "/api/submissions" and request.method == "POST":
-        # Read the request body for debugging
-        body = await request.body()
-        logging.info("--- DEBUG MIDDLEWARE ---")
-        logging.info(f"Content-Type: {request.headers.get('content-type')}")
-        logging.info(f"Raw body length: {len(body)}")
-        logging.info(f"Raw body (first 1000 chars): {body[:1000]}")
-
-        # Try to parse as different formats
-        try:
-            decoded_body = body.decode("utf-8")
-            logging.info(f"Decoded body: {decoded_body[:1000]}")
-        except Exception as e:
-            logging.info(f"Could not decode body as UTF-8: {e}")
-
-        try:
-            json_body = json.loads(body)
-            logging.info(f"Parsed JSON keys: {list(json_body.keys()) if isinstance(json_body, dict) else 'not a dict'}")
-        except Exception as e:
-            logging.info(f"Could not parse body as JSON: {e}")
-
-        # Check if it might be form data
-        try:
-            from urllib.parse import parse_qs
-
-            form_data = parse_qs(decoded_body)
-            logging.info(f"Parsed as form data: {form_data}")
-        except Exception as e:
-            logging.info(f"Could not parse as form data: {e}")
-
-        # Create a new request with the consumed body
-        async def receive():
-            return {"type": "http.request", "body": body}
-
-        # Rebuild the request
-        scope = request.scope
-        request._body = body
-
-        # Custom request class to handle body re-reading
-        class RequestWithBody(Request):
-            def __init__(self, scope, receive=None):
-                super().__init__(scope, receive)
-                self._body = body
-
-            async def body(self):
-                return self._body
-
-        request = RequestWithBody(scope, receive)
-
-    response = await call_next(request)
-    return response
 
 
 # Ensure DB schema at startup (works with uvicorn module import)
@@ -276,17 +219,7 @@ async def add_security_headers(request: Request, call_next):
 engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
 
 
-# Token Voting Functions
-def calculate_vote_weight(total_tokens_sent):
-    """Calculate vote weight using logarithmic formula from voting spec."""
-    min_vote = float(os.getenv("MIN_VOTE_AMOUNT", 1))
-    if total_tokens_sent < min_vote:
-        return 0
-
-    multiplier = float(os.getenv("VOTE_WEIGHT_MULTIPLIER", 3))
-    cap = float(os.getenv("VOTE_WEIGHT_CAP", 10))
-
-    return min(math.log10(total_tokens_sent + 1) * multiplier, cap)
+# Token Voting Functions — calculate_vote_weight imported from config
 
 
 class BirdeyePriceService:
@@ -1702,14 +1635,7 @@ async def get_community_scores():
                 submission_id = row_dict["submission_id"]
                 total_tokens = row_dict["total_tokens"]
 
-                # Inline vote weight calculation to avoid import issues
-                min_vote = 1.0
-                if total_tokens < min_vote:
-                    vote_weight = 0
-                else:
-                    multiplier = 3.0
-                    cap = 10.0
-                    vote_weight = min(math.log10(total_tokens + 1) * multiplier, cap)
+                vote_weight = calculate_vote_weight(total_tokens)
 
                 if submission_id not in submission_scores:
                     submission_scores[submission_id] = {"total_score": 0, "unique_voters": 0, "last_vote_time": 0}
@@ -2116,15 +2042,6 @@ async def websocket_prize_pool_endpoint(websocket: WebSocket):
 def process_ai16z_transaction(tx_sig: str, submission_id: int, sender: str, amount: float):
     """Process ai16z token transaction for voting and prize pool."""
     try:
-        # Calculate vote weight (inline to avoid scope issues)
-        min_vote = 1.0
-        if amount < min_vote:
-            pass
-        else:
-            multiplier = 3.0
-            cap = 10.0
-            min(math.log10(amount + 1) * multiplier, cap)
-
         # Calculate tokens used for voting vs overflow
         max_vote_tokens = float(os.getenv("MAX_VOTE_TOKENS", 100))
         vote_tokens = min(amount, max_vote_tokens)
