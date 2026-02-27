@@ -2808,6 +2808,8 @@ def generate_static_data():
                 s.status,
                 s.created_at,
                 s.project_image,
+                s.owner_discord_id as discord_id,
+                u.avatar as discord_avatar,
                 AVG(sc.weighted_total) as avg_score,
                 COUNT(DISTINCT sc.judge_name) as judge_count,
                 u.username as discord_handle
@@ -2839,6 +2841,8 @@ def generate_static_data():
                         row_dict["judge_count"] if row_dict["judge_count"] else 0
                     ),
                     "discord_handle": row_dict["discord_handle"],
+                    "discord_id": row_dict.get("discord_id"),
+                    "discord_avatar": row_dict.get("discord_avatar"),
                     "project_image": row_dict.get("project_image"),
                 }
             )
@@ -2875,6 +2879,8 @@ def generate_static_data():
                 s.category,
                 s.demo_video_url as youtube_url,
                 s.status,
+                s.owner_discord_id as discord_id,
+                u.avatar as discord_avatar,
                 AVG(sc.weighted_total) as avg_score,
                 u.username as discord_handle
             FROM hackathon_submissions_v2 s
@@ -2899,6 +2905,9 @@ def generate_static_data():
                     "youtube_url": row_dict["youtube_url"],
                     "status": row_dict["status"],
                     "discord_handle": row_dict["discord_handle"],
+                    "discord_id": row_dict.get("discord_id"),
+                    "discord_avatar": row_dict.get("discord_avatar"),
+                    "discord_username": row_dict["discord_handle"],
                 }
             )
             rank += 1
