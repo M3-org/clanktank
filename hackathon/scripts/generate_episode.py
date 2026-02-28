@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import sqlite3
+import sys
 
 # Import the restructured configuration
 from datetime import datetime
