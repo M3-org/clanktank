@@ -674,64 +674,158 @@ def _set_env_key(env_path, key: str, value: str):
     env_path.write_text("\n".join(lines) + "\n")
 
 
+def _fmt_prompt(text: str) -> str:
+    """Highlight {template_vars} in a prompt string."""
+    import re
+
+    return re.sub(r"\{(\w+)\}", lambda m: cyan(f"{{{m.group(1)}}}"), text)
+
+
 def _print_config_value(name: str, data):
     """Pretty-print a parsed JSON config value in a human-readable way."""
     if name == "JUDGE_CONFIG":
-        # Judge personas + scoring weights
-        personas = data.get("personas", {})
-        if personas:
-            print(f"{bold('Judge Personas')}\n")
-            for judge, desc in personas.items():
-                print(f"### {cyan(judge)}\n")
-                print(f"{desc}\n")
-        weights = data.get("scoring_weights", {})
-        if weights:
-            print(f"{bold('Scoring Weights')}\n")
-            for judge, w in weights.items():
-                parts = [f"{k}: {bold(str(v))}" for k, v in w.items()]
-                print(f"  {cyan(judge):16} {', '.join(parts)}")
-            print()
-        # Print any other top-level keys
-        for k, v in data.items():
-            if k in ("personas", "scoring_weights"):
-                continue
-            import json
-
-            print(f"{bold(k)}:")
-            print(json.dumps(v, indent=2))
-            print()
+        _print_judge_config(data)
     elif name == "RESEARCH_CONFIG":
-        # Research prompt + penalty thresholds
-        thresholds = data.get("penalty_thresholds", {})
-        if thresholds:
-            print(f"{bold('Penalty Thresholds')}\n")
-            for k, v in thresholds.items():
-                label = k.replace("_", " ").title()
-                print(f"  {label:<24} {bold(str(v))}")
-            print()
-        prompt = data.get("research_prompt_template", "")
-        if prompt:
-            print(f"{bold('Research Prompt Template')}\n")
-            # Replace template vars with highlighted placeholders
-            import re
-
-            display = re.sub(r"\{(\w+)\}", lambda m: cyan(f"{{{m.group(1)}}}"), prompt)
-            print(display)
-            print()
-        for k, v in data.items():
-            if k in ("penalty_thresholds", "research_prompt_template"):
-                continue
-            import json
-
-            print(f"{bold(k)}:")
-            print(json.dumps(v, indent=2))
-            print()
+        _print_research_config(data)
     else:
-        # Generic: just pretty-print the JSON
         import json
 
         print(json.dumps(data, indent=2))
         print()
+
+
+def _print_judge_config(data: dict):
+    """Render JUDGE_CONFIG as readable sections."""
+    # --- Personas ---
+    personas = data.get("personas", {})
+    if personas:
+        print(f"## {bold('Judge Personas')}\n")
+        for judge, desc in personas.items():
+            print(f"### {cyan(judge)}\n")
+            print(f"{desc}\n")
+
+    # --- Criteria ---
+    criteria = data.get("criteria", {})
+    if criteria:
+        print(f"## {bold('Scoring Criteria')}\n")
+        for key, c in criteria.items():
+            cname = c.get("name", key)
+            cdesc = c.get("description", "")
+            cmax = c.get("max_score", "?")
+            print(f"  {bold(cname):<32} {dim(f'(0-{cmax})')}  {cdesc}")
+        print()
+
+    # --- Weights (table) ---
+    weights = data.get("weights", {})
+    if weights:
+        criteria_keys = list(next(iter(weights.values())).keys()) if weights else []
+        headers = ["Judge"] + [k.replace("_", " ").title() for k in criteria_keys]
+        rows = []
+        for judge, w in weights.items():
+            row = [judge] + [str(w.get(k, "-")) for k in criteria_keys]
+            rows.append(row)
+        print(f"## {bold('Weight Multipliers')}\n")
+        # Simple table — highlight multipliers above 1.0
+        widths = [max(len(h), max(len(r[i]) for r in rows)) for i, h in enumerate(headers)]
+        print("  " + "  ".join(bold(h.ljust(widths[i])) for i, h in enumerate(headers)))
+        print("  " + "  ".join("─" * w for w in widths))
+        for row in rows:
+            cells = []
+            for i, cell in enumerate(row):
+                s = cell.ljust(widths[i])
+                if i == 0:
+                    s = cyan(s)
+                else:
+                    try:
+                        v = float(cell)
+                        if v > 1.0:
+                            s = bold(s)
+                        elif v < 1.0:
+                            s = dim(s)
+                    except ValueError:
+                        pass
+                cells.append(s)
+            print("  " + "  ".join(cells))
+        print()
+
+    # --- Score scale ---
+    score_scale = data.get("score_scale", "")
+    if score_scale:
+        print(f"## {bold('Score Scale')}\n")
+        print(score_scale.strip())
+        print()
+
+    # --- Scoring task ---
+    scoring_task = data.get("scoring_task", "")
+    if scoring_task:
+        print(f"## {bold('Scoring Task')}\n")
+        print(_fmt_prompt(scoring_task.strip()))
+        print()
+
+    # --- Round 2 template ---
+    r2 = data.get("round2_template", "")
+    if r2:
+        print(f"## {bold('Round 2 Template')}\n")
+        print(_fmt_prompt(r2.strip()))
+        print()
+
+    # Any remaining keys
+    handled = {"personas", "weights", "criteria", "score_scale", "scoring_task", "round2_template"}
+    for k, v in data.items():
+        if k in handled:
+            continue
+        import json
+
+        label = k.replace("_", " ").title()
+        if isinstance(v, str):
+            print(f"## {bold(label)}\n")
+            print(_fmt_prompt(v.strip()))
+            print()
+        else:
+            print(f"## {bold(label)}\n")
+            print(json.dumps(v, indent=2))
+            print()
+
+
+def _print_research_config(data: dict):
+    """Render RESEARCH_CONFIG as readable sections."""
+    # --- Penalty thresholds ---
+    thresholds = data.get("penalty_thresholds", {})
+    if thresholds:
+        print(f"## {bold('Penalty Thresholds')}\n")
+        for k, v in thresholds.items():
+            label = k.replace("_", " ").title()
+            print(f"  {label:<28} {bold(str(v))}")
+        print()
+
+    # --- All prompt templates ---
+    for key, val in data.items():
+        if key == "penalty_thresholds":
+            continue
+        label = key.replace("_", " ").title()
+        if isinstance(val, str):
+            print(f"## {bold(label)}\n")
+            print(_fmt_prompt(val.strip()))
+            print()
+        elif isinstance(val, dict):
+            import json
+
+            print(f"## {bold(label)}\n")
+            for sk, sv in val.items():
+                slabel = sk.replace("_", " ").title()
+                if isinstance(sv, str) and len(sv) > 80:
+                    print(f"### {bold(slabel)}\n")
+                    print(_fmt_prompt(sv.strip()))
+                    print()
+                else:
+                    print(f"  {slabel:<28} {bold(str(sv))}")
+            print()
+        else:
+            import json
+
+            print(f"## {bold(label)}\n")
+            print(json.dumps(val, indent=2))
+            print()
 
 
 def cmd_config(args):
