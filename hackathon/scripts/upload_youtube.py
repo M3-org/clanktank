@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 # Google/YouTube imports
 try:
@@ -30,7 +30,8 @@ except ImportError:
     print("pip install google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client")
     sys.exit(1)
 
-from dotenv import find_dotenv
+from hackathon.backend.config import HACKATHON_DB_PATH
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
 
 # Load environment variables (automatically finds .env in parent directories)
 load_dotenv(find_dotenv())
@@ -39,28 +40,12 @@ load_dotenv(find_dotenv())
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration — centralized in config module
-from hackathon.backend.config import HACKATHON_DB_PATH  # noqa: E402
-
 RECORDINGS_DIR = os.getenv("HACKATHON_RECORDINGS_DIR", "recordings/hackathon")
 YOUTUBE_CREDENTIALS_PATH = os.getenv("YOUTUBE_CREDENTIALS_PATH", "youtube_credentials.json")
 CLIENT_SECRETS_PATH = os.getenv("YOUTUBE_CLIENT_SECRETS_PATH", "client_secrets.json")
 
 # YouTube API scopes
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-
-# Import versioned schema helpers
-try:
-    from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
 
 
 class YouTubeUploader:
@@ -102,7 +87,8 @@ class YouTubeUploader:
 
     def get_project_metadata(self, submission_id: str) -> dict[str, Any]:
         """Fetch project metadata from database."""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         # Get submission details
@@ -285,7 +271,8 @@ class YouTubeUploader:
 
     def _update_submission_status(self, submission_id: str, youtube_url: str):
         """Update submission status in database after upload."""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         try:
@@ -357,7 +344,8 @@ class YouTubeUploader:
 
     def get_uploadable_submissions(self) -> list[str]:
         """Get all submissions ready for upload."""
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         # Find scored submissions that aren't published yet

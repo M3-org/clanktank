@@ -51,8 +51,10 @@ class HackathonDiscordBot:
         self.db_path = db_path
 
     def get_db_connection(self):
-        """Get a database connection."""
-        return sqlite3.connect(self.db_path)
+        """Get a database connection with timeout to prevent deadlocks."""
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
+        return conn
 
     def get_submission(self, submission_id: str) -> dict | None:
         """Fetch submission data from database with Discord avatar and project image."""

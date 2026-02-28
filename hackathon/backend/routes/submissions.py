@@ -53,6 +53,7 @@ def conditional_rate_limit(rate_limit_str):
     if ENABLE_RATE_LIMITING:
         return limiter.limit(rate_limit_str)
     else:
+
         def no_op_decorator(func):
             return func
 
@@ -764,94 +765,109 @@ async def get_submission_schema_latest():
     return SubmissionSchemaResponse(fields=fields, **window_info)
 
 
+def _get_leaderboard_data(conn, version: str) -> list[LeaderboardEntry]:
+    """Shared leaderboard query — used by both latest and versioned endpoints."""
+    table = f"hackathon_submissions_{version}"
+    result = conn.execute(
+        text(
+            f"""
+        WITH latest_scores AS (
+            SELECT
+                sc.submission_id,
+                MAX(sc.round) as latest_round
+            FROM hackathon_scores sc
+            GROUP BY sc.submission_id
+        ),
+        project_scores AS (
+            SELECT
+                sc.submission_id,
+                AVG(sc.weighted_total) as avg_score,
+                COUNT(DISTINCT sc.judge_name) as judge_count
+            FROM hackathon_scores sc
+            JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
+            GROUP BY sc.submission_id
+        ),
+        community_scores AS (
+            SELECT
+                CAST(ld.submission_id AS INTEGER) as submission_id,
+                CASE
+                    WHEN COUNT(*) > 0 THEN
+                        (SUM(CASE WHEN ld.action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
+                    ELSE 0
+                END as community_score
+            FROM likes_dislikes ld
+            GROUP BY ld.submission_id
+        )
+        SELECT
+            s.submission_id,
+            s.project_name,
+            s.category,
+            s.demo_video_url as youtube_url,
+            s.status,
+            ps.avg_score,
+            COALESCE(cs.community_score, 0.0) as community_score,
+            u.username as discord_handle,
+            u.discord_id as discord_id,
+            u.username as discord_username,
+            u.avatar as discord_avatar
+        FROM {table} s
+        JOIN project_scores ps ON s.submission_id = ps.submission_id
+        LEFT JOIN community_scores cs ON s.submission_id = cs.submission_id
+        JOIN users u ON s.owner_discord_id = u.discord_id
+        WHERE s.status IN ('scored', 'completed', 'published')
+        ORDER BY ps.avg_score DESC
+    """
+        )
+    )
+    entries = []
+    rank = 1
+    for row in result.fetchall():
+        row_dict = dict(row._mapping)
+        entry = LeaderboardEntry(
+            rank=rank,
+            submission_id=row_dict["submission_id"],
+            project_name=row_dict["project_name"],
+            category=row_dict["category"],
+            final_score=round(row_dict["avg_score"] / 4, 1),  # Convert to 0-10 display scale
+            community_score=round(row_dict.get("community_score", 0.0), 1),
+            youtube_url=row_dict["youtube_url"],
+            status=row_dict["status"],
+            discord_handle=row_dict["discord_handle"],
+            discord_id=row_dict.get("discord_id"),
+            discord_username=row_dict.get("discord_username"),
+            discord_avatar=row_dict.get("discord_avatar"),
+        )
+        entries.append(entry)
+        rank += 1
+    return entries
+
+
+def _get_stats_data(conn, version: str) -> dict:
+    """Shared stats query — used by both latest and versioned endpoints."""
+    table = f"hackathon_submissions_{version}"
+    status_result = conn.execute(text(f"SELECT status, COUNT(*) as count FROM {table} GROUP BY status"))
+    status_counts = {row[0]: row[1] for row in status_result.fetchall()}
+    category_result = conn.execute(text(f"SELECT category, COUNT(*) as count FROM {table} GROUP BY category"))
+    category_counts = {row[0]: row[1] for row in category_result.fetchall()}
+    total = conn.execute(text(f"SELECT COUNT(*) as total FROM {table}")).scalar_one()
+    return {
+        "total_submissions": total,
+        "by_status": status_counts,
+        "by_category": category_counts,
+        "updated_at": datetime.now().isoformat(),
+    }
+
+
 @router.get("/api/leaderboard", tags=["latest"], response_model=list[LeaderboardEntry])
 async def get_leaderboard_latest():
-    # Use v2 as the default version
-    table = "hackathon_submissions_v2"
     with engine.connect() as conn:
-        # Get each project's latest available round and score
-        result = conn.execute(
-            text(
-                f"""
-            WITH latest_scores AS (
-                SELECT
-                    sc.submission_id,
-                    MAX(sc.round) as latest_round
-                FROM hackathon_scores sc
-                GROUP BY sc.submission_id
-            ),
-            project_scores AS (
-                SELECT
-                    sc.submission_id,
-                    AVG(sc.weighted_total) as avg_score,
-                    COUNT(DISTINCT sc.judge_name) as judge_count
-                FROM hackathon_scores sc
-                JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
-                GROUP BY sc.submission_id
-            ),
-            community_scores AS (
-                SELECT
-                    CAST(ld.submission_id AS INTEGER) as submission_id,
-                    COUNT(*) as total_reactions,
-                    COUNT(DISTINCT ld.discord_id) as unique_voters,
-                    SUM(CASE WHEN ld.action = 'like' THEN 1 ELSE 0 END) as likes,
-                    SUM(CASE WHEN ld.action = 'dislike' THEN 1 ELSE 0 END) as dislikes,
-                    -- Simple community score: likes ratio * 10
-                    CASE
-                        WHEN COUNT(*) > 0 THEN
-                            (SUM(CASE WHEN ld.action = 'like' THEN 1.0 ELSE 0.0 END) / COUNT(*)) * 10
-                        ELSE 0
-                    END as community_score
-                FROM likes_dislikes ld
-                GROUP BY ld.submission_id
-            )
-            SELECT
-                s.submission_id,
-                s.project_name,
-                s.category,
-                s.demo_video_url as youtube_url,
-                s.status,
-                ps.avg_score,
-                COALESCE(cs.community_score, 0.0) as community_score,
-                u.username as discord_handle,
-                u.discord_id as discord_id,
-                u.username as discord_username,
-                u.avatar as discord_avatar
-            FROM {table} s
-            JOIN project_scores ps ON s.submission_id = ps.submission_id
-            LEFT JOIN community_scores cs ON s.submission_id = cs.submission_id
-            JOIN users u ON s.owner_discord_id = u.discord_id
-            WHERE s.status IN ('scored', 'completed', 'published')
-            ORDER BY ps.avg_score DESC
-        """
-            )
-        )
-        entries = []
-        rank = 1
-        for row in result.fetchall():
-            row_dict = dict(row._mapping)
-            entry = LeaderboardEntry(
-                rank=rank,
-                submission_id=row_dict["submission_id"],
-                project_name=row_dict["project_name"],
-                category=row_dict["category"],
-                final_score=round(row_dict["avg_score"] / 4, 1),  # Convert to 0-10 display scale
-                community_score=round(row_dict.get("community_score", 0.0), 1),
-                youtube_url=row_dict["youtube_url"],
-                status=row_dict["status"],
-                discord_handle=row_dict["discord_handle"],
-                discord_id=row_dict.get("discord_id"),
-                discord_username=row_dict.get("discord_username"),
-                discord_avatar=row_dict.get("discord_avatar"),
-            )
-            entries.append(entry)
-            rank += 1
-        return entries
+        return _get_leaderboard_data(conn, "v2")
 
 
 @router.get("/api/stats", tags=["latest"], response_model=StatsModel)
 async def get_stats_latest():
-    return await get_stats(version="v2")
+    with engine.connect() as conn:
+        return _get_stats_data(conn, "v2")
 
 
 @router.get("/api/config", tags=["latest"])
@@ -928,15 +944,29 @@ async def list_submissions(
         params["category"] = category
 
     where_clause = f" WHERE {' AND '.join(where_conditions)}" if where_conditions else ""
-    # Join users table for Discord info
+    # Join users table for Discord info; pre-aggregate scores to avoid N+1
     select_stmt = text(f"""
+        WITH score_agg AS (
+            SELECT
+                submission_id,
+                AVG(weighted_total) AS avg_score,
+                COUNT(DISTINCT judge_name) AS judge_count
+            FROM hackathon_scores sc
+            WHERE sc.round = (
+                SELECT MAX(round) FROM hackathon_scores WHERE submission_id = sc.submission_id
+            )
+            GROUP BY submission_id
+        )
         SELECT {", ".join([f"s.{f}" for f in fields])},
                u.discord_id AS discord_id,
                u.username AS discord_username,
                u.discriminator AS discord_discriminator,
-               u.avatar AS discord_avatar
+               u.avatar AS discord_avatar,
+               sa.avg_score AS avg_score,
+               sa.judge_count AS judge_count
         FROM {table} s
         LEFT JOIN users u ON s.owner_discord_id = u.discord_id
+        LEFT JOIN score_agg sa ON s.submission_id = sa.submission_id
         {where_clause}
     """)
 
@@ -947,27 +977,11 @@ async def list_submissions(
         for submission_row in result.fetchall():
             submission_dict = dict(submission_row._mapping)
             submission_id = submission_dict["submission_id"]
-            # Always calculate score aggregates for SubmissionSummary - use latest round
-            scores_agg_result = conn.execute(
-                text(
-                    """
-                WITH latest_round AS (
-                    SELECT MAX(round) as max_round
-                    FROM hackathon_scores
-                    WHERE submission_id = :submission_id
-                )
-                SELECT AVG(weighted_total) as avg_score, COUNT(DISTINCT judge_name) as judge_count
-                FROM hackathon_scores sc
-                JOIN latest_round lr ON sc.round = lr.max_round
-                WHERE sc.submission_id = :submission_id
-            """
-                ),
-                {"submission_id": submission_id},
-            )
-            agg_row = scores_agg_result.fetchone()
-            if agg_row and agg_row[0] is not None:
-                submission_dict["avg_score"] = round(float(agg_row[0]) / 4, 1)  # Scale to 0-10 range
-                submission_dict["judge_count"] = int(agg_row[1])
+            # avg_score and judge_count come from the CTE — scale to 0-10 range
+            raw_avg = submission_dict.get("avg_score")
+            if raw_avg is not None:
+                submission_dict["avg_score"] = round(float(raw_avg) / 4, 1)
+                submission_dict["judge_count"] = int(submission_dict.get("judge_count") or 0)
             else:
                 submission_dict["avg_score"] = None
                 submission_dict["judge_count"] = 0
@@ -1117,106 +1131,16 @@ async def get_submission_schema_versioned(version: str):
 async def get_leaderboard(version: str):
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
-    table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
-        # Get each project's latest available round and score
-        result = conn.execute(
-            text(
-                f"""
-            WITH latest_scores AS (
-                SELECT
-                    sc.submission_id,
-                    MAX(sc.round) as latest_round
-                FROM hackathon_scores sc
-                GROUP BY sc.submission_id
-            ),
-            project_scores AS (
-                SELECT
-                    sc.submission_id,
-                    AVG(sc.weighted_total) as avg_score,
-                    COUNT(DISTINCT sc.judge_name) as judge_count
-                FROM hackathon_scores sc
-                JOIN latest_scores ls ON sc.submission_id = ls.submission_id AND sc.round = ls.latest_round
-                GROUP BY sc.submission_id
-            )
-            SELECT
-                s.submission_id,
-                s.project_name,
-                s.category,
-                s.demo_video_url as youtube_url,
-                s.status,
-                ps.avg_score,
-                u.username as discord_handle,
-                u.discord_id as discord_id,
-                u.username as discord_username,
-                u.avatar as discord_avatar
-            FROM {table} s
-            JOIN project_scores ps ON s.submission_id = ps.submission_id
-            JOIN users u ON s.owner_discord_id = u.discord_id
-            WHERE s.status IN ('scored', 'completed', 'published')
-            ORDER BY ps.avg_score DESC
-        """
-            )
-        )
-        entries = []
-        rank = 1
-        for row in result.fetchall():
-            row_dict = dict(row._mapping)
-            entry = LeaderboardEntry(
-                rank=rank,
-                submission_id=row_dict["submission_id"],
-                project_name=row_dict["project_name"],
-                category=row_dict["category"],
-                final_score=round(row_dict["avg_score"], 2),
-                youtube_url=row_dict["youtube_url"],
-                status=row_dict["status"],
-                discord_handle=row_dict["discord_handle"],
-                discord_id=row_dict.get("discord_id"),
-                discord_username=row_dict.get("discord_username"),
-                discord_avatar=row_dict.get("discord_avatar"),
-            )
-            entries.append(entry)
-            rank += 1
-        return entries
+        return _get_leaderboard_data(conn, version)
 
 
 @router.get("/api/{version}/stats", tags=["versioned"], response_model=StatsModel)
 async def get_stats(version: str):
     if version not in ("v1", "v2"):
         raise HTTPException(status_code=400, detail="Invalid version. Use 'v1' or 'v2'.")
-    table = f"hackathon_submissions_{version}"
     with engine.connect() as conn:
-        # Count by status
-        status_result = conn.execute(
-            text(
-                f"""
-            SELECT status, COUNT(*) as count
-            FROM {table}
-            GROUP BY status
-        """
-            )
-        )
-        status_counts = {row[0]: row[1] for row in status_result.fetchall()}
-        # Count by category
-        category_result = conn.execute(
-            text(
-                f"""
-            SELECT category, COUNT(*) as count
-            FROM {table}
-            GROUP BY category
-        """
-            )
-        )
-        category_counts = {row[0]: row[1] for row in category_result.fetchall()}
-        # Total submissions
-        total_result = conn.execute(text(f"SELECT COUNT(*) as total FROM {table}"))
-        total = total_result.scalar_one()
-        return {
-            "total_submissions": total,
-            "by_status": status_counts,
-            "by_category": category_counts,
-            "updated_at": datetime.now().isoformat(),
-        }
+        return _get_stats_data(conn, version)
 
 
 @router.get("/api/feedback/{submission_id}", tags=["latest"], response_model=FeedbackSummary)

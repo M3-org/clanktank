@@ -11,17 +11,19 @@ import os
 import sqlite3
 
 # Import the restructured configuration
-import sys
 from datetime import datetime
 from typing import Any
 
 import requests
 from dotenv import find_dotenv, load_dotenv
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from backend.schema import LATEST_SUBMISSION_VERSION, get_fields
-from prompts.show_config import SHOW_CONFIG, build_episode_prompt, get_episode_structure, validate_episode_cast
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.prompts.show_config import (
+    SHOW_CONFIG,
+    build_episode_prompt,
+    get_episode_structure,
+    validate_episode_cast,
+)
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -110,7 +112,8 @@ class EpisodeGeneratorV2:
             logger.warning(f"Failed to fetch API data: {e}, falling back to database")
 
         # Fallback to database if API unavailable
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         cursor.execute(f"SELECT * FROM {self.table} WHERE submission_id = ?", (submission_id,))

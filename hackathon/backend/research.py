@@ -15,15 +15,17 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-# Import GitHub analyzer
+from hackathon.backend.config import (
+    GITHUB_TOKEN,
+    HACKATHON_DB_PATH,
+    OPENROUTER_API_KEY,
+    RESEARCH_CACHE_DIR,
+    RESEARCH_CACHE_EXPIRY_HOURS,
+)
 from hackathon.backend.github_analyzer import GitHubAnalyzer
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.prompts.research_prompts import create_research_prompt
 
-# Use centralized prompt builder
-try:
-    from hackathon.prompts.research_prompts import create_research_prompt
-except Exception:
-    # Fallback for non-installed package layout
-    from ..prompts.research_prompts import create_research_prompt  # type: ignore
 # Load environment variables
 load_dotenv()
 
@@ -31,31 +33,9 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration — centralized in config module
-from hackathon.backend.config import (  # noqa: E402
-    GITHUB_TOKEN,
-    HACKATHON_DB_PATH,
-    OPENROUTER_API_KEY,
-    RESEARCH_CACHE_DIR,
-    RESEARCH_CACHE_EXPIRY_HOURS,
-)
-
 # OpenRouter API configuration
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "perplexity/sonar-reasoning-pro:online"
-
-# Import versioned schema helpers
-try:
-    from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
-except ModuleNotFoundError:
-    import importlib.util
-
-    schema_path = os.path.join(os.path.dirname(__file__), "schema.py")
-    spec = importlib.util.spec_from_file_location("schema", schema_path)
-    schema = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(schema)
-    LATEST_SUBMISSION_VERSION = schema.LATEST_SUBMISSION_VERSION
-    get_fields = schema.get_fields
 
 # In all research prompt and logic, use get_v2_fields_from_schema() for field access and validation.
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
