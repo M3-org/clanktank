@@ -12,13 +12,32 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _IS_TTY else text
 
 
-def blue(t):   return _c("34", t)
-def cyan(t):   return _c("36", t)
-def green(t):  return _c("32", t)
-def yellow(t): return _c("33", t)
-def red(t):    return _c("31", t)
-def dim(t):    return _c("2", t)
-def bold(t):   return _c("1", t)
+def blue(t):
+    return _c("34", t)
+
+
+def cyan(t):
+    return _c("36", t)
+
+
+def green(t):
+    return _c("32", t)
+
+
+def yellow(t):
+    return _c("33", t)
+
+
+def red(t):
+    return _c("31", t)
+
+
+def dim(t):
+    return _c("2", t)
+
+
+def bold(t):
+    return _c("1", t)
 
 
 # Color scheme:
@@ -26,6 +45,306 @@ def bold(t):   return _c("1", t)
 #   yellow = write/mutate pipeline (research, score, votes --collect, synthesize, episode, upload)
 #   green  = read-only (leaderboard, static-data)
 #   red    = irreversible external action (upload to YouTube)
+
+
+# ---------------------------------------------------------------------------
+# Shared read-command helpers — stdlib only, no package imports
+# ---------------------------------------------------------------------------
+
+
+def _db_path_from_env() -> str:
+    """Get DB path from env or .env file, falling back to default."""
+    from pathlib import Path
+
+    val = os.getenv("HACKATHON_DB_PATH")
+    if not val:
+        env_path = Path(__file__).resolve().parents[1] / ".env"
+        if env_path.exists():
+            for line in env_path.read_text().splitlines():
+                line = line.strip()
+                if line.startswith("HACKATHON_DB_PATH="):
+                    val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+    return val or str(Path(__file__).resolve().parents[2] / "data" / "hackathon.db")
+
+
+def _open_db(db_path: str):
+    """Open sqlite3 connection with Row factory."""
+    import sqlite3
+
+    conn = sqlite3.connect(db_path, timeout=10)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _table(headers: list[str], rows: list[list], col_colors=None):
+    """Print a left-aligned table with separator. col_colors: list of color fns or None."""
+    widths = [len(h) for h in headers]
+    str_rows = [[str(c) if c is not None else "-" for c in row] for row in rows]
+    for row in str_rows:
+        for i, cell in enumerate(row):
+            widths[i] = max(widths[i], len(cell))
+
+    sep = "  ".join("─" * w for w in widths)
+    header = "  ".join(bold(h.ljust(widths[i])) for i, h in enumerate(headers))
+    print(header)
+    print(dim(sep))
+    for row in str_rows:
+        cells = []
+        for i, cell in enumerate(row):
+            s = cell.ljust(widths[i])
+            if col_colors and i < len(col_colors) and col_colors[i]:
+                s = col_colors[i](s)
+            cells.append(s)
+        print("  ".join(cells))
+    print(dim(sep))
+    print(dim(f"  {len(rows)} row{'s' if len(rows) != 1 else ''}"))
+
+
+def _status_color(status: str):
+    return {
+        "submitted": lambda t: _c("37", t),  # white
+        "researched": yellow,
+        "scored": cyan,
+        "community-voting": lambda t: _c("35", t),  # magenta
+        "completed": green,
+        "published": lambda t: _c("32;1", t),  # bright green
+    }.get(status, dim)(status)
+
+
+def _bar(n: int, total: int, width: int = 20) -> str:
+    filled = round(width * n / total) if total else 0
+    return green("█" * filled) + dim("░" * (width - filled))
+
+
+# ---------------------------------------------------------------------------
+# clanktank stats
+# ---------------------------------------------------------------------------
+
+
+def cmd_stats(args):
+    import sqlite3
+
+    db = _db_path_from_env()
+    try:
+        conn = _open_db(db)
+    except sqlite3.OperationalError as e:
+        print(red(f"Cannot open DB: {e}"))
+        sys.exit(1)
+
+    cur = conn.cursor()
+
+    total = cur.execute("SELECT COUNT(*) FROM hackathon_submissions_v2").fetchone()[0]
+    if not total:
+        print(yellow("No submissions yet."))
+        return
+
+    print(f"\n{bold('Clank Tank')}  {dim('•')}  {bold(str(total))} submissions\n")
+
+    # Status breakdown
+    rows = cur.execute(
+        "SELECT status, COUNT(*) AS n FROM hackathon_submissions_v2 GROUP BY status ORDER BY n DESC"
+    ).fetchall()
+    print(f"  {bold('Status')}")
+    for r in rows:
+        pct = r["n"] / total * 100
+        print(f"  {_status_color(r['status']):<22}  {_bar(r['n'], total)}  {r['n']:>3}  {dim(f'{pct:.0f}%')}")
+
+    # Category breakdown
+    cat_rows = cur.execute(
+        "SELECT category, COUNT(*) AS n FROM hackathon_submissions_v2 GROUP BY category ORDER BY n DESC"
+    ).fetchall()
+    print(f"\n  {bold('Category')}")
+    for r in cat_rows:
+        print(f"  {r['category']:<22}  {_bar(r['n'], total)}  {r['n']:>3}")
+
+    # Score summary
+    score_row = cur.execute(
+        "SELECT AVG(weighted_total)/4 AS avg, MAX(weighted_total)/4 AS hi, "
+        "MIN(weighted_total)/4 AS lo, COUNT(DISTINCT submission_id) AS scored "
+        "FROM hackathon_scores WHERE round = 1"
+    ).fetchone()
+    if score_row and score_row["scored"]:
+        print(f"\n  {bold('Scores')}  {dim('(0-10 scale, Round 1)')}")
+        print(f"  Scored:   {score_row['scored']} / {total}")
+        print(f"  Average:  {score_row['avg']:.2f}")
+        print(f"  Range:    {score_row['lo']:.1f} – {score_row['hi']:.1f}")
+    print()
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# clanktank submissions
+# ---------------------------------------------------------------------------
+
+
+def cmd_submissions(args):
+    import sqlite3
+
+    db = _db_path_from_env()
+    try:
+        conn = _open_db(db)
+    except sqlite3.OperationalError as e:
+        print(red(f"Cannot open DB: {e}"))
+        sys.exit(1)
+
+    where = ""
+    params: list = []
+    if args.status:
+        where = "WHERE s.status = ?"
+        params.append(args.status)
+
+    rows = conn.execute(
+        f"""
+        SELECT
+            s.submission_id,
+            s.project_name,
+            s.category,
+            s.status,
+            s.github_url,
+            ROUND(AVG(sc.weighted_total) / 4.0, 1) AS avg_score,
+            COUNT(DISTINCT sc.judge_name) AS judges
+        FROM hackathon_submissions_v2 s
+        LEFT JOIN hackathon_scores sc ON s.submission_id = sc.submission_id AND sc.round = 1
+        {where}
+        GROUP BY s.submission_id
+        ORDER BY avg_score DESC NULLS LAST, s.created_at DESC
+        """,
+        params,
+    ).fetchall()
+
+    if not rows:
+        print(yellow("No submissions found."))
+        return
+
+    print()
+    headers = ["ID", "Project", "Category", "Status", "Score", "Judges"]
+    table_rows = [
+        [
+            r["submission_id"],
+            r["project_name"][:32],
+            r["category"][:16],
+            r["status"],
+            f"{r['avg_score']:.1f}" if r["avg_score"] else "-",
+            f"{r['judges']}/4" if r["judges"] else "0/4",
+        ]
+        for r in rows
+    ]
+    col_colors = [
+        dim,  # ID
+        None,  # Project (no color)
+        dim,  # Category
+        lambda t: _status_color(t.strip()),  # Status (strip padding before coloring)
+        green,  # Score
+        dim,  # Judges
+    ]
+    _table(headers, table_rows, col_colors)
+    print()
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# clanktank submission <id>
+# ---------------------------------------------------------------------------
+
+
+def cmd_submission(args):
+    import json
+    import sqlite3
+
+    db = _db_path_from_env()
+    try:
+        conn = _open_db(db)
+    except sqlite3.OperationalError as e:
+        print(red(f"Cannot open DB: {e}"))
+        sys.exit(1)
+
+    row = conn.execute(
+        "SELECT * FROM hackathon_submissions_v2 WHERE submission_id = ?",
+        (args.id,),
+    ).fetchone()
+    if not row:
+        print(red(f"Submission {args.id} not found."))
+        sys.exit(1)
+
+    r = dict(row)
+    sid = r["submission_id"]
+    name = r["project_name"]
+    status = r["status"]
+    category = r["category"]
+    desc = r.get("description") or ""
+    print()
+    print(f"  {bold(name)}  {dim('#' + str(sid))}")
+    print(f"  {_status_color(status)}  {dim('•')}  {category}")
+    if desc:
+        truncated = desc[:120] + ("…" if len(desc) > 120 else "")
+        print(f"\n  {truncated}")
+    print()
+
+    fields = [
+        ("GitHub", r.get("github_url")),
+        ("Demo", r.get("demo_video_url")),
+        ("Discord", r.get("discord_handle")),
+        ("Twitter", r.get("twitter_handle")),
+        ("Solana", r.get("solana_address")),
+        ("Submitted", r.get("created_at", "")[:19]),
+    ]
+    for label, val in fields:
+        if val:
+            print(f"  {dim(label + ':')} {val}")
+
+    # Scores
+    scores = conn.execute(
+        "SELECT judge_name, innovation, technical_execution, market_potential, "
+        "user_experience, weighted_total, round, community_bonus, final_verdict "
+        "FROM hackathon_scores WHERE submission_id = ? ORDER BY round, judge_name",
+        (args.id,),
+    ).fetchall()
+
+    if scores:
+        print(f"\n  {bold('Scores')}")
+        last_round = None
+        for s in scores:
+            if s["round"] != last_round:
+                last_round = s["round"]
+                rnum = s["round"]
+                print(f"\n  {dim('Round ' + str(rnum))}")
+            inn = f"{s['innovation']:.0f}" if s["innovation"] is not None else "-"
+            tech = f"{s['technical_execution']:.0f}" if s["technical_execution"] is not None else "-"
+            mkt = f"{s['market_potential']:.0f}" if s["market_potential"] is not None else "-"
+            ux = f"{s['user_experience']:.0f}" if s["user_experience"] is not None else "-"
+            wtot = f"{s['weighted_total'] / 4:.1f}" if s["weighted_total"] is not None else "-"
+            cb = s["community_bonus"]
+            bonus = f"+{cb:.1f}" if cb else ""
+            judge = cyan(s["judge_name"][:10])
+            line = f"  {judge:<14}  Inn:{inn}  Tech:{tech}  Mkt:{mkt}  UX:{ux}  {bold(wtot)}/10{green(bonus)}"
+            print(line)
+            fv = s["final_verdict"]
+            if fv and not args.brief:
+                try:
+                    verdict = json.loads(fv).get("final_verdict", "")
+                except (json.JSONDecodeError, TypeError):
+                    verdict = str(fv)
+                if verdict:
+                    print(f"  {dim(' └ ' + verdict[:100])}")
+
+    # Research summary
+    research = conn.execute(
+        "SELECT technical_assessment FROM hackathon_research WHERE submission_id = ?",
+        (args.id,),
+    ).fetchone()
+    if research and research["technical_assessment"] and not args.brief:
+        try:
+            ta = json.loads(research["technical_assessment"])
+            summary = ta.get("summary") or ta.get("executive_summary") or ""
+            if summary:
+                print(f"\n  {bold('Research')}")
+                print(f"  {summary[:200]}{'…' if len(summary) > 200 else ''}")
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    print()
+    conn.close()
 
 
 def add_common_args(parser):
@@ -40,19 +359,19 @@ def add_common_args(parser):
 
 ENV_VARS = [
     # (name, required, description)
-    ("OPENROUTER_API_KEY",        True,  "AI research + judge scoring"),
-    ("DISCORD_CLIENT_ID",         True,  "Discord OAuth login"),
-    ("DISCORD_CLIENT_SECRET",     True,  "Discord OAuth login"),
-    ("DISCORD_TOKEN",             True,  "Discord bot (community voting)"),
-    ("PRIZE_WALLET_ADDRESS",      True,  "Solana wallet to watch for votes"),
-    ("GITHUB_TOKEN",              False, "Higher GitHub API rate limits"),
-    ("HACKATHON_DB_PATH",         False, "Default: data/hackathon.db"),
-    ("SUBMISSION_DEADLINE",       False, "ISO datetime to close submissions"),
-    ("DISCORD_GUILD_ID",          False, "Guild ID for role-based auth"),
-    ("DISCORD_BOT_TOKEN",         False, "Bot token for guild role fetching"),
+    ("OPENROUTER_API_KEY", True, "AI research + judge scoring"),
+    ("DISCORD_CLIENT_ID", True, "Discord OAuth login"),
+    ("DISCORD_CLIENT_SECRET", True, "Discord OAuth login"),
+    ("DISCORD_TOKEN", True, "Discord bot (community voting)"),
+    ("PRIZE_WALLET_ADDRESS", True, "Solana wallet to watch for votes"),
+    ("GITHUB_TOKEN", False, "Higher GitHub API rate limits"),
+    ("HACKATHON_DB_PATH", False, "Default: data/hackathon.db"),
+    ("SUBMISSION_DEADLINE", False, "ISO datetime to close submissions"),
+    ("DISCORD_GUILD_ID", False, "Guild ID for role-based auth"),
+    ("DISCORD_BOT_TOKEN", False, "Bot token for guild role fetching"),
     ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
-    ("AI_MODEL_NAME",             False, "Default: anthropic/claude-3-opus"),
-    ("STATIC_DATA_DIR",           False, "Frontend static data output dir"),
+    ("AI_MODEL_NAME", False, "Default: anthropic/claude-3-opus"),
+    ("STATIC_DATA_DIR", False, "Frontend static data output dir"),
 ]
 
 
@@ -160,14 +479,18 @@ def main():
         description=bold("Clank Tank hackathon pipeline CLI"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            dim("Pipeline order:\n") +
-            f"  {blue('db')} → {blue('serve')} → {yellow('research')} → {yellow('score')} → "
+            dim("Pipeline order:\n") + f"  {blue('db')} → {blue('serve')} → {yellow('research')} → {yellow('score')} → "
             f"{yellow('votes')} → {yellow('synthesize')} → {green('leaderboard')} → "
-            f"{yellow('episode')} → {red('upload')}\n\n" +
-            dim("Colors: ") + blue("blue") + dim("=infra  ") +
-            yellow("yellow") + dim("=writes  ") +
-            green("green") + dim("=reads  ") +
-            red("red") + dim("=irreversible")
+            f"{yellow('episode')} → {red('upload')}\n\n"
+            + dim("Colors: ")
+            + blue("blue")
+            + dim("=infra  ")
+            + yellow("yellow")
+            + dim("=writes  ")
+            + green("green")
+            + dim("=reads  ")
+            + red("red")
+            + dim("=irreversible")
         ),
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
@@ -233,6 +556,21 @@ def main():
     add_common_args(upload_p)
     upload_p.add_argument("--dry-run", action="store_true")
     upload_p.add_argument("--limit", type=int)
+
+    # --- Read / inspect (green = read-only) ---
+    sub.add_parser("stats", help=green("Hackathon overview: counts, categories, score summary"))
+
+    subs_p = sub.add_parser("submissions", help=green("List all submissions"))
+    subs_p.add_argument(
+        "--status",
+        default=None,
+        choices=["submitted", "researched", "scored", "community-voting", "completed", "published"],
+        help="Filter by status",
+    )
+
+    sub_p = sub.add_parser("submission", help=green("Show details for a single submission"))
+    sub_p.add_argument("id", type=int, help="Submission ID")
+    sub_p.add_argument("--brief", action="store_true", help="Skip verdicts and research summary")
 
     # --- Utilities ---
     sub.add_parser("static-data", help=green("Regenerate static JSON files for frontend"))
@@ -338,6 +676,15 @@ def main():
             new_argv += ["--db-file", args.db_file]
         sys.argv = new_argv
         upload_main()
+
+    elif args.command == "stats":
+        cmd_stats(args)
+
+    elif args.command == "submissions":
+        cmd_submissions(args)
+
+    elif args.command == "submission":
+        cmd_submission(args)
 
     elif args.command == "static-data":
         from hackathon.scripts.generate_static_data import generate_static_data
