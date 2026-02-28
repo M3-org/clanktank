@@ -160,16 +160,28 @@ async def add_security_headers(request: Request, call_next):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
     # Content Security Policy
-    # Note: 'unsafe-inline' for styles only - required for React/Vite CSS-in-JS
-    # Scripts use strict-dynamic with CDN allowlist instead of unsafe-eval
-    csp_policy = (
-        "default-src 'self'; "
-        "script-src 'self' cdn.jsdelivr.net; "
-        "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-        "img-src 'self' data: https:; "
-        "connect-src 'self' wss: https:; "
-        "frame-ancestors 'none';"
-    )
+    # Relax CSP for Swagger UI (/docs, /redoc) which needs inline scripts and blob: workers
+    path = request.url.path
+    if path in ("/docs", "/redoc", "/openapi.json"):
+        csp_policy = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net blob:; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' wss: https:; "
+            "frame-ancestors 'none';"
+        )
+    else:
+        # Note: 'unsafe-inline' for styles only - required for React/Vite CSS-in-JS
+        # Scripts use strict-dynamic with CDN allowlist instead of unsafe-eval
+        csp_policy = (
+            "default-src 'self'; "
+            "script-src 'self' cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' wss: https:; "
+            "frame-ancestors 'none';"
+        )
     response.headers["Content-Security-Policy"] = csp_policy
 
     return response

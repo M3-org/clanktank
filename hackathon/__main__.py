@@ -42,6 +42,35 @@ def bold(t):
     return _c("1", t)
 
 
+def _banner():
+    """Print compact ASCII banner + quick status."""
+    logo = dim(r"""
+   ___  _            _     _____           _
+  / __\| | __ _ _ _ | | __/__   \__ _ _ _ | | __
+ / /   | |/ _` | ' \| |/ /  / /\/ _` | ' \| |/ /
+/ /___ | | (_| | | ||   <  / / | (_| | | ||   <
+\____/ |_|\__,_|_| ||_|\_\ \/   \__,_|_| ||_|\_\
+""".rstrip())
+    print(logo)
+
+    # Quick status line
+    try:
+        import sqlite3
+
+        db = _db_path_from_env()
+        conn = sqlite3.connect(db, timeout=5)
+        total = conn.execute("SELECT COUNT(*) FROM hackathon_submissions_v2").fetchone()[0]
+        conn.close()
+        print(f"  {bold(str(total))} submissions  {dim('·')}  DB: {dim(db)}")
+    except Exception:
+        print(f"  DB: {dim(_db_path_from_env())}")
+
+    deadline = os.getenv("SUBMISSION_DEADLINE")
+    if deadline:
+        print(f"  Deadline: {yellow(deadline)}")
+    print()
+
+
 # Color scheme:
 #   blue   = infrastructure (db, serve, config)
 #   yellow = write/mutate pipeline (research, score, votes --collect, synthesize, episode, upload)
@@ -119,6 +148,86 @@ def _bar(n: int, total: int, width: int = 20) -> str:
     return green("█" * filled) + dim("░" * (width - filled))
 
 
+def _print_research_md(ta: dict):
+    """Render technical_assessment JSON as clean readable markdown."""
+
+    # Section renderers for known keys
+    _SECTION_TITLES = {
+        "technical_implementation": "Technical Implementation",
+        "originality_effort": "Originality & Effort",
+        "market_analysis": "Market Analysis",
+        "viability_assessment": "Viability Assessment",
+        "innovation_rating": "Innovation Rating",
+    }
+
+    def _scored_section(title: str, d: dict):
+        score = d.get("score", "?")
+        justification = d.get("justification", "")
+        print(f"### {bold(title)}  {cyan(str(score))}/10\n")
+        if justification:
+            print(f"{justification}\n")
+        for k, v in d.items():
+            if k in ("score", "justification"):
+                continue
+            label = k.replace("_", " ").title()
+            if isinstance(v, list):
+                print(f"**{label}:**")
+                for item in v:
+                    print(f"  - {item}")
+                print()
+            elif isinstance(v, bool):
+                print(f"**{label}:** {'Yes' if v else 'No'}")
+            elif v:
+                print(f"**{label}:** {v}")
+        print()
+
+    for key, title in _SECTION_TITLES.items():
+        section = ta.get(key)
+        if isinstance(section, dict):
+            _scored_section(title, section)
+
+    # Judge insights
+    insights = ta.get("judge_insights")
+    if isinstance(insights, dict):
+        print(f"### {bold('Judge Insights')}\n")
+        for k, v in insights.items():
+            judge = k.replace("_take", "").replace("s_", " ").replace("_", " ").strip()
+            if v:
+                print(f"**{judge}:** {v}\n")
+
+    # Red flags
+    flags = ta.get("red_flags")
+    if isinstance(flags, list) and flags:
+        print(f"### {bold('Red Flags')}\n")
+        for flag in flags:
+            print(f"  - {yellow(str(flag))}")
+        print()
+
+    # Overall assessment
+    overall = ta.get("overall_assessment")
+    if isinstance(overall, dict):
+        score = overall.get("total_score", "?")
+        max_score = overall.get("max_possible", "?")
+        rec = overall.get("recommendation", "")
+        print(f"### {bold('Overall Assessment')}  {cyan(str(score))}/{max_score}\n")
+        if rec:
+            print(f"{rec}\n")
+
+    # Any remaining top-level keys we didn't handle
+    handled = set(_SECTION_TITLES) | {"judge_insights", "red_flags", "overall_assessment", "summary", "executive_summary"}
+    for k, v in ta.items():
+        if k in handled:
+            continue
+        label = k.replace("_", " ").title()
+        if isinstance(v, str):
+            print(f"**{label}:** {v}\n")
+        elif isinstance(v, list):
+            print(f"**{label}:**")
+            for item in v:
+                print(f"  - {item}")
+            print()
+
+
 # ---------------------------------------------------------------------------
 # clanktank stats
 # ---------------------------------------------------------------------------
@@ -171,6 +280,8 @@ def cmd_stats(args):
         print(f"  Scored:   {score_row['scored']} / {total}")
         print(f"  Average:  {score_row['avg']:.2f}")
         print(f"  Range:    {score_row['lo']:.1f} – {score_row['hi']:.1f}")
+    print()
+    print(dim("  Tip: clanktank submissions to browse, clanktank leaderboard for rankings"))
     print()
     conn.close()
 
@@ -389,16 +500,29 @@ def cmd_submissions(args):
 
             # --- Research ---
             if research and research["technical_assessment"] and not args.brief:
-                try:
-                    ta = json.loads(research["technical_assessment"])
-                    summary = ta.get("summary") or ta.get("executive_summary") or ""
-                    if summary:
-                        print(f"\n## {bold('Research')}")
-                        print(f"\n{summary}")
-                except (json.JSONDecodeError, TypeError):
-                    pass  # malformed research JSON — skip section silently
+                if getattr(args, "research", False):
+                    # Full research as clean markdown
+                    try:
+                        ta = json.loads(research["technical_assessment"])
+                        print(f"\n## {bold('Research')}\n")
+                        _print_research_md(ta)
+                    except (json.JSONDecodeError, TypeError):
+                        print(f"\n## {bold('Research')}\n")
+                        print(research["technical_assessment"])
+                    print(f"\n{dim('Source: hackathon_research.technical_assessment  (submission_id=' + str(sid) + ')')}")
+                    print(dim(f"  DB: {db}"))
+                else:
+                    try:
+                        ta = json.loads(research["technical_assessment"])
+                        summary = ta.get("summary") or ta.get("executive_summary") or ""
+                        if summary:
+                            print(f"\n## {bold('Research')}")
+                            print(f"\n{summary}")
+                    except (json.JSONDecodeError, TypeError):
+                        pass  # malformed research JSON — skip section silently
 
             print()
+            print(dim("  Tip: add -j for JSON, -r/--research for full research"))
 
         conn.close()
         return
@@ -481,6 +605,7 @@ def cmd_submissions(args):
             dim,  # Judges
         ]
         _table(headers, table_rows, col_colors)
+        print(dim("  Tip: clanktank submissions <id> for detail view"))
         print()
 
     conn.close()
@@ -503,14 +628,20 @@ ENV_VARS = [
     ("DISCORD_CLIENT_SECRET", True, "Discord OAuth login"),
     ("DISCORD_TOKEN", True, "Discord bot (community voting)"),
     ("PRIZE_WALLET_ADDRESS", True, "Solana wallet to watch for votes"),
+    ("AI_MODEL_NAME", True, "OpenRouter model ID (e.g. openrouter/auto, anthropic/claude-sonnet-4-5)"),
+    ("ENVIRONMENT", False, "development or production"),
     ("GITHUB_TOKEN", False, "Higher GitHub API rate limits"),
     ("HACKATHON_DB_PATH", False, "Default: data/hackathon.db"),
     ("SUBMISSION_DEADLINE", False, "ISO datetime to close submissions"),
     ("DISCORD_GUILD_ID", False, "Guild ID for role-based auth"),
     ("DISCORD_BOT_TOKEN", False, "Bot token for guild role fetching"),
     ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
-    ("AI_MODEL_NAME", True, "OpenRouter model ID (e.g. openrouter/auto, anthropic/claude-sonnet-4-5)"),
     ("STATIC_DATA_DIR", False, "Frontend static data output dir"),
+    ("JUDGE_CONFIG", False, "Custom judge configuration path"),
+    ("RESEARCH_CONFIG", False, "Custom research configuration path"),
+    ("HELIUS_API_KEY", False, "Helius API for Solana data"),
+    ("BIRDEYE_API_KEY", False, "Birdeye API for token data"),
+    ("HELIUS_WEBHOOK_SECRET", False, "Helius webhook HMAC secret"),
 ]
 
 
@@ -572,14 +703,15 @@ def cmd_config(args):
     missing_required = []
     for name, required, desc in ENV_VARS:
         val = get_val(name)
+        marker = bold("*") if required else " "
         if val:
             display = "(set)" if _is_sensitive_env_var(name) else val[:14] + "..." if len(val) > 14 else val
-            print(f"  {green('✓')} {name:<36} {dim(display)}")
+            print(f"  {green('✓')} {marker} {name:<34} {dim(display)}")
         elif required:
-            print(f"  {red('✗')} {red(name):<36} {dim(desc)}")
+            print(f"  {red('✗')} {marker} {red(name):<34} {dim(desc)}")
             missing_required.append((name, desc))
         else:
-            print(f"  {dim('–')} {dim(name):<36} {dim(desc)}")
+            print(f"  {dim('–')} {marker} {dim(name):<34} {dim(desc)}")
 
     print()
     if not missing_required:
@@ -638,7 +770,8 @@ def main():
             + green("green")
             + dim("=reads  ")
             + red("red")
-            + dim("=irreversible")
+            + dim("=irreversible\n\n")
+            + dim("API schema: http://localhost:8000/openapi.json (when server is running)")
         ),
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
@@ -652,6 +785,7 @@ def main():
     db_sub = db_p.add_subparsers(dest="db_command", help="Database subcommands")
     create_p = db_sub.add_parser("create", help="Initialize database")
     create_p.add_argument("--db", default=None, help="Database path")
+    create_p.add_argument("-f", "--force", action="store_true", help="Overwrite existing database")
     migrate_p = db_sub.add_parser("migrate", help="Run schema migrations")
     migrate_p.add_argument("--dry-run", action="store_true")
     migrate_p.add_argument("--version", default="all", choices=["v1", "v2", "all"])
@@ -718,10 +852,11 @@ def main():
         help="Filter by status (list/search mode)",
     )
     subs_p.add_argument("-b", "--brief", action="store_true", help="Omit scores and research (detail mode)")
+    subs_p.add_argument("-r", "--research", action="store_true", help="Show full research data (detail mode)")
     subs_p.add_argument("-j", "--json", action="store_true", help="Output as JSON instead of formatted text")
 
     # --- Utilities ---
-    sub.add_parser("static-data", help=green("Regenerate static JSON files for frontend"))
+    sub.add_parser("static-data", help=yellow("Regenerate static JSON files for frontend"))
 
     recovery_p = sub.add_parser("recovery", help=dim("Backup/restore submissions"))
     recovery_p.add_argument("--list", action="store_true")
@@ -732,8 +867,9 @@ def main():
     args = parser.parse_args()
 
     if not args.command:
+        _banner()
         parser.print_help()
-        sys.exit(1)
+        sys.exit(0)
 
     if args.command == "config":
         cmd_config(args)
@@ -761,6 +897,12 @@ def main():
         sys.argv = new_argv
         manager_main()
 
+        # Contextual tips
+        if args.command == "leaderboard":
+            print(dim("\n  Tip: --round 1 to sort by Round 1"))
+        elif args.command == "score":
+            print(dim("\n  Tip: clanktank leaderboard to see updated rankings"))
+
     elif args.command == "serve":
         import subprocess
 
@@ -774,9 +916,19 @@ def main():
             db_p.print_help()
             sys.exit(1)
         if args.db_command == "create":
+            from pathlib import Path
+
+            from hackathon.backend.config import HACKATHON_DB_PATH
+
+            db_path = args.db or HACKATHON_DB_PATH
+            if Path(db_path).exists() and not args.force:
+                print(red(f"Database already exists: {db_path}"))
+                print(dim("  Use -f / --force to overwrite."))
+                sys.exit(1)
+
             from hackathon.backend.create_db import main as create_main
 
-            sys.argv = ["create_db"] + ([args.db] if args.db else [])
+            sys.argv = ["create_db"] + (["--db", args.db] if args.db else [])
             create_main()
         elif args.db_command == "migrate":
             from hackathon.backend.migrate_schema import main as migrate_main
