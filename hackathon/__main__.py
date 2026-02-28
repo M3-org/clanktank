@@ -84,13 +84,27 @@ def cmd_config(args):
     REPO_ROOT = Path(__file__).resolve().parents[1]
     env_path = REPO_ROOT / ".env"
 
+    # Load .env file values so status reflects what's actually configured,
+    # not just what's exported in the current shell session
+    env_file_vals: dict[str, str] = {}
+    if env_path.exists():
+        for raw in env_path.read_text().splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            k, _, v = line.partition("=")
+            env_file_vals[k.strip()] = v.strip().strip('"').strip("'")
+
+    def get_val(name: str) -> str | None:
+        return os.getenv(name) or env_file_vals.get(name) or None
+
     # Always print status first
     print(f"\n{bold('Clank Tank — environment config')}")
     print(f"  .env: {env_path} {'(exists)' if env_path.exists() else red('(not found)')}\n")
 
     missing_required = []
     for name, required, desc in ENV_VARS:
-        val = os.getenv(name)
+        val = get_val(name)
         if val:
             display = val[:14] + "..." if len(val) > 14 else val
             print(f"  {green('✓')} {name:<36} {dim(display)}")
@@ -117,7 +131,7 @@ def cmd_config(args):
         env_path.touch()
 
     print(f"{bold('Interactive setup')} — press Enter to skip a value\n")
-    wrote = []
+    wrote: list[str] = []
     for name, desc in missing_required:
         try:
             val = input(f"  {yellow(name)} ({desc}): ").strip()
