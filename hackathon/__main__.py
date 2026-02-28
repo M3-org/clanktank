@@ -674,8 +674,69 @@ def _set_env_key(env_path, key: str, value: str):
     env_path.write_text("\n".join(lines) + "\n")
 
 
+def _print_config_value(name: str, data):
+    """Pretty-print a parsed JSON config value in a human-readable way."""
+    if name == "JUDGE_CONFIG":
+        # Judge personas + scoring weights
+        personas = data.get("personas", {})
+        if personas:
+            print(f"{bold('Judge Personas')}\n")
+            for judge, desc in personas.items():
+                print(f"### {cyan(judge)}\n")
+                print(f"{desc}\n")
+        weights = data.get("scoring_weights", {})
+        if weights:
+            print(f"{bold('Scoring Weights')}\n")
+            for judge, w in weights.items():
+                parts = [f"{k}: {bold(str(v))}" for k, v in w.items()]
+                print(f"  {cyan(judge):16} {', '.join(parts)}")
+            print()
+        # Print any other top-level keys
+        for k, v in data.items():
+            if k in ("personas", "scoring_weights"):
+                continue
+            import json
+
+            print(f"{bold(k)}:")
+            print(json.dumps(v, indent=2))
+            print()
+    elif name == "RESEARCH_CONFIG":
+        # Research prompt + penalty thresholds
+        thresholds = data.get("penalty_thresholds", {})
+        if thresholds:
+            print(f"{bold('Penalty Thresholds')}\n")
+            for k, v in thresholds.items():
+                label = k.replace("_", " ").title()
+                print(f"  {label:<24} {bold(str(v))}")
+            print()
+        prompt = data.get("research_prompt_template", "")
+        if prompt:
+            print(f"{bold('Research Prompt Template')}\n")
+            # Replace template vars with highlighted placeholders
+            import re
+
+            display = re.sub(r"\{(\w+)\}", lambda m: cyan(f"{{{m.group(1)}}}"), prompt)
+            print(display)
+            print()
+        for k, v in data.items():
+            if k in ("penalty_thresholds", "research_prompt_template"):
+                continue
+            import json
+
+            print(f"{bold(k)}:")
+            print(json.dumps(v, indent=2))
+            print()
+    else:
+        # Generic: just pretty-print the JSON
+        import json
+
+        print(json.dumps(data, indent=2))
+        print()
+
+
 def cmd_config(args):
-    """Show env var status, or run interactive setup for missing vars."""
+    """Show env var status, pretty-print a var, or run interactive setup."""
+    import json
     from pathlib import Path
 
     # Standalone — no hackathon imports so this works before deps are installed
@@ -695,6 +756,22 @@ def cmd_config(args):
 
     def get_val(name: str) -> str | None:
         return os.getenv(name) or env_file_vals.get(name) or None
+
+    # --- Pretty-print a specific var ---
+    if args.var:
+        var_name = args.var.upper()
+        val = get_val(var_name)
+        if not val:
+            print(red(f"{var_name} is not set."))
+            sys.exit(1)
+        # Try JSON pretty-print
+        try:
+            parsed = json.loads(val)
+            print(f"\n{bold(var_name)}\n")
+            _print_config_value(var_name, parsed)
+        except (json.JSONDecodeError, TypeError):
+            print(f"\n{bold(var_name)} = {val}\n")
+        return
 
     # Always print status first
     print(f"\n{bold('Clank Tank — environment config')}")
@@ -778,6 +855,7 @@ def main():
 
     # 0. Config / env setup
     config_p = sub.add_parser("config", help=blue("[setup] Show env var status / interactive setup"))
+    config_p.add_argument("var", nargs="?", default=None, help="Pretty-print a specific env var (e.g. JUDGE_CONFIG)")
     config_p.add_argument("--setup", action="store_true", help="Interactively set missing required variables")
 
     # 1. Database setup
@@ -904,6 +982,21 @@ def main():
 
     # Dispatch to modules — rebuild sys.argv for each module's own argparse
     if args.command in ("research", "score", "synthesize", "leaderboard"):
+        # Show help if no target specified for commands that need one
+        if args.command in ("research", "score", "synthesize"):
+            has_target = (hasattr(args, "submission_id") and args.submission_id) or (
+                hasattr(args, "all") and args.all
+            )
+            if not has_target:
+                # Find the subparser and print its help
+                sub_parsers = {
+                    "research": research_p,
+                    "score": score_p,
+                    "synthesize": synthesize_p,
+                }
+                sub_parsers[args.command].print_help()
+                sys.exit(0)
+
         from hackathon.backend.hackathon_manager import main as manager_main
 
         new_argv = ["hackathon_manager", f"--{args.command}"]
