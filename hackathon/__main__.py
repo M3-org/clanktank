@@ -761,7 +761,7 @@ def main():
         epilog=(
             dim("Pipeline order:\n") + f"  {blue('db')} → {blue('serve')} → {yellow('research')} → {yellow('score')} → "
             f"{yellow('votes')} → {yellow('synthesize')} → {green('leaderboard')} → "
-            f"{yellow('episode')} → {red('upload')}\n\n"
+            f"{yellow('episode')} → {yellow('record')} → {red('upload')}\n\n"
             + dim("Colors: ")
             + blue("blue")
             + dim("=infra  ")
@@ -833,8 +833,35 @@ def main():
     episode_p.add_argument("--validate-only", action="store_true")
     episode_p.add_argument("--episode-file", help="Existing episode file to validate")
 
-    # 9. Upload to YouTube
-    upload_p = sub.add_parser("upload", help=red("[step 9] Upload recorded episode to YouTube"))
+    # 9. Record episode video
+    record_p = sub.add_parser("record", help=yellow("[step 9] Record episode video via Puppeteer"))
+    record_p.add_argument("url", nargs="?", default=None, help="Shmotime episode URL to record")
+    record_p.add_argument("--headless", action="store_true", help="Run Chrome in headless mode")
+    record_p.add_argument("--no-record", action="store_true", help="Disable video recording (data export only)")
+    record_p.add_argument("--mute", action="store_true", help="Mute audio during recording")
+    record_p.add_argument("--quiet", action="store_true", help="Reduce log output")
+    record_p.add_argument("--format", default="webm", choices=["webm", "mp4"], help="Video format (default: webm)")
+    record_p.add_argument("--output", default=None, help="Output directory (default: ./recordings)")
+    record_p.add_argument("--date", default=None, help="Override date for output filenames (YYYY-MM-DD)")
+    record_p.add_argument("--width", type=int, default=1920, help="Video width (default: 1920)")
+    record_p.add_argument("--height", type=int, default=1080, help="Video height (default: 1080)")
+    record_p.add_argument("--fps", type=int, default=30, help="Frame rate (default: 30)")
+    record_p.add_argument(
+        "--stop-at",
+        default="end_postcredits",
+        choices=[
+            "start_intro", "end_intro", "start_ep", "end_ep",
+            "start_credits", "end_credits", "start_postcredits", "end_postcredits", "never",
+        ],
+        help="When to stop recording (default: end_postcredits)",
+    )
+    record_p.add_argument("--wait", type=int, default=3600000, help="Max wait time in ms (default: 3600000)")
+    record_p.add_argument("--chrome-path", default=None, help="Chrome executable path")
+    record_p.add_argument("--no-fix-framerate", action="store_true", help="Disable ffmpeg frame rate post-processing")
+    record_p.add_argument("--list", default=None, help="Path to list file for date mapping")
+
+    # 10. Upload to YouTube
+    upload_p = sub.add_parser("upload", help=red("[step 10] Upload recorded episode to YouTube"))
     add_common_args(upload_p)
     upload_p.add_argument("--dry-run", action="store_true")
     upload_p.add_argument("--limit", type=int)
@@ -965,6 +992,67 @@ def main():
             new_argv += ["--episode-file", args.episode_file]
         sys.argv = new_argv
         episode_main()
+
+    elif args.command == "record":
+        import shutil
+        import subprocess
+        from pathlib import Path
+
+        # Check node is available
+        if not shutil.which("node"):
+            print(red("node not found — install Node.js to use the recorder."))
+            sys.exit(1)
+
+        recorder_script = Path(__file__).resolve().parents[1] / "scripts" / "recorder.js"
+        if not recorder_script.exists():
+            print(red(f"Recorder script not found: {recorder_script}"))
+            sys.exit(1)
+
+        if not args.url:
+            print(red("Episode URL required."))
+            print(dim("  Usage: clanktank record <url>"))
+            print(dim("  Example: clanktank record https://shmotime.com/shmotime_episode/my-episode/"))
+            sys.exit(1)
+
+        cmd = ["node", str(recorder_script)]
+        if args.headless:
+            cmd.append("--headless")
+        if args.no_record:
+            cmd.append("--no-record")
+        if args.mute:
+            cmd.append("--mute")
+        if args.quiet:
+            cmd.append("--quiet")
+        if args.no_fix_framerate:
+            cmd.append("--no-fix-framerate")
+        if args.format != "webm":
+            cmd.append(f"--format={args.format}")
+        if args.output:
+            cmd.append(f"--output={args.output}")
+        if args.date:
+            cmd.append(f"--date={args.date}")
+        if args.width != 1920:
+            cmd.append(f"--width={args.width}")
+        if args.height != 1080:
+            cmd.append(f"--height={args.height}")
+        if args.fps != 30:
+            cmd.append(f"--fps={args.fps}")
+        if args.stop_at != "end_postcredits":
+            cmd.append(f"--stop-recording-at={args.stop_at}")
+        if args.wait != 3600000:
+            cmd.append(f"--wait={args.wait}")
+        if args.chrome_path:
+            cmd.append(f"--chrome-path={args.chrome_path}")
+        if args.list:
+            cmd.append(f"--list={args.list}")
+        cmd.append(args.url)
+
+        print(f"{yellow('Recording')} {args.url}")
+        print(dim(f"  {' '.join(cmd)}"))
+        result = subprocess.run(cmd)
+        if result.returncode == 0:
+            print(dim("\n  Tip: clanktank upload to publish to YouTube"))
+        sys.exit(result.returncode)
 
     elif args.command == "upload":
         from hackathon.scripts.upload_youtube import main as upload_main
