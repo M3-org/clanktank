@@ -637,8 +637,8 @@ ENV_VARS = [
     ("DISCORD_BOT_TOKEN", False, "Bot token for guild role fetching"),
     ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
     ("STATIC_DATA_DIR", False, "Frontend static data output dir"),
-    ("JUDGE_CONFIG", False, "Custom judge configuration path"),
-    ("RESEARCH_CONFIG", False, "Custom research configuration path"),
+    ("JUDGE_CONFIG", False, "JSON file path or inline JSON (default: data/judge_config.json)"),
+    ("RESEARCH_CONFIG", False, "JSON file path or inline JSON (default: data/research_config.json)"),
     ("HELIUS_API_KEY", False, "Helius API for Solana data"),
     ("BIRDEYE_API_KEY", False, "Birdeye API for token data"),
     ("HELIUS_WEBHOOK_SECRET", False, "Helius webhook HMAC secret"),
@@ -828,9 +828,31 @@ def _print_research_config(data: dict):
             print()
 
 
-def cmd_config(args):
-    """Show env var status, pretty-print a var, or run interactive setup."""
+def _resolve_json_val(val: str, repo_root) -> dict | None:
+    """Given a raw env value, resolve to a parsed dict (file or inline JSON)."""
     import json
+    from pathlib import Path
+
+    if not val:
+        return None
+    # File path?
+    if "/" in val or val.endswith(".json"):
+        path = Path(val) if Path(val).is_absolute() else repo_root / val
+        try:
+            return json.loads(path.read_text())
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None
+    # Inline JSON
+    try:
+        return json.loads(val)
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
+def cmd_config(args):
+    """Show env var status, pretty-print a var, edit config files, or run interactive setup."""
+    import json
+    import subprocess
     from pathlib import Path
 
     # Standalone — no hackathon imports so this works before deps are installed
@@ -851,6 +873,59 @@ def cmd_config(args):
     def get_val(name: str) -> str | None:
         return os.getenv(name) or env_file_vals.get(name) or None
 
+    # --- Edit a config file ---
+    if args.var == "edit":
+        edit_target = (args.edit_target or "").upper()
+        if not edit_target:
+            print(f"Usage: clanktank config edit {cyan('JUDGE_CONFIG')}|{cyan('RESEARCH_CONFIG')}")
+            sys.exit(1)
+
+        # Map to default filenames
+        defaults = {"JUDGE_CONFIG": "judge_config.json", "RESEARCH_CONFIG": "research_config.json"}
+        if edit_target not in defaults:
+            print(red(f"Unknown config: {edit_target}. Choose from: {', '.join(defaults)}"))
+            sys.exit(1)
+
+        # Resolve file path (same logic as load_json_config)
+        raw_val = get_val(edit_target) or ""
+        if raw_val and ("/" in raw_val or raw_val.endswith(".json")):
+            config_path = Path(raw_val) if Path(raw_val).is_absolute() else REPO_ROOT / raw_val
+        else:
+            config_path = REPO_ROOT / "data" / defaults[edit_target]
+
+        # If file doesn't exist yet, extract current env value into it
+        if not config_path.exists():
+            if raw_val and "/" not in raw_val and not raw_val.endswith(".json"):
+                # Inline JSON in env — extract to file
+                try:
+                    parsed = json.loads(raw_val)
+                    config_path.parent.mkdir(parents=True, exist_ok=True)
+                    config_path.write_text(json.dumps(parsed, indent=2, ensure_ascii=False) + "\n")
+                    print(f"Extracted inline {edit_target} to {cyan(str(config_path))}")
+                except json.JSONDecodeError:
+                    print(red(f"Cannot parse current {edit_target} value as JSON"))
+                    sys.exit(1)
+            else:
+                print(red(f"Config file not found: {config_path}"))
+                sys.exit(1)
+
+        editor = os.environ.get("EDITOR", "vi")
+        print(f"Opening {cyan(str(config_path))} in {bold(editor)}...")
+        result = subprocess.run([editor, str(config_path)])
+        if result.returncode != 0:
+            print(red(f"Editor exited with code {result.returncode}"))
+            sys.exit(1)
+
+        # Validate JSON after edit
+        try:
+            json.loads(config_path.read_text())
+            print(green(f"{edit_target} saved and validated."))
+        except json.JSONDecodeError as e:
+            print(red(f"WARNING: {config_path} is not valid JSON: {e}"))
+            print(yellow("The file was saved but may cause errors at runtime."))
+            sys.exit(1)
+        return
+
     # --- Pretty-print a specific var ---
     if args.var:
         var_name = args.var.upper()
@@ -858,12 +933,12 @@ def cmd_config(args):
         if not val:
             print(red(f"{var_name} is not set."))
             sys.exit(1)
-        # Try JSON pretty-print
-        try:
-            parsed = json.loads(val)
+        # Resolve file paths or inline JSON
+        parsed = _resolve_json_val(val, REPO_ROOT)
+        if parsed is not None:
             print(f"\n{bold(var_name)}\n")
             _print_config_value(var_name, parsed)
-        except (json.JSONDecodeError, TypeError):
+        else:
             print(f"\n{bold(var_name)} = {val}\n")
         return
 
@@ -949,7 +1024,8 @@ def main():
 
     # 0. Config / env setup
     config_p = sub.add_parser("config", help=blue("[setup] Show env var status / interactive setup"))
-    config_p.add_argument("var", nargs="?", default=None, help="Pretty-print a specific env var (e.g. JUDGE_CONFIG)")
+    config_p.add_argument("var", nargs="?", default=None, help="Pretty-print a var (e.g. JUDGE_CONFIG) or 'edit' to open in $EDITOR")
+    config_p.add_argument("edit_target", nargs="?", default=None, help="Config name to edit (e.g. JUDGE_CONFIG)")
     config_p.add_argument("--setup", action="store_true", help="Interactively set missing required variables")
 
     # 1. Database setup
@@ -1056,12 +1132,6 @@ def main():
 
     # --- Utilities ---
     sub.add_parser("static-data", help=yellow("Regenerate static JSON files for frontend"))
-
-    recovery_p = sub.add_parser("recovery", help=dim("Backup/restore submissions"))
-    recovery_p.add_argument("--list", action="store_true")
-    recovery_p.add_argument("--restore", help="Submission ID to restore")
-    recovery_p.add_argument("--validate", help="Backup file to validate")
-    recovery_p.add_argument("--db-path", default=None)
 
     args = parser.parse_args()
 
@@ -1286,20 +1356,6 @@ def main():
         sys.argv = new_argv
         votes_main()
 
-    elif args.command == "recovery":
-        from hackathon.scripts.recovery_tool import main as recovery_main
-
-        new_argv = ["recovery_tool"]
-        if args.list:
-            new_argv.append("--list")
-        if args.restore:
-            new_argv += ["--restore", args.restore]
-        if args.validate:
-            new_argv += ["--validate", args.validate]
-        if args.db_path:
-            new_argv += ["--db-path", args.db_path]
-        sys.argv = new_argv
-        recovery_main()
 
 
 if __name__ == "__main__":

@@ -3,33 +3,13 @@ Judge personality definitions for Clank Tank Hackathon Edition.
 Each judge has their unique perspective and evaluation style.
 
 All gameable content (personas, weights, criteria, score scale, scoring task,
-round2 template) is loaded from the JUDGE_CONFIG environment variable (JSON).
+round2 template) is loaded from the JUDGE_CONFIG environment variable (JSON)
+or from ``data/judge_config.json``.
 """
 
-import json
-import logging
-import os
+from hackathon.backend.config import load_json_config
 
-from dotenv import find_dotenv, load_dotenv
-
-load_dotenv(find_dotenv())
-logger = logging.getLogger(__name__)
-
-
-def _load_judge_config():
-    """Load judge configuration from JUDGE_CONFIG env var (JSON-encoded)."""
-    raw = os.getenv("JUDGE_CONFIG", "")
-    if not raw:
-        logger.warning("JUDGE_CONFIG env var not set – judge prompts will be empty")
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError as e:
-        logger.error("Failed to parse JUDGE_CONFIG JSON: %s", e)
-        return {}
-
-
-_CONFIG = _load_judge_config()
+_CONFIG = load_json_config("JUDGE_CONFIG", "judge_config.json")
 
 JUDGE_PERSONAS = _CONFIG.get("personas", {})
 JUDGE_WEIGHTS = _CONFIG.get("weights", {})

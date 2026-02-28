@@ -4,7 +4,7 @@ Contains prompts for AI-powered research and evaluation.
 
 All gameable content (penalty thresholds, research prompt template,
 github analysis prompt template) is loaded from the RESEARCH_CONFIG
-environment variable (JSON).
+environment variable (JSON) or from ``data/research_config.json``.
 """
 
 import json
@@ -12,26 +12,11 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from dotenv import find_dotenv, load_dotenv
+from hackathon.backend.config import load_json_config
 
-load_dotenv(find_dotenv())
 logger = logging.getLogger(__name__)
 
-
-def _load_research_config():
-    """Load research configuration from RESEARCH_CONFIG env var (JSON-encoded)."""
-    raw = os.getenv("RESEARCH_CONFIG", "")
-    if not raw:
-        logger.warning("RESEARCH_CONFIG env var not set – research prompts will be empty")
-        return {}
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError as e:
-        logger.error("Failed to parse RESEARCH_CONFIG JSON: %s", e)
-        return {}
-
-
-_CONFIG = _load_research_config()
+_CONFIG = load_json_config("RESEARCH_CONFIG", "research_config.json")
 _THRESHOLDS = _CONFIG.get("penalty_thresholds", {})
 
 

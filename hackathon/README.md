@@ -110,8 +110,6 @@ clanktank upload --all --dry-run   # preview what would upload
 
 ```bash
 clanktank static-data     # regenerate /public/data/ JSON for static frontend
-clanktank recovery --list # list submission backups
-clanktank recovery --restore <id>
 ```
 
 ---
