@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import re
 import sys
 
 # ANSI color helpers — no-op when stdout is not a TTY
@@ -66,7 +67,7 @@ def _db_path_from_env() -> str:
                 if line.startswith("HACKATHON_DB_PATH="):
                     val = line.split("=", 1)[1].strip().strip('"').strip("'")
                     break
-    return val or str(Path(__file__).resolve().parents[2] / "data" / "hackathon.db")
+    return val or str(Path(__file__).resolve().parents[1] / "data" / "hackathon.db")
 
 
 def _open_db(db_path: str):
@@ -432,6 +433,12 @@ ENV_VARS = [
 ]
 
 
+def _is_sensitive_env_var(name: str) -> bool:
+    """Treat credential-like env vars as sensitive to avoid leaking values in terminal output."""
+    markers = ("KEY", "SECRET", "TOKEN", "PASSWORD")
+    return any(marker in name for marker in markers)
+
+
 def _set_env_key(env_path, key: str, value: str):
     """Write a single key=value to .env, updating in-place if it exists, appending if not.
 
@@ -439,11 +446,14 @@ def _set_env_key(env_path, key: str, value: str):
     """
 
     lines = env_path.read_text().splitlines() if env_path.exists() else []
+    key_pattern = re.compile(rf"^\s*{re.escape(key)}\s*=")
     updated = False
     for i, line in enumerate(lines):
-        # Match KEY= or KEY =  (with optional whitespace)
-        stripped = line.strip()
-        if stripped.startswith(f"{key}=") or stripped == f"{key}":
+        # Match KEY=value with optional whitespace around '=' while ignoring comments.
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        if key_pattern.match(line) or line.strip() == key:
             lines[i] = f"{key}={value}"
             updated = True
             break
@@ -482,7 +492,7 @@ def cmd_config(args):
     for name, required, desc in ENV_VARS:
         val = get_val(name)
         if val:
-            display = val[:14] + "..." if len(val) > 14 else val
+            display = "(set)" if _is_sensitive_env_var(name) else val[:14] + "..." if len(val) > 14 else val
             print(f"  {green('✓')} {name:<36} {dim(display)}")
         elif required:
             print(f"  {red('✗')} {red(name):<36} {dim(desc)}")
@@ -706,6 +716,10 @@ def main():
         new_argv = ["generate_episode"]
         if args.submission_id:
             new_argv += ["--submission-id", args.submission_id]
+        if args.video_url:
+            new_argv += ["--video-url", args.video_url]
+        if args.avatar_url:
+            new_argv += ["--avatar-url", args.avatar_url]
         if args.version:
             new_argv += ["--version", args.version]
         if args.db_file:
@@ -733,6 +747,8 @@ def main():
             new_argv += ["--version", args.version]
         if args.db_file:
             new_argv += ["--db-file", args.db_file]
+        if args.limit is not None:
+            new_argv += ["--limit", str(args.limit)]
         sys.argv = new_argv
         upload_main()
 

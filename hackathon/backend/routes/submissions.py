@@ -726,6 +726,8 @@ async def upload_image(
             "size": file_path.stat().st_size,
         }
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Image upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {e!s}")

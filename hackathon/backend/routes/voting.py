@@ -1,5 +1,6 @@
 """Voting-related routes: token voting, prize pool, community scores, webhooks."""
 
+import hmac
 import logging
 import os
 import time
@@ -19,6 +20,43 @@ router = APIRouter(tags=["voting"])
 
 # Database engine (local to this module)
 engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
+
+
+def _is_production() -> bool:
+    return os.getenv("ENVIRONMENT", "development").lower() == "production"
+
+
+def _verify_webhook_auth(request: Request):
+    """Verify shared-secret auth for webhook endpoints.
+
+    Supported headers:
+    - X-Helius-Webhook-Secret
+    - X-Webhook-Secret
+    - Authorization: Bearer <secret>
+    """
+    expected = os.getenv("HELIUS_WEBHOOK_SECRET", "").strip()
+
+    if not expected:
+        if _is_production():
+            logging.error("HELIUS_WEBHOOK_SECRET is missing in production")
+            raise HTTPException(status_code=500, detail="Webhook authentication is not configured")
+        # In non-production, allow local testing without a shared secret.
+        return
+
+    provided = request.headers.get("X-Helius-Webhook-Secret") or request.headers.get("X-Webhook-Secret")
+    if not provided:
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            provided = auth.split(" ", 1)[1]
+
+    if not provided or not hmac.compare_digest(provided, expected):
+        raise HTTPException(status_code=401, detail="Unauthorized webhook")
+
+
+def _require_non_production_test_webhook():
+    """Disable test webhook endpoint in production deployments."""
+    if _is_production():
+        raise HTTPException(status_code=404, detail="Not found")
 
 
 class BirdeyePriceService:
@@ -560,6 +598,7 @@ async def websocket_prize_pool_endpoint(websocket: WebSocket):
 async def helius_webhook(request: Request):
     """Handle Helius webhook for Solana transaction processing."""
     try:
+        _verify_webhook_auth(request)
         data = await request.json()
 
         # Extract transaction details
@@ -618,14 +657,19 @@ async def helius_webhook(request: Request):
 
         return {"processed": processed_count, "signature": tx_sig}
 
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Webhook processing error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/webhook/test")
-async def test_webhook():
+async def test_webhook(request: Request):
     """Test endpoint to simulate a Helius webhook payload."""
+    _require_non_production_test_webhook()
+    _verify_webhook_auth(request)
+
     # Simulate a test ai16z transaction with vote overflow
     test_payload = {
         "signature": "test_tx_sig_webhook_123",
