@@ -37,7 +37,6 @@ ignore = [
   "B904",   # `raise` without `from` in except (too pervasive to fix in one pass)
   "B905",   # `zip()` without strict= (too noisy for existing code)
   "B008",   # function call in default arg (standard FastAPI pattern: File(), Depends())
-  "UP045",  # Optional[X] → X | None (breaks dynamic create_model() contexts)
   "RUF001", # ambiguous unicode chars (intentional en-dashes in user-facing strings)
   "RUF006", # dangling asyncio.create_task (existing pattern, needs careful refactor)
   "SIM105", # contextlib.suppress (stylistic, not a bug)

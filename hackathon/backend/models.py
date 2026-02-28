@@ -1,6 +1,6 @@
 """Pydantic models for the Hackathon API."""
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, create_model
 
@@ -55,22 +55,22 @@ class SubmissionDetail(BaseModel):
 
 
 # Dynamically create the SubmissionCreate models from versioned manifests
-submission_fields_v1 = {field: (Optional[str], None) for field in get_fields("v1")}
+submission_fields_v1 = {field: (str | None, None) for field in get_fields("v1")}
 SubmissionCreateV1 = create_model("SubmissionCreateV1", **submission_fields_v1)
 
 # Update SubmissionCreateV2 model to match new schema
 submission_fields_v2 = {
-    "project_name": (Optional[str], None),
-    "discord_handle": (Optional[str], None),  # owner/creator
-    "category": (Optional[str], None),
-    "description": (Optional[str], None),
-    "twitter_handle": (Optional[str], None),
-    "github_url": (Optional[str], None),
-    "demo_video_url": (Optional[str], None),
-    "project_image": (Optional[str], None),
-    "problem_solved": (Optional[str], None),
-    "favorite_part": (Optional[str], None),
-    "solana_address": (Optional[str], None),  # optional
+    "project_name": (str | None, None),
+    "discord_handle": (str | None, None),  # owner/creator
+    "category": (str | None, None),
+    "description": (str | None, None),
+    "twitter_handle": (str | None, None),
+    "github_url": (str | None, None),
+    "demo_video_url": (str | None, None),
+    "project_image": (str | None, None),
+    "problem_solved": (str | None, None),
+    "favorite_part": (str | None, None),
+    "solana_address": (str | None, None),  # optional
 }
 SubmissionCreateV2 = create_model("SubmissionCreateV2", **submission_fields_v2)
 

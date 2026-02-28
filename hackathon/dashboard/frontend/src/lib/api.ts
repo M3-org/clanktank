@@ -5,7 +5,7 @@ import { SubmissionInputs } from '../types/submission'
 // For static deployment, we'll check if we should use JSON files
 const USE_STATIC = import.meta.env.VITE_USE_STATIC === 'true'
 
-const API_BASE = USE_STATIC ? '/data' : (import.meta.env.PROD ? '/api' : 'http://localhost:8000/api')
+const API_BASE = USE_STATIC ? '/data' : '/api'
 
 const api = axios.create({
   baseURL: API_BASE,
