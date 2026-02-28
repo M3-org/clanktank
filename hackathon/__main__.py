@@ -170,7 +170,7 @@ def main():
         upload_main()
 
     elif args.command == "static-data":
-        from hackathon.backend.app import generate_static_data
+        from hackathon.scripts.generate_static_data import generate_static_data
 
         generate_static_data()
 

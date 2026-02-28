@@ -4,25 +4,22 @@ Script to populate the prize pool with real data from Helius API.
 This fetches the actual token holdings for the prize wallet and populates the database.
 """
 
+import argparse
 import os
-import sys
 import time
-from pathlib import Path
 
 import requests
+from dotenv import find_dotenv, load_dotenv
+from sqlalchemy import create_engine, text
 
-# Add project root to path
-project_root = Path(__file__).parent.parent.parent
-sys.path.append(str(project_root))
+load_dotenv(find_dotenv())
 
-from sqlalchemy import text  # noqa: E402
+from hackathon.backend.config import HACKATHON_DB_PATH, PRIZE_WALLET_ADDRESS  # noqa: E402
 
-from hackathon.backend.app import engine  # noqa: E402
-
-# Prize wallet address from environment
-PRIZE_WALLET_ADDRESS = os.getenv("PRIZE_WALLET_ADDRESS")
 if not PRIZE_WALLET_ADDRESS:
     raise ValueError("PRIZE_WALLET_ADDRESS environment variable is required")
+
+engine = create_engine(f"sqlite:///{HACKATHON_DB_PATH}")
 
 
 def fetch_real_token_holdings():
@@ -150,6 +147,21 @@ def populate_database(tokens):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Populate prize pool from Helius")
+    parser.add_argument("--db-path", default=None, help="Database path (overrides env)")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done without writing")
+    parser.add_argument("--wallet", default=None, help="Prize wallet address override")
+    args = parser.parse_args()
+
+    if args.db_path:
+        global engine
+        engine = create_engine(f"sqlite:///{args.db_path}")
+
+    wallet = args.wallet or PRIZE_WALLET_ADDRESS
+    if args.dry_run:
+        print(f"[dry-run] Would populate prize pool for wallet: {wallet}")
+        return
+
     print("🚀 Starting prize pool population with real Helius data...\n")
 
     # Fetch real data

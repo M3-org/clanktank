@@ -4,7 +4,6 @@
 import json
 import os
 import sqlite3
-import sys
 
 # Import versioned field manifests and helpers
 from hackathon.backend.schema import SUBMISSION_VERSIONS
@@ -228,8 +227,18 @@ def create_hackathon_database(db_path):
     print(f"Hackathon database created successfully at: {db_path}")
 
 
-if __name__ == "__main__":
-    db_path = "data/hackathon.db"
-    if len(sys.argv) > 1:
-        db_path = sys.argv[1]
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Initialize hackathon database")
+    parser.add_argument("--db", default=None, help="Database path (default: from .env or data/hackathon.db)")
+    args = parser.parse_args()
+
+    from hackathon.backend.config import HACKATHON_DB_PATH
+
+    db_path = args.db or HACKATHON_DB_PATH
     create_hackathon_database(db_path)
+
+
+if __name__ == "__main__":
+    main()

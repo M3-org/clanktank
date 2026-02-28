@@ -162,10 +162,21 @@ def update_user_avatar_url(conn, discord_id, avatar_filename, update_generated_o
 
 def main():
     """Cache Discord avatars from the database."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Cache Discord avatars locally")
+    parser.add_argument("--db-path", default=None, help="Database path (default: data/hackathon.db)")
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for cached avatars (default: hackathon/dashboard/frontend/public/discord)",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done")
+    args = parser.parse_args()
 
     # Paths
-    db_path = Path("data/hackathon.db")
-    cache_dir = Path("hackathon/dashboard/frontend/public/discord")
+    db_path = Path(args.db_path) if args.db_path else Path("data/hackathon.db")
+    cache_dir = Path(args.output_dir) if args.output_dir else Path("hackathon/dashboard/frontend/public/discord")
 
     # Ensure database exists
     if not db_path.exists():
