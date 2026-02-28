@@ -1009,10 +1009,8 @@ def main():
             sys.exit(1)
 
         if not args.url:
-            print(red("Episode URL required."))
-            print(dim("  Usage: clanktank record <url>"))
-            print(dim("  Example: clanktank record https://shmotime.com/shmotime_episode/my-episode/"))
-            sys.exit(1)
+            record_p.print_help()
+            sys.exit(0)
 
         cmd = ["node", str(recorder_script)]
         if args.headless:
