@@ -1,7 +1,31 @@
 """Clank Tank hackathon CLI — unified entry point."""
 
 import argparse
+import os
 import sys
+
+# ANSI color helpers — no-op when stdout is not a TTY
+_IS_TTY = sys.stdout.isatty()
+
+
+def _c(code: str, text: str) -> str:
+    return f"\033[{code}m{text}\033[0m" if _IS_TTY else text
+
+
+def blue(t):   return _c("34", t)
+def cyan(t):   return _c("36", t)
+def green(t):  return _c("32", t)
+def yellow(t): return _c("33", t)
+def red(t):    return _c("31", t)
+def dim(t):    return _c("2", t)
+def bold(t):   return _c("1", t)
+
+
+# Color scheme:
+#   blue   = infrastructure (db, serve, config)
+#   yellow = write/mutate pipeline (research, score, votes --collect, synthesize, episode, upload)
+#   green  = read-only (leaderboard, static-data)
+#   red    = irreversible external action (upload to YouTube)
 
 
 def add_common_args(parser):
@@ -14,20 +38,101 @@ def add_common_args(parser):
     parser.add_argument("--force", "-f", action="store_true", help="Force recompute / bypass cache")
 
 
+def cmd_config(args):
+    """Show env var status and optionally generate a .env template."""
+    from pathlib import Path
+
+    # Compute repo root without importing any hackathon modules
+    # (config is a setup tool that should work before deps are installed)
+    REPO_ROOT = Path(__file__).resolve().parents[1]
+
+    ENV_VARS = [
+        # (name, required, description)
+        ("OPENROUTER_API_KEY",    True,  "AI research + judge scoring"),
+        ("DISCORD_CLIENT_ID",     True,  "Discord OAuth login"),
+        ("DISCORD_CLIENT_SECRET", True,  "Discord OAuth login"),
+        ("DISCORD_TOKEN",         True,  "Discord bot (community voting)"),
+        ("PRIZE_WALLET_ADDRESS",  True,  "Solana wallet to watch for votes"),
+        ("GITHUB_TOKEN",          False, "Higher GitHub API rate limits"),
+        ("HACKATHON_DB_PATH",     False, "Default: data/hackathon.db"),
+        ("SUBMISSION_DEADLINE",   False, "ISO datetime to close submissions"),
+        ("DISCORD_GUILD_ID",      False, "Guild ID for role-based auth"),
+        ("DISCORD_BOT_TOKEN",     False, "Bot token for guild role fetching"),
+        ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
+        ("AI_MODEL_NAME",         False, "Default: anthropic/claude-3-opus"),
+        ("STATIC_DATA_DIR",       False, "Frontend static data output dir"),
+    ]
+
+    env_path = REPO_ROOT / ".env"
+
+    if args.generate:
+        if env_path.exists() and not args.force:
+            print(f"{yellow('.env already exists')} — use --force to overwrite")
+            sys.exit(1)
+        lines = ["# Clank Tank — environment configuration", "# Copy this file to .env and fill in your values", ""]
+        for name, required, desc in ENV_VARS:
+            tag = "required" if required else "optional"
+            lines.append(f"# {desc}  [{tag}]")
+            lines.append(f"{'# ' if not required else ''}{name}=")
+            lines.append("")
+        env_path.write_text("\n".join(lines))
+        print(f"{green('✓')} Generated {env_path}")
+        return
+
+    # Status check
+    print(f"\n{bold('Clank Tank — environment config')}")
+    print(f"  .env path: {env_path} {'(exists)' if env_path.exists() else red('(missing)')}\n")
+
+    all_good = True
+    for name, required, desc in ENV_VARS:
+        val = os.getenv(name)
+        if val:
+            display = val[:12] + "..." if len(val) > 12 else val
+            status = green("✓ set")
+            row = f"  {green(name):<40} {status}  {dim(display)}"
+        elif required:
+            status = red("✗ missing")
+            row = f"  {red(name):<40} {status}  {dim(desc)}"
+            all_good = False
+        else:
+            status = dim("– optional")
+            row = f"  {dim(name):<40} {status}  {dim(desc)}"
+        print(row)
+
+    print()
+    if all_good:
+        print(f"{green('✓ All required variables are set')}")
+    else:
+        print(f"{red('✗ Some required variables are missing')}")
+        print(f"  Run {cyan('clanktank config --generate')} to create a .env template")
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="clanktank",
-        description="Clank Tank hackathon pipeline CLI",
+        description=bold("Clank Tank hackathon pipeline CLI"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
-            "Pipeline order:\n"
-            "  db → serve → research → score → votes → synthesize → leaderboard → episode → upload"
+            dim("Pipeline order:\n") +
+            f"  {blue('db')} → {blue('serve')} → {yellow('research')} → {yellow('score')} → "
+            f"{yellow('votes')} → {yellow('synthesize')} → {green('leaderboard')} → "
+            f"{yellow('episode')} → {red('upload')}\n\n" +
+            dim("Colors: ") + blue("blue") + dim("=infra  ") +
+            yellow("yellow") + dim("=writes  ") +
+            green("green") + dim("=reads  ") +
+            red("red") + dim("=irreversible")
         ),
     )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
+    # 0. Config / env setup
+    config_p = sub.add_parser("config", help=blue("[setup] Check or generate .env config"))
+    config_p.add_argument("--generate", action="store_true", help="Write a .env template to repo root")
+    config_p.add_argument("--force", "-f", action="store_true", help="Overwrite existing .env")
+
     # 1. Database setup
-    db_p = sub.add_parser("db", help="[step 1] Database setup and migrations")
+    db_p = sub.add_parser("db", help=blue("[step 1] Database setup and migrations"))
     db_sub = db_p.add_subparsers(dest="db_command", help="Database subcommands")
     create_p = db_sub.add_parser("create", help="Initialize database")
     create_p.add_argument("--db", default=None, help="Database path")
@@ -36,41 +141,41 @@ def main():
     migrate_p.add_argument("--version", default="all", choices=["v1", "v2", "all"])
     migrate_p.add_argument("--db", default=None)
 
-    # 2. API server (accepts submissions from frontend)
-    serve_p = sub.add_parser("serve", help="[step 2] Start API server + accept submissions")
+    # 2. API server
+    serve_p = sub.add_parser("serve", help=blue("[step 2] Start API server + accept submissions"))
     serve_p.add_argument("--host", default="127.0.0.1", help="Bind host")
     serve_p.add_argument("--port", type=int, default=8000, help="Bind port")
 
-    # 3. AI research (GitHub analysis + AI research per submission)
-    research_p = sub.add_parser("research", help="[step 3] GitHub + AI research on submissions")
+    # 3. AI research
+    research_p = sub.add_parser("research", help=yellow("[step 3] GitHub + AI research on submissions"))
     add_common_args(research_p)
 
-    # 4. Round 1 scoring (AI judges)
-    score_p = sub.add_parser("score", help="[step 4] Round 1 AI judge scoring")
+    # 4. Round 1 scoring
+    score_p = sub.add_parser("score", help=yellow("[step 4] Round 1 AI judge scoring"))
     add_common_args(score_p)
     score_p.add_argument("--round", type=int, default=1, help="Scoring round (default: 1)")
 
-    # 5. Community votes (Solana on-chain)
-    votes_p = sub.add_parser("votes", help="[step 5] Collect Solana community votes")
-    votes_p.add_argument("--collect", action="store_true")
-    votes_p.add_argument("--scores", action="store_true")
-    votes_p.add_argument("--stats", action="store_true")
+    # 5. Community votes
+    votes_p = sub.add_parser("votes", help=yellow("[step 5] Collect Solana community votes"))
+    votes_p.add_argument("--collect", action="store_true", help=yellow("write: pull new transactions"))
+    votes_p.add_argument("--scores", action="store_true", help=green("read: compute weighted scores"))
+    votes_p.add_argument("--stats", action="store_true", help=green("read: show vote summary"))
     votes_p.add_argument("--test", action="store_true")
     votes_p.add_argument("--db-path", default=None)
 
-    # 6. Round 2 synthesis (AI scores + community votes → final verdict)
-    synthesize_p = sub.add_parser("synthesize", help="[step 6] Round 2 synthesis (AI + community)")
+    # 6. Round 2 synthesis
+    synthesize_p = sub.add_parser("synthesize", help=yellow("[step 6] Round 2 synthesis (AI + community)"))
     add_common_args(synthesize_p)
 
-    # 7. Leaderboard (view results)
-    leaderboard_p = sub.add_parser("leaderboard", help="[step 7] Display final leaderboard")
+    # 7. Leaderboard
+    leaderboard_p = sub.add_parser("leaderboard", help=green("[step 7] Display final leaderboard"))
     leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
     leaderboard_p.add_argument("--db-file", default=None)
     leaderboard_p.add_argument("--output", help="Output file")
     leaderboard_p.add_argument("--round", type=int, default=1)
 
-    # 8. Episode generation (script + dialogue for each submission)
-    episode_p = sub.add_parser("episode", help="[step 8] Generate episode for a submission")
+    # 8. Episode generation
+    episode_p = sub.add_parser("episode", help=yellow("[step 8] Generate episode for a submission"))
     add_common_args(episode_p)
     episode_p.add_argument("--video-url", help="Video URL for episode")
     episode_p.add_argument("--avatar-url", help="Avatar URL override")
@@ -79,15 +184,15 @@ def main():
     episode_p.add_argument("--episode-file", help="Existing episode file to validate")
 
     # 9. Upload to YouTube
-    upload_p = sub.add_parser("upload", help="[step 9] Upload recorded episode to YouTube")
+    upload_p = sub.add_parser("upload", help=red("[step 9] Upload recorded episode to YouTube"))
     add_common_args(upload_p)
     upload_p.add_argument("--dry-run", action="store_true")
     upload_p.add_argument("--limit", type=int)
 
     # --- Utilities ---
-    sub.add_parser("static-data", help="Generate static JSON files for frontend")
+    sub.add_parser("static-data", help=green("Regenerate static JSON files for frontend"))
 
-    recovery_p = sub.add_parser("recovery", help="Backup/restore submissions")
+    recovery_p = sub.add_parser("recovery", help=dim("Backup/restore submissions"))
     recovery_p.add_argument("--list", action="store_true")
     recovery_p.add_argument("--restore", help="Submission ID to restore")
     recovery_p.add_argument("--validate", help="Backup file to validate")
@@ -98,6 +203,10 @@ def main():
     if not args.command:
         parser.print_help()
         sys.exit(1)
+
+    if args.command == "config":
+        cmd_config(args)
+        return
 
     # Dispatch to modules — rebuild sys.argv for each module's own argparse
     if args.command in ("research", "score", "synthesize", "leaderboard"):
