@@ -38,73 +38,105 @@ def add_common_args(parser):
     parser.add_argument("--force", "-f", action="store_true", help="Force recompute / bypass cache")
 
 
+ENV_VARS = [
+    # (name, required, description)
+    ("OPENROUTER_API_KEY",        True,  "AI research + judge scoring"),
+    ("DISCORD_CLIENT_ID",         True,  "Discord OAuth login"),
+    ("DISCORD_CLIENT_SECRET",     True,  "Discord OAuth login"),
+    ("DISCORD_TOKEN",             True,  "Discord bot (community voting)"),
+    ("PRIZE_WALLET_ADDRESS",      True,  "Solana wallet to watch for votes"),
+    ("GITHUB_TOKEN",              False, "Higher GitHub API rate limits"),
+    ("HACKATHON_DB_PATH",         False, "Default: data/hackathon.db"),
+    ("SUBMISSION_DEADLINE",       False, "ISO datetime to close submissions"),
+    ("DISCORD_GUILD_ID",          False, "Guild ID for role-based auth"),
+    ("DISCORD_BOT_TOKEN",         False, "Bot token for guild role fetching"),
+    ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
+    ("AI_MODEL_NAME",             False, "Default: anthropic/claude-3-opus"),
+    ("STATIC_DATA_DIR",           False, "Frontend static data output dir"),
+]
+
+
+def _set_env_key(env_path, key: str, value: str):
+    """Write a single key=value to .env, updating in-place if it exists, appending if not.
+
+    Never touches other lines. Preserves comments, ordering, and existing values.
+    """
+
+    lines = env_path.read_text().splitlines() if env_path.exists() else []
+    updated = False
+    for i, line in enumerate(lines):
+        # Match KEY= or KEY =  (with optional whitespace)
+        stripped = line.strip()
+        if stripped.startswith(f"{key}=") or stripped == f"{key}":
+            lines[i] = f"{key}={value}"
+            updated = True
+            break
+    if not updated:
+        lines.append(f"{key}={value}")
+    env_path.write_text("\n".join(lines) + "\n")
+
+
 def cmd_config(args):
-    """Show env var status and optionally generate a .env template."""
+    """Show env var status, or run interactive setup for missing vars."""
     from pathlib import Path
 
-    # Compute repo root without importing any hackathon modules
-    # (config is a setup tool that should work before deps are installed)
+    # Standalone — no hackathon imports so this works before deps are installed
     REPO_ROOT = Path(__file__).resolve().parents[1]
-
-    ENV_VARS = [
-        # (name, required, description)
-        ("OPENROUTER_API_KEY",    True,  "AI research + judge scoring"),
-        ("DISCORD_CLIENT_ID",     True,  "Discord OAuth login"),
-        ("DISCORD_CLIENT_SECRET", True,  "Discord OAuth login"),
-        ("DISCORD_TOKEN",         True,  "Discord bot (community voting)"),
-        ("PRIZE_WALLET_ADDRESS",  True,  "Solana wallet to watch for votes"),
-        ("GITHUB_TOKEN",          False, "Higher GitHub API rate limits"),
-        ("HACKATHON_DB_PATH",     False, "Default: data/hackathon.db"),
-        ("SUBMISSION_DEADLINE",   False, "ISO datetime to close submissions"),
-        ("DISCORD_GUILD_ID",      False, "Guild ID for role-based auth"),
-        ("DISCORD_BOT_TOKEN",     False, "Bot token for guild role fetching"),
-        ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
-        ("AI_MODEL_NAME",         False, "Default: anthropic/claude-3-opus"),
-        ("STATIC_DATA_DIR",       False, "Frontend static data output dir"),
-    ]
-
     env_path = REPO_ROOT / ".env"
 
-    if args.generate:
-        if env_path.exists() and not args.force:
-            print(f"{yellow('.env already exists')} — use --force to overwrite")
-            sys.exit(1)
-        lines = ["# Clank Tank — environment configuration", "# Copy this file to .env and fill in your values", ""]
-        for name, required, desc in ENV_VARS:
-            tag = "required" if required else "optional"
-            lines.append(f"# {desc}  [{tag}]")
-            lines.append(f"{'# ' if not required else ''}{name}=")
-            lines.append("")
-        env_path.write_text("\n".join(lines))
-        print(f"{green('✓')} Generated {env_path}")
-        return
-
-    # Status check
+    # Always print status first
     print(f"\n{bold('Clank Tank — environment config')}")
-    print(f"  .env path: {env_path} {'(exists)' if env_path.exists() else red('(missing)')}\n")
+    print(f"  .env: {env_path} {'(exists)' if env_path.exists() else red('(not found)')}\n")
 
-    all_good = True
+    missing_required = []
     for name, required, desc in ENV_VARS:
         val = os.getenv(name)
         if val:
-            display = val[:12] + "..." if len(val) > 12 else val
-            status = green("✓ set")
-            row = f"  {green(name):<40} {status}  {dim(display)}"
+            display = val[:14] + "..." if len(val) > 14 else val
+            print(f"  {green('✓')} {name:<36} {dim(display)}")
         elif required:
-            status = red("✗ missing")
-            row = f"  {red(name):<40} {status}  {dim(desc)}"
-            all_good = False
+            print(f"  {red('✗')} {red(name):<36} {dim(desc)}")
+            missing_required.append((name, desc))
         else:
-            status = dim("– optional")
-            row = f"  {dim(name):<40} {status}  {dim(desc)}"
-        print(row)
+            print(f"  {dim('–')} {dim(name):<36} {dim(desc)}")
 
     print()
-    if all_good:
-        print(f"{green('✓ All required variables are set')}")
+    if not missing_required:
+        print(f"{green('✓ All required variables are set')}\n")
+        return
+
+    print(f"{yellow(f'{len(missing_required)} required variable(s) missing')}\n")
+
+    if not args.setup:
+        print(f"  Run {cyan('clanktank config --setup')} to set them interactively\n")
+        return
+
+    # Interactive setup — only prompt for missing required vars
+    if not env_path.exists():
+        print(f"{dim('Creating')} {env_path}\n")
+        env_path.touch()
+
+    print(f"{bold('Interactive setup')} — press Enter to skip a value\n")
+    wrote = []
+    for name, desc in missing_required:
+        try:
+            val = input(f"  {yellow(name)} ({desc}): ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print(f"\n{dim('Aborted')}")
+            sys.exit(0)
+        if val:
+            _set_env_key(env_path, name, val)
+            wrote.append(name)
+        else:
+            print(f"  {dim('skipped')}")
+
+    print()
+    if wrote:
+        print(f"{green('✓')} Wrote {len(wrote)} variable(s) to {env_path}")
+        for name in wrote:
+            print(f"  {green('+')} {name}")
     else:
-        print(f"{red('✗ Some required variables are missing')}")
-        print(f"  Run {cyan('clanktank config --generate')} to create a .env template")
+        print(f"{dim('No changes written')}")
     print()
 
 
@@ -127,9 +159,8 @@ def main():
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     # 0. Config / env setup
-    config_p = sub.add_parser("config", help=blue("[setup] Check or generate .env config"))
-    config_p.add_argument("--generate", action="store_true", help="Write a .env template to repo root")
-    config_p.add_argument("--force", "-f", action="store_true", help="Overwrite existing .env")
+    config_p = sub.add_parser("config", help=blue("[setup] Show env var status / interactive setup"))
+    config_p.add_argument("--setup", action="store_true", help="Interactively set missing required variables")
 
     # 1. Database setup
     db_p = sub.add_parser("db", help=blue("[step 1] Database setup and migrations"))
