@@ -6,10 +6,11 @@ import sys
 
 # ANSI color helpers — no-op when stdout is not a TTY
 _IS_TTY = sys.stdout.isatty()
+_SUPPRESS_COLOR = False  # set to True by --json flag
 
 
 def _c(code: str, text: str) -> str:
-    return f"\033[{code}m{text}\033[0m" if _IS_TTY else text
+    return f"\033[{code}m{text}\033[0m" if (_IS_TTY and not _SUPPRESS_COLOR) else text
 
 
 def blue(t):
@@ -174,12 +175,17 @@ def cmd_stats(args):
 
 
 # ---------------------------------------------------------------------------
-# clanktank submissions
+# clanktank submissions  (list, detail, or search)
 # ---------------------------------------------------------------------------
 
 
 def cmd_submissions(args):
+    import json
     import sqlite3
+
+    global _SUPPRESS_COLOR
+    if getattr(args, "json", False):
+        _SUPPRESS_COLOR = True
 
     db = _db_path_from_env()
     try:
@@ -188,11 +194,146 @@ def cmd_submissions(args):
         print(red(f"Cannot open DB: {e}"))
         sys.exit(1)
 
-    where = ""
+    # --- Detail mode ---
+    if args.id is not None:
+        row = conn.execute(
+            "SELECT * FROM hackathon_submissions_v2 WHERE submission_id = ?",
+            (args.id,),
+        ).fetchone()
+        if not row:
+            print(red(f"Submission {args.id} not found."))
+            sys.exit(1)
+
+        r = dict(row)
+        sid = r["submission_id"]
+
+        scores = conn.execute(
+            "SELECT judge_name, innovation, technical_execution, market_potential, "
+            "user_experience, weighted_total, round, community_bonus, final_verdict "
+            "FROM hackathon_scores WHERE submission_id = ? ORDER BY round, judge_name",
+            (args.id,),
+        ).fetchall()
+
+        research = conn.execute(
+            "SELECT technical_assessment FROM hackathon_research WHERE submission_id = ?",
+            (args.id,),
+        ).fetchone()
+
+        if args.json:
+            out = {
+                "submission_id": sid,
+                "project_name": r["project_name"],
+                "status": r["status"],
+                "category": r["category"],
+                "description": r.get("description"),
+                "github_url": r.get("github_url"),
+            }
+            if not args.brief:
+                out["scores"] = [
+                    {
+                        "judge": s["judge_name"],
+                        "round": s["round"],
+                        "innovation": s["innovation"],
+                        "technical_execution": s["technical_execution"],
+                        "market_potential": s["market_potential"],
+                        "user_experience": s["user_experience"],
+                        "weighted_total": s["weighted_total"],
+                        "community_bonus": s["community_bonus"],
+                    }
+                    for s in scores
+                ]
+                if research and research["technical_assessment"]:
+                    try:
+                        ta = json.loads(research["technical_assessment"])
+                    except (json.JSONDecodeError, TypeError):
+                        ta = research["technical_assessment"]
+                    out["research"] = {"technical_assessment": ta}
+                else:
+                    out["research"] = None
+            print(json.dumps(out, indent=2, default=str))
+        else:
+            name = r["project_name"]
+            status = r["status"]
+            category = r["category"]
+            desc = r.get("description") or ""
+            print()
+            print(f"  {bold(name)}  {dim('#' + str(sid))}")
+            print(f"  {_status_color(status)}  {dim('•')}  {category}")
+            if desc:
+                truncated = desc[:120] + ("…" if len(desc) > 120 else "")
+                print(f"\n  {truncated}")
+            print()
+
+            fields = [
+                ("GitHub", r.get("github_url")),
+                ("Demo", r.get("demo_video_url")),
+                ("Discord", r.get("discord_handle")),
+                ("Twitter", r.get("twitter_handle")),
+                ("Solana", r.get("solana_address")),
+                ("Submitted", r.get("created_at", "")[:19]),
+            ]
+            for label, val in fields:
+                if val:
+                    print(f"  {dim(label + ':')} {val}")
+
+            if scores and not args.brief:
+                print(f"\n  {bold('Scores')}")
+                last_round = None
+                for s in scores:
+                    if s["round"] != last_round:
+                        last_round = s["round"]
+                        print(f"\n  {dim('Round ' + str(s['round']))}")
+                    inn = f"{s['innovation']:.0f}" if s["innovation"] is not None else "-"
+                    tech = f"{s['technical_execution']:.0f}" if s["technical_execution"] is not None else "-"
+                    mkt = f"{s['market_potential']:.0f}" if s["market_potential"] is not None else "-"
+                    ux = f"{s['user_experience']:.0f}" if s["user_experience"] is not None else "-"
+                    wtot = f"{s['weighted_total'] / 4:.1f}" if s["weighted_total"] is not None else "-"
+                    cb = s["community_bonus"]
+                    bonus = f"+{cb:.1f}" if cb else ""
+                    visible_name = s["judge_name"][:10]
+                    judge = cyan(visible_name) + " " * max(0, 10 - len(visible_name))
+                    line = f"  {judge}  Inn:{inn}  Tech:{tech}  Mkt:{mkt}  UX:{ux}  {bold(wtot)}/10{green(bonus)}"
+                    print(line)
+                    fv = s["final_verdict"]
+                    if fv:
+                        try:
+                            verdict = json.loads(fv).get("final_verdict", "")
+                        except (json.JSONDecodeError, TypeError):
+                            verdict = str(fv)
+                        if verdict:
+                            print(f"  {dim(' └ ' + verdict[:100])}")
+            elif scores:
+                print(f"\n  {bold('Scores')}  {dim('(use without -b to see details)')}")
+
+            if research and research["technical_assessment"] and not args.brief:
+                try:
+                    ta = json.loads(research["technical_assessment"])
+                    summary = ta.get("summary") or ta.get("executive_summary") or ""
+                    if summary:
+                        print(f"\n  {bold('Research')}")
+                        print(f"  {summary[:200]}{'…' if len(summary) > 200 else ''}")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+            print()
+
+        conn.close()
+        return
+
+    # --- Search / list mode ---
+    where_clauses = []
     params: list = []
+
+    if args.search:
+        term = f"%{args.search}%"
+        where_clauses.append("(s.project_name LIKE ? OR s.category LIKE ? OR s.description LIKE ?)")
+        params.extend([term, term, term])
+
     if args.status:
-        where = "WHERE s.status = ?"
+        where_clauses.append("s.status = ?")
         params.append(args.status)
+
+    where = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
     rows = conn.execute(
         f"""
@@ -215,135 +356,48 @@ def cmd_submissions(args):
 
     if not rows:
         print(yellow("No submissions found."))
+        conn.close()
         return
 
-    print()
-    headers = ["ID", "Project", "Category", "Status", "Score", "Judges"]
-    table_rows = [
-        [
-            r["submission_id"],
-            r["project_name"][:32],
-            r["category"][:16],
-            r["status"],
-            f"{r['avg_score']:.1f}" if r["avg_score"] else "-",
-            f"{r['judges']}/4" if r["judges"] else "0/4",
+    if args.json:
+        out = [
+            {
+                "submission_id": r["submission_id"],
+                "project_name": r["project_name"],
+                "category": r["category"],
+                "status": r["status"],
+                "github_url": r["github_url"],
+                "avg_score": r["avg_score"],
+                "judges": r["judges"],
+            }
+            for r in rows
         ]
-        for r in rows
-    ]
-    col_colors = [
-        dim,  # ID
-        None,  # Project (no color)
-        dim,  # Category
-        lambda t: _status_color(t.strip()),  # Status (strip padding before coloring)
-        green,  # Score
-        dim,  # Judges
-    ]
-    _table(headers, table_rows, col_colors)
-    print()
-    conn.close()
+        print(json.dumps(out, indent=2, default=str))
+    else:
+        print()
+        headers = ["ID", "Project", "Category", "Status", "Score", "Judges"]
+        table_rows = [
+            [
+                r["submission_id"],
+                r["project_name"][:32],
+                r["category"][:16],
+                r["status"],
+                f"{r['avg_score']:.1f}" if r["avg_score"] else "-",
+                f"{r['judges']}/4" if r["judges"] else "0/4",
+            ]
+            for r in rows
+        ]
+        col_colors = [
+            dim,  # ID
+            None,  # Project (no color)
+            dim,  # Category
+            lambda t: _status_color(t.strip()),  # Status (strip padding before coloring)
+            green,  # Score
+            dim,  # Judges
+        ]
+        _table(headers, table_rows, col_colors)
+        print()
 
-
-# ---------------------------------------------------------------------------
-# clanktank submission <id>
-# ---------------------------------------------------------------------------
-
-
-def cmd_submission(args):
-    import json
-    import sqlite3
-
-    db = _db_path_from_env()
-    try:
-        conn = _open_db(db)
-    except sqlite3.OperationalError as e:
-        print(red(f"Cannot open DB: {e}"))
-        sys.exit(1)
-
-    row = conn.execute(
-        "SELECT * FROM hackathon_submissions_v2 WHERE submission_id = ?",
-        (args.id,),
-    ).fetchone()
-    if not row:
-        print(red(f"Submission {args.id} not found."))
-        sys.exit(1)
-
-    r = dict(row)
-    sid = r["submission_id"]
-    name = r["project_name"]
-    status = r["status"]
-    category = r["category"]
-    desc = r.get("description") or ""
-    print()
-    print(f"  {bold(name)}  {dim('#' + str(sid))}")
-    print(f"  {_status_color(status)}  {dim('•')}  {category}")
-    if desc:
-        truncated = desc[:120] + ("…" if len(desc) > 120 else "")
-        print(f"\n  {truncated}")
-    print()
-
-    fields = [
-        ("GitHub", r.get("github_url")),
-        ("Demo", r.get("demo_video_url")),
-        ("Discord", r.get("discord_handle")),
-        ("Twitter", r.get("twitter_handle")),
-        ("Solana", r.get("solana_address")),
-        ("Submitted", r.get("created_at", "")[:19]),
-    ]
-    for label, val in fields:
-        if val:
-            print(f"  {dim(label + ':')} {val}")
-
-    # Scores
-    scores = conn.execute(
-        "SELECT judge_name, innovation, technical_execution, market_potential, "
-        "user_experience, weighted_total, round, community_bonus, final_verdict "
-        "FROM hackathon_scores WHERE submission_id = ? ORDER BY round, judge_name",
-        (args.id,),
-    ).fetchall()
-
-    if scores:
-        print(f"\n  {bold('Scores')}")
-        last_round = None
-        for s in scores:
-            if s["round"] != last_round:
-                last_round = s["round"]
-                rnum = s["round"]
-                print(f"\n  {dim('Round ' + str(rnum))}")
-            inn = f"{s['innovation']:.0f}" if s["innovation"] is not None else "-"
-            tech = f"{s['technical_execution']:.0f}" if s["technical_execution"] is not None else "-"
-            mkt = f"{s['market_potential']:.0f}" if s["market_potential"] is not None else "-"
-            ux = f"{s['user_experience']:.0f}" if s["user_experience"] is not None else "-"
-            wtot = f"{s['weighted_total'] / 4:.1f}" if s["weighted_total"] is not None else "-"
-            cb = s["community_bonus"]
-            bonus = f"+{cb:.1f}" if cb else ""
-            judge = cyan(s["judge_name"][:10])
-            line = f"  {judge:<14}  Inn:{inn}  Tech:{tech}  Mkt:{mkt}  UX:{ux}  {bold(wtot)}/10{green(bonus)}"
-            print(line)
-            fv = s["final_verdict"]
-            if fv and not args.brief:
-                try:
-                    verdict = json.loads(fv).get("final_verdict", "")
-                except (json.JSONDecodeError, TypeError):
-                    verdict = str(fv)
-                if verdict:
-                    print(f"  {dim(' └ ' + verdict[:100])}")
-
-    # Research summary
-    research = conn.execute(
-        "SELECT technical_assessment FROM hackathon_research WHERE submission_id = ?",
-        (args.id,),
-    ).fetchone()
-    if research and research["technical_assessment"] and not args.brief:
-        try:
-            ta = json.loads(research["technical_assessment"])
-            summary = ta.get("summary") or ta.get("executive_summary") or ""
-            if summary:
-                print(f"\n  {bold('Research')}")
-                print(f"  {summary[:200]}{'…' if len(summary) > 200 else ''}")
-        except (json.JSONDecodeError, TypeError):
-            pass
-
-    print()
     conn.close()
 
 
@@ -560,17 +614,17 @@ def main():
     # --- Read / inspect (green = read-only) ---
     sub.add_parser("stats", help=green("Hackathon overview: counts, categories, score summary"))
 
-    subs_p = sub.add_parser("submissions", help=green("List all submissions"))
+    subs_p = sub.add_parser("submissions", help=green("Browse submissions (list, detail, or search)"))
+    subs_p.add_argument("id", type=int, nargs="?", default=None, help="Submission ID — shows detail view")
+    subs_p.add_argument("-s", "--search", default=None, help="Search project name, category, or description")
     subs_p.add_argument(
         "--status",
         default=None,
         choices=["submitted", "researched", "scored", "community-voting", "completed", "published"],
-        help="Filter by status",
+        help="Filter by status (list/search mode)",
     )
-
-    sub_p = sub.add_parser("submission", help=green("Show details for a single submission"))
-    sub_p.add_argument("id", type=int, help="Submission ID")
-    sub_p.add_argument("--brief", action="store_true", help="Skip verdicts and research summary")
+    subs_p.add_argument("-b", "--brief", action="store_true", help="Omit scores and research (detail mode)")
+    subs_p.add_argument("-j", "--json", action="store_true", help="Output as JSON instead of formatted text")
 
     # --- Utilities ---
     sub.add_parser("static-data", help=green("Regenerate static JSON files for frontend"))
@@ -614,10 +668,12 @@ def main():
         manager_main()
 
     elif args.command == "serve":
-        from hackathon.backend.app import main as app_main
+        import subprocess
 
-        sys.argv = ["app", "--host", args.host, "--port", str(args.port)]
-        app_main()
+        result = subprocess.run(
+            ["uvicorn", "hackathon.backend.app:app", "--host", args.host, "--port", str(args.port)]
+        )
+        sys.exit(result.returncode)
 
     elif args.command == "db":
         if not args.db_command:
@@ -682,9 +738,6 @@ def main():
 
     elif args.command == "submissions":
         cmd_submissions(args)
-
-    elif args.command == "submission":
-        cmd_submission(args)
 
     elif args.command == "static-data":
         from hackathon.scripts.generate_static_data import generate_static_data

@@ -735,28 +735,6 @@ async def upload_image(
 
 
 # Serve uploaded files
-@router.get("/api/uploads/{filename}")
-async def serve_upload(filename: str):
-    """Serve uploaded files."""
-    # Use consolidated uploads directory
-    uploads_dir = (REPO_ROOT / "data" / "uploads").resolve()
-
-    # Validate that the resolved path stays within the uploads directory
-    try:
-        candidate_path = (uploads_dir / filename).resolve()
-        candidate_path.relative_to(uploads_dir)
-    except Exception:
-        # Path traversal or invalid path detected
-        raise HTTPException(status_code=400, detail="Invalid file path")
-
-    if not candidate_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
-
-    # Return file content with appropriate headers
-    from fastapi.responses import FileResponse
-
-    return FileResponse(candidate_path)
-
 
 @router.get("/api/submission-schema", tags=["latest"], response_model=SubmissionSchemaResponse)
 async def get_submission_schema_latest():

@@ -13,6 +13,7 @@ import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -78,6 +79,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(auth_router)
 app.include_router(submissions_router)
 app.include_router(voting_router)
+
+# Serve uploaded project images — must come after routers so API routes take precedence
+_UPLOADS_DIR = REPO_ROOT / "data" / "uploads"
+_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/api/uploads", StaticFiles(directory=_UPLOADS_DIR), name="uploads")
 
 
 # Ensure DB schema at startup (works with uvicorn module import)
