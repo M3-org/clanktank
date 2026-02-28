@@ -376,7 +376,7 @@ class GitHubAnalyzer:
             return self._get_heuristic_fallback(repo_analysis)
 
         BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-        AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "moonshotai/kimi-k2:free")
+        AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "")
         MODEL = AI_MODEL_NAME
 
         # Calculate token budget

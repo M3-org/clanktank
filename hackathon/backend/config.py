@@ -21,7 +21,7 @@ GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 # AI model configuration
 AI_MODEL_PROVIDER = os.getenv("AI_MODEL_PROVIDER", "openrouter")
-AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3-opus")
+AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "")  # required — set AI_MODEL_NAME in .env (e.g. openrouter/auto)
 BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Research configuration

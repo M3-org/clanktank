@@ -427,7 +427,7 @@ ENV_VARS = [
     ("DISCORD_GUILD_ID", False, "Guild ID for role-based auth"),
     ("DISCORD_BOT_TOKEN", False, "Bot token for guild role fetching"),
     ("VITE_PRIZE_WALLET_ADDRESS", False, "Expose wallet address to frontend"),
-    ("AI_MODEL_NAME", False, "Default: anthropic/claude-3-opus"),
+    ("AI_MODEL_NAME", True, "OpenRouter model ID (e.g. openrouter/auto, anthropic/claude-sonnet-4-5)"),
     ("STATIC_DATA_DIR", False, "Frontend static data output dir"),
 ]
 
