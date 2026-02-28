@@ -115,6 +115,9 @@ def main():
         app_main()
 
     elif args.command == "db":
+        if not args.db_command:
+            db_p.print_help()
+            sys.exit(1)
         if args.db_command == "create":
             from hackathon.backend.create_db import main as create_main
 
