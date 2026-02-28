@@ -227,6 +227,7 @@ def cmd_submissions(args):
                 "category": r["category"],
                 "description": r.get("description"),
                 "github_url": r.get("github_url"),
+                "project_image": r.get("project_image"),
             }
             if not args.brief:
                 out["scores"] = [
@@ -343,6 +344,7 @@ def cmd_submissions(args):
             s.category,
             s.status,
             s.github_url,
+            s.project_image,
             ROUND(AVG(sc.weighted_total) / 4.0, 1) AS avg_score,
             COUNT(DISTINCT sc.judge_name) AS judges
         FROM hackathon_submissions_v2 s
@@ -367,6 +369,7 @@ def cmd_submissions(args):
                 "category": r["category"],
                 "status": r["status"],
                 "github_url": r["github_url"],
+                "project_image": r["project_image"],
                 "avg_score": r["avg_score"],
                 "judges": r["judges"],
             }

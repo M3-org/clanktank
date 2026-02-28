@@ -48,6 +48,7 @@ logs/
 data/submission_backups/
 data/temp.txt
 data/*.db
+!data/hackathon.db
 hackathon/episodes/
 hackathon/dashboard/frontend/dist/
 

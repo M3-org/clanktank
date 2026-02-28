@@ -473,7 +473,7 @@ def main():
     if args.validate_only:
         if not args.episode_file:
             logger.error("--episode-file required when using --validate-only")
-            return
+            sys.exit(1)
 
         try:
             with open(args.episode_file) as f:

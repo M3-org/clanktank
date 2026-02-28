@@ -1227,12 +1227,12 @@ def main():
             print(f"\n{'=' * 60}")
             print(f"CLANK TANK HACKATHON LEADERBOARD - ROUND {args.round}")
             print(f"{'=' * 60}")
-            print(f"{'Rank':<6}{'Project':<30}{'Team':<20}{'Score':<10}")
+            print(f"{'Rank':<6}{'Project':<30}{'Category':<20}{'Score':<10}")
             print(f"{'-' * 60}")
 
             for entry in leaderboard:
                 print(
-                    f"{entry['rank']:<6}{entry['project_name'][:28]:<30}{entry['team_name'][:18]:<20}{entry['avg_score']:<10}"
+                    f"{entry['rank']:<6}{entry['project_name'][:28]:<30}{entry['category'][:18]:<20}{entry['avg_score']:<10}"
                 )
 
             print(f"{'=' * 60}\n")
