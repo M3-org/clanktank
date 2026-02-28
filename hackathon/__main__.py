@@ -588,7 +588,7 @@ def main():
     # 4. Round 1 scoring
     score_p = sub.add_parser("score", help=yellow("[step 4] Round 1 AI judge scoring"))
     add_common_args(score_p)
-    score_p.add_argument("--round", type=int, default=1, help="Scoring round (default: 1)")
+    score_p.add_argument("--round", type=int, default=None, help="Scoring round (default: 1)")
 
     # 5. Community votes
     votes_p = sub.add_parser("votes", help=yellow("[step 5] Collect Solana community votes"))
@@ -607,7 +607,7 @@ def main():
     leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
     leaderboard_p.add_argument("--db-file", default=None)
     leaderboard_p.add_argument("--output", help="Output file")
-    leaderboard_p.add_argument("--round", type=int, default=1)
+    leaderboard_p.add_argument("--round", type=int, default=None, help="Sort by round (1 or 2); default: combined")
 
     # 8. Episode generation
     episode_p = sub.add_parser("episode", help=yellow("[step 8] Generate episode for a submission"))
@@ -675,7 +675,7 @@ def main():
             new_argv += ["--output", args.output]
         if hasattr(args, "force") and args.force:
             new_argv.append("--force")
-        if hasattr(args, "round"):
+        if hasattr(args, "round") and args.round is not None:
             new_argv += ["--round", str(args.round)]
         sys.argv = new_argv
         manager_main()
