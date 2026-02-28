@@ -94,7 +94,7 @@ Creates judge dialogue scripts for PlayCanvas rendering.
 
 ```bash
 clanktank episode --submission-id <id> --version v2
-clanktank episode --submission-id <id> --validate-only  # check without writing
+clanktank episode --submission-id <id> --validate-only --episode-file <path>  # validate existing file
 ```
 
 ### Step 9 — Upload to YouTube
@@ -133,7 +133,8 @@ python -m hackathon.backend.sync_schema_to_frontend  # regenerate TS types
 ```bash
 ruff check hackathon/          # lint
 ruff format hackathon/         # format
-uv run pytest hackathon/tests/ # tests (12p / 7f / 25e pre-existing baseline)
+uv run pytest hackathon/tests/        # Python unit + integration tests
+bash hackathon/tests/test_cli.sh      # CLI integration tests (89 checks)
 ```
 
 ### Environment variables (`.env` at repo root)
