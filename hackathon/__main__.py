@@ -15,7 +15,7 @@ def add_common_args(parser):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="hackathon", description="Clank Tank hackathon pipeline CLI")
+    parser = argparse.ArgumentParser(prog="clanktank", description="Clank Tank hackathon pipeline CLI")
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     # --- Pipeline commands ---
