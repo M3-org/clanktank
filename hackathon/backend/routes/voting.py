@@ -69,6 +69,7 @@ price_service = BirdeyePriceService()
 def get_db_connection():
     """Get database connection."""
     import sqlite3
+
     return sqlite3.connect(HACKATHON_DB_PATH)
 
 
