@@ -210,7 +210,7 @@ def cmd_submissions(args):
 
         scores = conn.execute(
             "SELECT judge_name, innovation, technical_execution, market_potential, "
-            "user_experience, weighted_total, round, community_bonus, final_verdict "
+            "user_experience, weighted_total, round, community_bonus, final_verdict, notes "
             "FROM hackathon_scores WHERE submission_id = ? ORDER BY round, judge_name",
             (args.id,),
         ).fetchall()
@@ -231,8 +231,9 @@ def cmd_submissions(args):
                 "project_image": r.get("project_image"),
             }
             if not args.brief:
-                out["scores"] = [
-                    {
+                score_list = []
+                for s in scores:
+                    entry = {
                         "judge": s["judge_name"],
                         "round": s["round"],
                         "innovation": s["innovation"],
@@ -242,8 +243,13 @@ def cmd_submissions(args):
                         "weighted_total": s["weighted_total"],
                         "community_bonus": s["community_bonus"],
                     }
-                    for s in scores
-                ]
+                    if s["notes"]:
+                        try:
+                            entry["notes"] = json.loads(s["notes"])
+                        except (json.JSONDecodeError, TypeError):
+                            entry["notes"] = s["notes"]
+                    score_list.append(entry)
+                out["scores"] = score_list
                 if research and research["technical_assessment"]:
                     try:
                         ta = json.loads(research["technical_assessment"])
@@ -258,15 +264,19 @@ def cmd_submissions(args):
             status = r["status"]
             category = r["category"]
             desc = r.get("description") or ""
+
+            # --- Header ---
             print()
-            print(f"  {bold(name)}  {dim('#' + str(sid))}")
-            print(f"  {_status_color(status)}  {dim('•')}  {category}")
+            print(f"# {bold(name)}")
+            print()
+            meta = [f"**Status:** {_status_color(status)}", f"**Category:** {category}"]
+            print(" | ".join(meta))
             if desc:
-                truncated = desc[:120] + ("…" if len(desc) > 120 else "")
-                print(f"\n  {truncated}")
+                print(f"\n{desc}")
             print()
 
-            fields = [
+            # --- Links ---
+            links = [
                 ("GitHub", r.get("github_url")),
                 ("Demo", r.get("demo_video_url")),
                 ("Discord", r.get("discord_handle")),
@@ -274,46 +284,117 @@ def cmd_submissions(args):
                 ("Solana", r.get("solana_address")),
                 ("Submitted", r.get("created_at", "")[:19]),
             ]
-            for label, val in fields:
-                if val:
-                    print(f"  {dim(label + ':')} {val}")
+            active_links = [(lbl, v) for lbl, v in links if v]
+            if active_links:
+                for label, val in active_links:
+                    print(f"- **{label}:** {val}")
+                print()
 
+            # --- Scores ---
             if scores and not args.brief:
-                print(f"\n  {bold('Scores')}")
-                last_round = None
-                for s in scores:
-                    if s["round"] != last_round:
-                        last_round = s["round"]
-                        print(f"\n  {dim('Round ' + str(s['round']))}")
-                    inn = f"{s['innovation']:.0f}" if s["innovation"] is not None else "-"
-                    tech = f"{s['technical_execution']:.0f}" if s["technical_execution"] is not None else "-"
-                    mkt = f"{s['market_potential']:.0f}" if s["market_potential"] is not None else "-"
-                    ux = f"{s['user_experience']:.0f}" if s["user_experience"] is not None else "-"
-                    wtot = f"{s['weighted_total'] / 4:.1f}" if s["weighted_total"] is not None else "-"
-                    cb = s["community_bonus"]
-                    bonus = f"+{cb:.1f}" if cb else ""
-                    visible_name = s["judge_name"][:10]
-                    judge = cyan(visible_name) + " " * max(0, 10 - len(visible_name))
-                    line = f"  {judge}  Inn:{inn}  Tech:{tech}  Mkt:{mkt}  UX:{ux}  {bold(wtot)}/10{green(bonus)}"
-                    print(line)
-                    fv = s["final_verdict"]
-                    if fv:
-                        try:
-                            verdict = json.loads(fv).get("final_verdict", "")
-                        except (json.JSONDecodeError, TypeError):
-                            verdict = str(fv)
-                        if verdict:
-                            print(f"  {dim(' └ ' + verdict[:100])}")
-            elif scores:
-                print(f"\n  {bold('Scores')}  {dim('(use without -b to see details)')}")
+                # Group scores by judge, merge R1 + R2 into one row
+                r1_scores = {s["judge_name"]: s for s in scores if s["round"] == 1}
+                r2_scores = {s["judge_name"]: s for s in scores if s["round"] == 2}
+                judges = list(dict.fromkeys(s["judge_name"] for s in scores))  # preserve order
+                has_r2 = bool(r2_scores)
 
+                print(f"## {bold('Scores')}")
+                print()
+
+                def _pad(text: str, width: int, right: bool = False) -> str:
+                    """Pad by visible length, ignoring ANSI escape codes."""
+                    import re
+                    visible = len(re.sub(r"\033\[[0-9;]*m", "", text))
+                    pad = " " * max(0, width - visible)
+                    return (pad + text) if right else (text + pad)
+
+                if _IS_TTY:
+                    # Box-drawing table for terminal
+                    W = 10  # column width
+                    r2_hdr = f"┬{'─' * (W + 2)}" if has_r2 else ""
+                    r2_mid = f"┼{'─' * (W + 2)}" if has_r2 else ""
+                    r2_bot = f"┴{'─' * (W + 2)}" if has_r2 else ""
+                    sep = f"{'─' * (W + 2)}"
+                    print(f"  ┌{sep}┬{sep}┬{sep}┬{sep}┬{sep}┬{sep}{r2_hdr}┐")
+                    h = [bold("Judge"), bold("Innovation"), bold("Technical"), bold("Market"), bold("UX"), bold("R1")]
+                    row = f"  │ {_pad(h[0], W)} │ {_pad(h[1], W, True)} │ {_pad(h[2], W, True)} │ {_pad(h[3], W, True)} │ {_pad(h[4], W, True)} │ {_pad(h[5], W, True)} "
+                    if has_r2:
+                        row += f"│ {_pad(bold('R2'), W, True)} "
+                    print(row + "│")
+                    print(f"  ├{sep}┼{sep}┼{sep}┼{sep}┼{sep}┼{sep}{r2_mid}┤")
+                    for j in judges:
+                        r1 = r1_scores.get(j)
+                        r2 = r2_scores.get(j)
+                        inn = f"{r1['innovation']:.0f}" if r1 and r1["innovation"] is not None else "-"
+                        tech = f"{r1['technical_execution']:.0f}" if r1 and r1["technical_execution"] is not None else "-"
+                        mkt = f"{r1['market_potential']:.0f}" if r1 and r1["market_potential"] is not None else "-"
+                        ux = f"{r1['user_experience']:.0f}" if r1 and r1["user_experience"] is not None else "-"
+                        r1_tot = f"{r1['weighted_total'] / 4:.1f}" if r1 and r1["weighted_total"] is not None else "-"
+                        row = f"  │ {_pad(cyan(j), W)} │ {_pad(inn, W, True)} │ {_pad(tech, W, True)} │ {_pad(mkt, W, True)} │ {_pad(ux, W, True)} │ {_pad(bold(r1_tot), W, True)} "
+                        if has_r2:
+                            r2_tot = f"{r2['weighted_total'] / 4:.1f}" if r2 and r2["weighted_total"] is not None else "-"
+                            row += f"│ {_pad(bold(r2_tot), W, True)} "
+                        print(row + "│")
+                    print(f"  └{sep}┴{sep}┴{sep}┴{sep}┴{sep}┴{sep}{r2_bot}┘")
+                else:
+                    # Plain markdown table for piping
+                    r2_hdr = " R2 |" if has_r2 else ""
+                    r2_sep = "------:|" if has_r2 else ""
+                    print(f"| Judge | Innovation | Technical | Market | UX | R1 | {r2_hdr}")
+                    print(f"|-------|----------:|---------:|------:|---:|-----:| {r2_sep}")
+                    for j in judges:
+                        r1 = r1_scores.get(j)
+                        r2 = r2_scores.get(j)
+                        inn = f"{r1['innovation']:.0f}" if r1 and r1["innovation"] is not None else "-"
+                        tech = f"{r1['technical_execution']:.0f}" if r1 and r1["technical_execution"] is not None else "-"
+                        mkt = f"{r1['market_potential']:.0f}" if r1 and r1["market_potential"] is not None else "-"
+                        ux = f"{r1['user_experience']:.0f}" if r1 and r1["user_experience"] is not None else "-"
+                        r1_tot = f"{r1['weighted_total'] / 4:.1f}" if r1 and r1["weighted_total"] is not None else "-"
+                        r2_cell = ""
+                        if has_r2:
+                            r2_tot = f"{r2['weighted_total'] / 4:.1f}" if r2 and r2["weighted_total"] is not None else "-"
+                            r2_cell = f" {r2_tot} |"
+                        print(f"| {j} | {inn} | {tech} | {mkt} | {ux} | {r1_tot} |{r2_cell}")
+
+                # --- Judge Commentary (grouped by judge) ---
+                print(f"\n## {bold('Judge Commentary')}")
+                for j in judges:
+                    r1 = r1_scores.get(j)
+                    r2 = r2_scores.get(j)
+                    comments = []
+                    for label, s in [("R1", r1), ("R2", r2)]:
+                        if not s:
+                            continue
+                        comment = ""
+                        if s["notes"]:
+                            try:
+                                nd = json.loads(s["notes"])
+                                comment = nd.get("overall_comment") or nd.get("round2_final_verdict") or ""
+                            except (json.JSONDecodeError, TypeError):
+                                pass
+                        if not comment and s["final_verdict"]:
+                            try:
+                                comment = json.loads(s["final_verdict"]).get("final_verdict", "")
+                            except (json.JSONDecodeError, TypeError):
+                                comment = str(s["final_verdict"])
+                        if comment:
+                            comments.append((label, comment))
+                    if comments:
+                        print(f"\n### {j}")
+                        for label, comment in comments:
+                            print(f"\n**{label}:** {comment}")
+
+            elif scores:
+                print(f"## {bold('Scores')}  {dim('(use without -b to see details)')}")
+
+            # --- Research ---
             if research and research["technical_assessment"] and not args.brief:
                 try:
                     ta = json.loads(research["technical_assessment"])
                     summary = ta.get("summary") or ta.get("executive_summary") or ""
                     if summary:
-                        print(f"\n  {bold('Research')}")
-                        print(f"  {summary[:200]}{'…' if len(summary) > 200 else ''}")
+                        print(f"\n## {bold('Research')}")
+                        print(f"\n{summary}")
                 except (json.JSONDecodeError, TypeError):
                     pass  # malformed research JSON — skip section silently
 

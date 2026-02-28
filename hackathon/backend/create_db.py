@@ -76,7 +76,8 @@ def create_hackathon_database(db_path):
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             community_bonus REAL,
             final_verdict TEXT,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id),
+            UNIQUE (submission_id, judge_name, round)
         )
     """
     )
@@ -199,6 +200,9 @@ def create_hackathon_database(db_path):
         cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status)")
         cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_category ON {table_name}(category)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_scores_submission ON hackathon_scores(submission_id)")
+    cursor.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_unique ON hackathon_scores(submission_id, judge_name, round)"
+    )
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_feedback_submission ON community_feedback(submission_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)")
     cursor.execute(
