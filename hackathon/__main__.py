@@ -15,33 +15,19 @@ def add_common_args(parser):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="clanktank", description="Clank Tank hackathon pipeline CLI")
+    parser = argparse.ArgumentParser(
+        prog="clanktank",
+        description="Clank Tank hackathon pipeline CLI",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Pipeline order:\n"
+            "  db → serve → research → score → votes → synthesize → leaderboard → episode → upload"
+        ),
+    )
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
-    # --- Pipeline commands ---
-    research_p = sub.add_parser("research", help="Run AI research on submissions")
-    add_common_args(research_p)
-
-    score_p = sub.add_parser("score", help="Round 1 AI judge scoring")
-    add_common_args(score_p)
-    score_p.add_argument("--round", type=int, default=1, help="Scoring round (default: 1)")
-
-    synthesize_p = sub.add_parser("synthesize", help="Round 2 synthesis with community data")
-    add_common_args(synthesize_p)
-
-    leaderboard_p = sub.add_parser("leaderboard", help="Display leaderboard")
-    leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
-    leaderboard_p.add_argument("--db-file", default=None)
-    leaderboard_p.add_argument("--output", help="Output file")
-    leaderboard_p.add_argument("--round", type=int, default=1)
-
-    # --- Server ---
-    serve_p = sub.add_parser("serve", help="Start FastAPI API server")
-    serve_p.add_argument("--host", default="127.0.0.1", help="Bind host")
-    serve_p.add_argument("--port", type=int, default=8000, help="Bind port")
-
-    # --- Database ---
-    db_p = sub.add_parser("db", help="Database operations")
+    # 1. Database setup
+    db_p = sub.add_parser("db", help="[step 1] Database setup and migrations")
     db_sub = db_p.add_subparsers(dest="db_command", help="Database subcommands")
     create_p = db_sub.add_parser("create", help="Initialize database")
     create_p.add_argument("--db", default=None, help="Database path")
@@ -50,8 +36,41 @@ def main():
     migrate_p.add_argument("--version", default="all", choices=["v1", "v2", "all"])
     migrate_p.add_argument("--db", default=None)
 
-    # --- Content ---
-    episode_p = sub.add_parser("episode", help="Generate episode for a submission")
+    # 2. API server (accepts submissions from frontend)
+    serve_p = sub.add_parser("serve", help="[step 2] Start API server + accept submissions")
+    serve_p.add_argument("--host", default="127.0.0.1", help="Bind host")
+    serve_p.add_argument("--port", type=int, default=8000, help="Bind port")
+
+    # 3. AI research (GitHub analysis + AI research per submission)
+    research_p = sub.add_parser("research", help="[step 3] GitHub + AI research on submissions")
+    add_common_args(research_p)
+
+    # 4. Round 1 scoring (AI judges)
+    score_p = sub.add_parser("score", help="[step 4] Round 1 AI judge scoring")
+    add_common_args(score_p)
+    score_p.add_argument("--round", type=int, default=1, help="Scoring round (default: 1)")
+
+    # 5. Community votes (Solana on-chain)
+    votes_p = sub.add_parser("votes", help="[step 5] Collect Solana community votes")
+    votes_p.add_argument("--collect", action="store_true")
+    votes_p.add_argument("--scores", action="store_true")
+    votes_p.add_argument("--stats", action="store_true")
+    votes_p.add_argument("--test", action="store_true")
+    votes_p.add_argument("--db-path", default=None)
+
+    # 6. Round 2 synthesis (AI scores + community votes → final verdict)
+    synthesize_p = sub.add_parser("synthesize", help="[step 6] Round 2 synthesis (AI + community)")
+    add_common_args(synthesize_p)
+
+    # 7. Leaderboard (view results)
+    leaderboard_p = sub.add_parser("leaderboard", help="[step 7] Display final leaderboard")
+    leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
+    leaderboard_p.add_argument("--db-file", default=None)
+    leaderboard_p.add_argument("--output", help="Output file")
+    leaderboard_p.add_argument("--round", type=int, default=1)
+
+    # 8. Episode generation (script + dialogue for each submission)
+    episode_p = sub.add_parser("episode", help="[step 8] Generate episode for a submission")
     add_common_args(episode_p)
     episode_p.add_argument("--video-url", help="Video URL for episode")
     episode_p.add_argument("--avatar-url", help="Avatar URL override")
@@ -59,20 +78,14 @@ def main():
     episode_p.add_argument("--validate-only", action="store_true")
     episode_p.add_argument("--episode-file", help="Existing episode file to validate")
 
-    upload_p = sub.add_parser("upload", help="Upload episode to YouTube")
+    # 9. Upload to YouTube
+    upload_p = sub.add_parser("upload", help="[step 9] Upload recorded episode to YouTube")
     add_common_args(upload_p)
     upload_p.add_argument("--dry-run", action="store_true")
     upload_p.add_argument("--limit", type=int)
 
-    # --- Maintenance ---
+    # --- Utilities ---
     sub.add_parser("static-data", help="Generate static JSON files for frontend")
-
-    votes_p = sub.add_parser("votes", help="Collect Solana blockchain votes")
-    votes_p.add_argument("--collect", action="store_true")
-    votes_p.add_argument("--scores", action="store_true")
-    votes_p.add_argument("--stats", action="store_true")
-    votes_p.add_argument("--test", action="store_true")
-    votes_p.add_argument("--db-path", default=None)
 
     recovery_p = sub.add_parser("recovery", help="Backup/restore submissions")
     recovery_p.add_argument("--list", action="store_true")
