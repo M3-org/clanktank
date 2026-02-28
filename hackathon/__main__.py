@@ -314,7 +314,7 @@ def cmd_submissions(args):
                         print(f"\n  {bold('Research')}")
                         print(f"  {summary[:200]}{'…' if len(summary) > 200 else ''}")
                 except (json.JSONDecodeError, TypeError):
-                    pass
+                    pass  # malformed research JSON — skip section silently
 
             print()
 

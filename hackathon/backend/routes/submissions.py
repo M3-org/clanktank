@@ -402,9 +402,6 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
         log_user_action("submission_created", discord_user.discord_id, submission_id)
 
         print(f"✅ Submission saved: {submission_id}")
-        # Backup creation logic
-        import json
-
         backup_dir = REPO_ROOT / "data" / "submission_backups"
         backup_dir.mkdir(parents=True, exist_ok=True)
         backup_path = backup_dir / f"{submission_id}.json"
