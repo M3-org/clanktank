@@ -12,13 +12,13 @@ BACKEND_SCHEMA = os.path.abspath(os.path.join(os.path.dirname(__file__), "submis
 FRONTEND_SCHEMA = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
-        "../../dashboard/frontend/public/submission_schema.json",
+        "../frontend/public/submission_schema.json",
     )
 )
 FRONTEND_TYPES = os.path.abspath(
     os.path.join(
         os.path.dirname(__file__),
-        "../../dashboard/frontend/src/types/submissionSchema.ts",
+        "../frontend/src/types/submissionSchema.ts",
     )
 )
 

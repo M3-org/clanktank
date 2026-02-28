@@ -46,7 +46,7 @@ def conditional_rate_limit(rate_limit_str):
 
 
 # Configuration
-# Get the repository root directory (3 levels up from hackathon/dashboard/app.py)
+# Get the repository root directory (2 levels up from hackathon/backend/app.py)
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 # Load environment variables from repo root
@@ -54,7 +54,7 @@ load_dotenv(REPO_ROOT / ".env")
 
 
 STATIC_DATA_DIR = os.getenv(
-    "STATIC_DATA_DIR", str(REPO_ROOT / "hackathon" / "dashboard" / "frontend" / "public" / "data")
+    "STATIC_DATA_DIR", str(REPO_ROOT / "hackathon" / "frontend" / "public" / "data")
 )
 LOG_FILE_PATH = REPO_ROOT / "logs" / "hackathon_api.log"
 

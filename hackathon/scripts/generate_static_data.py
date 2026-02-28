@@ -18,7 +18,7 @@ from hackathon.backend.routes.submissions import get_score_columns  # noqa: E402
 REPO_ROOT = Path(__file__).resolve().parents[2]
 STATIC_DATA_DIR = os.getenv(
     "STATIC_DATA_DIR",
-    str(REPO_ROOT / "hackathon" / "dashboard" / "frontend" / "public" / "data"),
+    str(REPO_ROOT / "hackathon" / "frontend" / "public" / "data"),
 )
 
 

@@ -90,7 +90,7 @@ if native_balance and native_balance.get('lamports', 0) > 0:
 
 ## Frontend Data Hook
 
-**File**: `hackathon/dashboard/frontend/src/hooks/usePrizePool.ts`
+**File**: `hackathon/frontend/src/hooks/usePrizePool.ts`
 
 The React hook manages data fetching and processing:
 
@@ -163,7 +163,7 @@ const sortedTokens = processedTokens
 
 ## Progress Bar Component
 
-**File**: `hackathon/dashboard/frontend/src/components/PrizePool.tsx`
+**File**: `hackathon/frontend/src/components/PrizePool.tsx`
 
 The component calculates and renders the progress bar:
 
@@ -316,12 +316,12 @@ CREATE TABLE token_metadata (
 - `hackathon/backend/app.py:1841` - Token metadata caching system
 
 ### Frontend  
-- `hackathon/dashboard/frontend/src/hooks/usePrizePool.ts` - Data fetching hook
-- `hackathon/dashboard/frontend/src/components/PrizePool.tsx` - UI components
-- `hackathon/dashboard/frontend/src/lib/api.ts` - API client with caching
+- `hackathon/frontend/src/hooks/usePrizePool.ts` - Data fetching hook
+- `hackathon/frontend/src/components/PrizePool.tsx` - UI components
+- `hackathon/frontend/src/lib/api.ts` - API client with caching
 
 ### Configuration
 - `.env` - Environment variables for wallet address and API keys
-- `hackathon/dashboard/frontend/src/lib/constants.ts` - Frontend constants
+- `hackathon/frontend/src/lib/constants.ts` - Frontend constants
 
 The system provides **autonomous prize pool tracking** without requiring manual intervention - deposits automatically appear in the progress bar as they're confirmed on the Solana blockchain.

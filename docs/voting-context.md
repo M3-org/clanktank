@@ -57,9 +57,9 @@ CREATE TABLE prize_pool_contributions (
 ### Frontend State (Partially Built)
 
 **What Exists:**
-- `/home/jin/repo/clanktank/hackathon/dashboard/frontend/src/pages/Leaderboard.tsx` → Modern leaderboard with medal rankings
-- `/home/jin/repo/clanktank/hackathon/dashboard/frontend/src/components/PrizePoolBanner.tsx` → Prize pool display (just connected to real API)
-- `/home/jin/repo/clanktank/hackathon/dashboard/frontend/src/pages/VotingPrototypes.tsx` → 8 different voting UI prototypes
+- `/home/jin/repo/clanktank/hackathon/frontend/src/pages/Leaderboard.tsx` → Modern leaderboard with medal rankings
+- `/home/jin/repo/clanktank/hackathon/frontend/src/components/PrizePoolBanner.tsx` → Prize pool display (just connected to real API)
+- `/home/jin/repo/clanktank/hackathon/frontend/src/pages/VotingPrototypes.tsx` → 8 different voting UI prototypes
 
 **What's Connected:**
 - ✅ Prize pool banner shows real $480 USD
@@ -82,7 +82,7 @@ CREATE TABLE prize_pool_contributions (
 
 ### Current Leaderboard Design
 
-**File**: `/home/jin/repo/clanktank/hackathon/dashboard/frontend/src/pages/Leaderboard.tsx`
+**File**: `/home/jin/repo/clanktank/hackathon/frontend/src/pages/Leaderboard.tsx`
 
 **Visual Hierarchy:**
 ```
@@ -100,7 +100,7 @@ CREATE TABLE prize_pool_contributions (
 
 ### Existing Voting Prototypes
 
-**File**: `/home/jin/repo/clanktank/hackathon/dashboard/frontend/src/pages/VotingPrototypes.tsx`
+**File**: `/home/jin/repo/clanktank/hackathon/frontend/src/pages/VotingPrototypes.tsx`
 
 **8 Different Concepts Built:**
 1. **PowerBar**: Slider with visual power levels
@@ -223,7 +223,7 @@ CREATE TABLE prize_pool_contributions (
 
 ### Frontend (Needs Work)
 ```
-/hackathon/dashboard/frontend/src/
+/hackathon/frontend/src/
 ├── pages/Leaderboard.tsx (main leaderboard)
 ├── pages/VotingPrototypes.tsx (8 voting concepts)
 ├── components/PrizePoolBanner.tsx (prize pool display)

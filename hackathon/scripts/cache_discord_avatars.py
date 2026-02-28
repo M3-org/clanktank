@@ -169,14 +169,14 @@ def main():
     parser.add_argument(
         "--output-dir",
         default=None,
-        help="Output directory for cached avatars (default: hackathon/dashboard/frontend/public/discord)",
+        help="Output directory for cached avatars (default: hackathon/frontend/public/discord)",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show what would be done")
     args = parser.parse_args()
 
     # Paths
     db_path = Path(args.db_path) if args.db_path else Path("data/hackathon.db")
-    cache_dir = Path(args.output_dir) if args.output_dir else Path("hackathon/dashboard/frontend/public/discord")
+    cache_dir = Path(args.output_dir) if args.output_dir else Path("hackathon/frontend/public/discord")
 
     # Ensure database exists
     if not db_path.exists():

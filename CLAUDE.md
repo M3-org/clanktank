@@ -20,7 +20,7 @@ uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 python app.py --generate-static-data   # from hackathon/backend/
 ```
 
-### Frontend (hackathon/dashboard/frontend/)
+### Frontend (hackathon/frontend/)
 ```bash
 npm install
 npm run dev          # Start dev server
@@ -92,7 +92,7 @@ ruff format <file> # Format
 The hackathon system is schema-driven. `hackathon/backend/submission_schema.json` is the **single source of truth** for all field definitions. Changes flow:
 1. Edit `submission_schema.json`
 2. Run `python -m hackathon.backend.migrate_schema` to update database
-3. Run `python -m hackathon.backend.sync_schema_to_frontend` to regenerate TypeScript types at `hackathon/dashboard/frontend/src/types/submission.ts`
+3. Run `python -m hackathon.backend.sync_schema_to_frontend` to regenerate TypeScript types at `hackathon/frontend/src/types/submission.ts`
 
 Never hardcode field lists in Python or TypeScript — always load from schema.
 
@@ -113,7 +113,7 @@ Four personality-based judges with weighted scoring criteria (Innovation, Techni
 Judge personas defined in `hackathon/prompts/judge_personas.py`. Scoring pipeline: GitHub Analysis → AI Research (with GitIngest) → Round 1 AI Scoring → Community Voting (Discord) → Round 2 Synthesis.
 
 ### Frontend Caching
-The frontend has aggressive 5-minute caching (HTTP `Cache-Control: max-age=300` + in-memory cache in `hackathon/dashboard/frontend/src/lib/api.ts`). If backend data isn't appearing, hard refresh or wait 5 minutes.
+The frontend has aggressive 5-minute caching (HTTP `Cache-Control: max-age=300` + in-memory cache in `hackathon/frontend/src/lib/api.ts`). If backend data isn't appearing, hard refresh or wait 5 minutes.
 
 ### Status Progressions
 - **Main Platform**: submitted → researched → in_progress → done

@@ -33,7 +33,7 @@ clanktank serve --host 0.0.0.0 --port 8000  # expose to network
 
 Frontend in a separate terminal:
 ```bash
-cd hackathon/dashboard/frontend
+cd hackathon/frontend
 npm install && npm run dev     # proxies /api → localhost:8000
 ```
 
@@ -123,7 +123,7 @@ The schema in `backend/submission_schema.json` is the single source of truth.
 ```bash
 clanktank db migrate           # apply schema changes to DB
 python -m hackathon.backend.sync_schema_to_frontend  # regenerate TS types
-# or: cd hackathon/dashboard/frontend && npm run sync-schema
+# or: cd hackathon/frontend && npm run sync-schema
 ```
 
 ---
@@ -181,7 +181,7 @@ hackathon/
 ├── prompts/
 │   ├── judge_personas.py    # aimarc, aishaw, spartan, peepo
 │   └── show_config.py       # Episode format + dialogue structure
-├── dashboard/frontend/      # React + TypeScript + Vite
+├── frontend/               # React + TypeScript + Vite
 └── tests/
 ```
 
