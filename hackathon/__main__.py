@@ -42,6 +42,74 @@ def bold(t):
     return _c("1", t)
 
 
+def _help_screen():
+    """Print structured help with pipeline steps and usage hints."""
+    def _line(step, cmd, color_fn, desc, usage=""):
+        col0 = dim(f"{step:>3}.") if step else "    "
+        pad1 = " " * (14 - len(cmd))
+        pad2 = " " * (34 - len(desc)) if usage else ""
+        hint = f"{pad2}{dim(usage)}" if usage else ""
+        print(f"  {col0} {color_fn(cmd)}{pad1}{desc}{hint}")
+
+    print(f"  {bold('Pipeline:')}")
+    _line(0,  "config",      blue,   "Show env var status / setup",    "config [VAR] [--setup]")
+    _line(1,  "db",          blue,   "Database setup and migrations",  "db {create|migrate} [--dry-run]")
+    _line(2,  "serve",       blue,   "Start API server",               "serve [--host HOST] [--port PORT]")
+    _line(3,  "research",    yellow, "GitHub + AI research",           "research --submission-id ID [--all] [-f]")
+    _line(4,  "score",       yellow, "Round 1 AI judge scoring",       "score --submission-id ID [--all] [--round N]")
+    _line(5,  "votes",       yellow, "Collect Solana community votes", "votes {--collect|--scores|--stats|--test}")
+    _line(6,  "synthesize",  yellow, "Round 2 synthesis",              "synthesize --submission-id ID [--all]")
+    _line(7,  "static-data", yellow, "Regenerate JSON for frontend")
+    _line(8,  "episode",     yellow, "Generate episode",               "episode --submission-id ID [--validate-only]")
+    _line(9,  "record",      yellow, "Record episode video",           "record URL [--headless] [--format webm|mp4]")
+    _line(10, "upload",      red,    "Upload to YouTube",              "upload --submission-id ID [--dry-run]")
+    _line(11, "cdn",         yellow, "Upload media to Bunny CDN",      "cdn <file|dir> [--remote PATH] [--dry-run]")
+    print()
+    print(f"  {bold('Quick views:')}")
+    _line(0, "status",      green,  "Pipeline overview + next steps")
+    _line(0, "leaderboard", green,  "Display final leaderboard",      "leaderboard [--round N] [--output FILE]")
+    _line(0, "submissions", green,  "Browse submissions",             "submissions [ID] [-s QUERY] [--status S] [-j]")
+    print()
+    print(f"  {bold('Examples:')}")
+    print(f"    {dim('clanktank status')}")
+    print(f"    {dim('clanktank score --submission-id 42')}")
+    print(f"    {dim('clanktank score --all')}")
+    print(f"    {dim('clanktank leaderboard --round 1')}")
+    print()
+    print(f"  Run {bold('clanktank <command> --help')} for details.")
+
+
+def _pick_submission(status_filter=None):
+    """Interactive submission picker (TTY only). Returns submission_id string or None."""
+    db = _db_path_from_env()
+    try:
+        conn = _open_db(db)
+    except Exception:
+        print(red("  Cannot open database."))
+        return None
+    query = "SELECT submission_id, project_name, status FROM hackathon_submissions_v2"
+    params = []
+    if status_filter:
+        placeholders = ",".join("?" * len(status_filter))
+        query += f" WHERE status IN ({placeholders})"
+        params = list(status_filter)
+    query += " ORDER BY submission_id"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    if not rows:
+        print(dim("  No matching submissions found."))
+        return None
+    for r in rows:
+        print(f"  {bold(str(r['submission_id']).rjust(3))}  {r['project_name']}  {dim(r['status'])}")
+    print()
+    try:
+        choice = input(f"  {bold('submission-id')}: ").strip()
+        return choice if choice else None
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return None
+
+
 def _banner():
     """Print compact ASCII banner + quick status."""
     logo = dim(r"""
@@ -67,7 +135,28 @@ def _banner():
 
     deadline = os.getenv("SUBMISSION_DEADLINE")
     if deadline:
-        print(f"  Deadline: {yellow(deadline)}")
+        try:
+            from datetime import datetime, timezone
+
+            dt = datetime.fromisoformat(deadline)
+            now = datetime.now(timezone.utc)
+            delta = dt - now
+            if delta.total_seconds() <= 0:
+                print(f"  Deadline: {red('CLOSED')}  {dim(deadline)}")
+            else:
+                days = delta.days
+                hours, rem = divmod(delta.seconds, 3600)
+                mins = rem // 60
+                parts = []
+                if days:
+                    parts.append(f"{days}d")
+                if hours:
+                    parts.append(f"{hours}h")
+                parts.append(f"{mins}m")
+                countdown = " ".join(parts)
+                print(f"  Deadline: {yellow(countdown)} remaining  {dim(deadline)}")
+        except (ValueError, TypeError):
+            print(f"  Deadline: {yellow(deadline)}")
     print()
 
 
@@ -233,33 +322,62 @@ def _print_research_md(ta: dict):
 # ---------------------------------------------------------------------------
 
 
-def cmd_stats(args):
+def cmd_status(_args):
+    """Show pipeline overview: deadline, status breakdown, categories, scores, next steps."""
     import sqlite3
+    from datetime import datetime, timezone
 
     db = _db_path_from_env()
     try:
         conn = _open_db(db)
     except sqlite3.OperationalError as e:
-        print(red(f"Cannot open DB: {e}"))
+        print(red(f"  Cannot open DB: {e}"))
         sys.exit(1)
 
     cur = conn.cursor()
 
     total = cur.execute("SELECT COUNT(*) FROM hackathon_submissions_v2").fetchone()[0]
     if not total:
-        print(yellow("No submissions yet."))
+        print(yellow("\n  No submissions yet."))
         return
 
-    print(f"\n{bold('Clank Tank')}  {dim('•')}  {bold(str(total))} submissions\n")
+    print(f"\n  {bold('Clank Tank')}  {dim('·')}  {bold(str(total))} submissions")
 
-    # Status breakdown
+    # Deadline countdown
+    deadline = os.getenv("SUBMISSION_DEADLINE")
+    if deadline:
+        try:
+            dt = datetime.fromisoformat(deadline)
+            now = datetime.now(timezone.utc)
+            delta = dt - now
+            if delta.total_seconds() <= 0:
+                print(f"  Deadline: {red('CLOSED')}  {dim(deadline)}")
+            else:
+                days = delta.days
+                hours, rem = divmod(delta.seconds, 3600)
+                mins = rem // 60
+                parts = []
+                if days:
+                    parts.append(f"{days}d")
+                if hours:
+                    parts.append(f"{hours}h")
+                parts.append(f"{mins}m")
+                print(f"  Deadline: {yellow(' '.join(parts))} remaining  {dim(deadline)}")
+        except (ValueError, TypeError):
+            print(f"  Deadline: {yellow(deadline)}")
+
+    # Pipeline status breakdown
     rows = cur.execute(
         "SELECT status, COUNT(*) AS n FROM hackathon_submissions_v2 GROUP BY status ORDER BY n DESC"
     ).fetchall()
-    print(f"  {bold('Status')}")
-    for r in rows:
-        pct = r["n"] / total * 100
-        print(f"  {_status_color(r['status']):<22}  {_bar(r['n'], total)}  {r['n']:>3}  {dim(f'{pct:.0f}%')}")
+    counts = {r["status"]: r["n"] for r in rows}
+    print(f"\n  {bold('Pipeline')}")
+    stages = ["submitted", "researched", "scored", "community-voting", "completed", "published"]
+    for stage in stages:
+        cnt = counts.get(stage, 0)
+        if cnt:
+            pct = cnt / total * 100
+            print(f"  {_status_color(stage):<22}  {_bar(cnt, total)}  {cnt:>3}  {dim(f'{pct:.0f}%')}")
 
     # Category breakdown
     cat_rows = cur.execute(
@@ -280,6 +398,20 @@ def cmd_stats(args):
         print(f"  Scored:   {score_row['scored']} / {total}")
         print(f"  Average:  {score_row['avg']:.2f}")
         print(f"  Range:    {score_row['lo']:.1f} – {score_row['hi']:.1f}")
+
+    # Next steps
+    next_steps = [
+        ("submitted",  "clanktank research --all"),
+        ("researched", "clanktank score --all"),
+        ("scored",     "clanktank synthesize --all"),
+        ("completed",  "clanktank episode --submission-id ID"),
+    ]
+    tips = [(counts.get(s, 0), s, ex) for s, ex in next_steps if counts.get(s, 0)]
+    if tips:
+        print(f"\n  {bold('Next steps:')}")
+        for cnt, status, example in tips:
+            print(f"    {green(example.ljust(40))} {dim(f'{cnt} {status}')}")
+
     print()
     print(dim("  Tip: clanktank submissions to browse, clanktank leaderboard for rankings"))
     print()
@@ -642,6 +774,9 @@ ENV_VARS = [
     ("HELIUS_API_KEY", False, "Helius API for Solana data"),
     ("BIRDEYE_API_KEY", False, "Birdeye API for token data"),
     ("HELIUS_WEBHOOK_SECRET", False, "Helius webhook HMAC secret"),
+    ("BUNNY_STORAGE_ZONE", False, "Bunny CDN storage zone name"),
+    ("BUNNY_STORAGE_PASSWORD", False, "Bunny CDN API password"),
+    ("BUNNY_CDN_URL", False, "Bunny CDN URL (e.g. https://cdn.elizaos.news)"),
 ]
 
 
@@ -999,26 +1134,23 @@ def cmd_config(args):
 
 
 def main():
+    from dotenv import find_dotenv, load_dotenv
+    load_dotenv(find_dotenv())
+
     parser = argparse.ArgumentParser(
         prog="clanktank",
         description=bold("Clank Tank hackathon pipeline CLI"),
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=(
-            dim("Pipeline order:\n") + f"  {blue('db')} → {blue('serve')} → {yellow('research')} → {yellow('score')} → "
-            f"{yellow('votes')} → {yellow('synthesize')} → {green('leaderboard')} → "
-            f"{yellow('episode')} → {yellow('record')} → {red('upload')}\n\n"
-            + dim("Colors: ")
-            + blue("blue")
-            + dim("=infra  ")
-            + yellow("yellow")
-            + dim("=writes  ")
-            + green("green")
-            + dim("=reads  ")
-            + red("red")
-            + dim("=irreversible\n\n")
-            + dim("API schema: http://localhost:8000/openapi.json (when server is running)")
-        ),
+        add_help=False,  # we handle -h ourselves
     )
+    parser.add_argument("-h", "--help", action="store_true", default=False, help="Show help")
+
+    # Override print_help so -h and no-args both show the same good screen
+    def _custom_help(file=None):
+        _banner()
+        _help_screen()
+
+    parser.print_help = _custom_help
     sub = parser.add_subparsers(dest="command", help="Available commands")
 
     # 0. Config / env setup
@@ -1064,12 +1196,8 @@ def main():
     synthesize_p = sub.add_parser("synthesize", help=yellow("[step 6] Round 2 synthesis (AI + community)"))
     add_common_args(synthesize_p)
 
-    # 7. Leaderboard
-    leaderboard_p = sub.add_parser("leaderboard", help=green("[step 7] Display final leaderboard"))
-    leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
-    leaderboard_p.add_argument("--db-file", default=None)
-    leaderboard_p.add_argument("--output", help="Output file")
-    leaderboard_p.add_argument("--round", type=int, default=None, help="Sort by round (1 or 2); default: combined")
+    # 7. Static data export
+    sub.add_parser("static-data", help=yellow("[step 7] Regenerate JSON for frontend"))
 
     # 8. Episode generation
     episode_p = sub.add_parser("episode", help=yellow("[step 8] Generate episode for a submission"))
@@ -1113,8 +1241,28 @@ def main():
     upload_p.add_argument("--dry-run", action="store_true")
     upload_p.add_argument("--limit", type=int)
 
+    # 11. CDN upload
+    cdn_p = sub.add_parser("cdn", help=yellow("[step 11] Upload episode media to Bunny CDN"))
+    cdn_p.add_argument("file", nargs="?", help="File or directory to upload")
+    cdn_p.add_argument("--dir", "-d", dest="directory", help="Directory to upload (all media files)")
+    cdn_p.add_argument("--remote", "-r", help="Remote CDN path (default: derived from local path)")
+    cdn_p.add_argument("--dry-run", action="store_true", help="Simulate uploads")
+    cdn_p.add_argument("--manifest", "-m", help="Upload from manifest.json")
+    cdn_p.add_argument("--update-manifest", action="store_true", help="Update manifest with CDN URLs")
+    cdn_p.add_argument("--json", action="store_true", help="Output as JSON")
+    cdn_p.add_argument("--stdin", action="store_true", help="Read file paths from stdin")
+    cdn_p.add_argument("--max-size", type=float, default=50, help="Max file size in MB (default: 50)")
+    cdn_p.add_argument("--no-skip-existing", action="store_true", help="Re-upload existing files")
+    cdn_p.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
     # --- Read / inspect (green = read-only) ---
-    sub.add_parser("stats", help=green("Hackathon overview: counts, categories, score summary"))
+    sub.add_parser("status", help=green("Pipeline overview, scores, and next steps"), aliases=["stats"])
+
+    leaderboard_p = sub.add_parser("leaderboard", help=green("Display final leaderboard"))
+    leaderboard_p.add_argument("--version", default="v2", choices=["v1", "v2"])
+    leaderboard_p.add_argument("--db-file", default=None)
+    leaderboard_p.add_argument("--output", help="Output file")
+    leaderboard_p.add_argument("--round", type=int, default=None, help="Sort by round (1 or 2); default: combined")
 
     subs_p = sub.add_parser("submissions", help=green("Browse submissions (list, detail, or search)"))
     subs_p.add_argument("id", type=int, nargs="?", default=None, help="Submission ID — shows detail view")
@@ -1129,14 +1277,11 @@ def main():
     subs_p.add_argument("-r", "--research", action="store_true", help="Show full research data (detail mode)")
     subs_p.add_argument("-j", "--json", action="store_true", help="Output as JSON instead of formatted text")
 
-    # --- Utilities ---
-    sub.add_parser("static-data", help=yellow("Regenerate static JSON files for frontend"))
-
     args = parser.parse_args()
 
-    if not args.command:
+    if not args.command or args.help:
         _banner()
-        parser.print_help()
+        _help_screen()
         sys.exit(0)
 
     if args.command == "config":
@@ -1151,14 +1296,26 @@ def main():
                 hasattr(args, "all") and args.all
             )
             if not has_target:
-                # Find the subparser and print its help
-                sub_parsers = {
-                    "research": research_p,
-                    "score": score_p,
-                    "synthesize": synthesize_p,
-                }
-                sub_parsers[args.command].print_help()
-                sys.exit(0)
+                if _IS_TTY:
+                    eligible = {
+                        "research": ["submitted"],
+                        "score": ["researched"],
+                        "synthesize": ["scored", "community-voting"],
+                    }
+                    print(f"\n  {bold('Pick a submission to ' + args.command + ':')}\n")
+                    sid = _pick_submission(status_filter=eligible.get(args.command))
+                    if sid:
+                        args.submission_id = sid
+                    else:
+                        sys.exit(0)
+                else:
+                    sub_parsers = {
+                        "research": research_p,
+                        "score": score_p,
+                        "synthesize": synthesize_p,
+                    }
+                    sub_parsers[args.command].print_help()
+                    sys.exit(0)
 
         from hackathon.backend.hackathon_manager import main as manager_main
 
@@ -1227,6 +1384,18 @@ def main():
             migrate_main()
 
     elif args.command == "episode":
+        if not args.submission_id and not args.episode_file:
+            if _IS_TTY:
+                print(f"\n  {bold('Pick a submission for episode generation:')}\n")
+                sid = _pick_submission(status_filter=["scored", "completed", "published"])
+                if sid:
+                    args.submission_id = sid
+                else:
+                    sys.exit(0)
+            else:
+                episode_p.print_help()
+                sys.exit(0)
+
         from hackathon.scripts.generate_episode import main as episode_main
 
         new_argv = ["generate_episode"]
@@ -1327,8 +1496,37 @@ def main():
         sys.argv = new_argv
         upload_main()
 
-    elif args.command == "stats":
-        cmd_stats(args)
+    elif args.command == "cdn":
+        from hackathon.scripts.cdn_upload import main as cdn_main
+
+        new_argv = ["cdn_upload"]
+        if args.file:
+            new_argv.append(args.file)
+        if args.directory:
+            new_argv += ["--dir", args.directory]
+        if args.remote:
+            new_argv += ["--remote", args.remote]
+        if args.dry_run:
+            new_argv.append("--dry-run")
+        if args.manifest:
+            new_argv += ["--manifest", args.manifest]
+        if args.update_manifest:
+            new_argv.append("--update-manifest")
+        if args.json:
+            new_argv.append("--json")
+        if args.stdin:
+            new_argv.append("--stdin")
+        if args.max_size != 50:
+            new_argv += ["--max-size", str(args.max_size)]
+        if args.no_skip_existing:
+            new_argv.append("--no-skip-existing")
+        if args.verbose:
+            new_argv.append("--verbose")
+        sys.argv = new_argv
+        cdn_main()
+
+    elif args.command in ("status", "stats"):
+        cmd_status(args)
 
     elif args.command == "submissions":
         cmd_submissions(args)
@@ -1353,7 +1551,8 @@ def main():
         if args.db_path:
             new_argv += ["--db-path", args.db_path]
         sys.argv = new_argv
-        votes_main()
+        import asyncio
+        asyncio.run(votes_main())
 
 
 
