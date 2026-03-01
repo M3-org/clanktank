@@ -1089,7 +1089,7 @@ def main():
     record_p.add_argument("--mute", action="store_true", help="Mute audio during recording")
     record_p.add_argument("--quiet", action="store_true", help="Reduce log output")
     record_p.add_argument("--format", default="webm", choices=["webm", "mp4"], help="Video format (default: webm)")
-    record_p.add_argument("--output", default=None, help="Output directory (default: ./recordings)")
+    record_p.add_argument("--output", default=None, help="Output directory (default: ./episodes)")
     record_p.add_argument("--date", default=None, help="Override date for output filenames (YYYY-MM-DD)")
     record_p.add_argument("--width", type=int, default=1920, help="Video width (default: 1920)")
     record_p.add_argument("--height", type=int, default=1080, help="Video height (default: 1080)")

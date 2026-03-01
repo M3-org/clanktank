@@ -40,7 +40,7 @@ load_dotenv(find_dotenv())
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-RECORDINGS_DIR = os.getenv("HACKATHON_RECORDINGS_DIR", "recordings/hackathon")
+RECORDINGS_DIR = os.getenv("HACKATHON_RECORDINGS_DIR", "episodes/recordings/hackathon")
 YOUTUBE_CREDENTIALS_PATH = os.getenv("YOUTUBE_CREDENTIALS_PATH", "youtube_credentials.json")
 CLIENT_SECRETS_PATH = os.getenv("YOUTUBE_CLIENT_SECRETS_PATH", "client_secrets.json")
 

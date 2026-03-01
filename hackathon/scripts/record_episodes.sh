@@ -4,7 +4,7 @@
 
 # Configuration
 EPISODE_DIR="./episodes/hackathon"
-RECORDING_DIR="./recordings/hackathon"
+RECORDING_DIR="./episodes/recordings/hackathon"
 RECORDER_SCRIPT="./scripts/shmotime-recorder.js"
 RENDERER_BASE_URL="${RENDERER_URL:-https://shmotime.com/shmotime_episode/}"
 

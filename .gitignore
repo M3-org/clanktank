@@ -59,8 +59,8 @@ hackathon/frontend/dist/
 *.zip
 
 # Video recordings (keep JSON metadata, ignore large videos)
-recordings/*.mp4
-recordings/*.webm
+episodes/recordings/*.mp4
+episodes/recordings/*.webm
 
 # Temporary/staging files
 tmp/
