@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'hackathon/dashboard/frontend/**'
+      - 'hackathon/frontend/**'
   workflow_dispatch:
 
 permissions:
@@ -26,15 +26,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: hackathon/dashboard/frontend/package-lock.json
+          cache-dependency-path: hackathon/frontend/package-lock.json
 
       - name: Install dependencies
         run: npm install
-        working-directory: hackathon/dashboard/frontend
+        working-directory: hackathon/frontend
 
       - name: Build
         run: npm run build
-        working-directory: hackathon/dashboard/frontend
+        working-directory: hackathon/frontend
         env:
           VITE_USE_STATIC: 'true'
           VITE_BASE_PATH: /
@@ -44,11 +44,11 @@ jobs:
 
       - name: Copy index.html to 404.html for SPA routing
         run: cp dist/index.html dist/404.html
-        working-directory: hackathon/dashboard/frontend
+        working-directory: hackathon/frontend
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: hackathon/dashboard/frontend/dist
+          path: hackathon/frontend/dist
 
   deploy:
     environment:

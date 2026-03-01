@@ -4,7 +4,6 @@
 import json
 import os
 import sqlite3
-import sys
 
 # Import versioned field manifests and helpers
 from hackathon.backend.schema import SUBMISSION_VERSIONS
@@ -77,7 +76,8 @@ def create_hackathon_database(db_path):
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             community_bonus REAL,
             final_verdict TEXT,
-            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id)
+            FOREIGN KEY (submission_id) REFERENCES hackathon_submissions_v2(submission_id),
+            UNIQUE (submission_id, judge_name, round)
         )
     """
     )
@@ -200,6 +200,9 @@ def create_hackathon_database(db_path):
         cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_status ON {table_name}(status)")
         cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_{table_name}_category ON {table_name}(category)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_scores_submission ON hackathon_scores(submission_id)")
+    cursor.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_scores_unique ON hackathon_scores(submission_id, judge_name, round)"
+    )
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_feedback_submission ON community_feedback(submission_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_research_submission ON hackathon_research(submission_id)")
     cursor.execute(
@@ -228,8 +231,18 @@ def create_hackathon_database(db_path):
     print(f"Hackathon database created successfully at: {db_path}")
 
 
-if __name__ == "__main__":
-    db_path = "data/hackathon.db"
-    if len(sys.argv) > 1:
-        db_path = sys.argv[1]
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Initialize hackathon database")
+    parser.add_argument("--db", default=None, help="Database path (default: from .env or data/hackathon.db)")
+    args = parser.parse_args()
+
+    from hackathon.backend.config import HACKATHON_DB_PATH
+
+    db_path = args.db or HACKATHON_DB_PATH
     create_hackathon_database(db_path)
+
+
+if __name__ == "__main__":
+    main()

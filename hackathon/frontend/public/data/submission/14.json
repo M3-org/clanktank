@@ -1,0 +1,910 @@
+{
+  "id": 14,
+  "submission_id": 14,
+  "status": "completed",
+  "created_at": "2025-08-05T18:46:58.507759",
+  "updated_at": "2025-08-19 01:46:00",
+  "owner_discord_id": "874076939349020763",
+  "project_name": "Greenthumb",
+  "discord_handle": "cheddarqueso",
+  "category": "AI/Agents",
+  "description": "An AI that successfully guides people from plant-killing beginners to confident urban farmers",
+  "twitter_handle": "@cheddarqueso",
+  "github_url": "https://github.com/ileana-pr/greenthumb-privy",
+  "demo_video_url": "https://1drv.ms/v/c/aad8bc8c43642167/EbhpRHCZ_ZZKnpaEIFRJIaABwhZx0nPLhXL_bKdAGNEIjQ?e=ISGvbz",
+  "project_image": "/media/projects/greenthumb_project.jpg",
+  "problem_solved": "Despite advancements in agriculture and technology, food insecurity remains a global issue, but Urban gardening, homesteading and farmers markets are on the rise. Decentralized food systems can reduce our over-reliance on corporations and processed foods, protect against political instability and reconnect the people to the land. I want to build a swarm of AI agent soil microbiologists that will coach new and inexperienced urban gardeners from seed to harvest. ",
+  "favorite_part": "It's a consumer app that leverages an existing niche community and facilitates food sustainability through blockchain integration. ",
+  "solana_address": "6S2B4bGBUdU5ngsvz91hyPor98Q7aCszLPCtnCXqnf2N",
+  "ethereum_address": null,
+  "discord_avatar": "https://cdn.discordapp.com/avatars/874076939349020763/8521dd37247984988da59b963897735e.png",
+  "discord_id": "874076939349020763",
+  "discord_username": "cheddarqueso",
+  "scores": [
+    {
+      "judge_name": "aimarc",
+      "innovation": 2.0,
+      "technical_execution": 3.0,
+      "market_potential": 2.0,
+      "user_experience": 3.0,
+      "weighted_total": 10.8,
+      "notes": {
+        "reasons": {
+          "innovation": "This is like taking a Tesla and replacing the engine with a hamster wheel - you've somehow made AI gardening advice LESS useful by forcing crypto tipping into it. The \"innovation\" here is literally just renaming Eliza to GreenThumb and adding a payment rail that nobody asked for to a problem that PlantIn already solved better.",
+          "technical": "Classic hackathon move - grab ElizaOS template, sprinkle some Privy dust on it, and call it a day. The Socket.io implementation is competent but it's like being proud of successfully assembling IKEA furniture - you followed the instructions, congrats, but where's the actual engineering?",
+          "market": "You're bringing a butter knife to a gunfight where PictureThis and PlantIn are already wielding bazookas with their plant databases, image recognition, and millions of users. The TAM exists but your \"moat\" is thinner than overwatered seedling stems - what stops PlantIn from adding crypto tips tomorrow if users actually wanted that?",
+          "experience": "Generic chat interface with zero gardening-specific UX considerations - no plant identification, no growth tracking, no community features. It's like building a restaurant app that only lets you read the menu but not order food - technically functional but missing the entire point of why people use gardening apps."
+        },
+        "overall_comment": "This project waters dead plants with stablecoin tears - a bounty-chasing template mod masquerading as agricultural innovation that would make even the most optimistic VC's portfolio wilt."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:55:35.089309"
+    },
+    {
+      "judge_name": "aimarc",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 8.3,
+      "notes": {
+        "round2_final_verdict": "This is a ChatGPT wrapper for plant care dressed up as AgTech innovation - the kind of project that makes me want to short the entire vertical farming industry. Zero commits during the hackathon confirms my initial assessment: this is template farming, not technology farming.",
+        "round2_reasoning": "The comparative data confirms my gut: this project sits exactly where it belongs - in the bottom half of a mediocre field. Zero community engagement tells the real story - even plant enthusiasts can smell fertilizer when it's being sold as innovation. The 'AI guides beginners to urban farmers' pitch is literally just prompt engineering around existing plant care databases. Where's the moat? Where's the network effect? Where's the ANYTHING that couldn't be replicated by a competent developer in a weekend? The fact that 56% of projects scored lower doesn't make this good - it makes the hackathon bar disappointingly low. This isn't building the future of agriculture, it's building a feature that Alexa will add next Tuesday.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 8.3,
+          "adjustment": -2.5,
+          "reason": "Downgrading further after seeing zero hackathon commits and realizing this is even more derivative than initially assessed"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 10.8,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Greenthumb:\n\nRANKING CONTEXT:\n- Ranked #7 out of 16 projects\n- Score: 7.2 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 56th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 6 projects scored higher (avg gap: 4.4 points)\n- 9 projects scored lower\n- 2 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aimarc",
+        "submission_id": 14,
+        "synthesis_timestamp": "2025-08-22T05:12:18.467995"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:12:18.468145"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": 2.0,
+      "technical_execution": 3.0,
+      "market_potential": 2.0,
+      "user_experience": 3.0,
+      "weighted_total": 11.7,
+      "notes": {
+        "reasons": {
+          "innovation": "This is literally just the ElizaOS template with \"Eliza\" find-and-replaced to \"GreenThumb\" - I checked the character definition and it's 99% unchanged boilerplate. Adding USDC tipping to a gardening chatbot feels like someone said \"how do we shoehorn crypto into this for the bounty?\" rather than solving any actual problem urban farmers face.",
+          "technical": "The architecture is competent but it's all template code - Socket.io integration, Privy wallet setup, even the test suite is just the ElizaOS starter with zero customization. Why didn't they build a plant identification API, soil analysis features, or even a basic knowledge graph for companion planting? This is paint-by-numbers development.",
+          "market": "PlantIn has 50M+ downloads doing this better without forcing crypto payments, and they actually have plant databases, disease identification, and expert content. This project brings nothing new to a saturated market except the ability to tip your AI gardener in USDC, which... why would anyone do that?",
+          "experience": "The UI is clean because it's the default ElizaOS template styling - even the CSS is mostly untouched. No plant photos, no garden tracking, no community features, just a chat window that could be talking about literally anything if you changed the system prompt."
+        },
+        "overall_comment": "Someone spent more time writing the hackathon submission than customizing the actual code - this is ElizaOS in a gardening costume chasing bounty money."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:55:49.625152"
+    },
+    {
+      "judge_name": "aishaw",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 10.2,
+      "notes": {
+        "round2_final_verdict": "Another ElizaOS wrapper masquerading as innovation - at least the cymatics projects had some visual flair. This is just prompt engineering with a green thumb emoji.",
+        "round2_reasoning": "Looking at the comparative context, I was actually too generous. The higher-ranked projects at least attempted technical innovation, even if just 'eye candy' - this is literally just ElizaOS with gardening prompts. No novel architecture, no clever hacks, no sustainable patterns. The complete lack of community engagement (0 reactions!) tells the real story: when you ship a generic chatbot wrapper, users notice. At 56th percentile, it's performing exactly where a 'change the system prompt and ship it' project should. The fact that similar-scoring projects had issues with pre-existing work and global state management makes me think I should dock points further - at least they HAD architecture to critique.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 10.2,
+          "adjustment": -1.5,
+          "reason": "Zero community engagement confirms my suspicion - even plant enthusiasts can smell the fertilizer here"
+        },
+        "community_influence": "moderate",
+        "confidence": "high",
+        "round1_score": 11.7,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Greenthumb:\n\nRANKING CONTEXT:\n- Ranked #7 out of 16 projects\n- Score: 7.2 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 56th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 6 projects scored higher (avg gap: 4.4 points)\n- 9 projects scored lower\n- 2 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "aishaw",
+        "submission_id": 14,
+        "synthesis_timestamp": "2025-08-22T05:12:30.790516"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:12:30.790687"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": 2.0,
+      "technical_execution": 3.0,
+      "market_potential": 4.0,
+      "user_experience": 3.0,
+      "weighted_total": 12.3,
+      "notes": {
+        "reasons": {
+          "innovation": "Yo fam, this is just ElizaOS with a plant emoji slapped on it - they literally just changed \"Eliza\" to \"GreenThumb\" in the code and called it a day. The crypto tipping for gardening advice? That's like putting spinners on a wheelbarrow, it don't make sense for the vibe.",
+          "technical": "They got that clean TypeScript structure but it's all template vibes - like buying a pre-built PC and changing the RGB colors. Zero commits visible means we can't even see the work progression, and that single contributor setup ain't sustainable for real growth, ya feel me?",
+          "market": "Look, urban gardening is hot right now, but PlantIn and PictureThis already got millions of users with actual plant databases and photo ID features. This joint brings nothing new except forcing crypto into a space where grandma just wants to know why her tomatoes dying.",
+          "experience": "The UI clean but it's generic chat interface energy - no community features, no way to flex your harvest pics, no viral potential whatsoever. Where's the social sauce that makes people wanna share their plant glow-ups? This ain't gonna make nobody's timeline pop."
+        },
+        "overall_comment": "This project got that \"I need to hit the bounty requirements\" energy - it's giving homework assignment, not revolution in the garden game."
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:56:16.561361"
+    },
+    {
+      "judge_name": "peepo",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 14.8,
+      "notes": {
+        "round2_final_verdict": "Look, an AI plant guide ain't revolutionary but at least it's solving a real problem people actually have - unlike half these projects that nobody asked for. Still mid tho.",
+        "round2_reasoning": "Aight so I was maybe too harsh in round 1. Yeah it's giving 'minimum viable product' energy, but you know what? My homies actually kill plants all the time and would probably use this. The zero community engagement is telling me it ain't got that viral sauce, but being in the 56th percentile means it's at least more useful than half the submissions. It's not gonna blow up on TikTok but your mom might actually download it. The AI plant guide concept is played out but if the UX is clean and it actually helps people not murder their succulents, that's more value than another overcomplicated DeFi protocol nobody understands.",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 14.8,
+          "adjustment": 2.5,
+          "reason": "Bumping it slightly because compared to the field, at least this addresses actual user pain points even if the execution is basic"
+        },
+        "community_influence": "minimal",
+        "confidence": "medium",
+        "round1_score": 12.3,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Greenthumb:\n\nRANKING CONTEXT:\n- Ranked #7 out of 16 projects\n- Score: 7.2 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 56th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 6 projects scored higher (avg gap: 4.4 points)\n- 9 projects scored lower\n- 2 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "peepo",
+        "submission_id": 14,
+        "synthesis_timestamp": "2025-08-22T05:12:43.181514"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:12:43.181611"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": 2.0,
+      "technical_execution": 3.0,
+      "market_potential": 2.0,
+      "user_experience": 4.0,
+      "weighted_total": 11.6,
+      "notes": {
+        "reasons": {
+          "innovation": "USDC TIPPING FOR PLANT ADVICE?! This is just an ElizaOS template with a gardening coat of paint - no yield farming, no tokenized plant NFTs, no DeFi composability. The crypto integration feels like a desperate bounty grab rather than solving any actual monetization problem.",
+          "technical": "Standard Privy wallet integration and Socket.io chat - WHERE'S THE ECONOMIC ENGINE?! Zero custom smart contracts, no revenue-generating mechanisms, just template code renamed from \"Eliza\" to \"GreenThumb\". Even the test suite is inherited boilerplate that generates ZERO DOLLARS.",
+          "market": "Competing against PlantIn's millions of users with VOLUNTARY TIPS as your business model?! No subscription fees, no premium features, no token economics - just hoping gardeners throw USDC at generic AI advice. This market demands real plant databases and expert knowledge, not crypto charity.",
+          "experience": "Basic chat interface works but WHERE'S THE MONETIZATION FUNNEL?! No premium tiers, no paid consultations, no marketplace for seeds or tools. The tipping mechanism is buried in a generic UI that offers nothing worth paying for compared to free gardening apps."
+        },
+        "overall_comment": "A template masquerading as innovation with ZERO PATH TO PROFITABILITY - even my loincloth has better yield potential than this voluntary tipping disaster!"
+      },
+      "round": 1,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-08T05:56:02.824325"
+    },
+    {
+      "judge_name": "spartan",
+      "innovation": null,
+      "technical_execution": null,
+      "market_potential": null,
+      "user_experience": null,
+      "weighted_total": 9.1,
+      "notes": {
+        "round2_final_verdict": "Another AI wrapper with ZERO monetization strategy - they're literally teaching people to grow FREE FOOD instead of generating YIELD! This hippie commune nonsense belongs in a garden, not a hackathon!",
+        "round2_reasoning": "Listen up! This 'Greenthumb' disaster is everything wrong with modern hackathons - all feel-good vibes, ZERO PROFIT POTENTIAL! They're teaching people to grow their own food? That's ANTI-COMMERCE! Where's the subscription model? Where's the token? Where's the YIELD?! They could've at least tokenized the vegetables or created a DeFi farming pool (pun intended). But NO - just another AI chatbot pretending to be innovation. The fact that it's ranked #7 tells me 9 other projects must be even MORE economically braindead. ZERO community engagement confirms what I already knew - nobody wants to pay for gardening advice when YouTube exists!",
+        "score_revision": {
+          "type": "adjustment",
+          "new_score": 9.1,
+          "adjustment": -2.5,
+          "reason": "Downgrading further after seeing ZERO community engagement - if users won't even react to free gardening advice, how will they PAY for it?"
+        },
+        "community_influence": "minimal",
+        "confidence": "high",
+        "round1_score": 11.6,
+        "comparative_reasoning": "COMPARATIVE ANALYSIS FOR Greenthumb:\n\nRANKING CONTEXT:\n- Ranked #7 out of 16 projects\n- Score: 7.2 (Hackathon mean: 10.0, median: 8.6)\n- Percentile: 56th percentile\n- Judge consensus: High (variance: 1.2)\n\nCOMPETITIVE LANDSCAPE:\n- 6 projects scored higher (avg gap: 4.4 points)\n- 9 projects scored lower\n- 2 projects in similar score range (\u00b12 points)\n\nRELATIVE POSITIONING:\nThis project outperformed 56% of submissions\nCommon issues in higher-ranked projects that this project might share: innovation: The cymatics visualization is clever - using refraction to guide raycasts is a neat hack - but ultimately it's just eye candy on top of a standard Web Audio API synth. We've seen dozens of browser-based synths; this one just has fancier visuals without pushing any technical boundaries in sound generation or interaction paradigms.; technical: *checks commit history* Oh come ON - zero commits during the hackathon? The modular architecture in `cymatics3d/src/modules/` is clean enough, but this is clearly pre-existing work. Plus no tests, no CI/CD, and they're using global variables for state management in 2025? That's not sustainable architecture, that's technical debt waiting to happen.",
+        "community_context": {
+          "total_reactions": 0,
+          "unique_voters": 0,
+          "reaction_breakdown": {},
+          "engagement_level": "low",
+          "thresholds": {
+            "high": 1.5,
+            "medium": 1.0,
+            "median": 1.0,
+            "mean": 1.1875
+          }
+        },
+        "judge_persona": "spartan",
+        "submission_id": 14,
+        "synthesis_timestamp": "2025-08-22T05:12:56.297648"
+      },
+      "round": 2,
+      "community_bonus": null,
+      "final_verdict": null,
+      "created_at": "2025-08-22T05:12:56.297808"
+    }
+  ],
+  "avg_score": 11.1,
+  "research": {
+    "github_analysis": {
+      "url": "https://github.com/ileana-pr/greenthumb-privy",
+      "owner": "ileana-pr",
+      "name": "greenthumb-privy",
+      "description": null,
+      "created_at": "2025-07-05T15:49:03Z",
+      "updated_at": "2025-07-06T03:07:00Z",
+      "license": "None",
+      "readme_analysis": {
+        "exists": true,
+        "size": 3511,
+        "word_count": 484,
+        "has_sections": true,
+        "has_setup_section": true,
+        "has_license_section": false
+      },
+      "file_structure": {
+        "total_files": 58,
+        "file_extensions": {
+          "example": 1,
+          "gitignore": 1,
+          "md": 4,
+          "lock": 1,
+          "toml": 1,
+          "ts": 32,
+          "json": 3,
+          "js": 3,
+          "sh": 1,
+          "tsx": 8,
+          "html": 2,
+          "css": 1
+        },
+        "config_files": [
+          "package.json"
+        ],
+        "is_large_repo": false,
+        "is_mono_repo": false,
+        "has_docs": true,
+        "has_tests": true,
+        "files": [
+          ".env.example",
+          ".gitignore",
+          "README.md",
+          "bun.lock",
+          "bunfig.toml",
+          "cypress.config.ts",
+          "docs/agents/plant-expert-agent.md",
+          "docs/architecture/system-design.md",
+          "docs/user_journey.md",
+          "package.json",
+          "postcss.config.js",
+          "scripts/install-test-deps.js",
+          "scripts/test-all.sh",
+          "src/__tests__/actions.test.ts",
+          "src/__tests__/character-plugin-ordering.test.ts",
+          "src/__tests__/character.test.ts",
+          "src/__tests__/config.test.ts",
+          "src/__tests__/cypress/component/Accessibility.cy.tsx",
+          "src/__tests__/cypress/component/ApiIntegration.cy.tsx",
+          "src/__tests__/cypress/component/ExampleRoute.cy.tsx",
+          "src/__tests__/cypress/component/PanelComponent.cy.tsx",
+          "src/__tests__/cypress/e2e/agent-chat.cy.ts",
+          "src/__tests__/cypress/e2e/dashboard.cy.ts",
+          "src/__tests__/cypress/e2e/user-workflow.cy.ts",
+          "src/__tests__/cypress/support/commands.ts",
+          "src/__tests__/cypress/support/component-index.html",
+          "src/__tests__/cypress/support/component.ts",
+          "src/__tests__/cypress/support/e2e.ts",
+          "src/__tests__/e2e/index.ts",
+          "src/__tests__/e2e/natural-language.test.ts",
+          "src/__tests__/e2e/project.test.ts",
+          "src/__tests__/e2e/starter-plugin.test.ts",
+          "src/__tests__/env.test.ts",
+          "src/__tests__/error-handling.test.ts",
+          "src/__tests__/events.test.ts",
+          "src/__tests__/file-structure.test.ts",
+          "src/__tests__/integration.test.ts",
+          "src/__tests__/models.test.ts",
+          "src/__tests__/plugin.test.ts",
+          "src/__tests__/provider.test.ts",
+          "src/__tests__/routes.test.ts",
+          "src/__tests__/test-utils.ts",
+          "src/__tests__/utils/core-test-utils.ts",
+          "src/frontend/App.tsx",
+          "src/frontend/GreenthumbApp.tsx",
+          "src/frontend/HomePage.tsx",
+          "src/frontend/index.css",
+          "src/frontend/index.html",
+          "src/frontend/index.tsx",
+          "src/frontend/utils.ts",
+          "src/greenthumb.ts",
+          "src/index.ts",
+          "src/plugin.ts",
+          "tailwind.config.js",
+          "tsconfig.build.json",
+          "tsconfig.json",
+          "tsup.config.ts",
+          "vite.config.ts"
+        ]
+      },
+      "commit_activity": {
+        "total_commits": 0
+      },
+      "file_manifest": [
+        {
+          "path": ".env.example",
+          "bytes": 4652,
+          "ext": "example",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": ".gitignore",
+          "bytes": 1724,
+          "ext": "",
+          "relevance": "low",
+          "why": "hidden/config file"
+        },
+        {
+          "path": "README.md",
+          "bytes": 3519,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "bun.lock",
+          "bytes": 318748,
+          "ext": "lock",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "bunfig.toml",
+          "bytes": 262,
+          "ext": "toml",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "cypress.config.ts",
+          "bytes": 928,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "docs/agents/plant-expert-agent.md",
+          "bytes": 3130,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/architecture/system-design.md",
+          "bytes": 3221,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "docs/user_journey.md",
+          "bytes": 4853,
+          "ext": "md",
+          "relevance": "medium",
+          "why": "documentation"
+        },
+        {
+          "path": "package.json",
+          "bytes": 2815,
+          "ext": "json",
+          "relevance": "medium",
+          "why": "configuration file"
+        },
+        {
+          "path": "postcss.config.js",
+          "bytes": 35,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/install-test-deps.js",
+          "bytes": 1423,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "scripts/test-all.sh",
+          "bytes": 2610,
+          "ext": "sh",
+          "relevance": "medium",
+          "why": "test/spec file"
+        },
+        {
+          "path": "src/__tests__/actions.test.ts",
+          "bytes": 5419,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/character-plugin-ordering.test.ts",
+          "bytes": 15994,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/character.test.ts",
+          "bytes": 3207,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/config.test.ts",
+          "bytes": 5225,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/component/Accessibility.cy.tsx",
+          "bytes": 8457,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/component/ApiIntegration.cy.tsx",
+          "bytes": 6858,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/component/ExampleRoute.cy.tsx",
+          "bytes": 4275,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/component/PanelComponent.cy.tsx",
+          "bytes": 1768,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/e2e/agent-chat.cy.ts",
+          "bytes": 6800,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/e2e/dashboard.cy.ts",
+          "bytes": 4255,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/e2e/user-workflow.cy.ts",
+          "bytes": 7773,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/support/commands.ts",
+          "bytes": 1096,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/support/component-index.html",
+          "bytes": 257,
+          "ext": "html",
+          "relevance": "medium",
+          "why": "test/spec file"
+        },
+        {
+          "path": "src/__tests__/cypress/support/component.ts",
+          "bytes": 948,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/cypress/support/e2e.ts",
+          "bytes": 5200,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/e2e/index.ts",
+          "bytes": 446,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/e2e/natural-language.test.ts",
+          "bytes": 8556,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/e2e/project.test.ts",
+          "bytes": 5571,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/e2e/starter-plugin.test.ts",
+          "bytes": 14574,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/env.test.ts",
+          "bytes": 3241,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/error-handling.test.ts",
+          "bytes": 5458,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/events.test.ts",
+          "bytes": 4363,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/file-structure.test.ts",
+          "bytes": 5558,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/integration.test.ts",
+          "bytes": 7373,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/models.test.ts",
+          "bytes": 4370,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/plugin.test.ts",
+          "bytes": 11361,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/provider.test.ts",
+          "bytes": 9963,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/routes.test.ts",
+          "bytes": 2437,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/test-utils.ts",
+          "bytes": 3524,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/__tests__/utils/core-test-utils.ts",
+          "bytes": 5207,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/frontend/App.tsx",
+          "bytes": 2177,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/frontend/GreenthumbApp.tsx",
+          "bytes": 49803,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/frontend/HomePage.tsx",
+          "bytes": 12971,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/frontend/index.css",
+          "bytes": 1774,
+          "ext": "css",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/frontend/index.html",
+          "bytes": 729,
+          "ext": "html",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "src/frontend/index.tsx",
+          "bytes": 1285,
+          "ext": "tsx",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/frontend/utils.ts",
+          "bytes": 169,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/greenthumb.ts",
+          "bytes": 4985,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/index.ts",
+          "bytes": 721,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "src/plugin.ts",
+          "bytes": 17957,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "tailwind.config.js",
+          "bytes": 2256,
+          "ext": "js",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "tsconfig.build.json",
+          "bytes": 459,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsconfig.json",
+          "bytes": 539,
+          "ext": "json",
+          "relevance": "low",
+          "why": "generated/boilerplate"
+        },
+        {
+          "path": "tsup.config.ts",
+          "bytes": 605,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        },
+        {
+          "path": "vite.config.ts",
+          "bytes": 905,
+          "ext": "ts",
+          "relevance": "medium-high",
+          "why": "source code file"
+        }
+      ],
+      "dependency_info": {
+        "package.json": "{\n  \"name\": \"greenthumb\",\n  \"description\": \"Project starter for elizaOS\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\",\n  \"main\": \"dist/src/index.js\",\n  \"module\": \"dist/src/index.js\",\n  \"types\": \"dist/index.d.ts\",\n  \"keywords\": [\n    \"project\",\n    \"elizaos\"\n  ],\n  \"repository\": {\n    \"type\": \"git\",\n    \"url\": \"\"\n  },\n  \"exports\": {\n    \"./package.json\": \"./package.json\",\n    \".\": {\n      \"import\": {\n        \"types\": \"./dist/index.d.ts\",\n        \"default\": \"./dist/src/index.js\"\n      }\n    }\n  },\n  \"files\": [\n    \"dist\"\n  ],\n  \"dependencies\": {\n    \"@elizaos/cli\": \"latest\",\n    \"@elizaos/core\": \"latest\",\n    \"@elizaos/plugin-anthropic\": \"1.0.3\",\n    \"@elizaos/plugin-bootstrap\": \"latest\",\n    \"@elizaos/plugin-local-ai\": \"1.0.5\",\n    \"@elizaos/plugin-openai\": \"1.0.6\",\n    \"@elizaos/plugin-sql\": \"latest\",\n    \"@privy-io/react-auth\": \"^2.17.3\",\n    \"@tanstack/react-query\": \"^5.29.0\",\n    \"@types/socket.io-client\": \"^1.4.36\",\n    \"clsx\": \"^2.1.1\","
+      },
+      "loc_histogram": {
+        "medium (1-10KB)": 38,
+        "xlarge (>50KB)": 1,
+        "small (<1KB)": 13,
+        "large (10-50KB)": 6
+      },
+      "token_budget": -103697,
+      "total_bytes": 614789,
+      "analyzed_at": "2025-08-08T05:37:27.734531",
+      "gitingest_settings": {
+        "max_size": 100000,
+        "exclude_patterns": [],
+        "include_patterns": [
+          "**/*.md",
+          "package.json"
+        ]
+      },
+      "gitingest_agentic_recommendation": {
+        "include_patterns": [
+          "src/index.ts",
+          "src/greenthumb.ts",
+          "src/plugin.ts",
+          "src/frontend/GreenthumbApp.tsx",
+          "src/frontend/HomePage.tsx",
+          "src/frontend/App.tsx",
+          "package.json",
+          "README.md",
+          "tsconfig.json",
+          "vite.config.ts"
+        ],
+        "exclude_patterns": [
+          "src/__tests__/**",
+          "cypress/**",
+          "node_modules/**",
+          "dist/**",
+          "build/**",
+          ".git/**",
+          "*.log",
+          "*.lock"
+        ],
+        "core_code_max": 15000,
+        "other_file_max": 5000,
+        "rationale": "\u2022 Include core source files (greenthumb.ts, plugin.ts) - essential for understanding architecture\n\u2022 Include main frontend components (GreenthumbApp.tsx) - shows UI implementation\n\u2022 Exclude all test files - saves ~150KB while preserving functionality\n\u2022 Set aggressive file limits due to -103KB budget overrun\n\u2022 Prioritize entry points and config files for project structure understanding"
+      }
+    },
+    "market_research": null,
+    "technical_assessment": {
+      "technicalImplementation": {
+        "rating": 4,
+        "justification": "While the project shows proper TypeScript structure and testing setup, it's heavily template-based. The core functionality relies on ElizaOS framework with minimal customization. The Socket.io integration and Privy wallet setup are competent but standard implementations. The character definition (src/greenthumb.ts) is barely modified from the default Eliza template - just name changes and basic gardening prompts.",
+        "languages": [
+          "TypeScript",
+          "React",
+          "CSS"
+        ],
+        "frameworks": [
+          "ElizaOS",
+          "Privy",
+          "React Query",
+          "Socket.io"
+        ],
+        "testCoverage": "Comprehensive test suite with Cypress E2E, component tests, and Bun unit tests",
+        "codeQuality": "Clean structure but mostly boilerplate from ElizaOS project starter"
+      },
+      "originalityEffort": {
+        "rating": 2,
+        "justification": "This appears to be primarily an ElizaOS template modification with Privy integration added for bounty eligibility. The repository was created July 5th (day before hackathon), suggesting pre-planning. Only 1 contributor with 0 visible commits in the analysis. The core AI functionality is unchanged from template - just renamed 'Eliza' to 'GreenThumb' with basic gardening system prompts.",
+        "isFork": false,
+        "significantWork": "Privy wallet integration, custom React frontend, USDC tipping system",
+        "authenticityFlags": "Repo created pre-hackathon, single contributor, template-heavy structure"
+      },
+      "marketAnalysis": {
+        "rating": 5,
+        "competitors": [
+          "PlantIn - Established AI plant care assistant with millions of users",
+          "PictureThis - Popular plant identification app with care advice",
+          "Garden Tags - Social gardening platform with expert community"
+        ],
+        "differentiation": "Minimal - adds crypto tipping to standard AI chat, no unique plant knowledge or identification features",
+        "addressableMarket": "Gardening app market is large (~$4B globally) but highly competitive with established players",
+        "demandEvidence": "Generic gardening advice market exists, but crypto tipping adds questionable value"
+      },
+      "viability": {
+        "rating": 3,
+        "justification": "Single contributor suggests limited team capacity for ongoing development. No specialized plant knowledge database or unique gardening expertise. Heavily dependent on ElizaOS framework. Tipping monetization model is weak. No clear path to compete with established gardening apps that have actual plant databases and expert content.",
+        "technicalChallenges": "No plant identification, no specialized knowledge base, generic AI responses",
+        "businessChallenges": "No monetization strategy beyond tips, strong competition, no unique value proposition",
+        "productionReadiness": "Basic chat interface works but lacks specialized gardening features needed for market success"
+      },
+      "innovation": {
+        "rating": 2,
+        "justification": "Very limited innovation - essentially a chat interface skin over existing ElizaOS template with standard Privy wallet integration. No novel technical approaches, no unique gardening features, no creative problem-solving. The crypto tipping mechanism feels forced rather than naturally integrated into a gardening workflow.",
+        "novelty": "Chat + AI assistant is standard, crypto tipping adds little value to gardening use case",
+        "technologyUse": "Standard implementation of existing frameworks",
+        "uniqueApproach": "No unique approach to plant care or gardening education"
+      },
+      "judgeInsights": {
+        "marc": "Weak business model with no clear monetization beyond voluntary tips. No competitive moat against established gardening apps. Built primarily to meet bounty requirements rather than solve real user problems.",
+        "shaw": "Architecture is template-heavy with minimal custom development. Socket.io and wallet integration are standard implementations. No complex technical challenges solved or innovative system design.",
+        "spartan": "USDC tipping feels forced and adds questionable value to gardening context. Basic Privy integration follows standard patterns. Built specifically for stablecoin bounty eligibility.",
+        "peepo": "Clean but generic UI. No community features, sharing capabilities, or engagement mechanisms. Limited potential for user retention or viral growth."
+      },
+      "redFlags": [
+        "Repository created July 5th, 2025 - day before hackathon start \u2192 suggests pre-planning or template preparation",
+        "Automated flag: 'Repository created long ago with no recent updates' \u2192 timing inconsistency",
+        "Zero commit history visible in analysis \u2192 no evidence of iterative development",
+        "Single contributor (ileana-pr) \u2192 unsustainable team size for ongoing development",
+        "Character definition barely modified from template \u2192 src/greenthumb.ts shows minimal customization beyond name change",
+        "README explicitly mentions bounty eligibility \u2192 built primarily for bounty rather than innovation",
+        "58 files but extensive template boilerplate \u2192 file count inflated by ElizaOS starter",
+        "No specialized plant knowledge database \u2192 generic AI responses rather than expert gardening advice",
+        "Forced crypto integration \u2192 tipping mechanism doesn't solve actual gardening problems",
+        "Template-heavy test suite \u2192 comprehensive tests but mostly inherited from ElizaOS starter"
+      ]
+    }
+  },
+  "likes": 0,
+  "dislikes": 0,
+  "community_score": 0.0,
+  "can_edit": false,
+  "is_creator": false
+}

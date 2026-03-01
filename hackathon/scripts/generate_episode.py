@@ -9,19 +9,22 @@ import json
 import logging
 import os
 import sqlite3
+import sys
 
 # Import the restructured configuration
-import sys
 from datetime import datetime
 from typing import Any
 
 import requests
 from dotenv import find_dotenv, load_dotenv
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from backend.schema import LATEST_SUBMISSION_VERSION, get_fields
-from prompts.show_config import SHOW_CONFIG, build_episode_prompt, get_episode_structure, validate_episode_cast
+from hackathon.backend.schema import LATEST_SUBMISSION_VERSION, get_fields
+from hackathon.prompts.show_config import (
+    SHOW_CONFIG,
+    build_episode_prompt,
+    get_episode_structure,
+    validate_episode_cast,
+)
 
 # Load environment variables
 load_dotenv(find_dotenv())
@@ -30,11 +33,13 @@ load_dotenv(find_dotenv())
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
-AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3-opus")
-BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
+# Configuration — centralized in config module
+from hackathon.backend.config import (  # noqa: E402
+    AI_MODEL_NAME,
+    BASE_URL,
+    HACKATHON_DB_PATH,
+    OPENROUTER_API_KEY,
+)
 
 
 class SubmissionFieldMapper:
@@ -108,7 +113,8 @@ class EpisodeGeneratorV2:
             logger.warning(f"Failed to fetch API data: {e}, falling back to database")
 
         # Fallback to database if API unavailable
-        conn = sqlite3.connect(self.db_path)
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
         cursor.execute(f"SELECT * FROM {self.table} WHERE submission_id = ?", (submission_id,))
@@ -468,7 +474,7 @@ def main():
     if args.validate_only:
         if not args.episode_file:
             logger.error("--episode-file required when using --validate-only")
-            return
+            sys.exit(1)
 
         try:
             with open(args.episode_file) as f:

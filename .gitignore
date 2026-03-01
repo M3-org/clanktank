@@ -45,19 +45,22 @@ Thumbs.db
 logs/
 
 # Hackathon System Generated Files
+data/judge_config.json
+data/research_config.json
 data/submission_backups/
 data/temp.txt
 data/*.db
+!data/hackathon.db
 hackathon/episodes/
-hackathon/dashboard/frontend/dist/
+hackathon/frontend/dist/
 
 # Large/Archive Files
 *.tar
 *.zip
 
 # Video recordings (keep JSON metadata, ignore large videos)
-recordings/*.mp4
-recordings/*.webm
+episodes/recordings/*.mp4
+episodes/recordings/*.webm
 
 # Temporary/staging files
 tmp/

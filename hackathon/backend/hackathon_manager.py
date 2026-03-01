@@ -38,14 +38,13 @@ from hackathon.prompts.judge_personas import (  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-# Configuration
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-HACKATHON_DB_PATH = os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
-AI_MODEL_PROVIDER = os.getenv("AI_MODEL_PROVIDER", "openrouter")
-AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "anthropic/claude-3-opus")
-
-# OpenRouter API configuration
-BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
+# Configuration — centralized in config module
+from hackathon.backend.config import (  # noqa: E402
+    AI_MODEL_NAME,
+    BASE_URL,
+    HACKATHON_DB_PATH,
+    OPENROUTER_API_KEY,
+)
 
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "submission_schema.json")
 
@@ -113,18 +112,24 @@ class HackathonManager:
         if not OPENROUTER_API_KEY:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
 
-        self.db_path = db_path or os.getenv("HACKATHON_DB_PATH", "data/hackathon.db")
+        self.db_path = db_path or HACKATHON_DB_PATH
         self.version = version or LATEST_SUBMISSION_VERSION
         self.table = f"hackathon_submissions_{self.version}"
         self.fields = get_fields(self.version)
         self.force = force
 
-        self.headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/m3-org/clanktank",
-            "X-Title": "Clank Tank Hackathon Judge Scoring",
-        }
+        from hackathon.backend.http_client import create_session
+
+        self.session = create_session()
+        self.session.headers.update(
+            {
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://github.com/m3-org/clanktank",
+                "X-Title": "Clank Tank Hackathon Judge Scoring",
+            }
+        )
+        self.headers = dict(self.session.headers)
 
     def create_scoring_prompt(
         self,
@@ -336,7 +341,7 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else "No AI resea
 
         try:
             logger.info(f"Getting scores from {judge_name} for {project_data['project_name']}")
-            response = requests.post(BASE_URL, json=payload, headers=self.headers)
+            response = self.session.post(BASE_URL, json=payload, timeout=self.session.timeout)
             response.raise_for_status()
 
             result = response.json()
@@ -531,44 +536,64 @@ AI Research: {json.dumps(ai_research, indent=2) if ai_research else "No AI resea
 
         return results
 
-    def get_leaderboard(self, round_num: int | None = None) -> list[dict[str, Any]]:
-        """Get the current leaderboard with average scores from the latest available round."""
+    def get_leaderboard(self, sort_by_round: int | None = None) -> list[dict[str, Any]]:
+        """Get the leaderboard with R1 and R2 scores side by side.
+
+        ``sort_by_round`` controls the sort column:
+        - 1  → sort by Round 1 score
+        - 2  → sort by Round 2 score (default)
+        """
+        if sort_by_round is None:
+            sort_by_round = 2
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        # If no round specified, use the latest available round
-        if round_num is None:
-            cursor.execute("SELECT MAX(round) FROM hackathon_scores")
-            latest_round = cursor.fetchone()[0] or 1
-            round_num = latest_round
-
+        sort_col = "r2.avg_score" if sort_by_round == 2 else "r1.avg_score"
         cursor.execute(
             f"""
             SELECT
                 s.submission_id,
                 s.project_name,
                 s.category,
-                AVG(sc.weighted_total) as avg_score,
-                COUNT(DISTINCT sc.judge_name) as judge_count
+                r1.avg_score  AS r1_score,
+                r1.judge_count AS r1_judges,
+                r2.avg_score  AS r2_score,
+                r2.judge_count AS r2_judges
             FROM {self.table} s
-            JOIN hackathon_scores sc ON s.submission_id = sc.submission_id
-            WHERE sc.round = ?
-            GROUP BY s.submission_id
-            ORDER BY avg_score DESC
+            LEFT JOIN (
+                SELECT submission_id,
+                       AVG(weighted_total) AS avg_score,
+                       COUNT(DISTINCT judge_name) AS judge_count
+                FROM hackathon_scores WHERE round = 1
+                GROUP BY submission_id
+            ) r1 ON s.submission_id = r1.submission_id
+            LEFT JOIN (
+                SELECT submission_id,
+                       AVG(weighted_total) AS avg_score,
+                       COUNT(DISTINCT judge_name) AS judge_count
+                FROM hackathon_scores WHERE round = 2
+                GROUP BY submission_id
+            ) r2 ON s.submission_id = r2.submission_id
+            WHERE r1.avg_score IS NOT NULL OR r2.avg_score IS NOT NULL
+            ORDER BY COALESCE({sort_col}, 0) DESC
         """,
-            (round_num,),
         )
 
         leaderboard = []
         for row in cursor.fetchall():
+            r1 = round(row[3], 2) if row[3] else None
+            r2 = round(row[5], 2) if row[5] else None
             leaderboard.append(
                 {
                     "rank": len(leaderboard) + 1,
                     "submission_id": row[0],
                     "project_name": row[1],
                     "category": row[2],
-                    "avg_score": round(row[3], 2),
-                    "judge_count": row[4],
+                    "r1_score": r1,
+                    "r1_judges": row[4] or 0,
+                    "r2_score": r2,
+                    "r2_judges": row[6] or 0,
                 }
             )
 
@@ -1095,7 +1120,7 @@ RELATIVE POSITIONING:
 
         try:
             logger.info(f"Getting structured final verdict from {judge} for {project_name}")
-            response = requests.post(
+            response = self.session.post(
                 BASE_URL,
                 json={
                     "model": AI_MODEL_NAME,
@@ -1106,7 +1131,7 @@ RELATIVE POSITIONING:
                     "max_tokens": 600,
                     "temperature": 0.3,
                 },
-                headers=self.headers,
+                timeout=self.session.timeout,
             )
 
             if response.ok:
@@ -1141,11 +1166,16 @@ def main():
         action="store_true",
         help="Run Round 2 synthesis combining judge scores with community feedback",
     )
+    score_group.add_argument(
+        "--research",
+        action="store_true",
+        help="Run AI research on submissions",
+    )
 
     # Scoring options
     parser.add_argument("--submission-id", help="Score a specific submission by ID")
     parser.add_argument("--all", action="store_true", help="Score all researched submissions")
-    parser.add_argument("--round", type=int, default=1, help="Round number (default: 1)")
+    parser.add_argument("--round", type=int, default=None, help="Round number (scoring default: 1, leaderboard: combined)")
     parser.add_argument("--output", help="Output file for results (JSON)")
     parser.add_argument(
         "--version",
@@ -1169,7 +1199,7 @@ def main():
 
     args = parser.parse_args()
 
-    if not any([args.score, args.leaderboard, args.synthesize]):
+    if not any([args.score, args.leaderboard, args.synthesize, args.research]):
         parser.print_help()
         return
 
@@ -1183,9 +1213,10 @@ def main():
 
     # Execute commands
     if args.score:
+        score_round = args.round or 1
         if args.submission_id:
             try:
-                scores = manager.score_submission(args.submission_id, args.round)
+                scores = manager.score_submission(args.submission_id, score_round)
                 if args.output:
                     with open(args.output, "w") as f:
                         json.dump(scores, f, indent=2)
@@ -1196,7 +1227,7 @@ def main():
                 logger.error(f"Scoring failed: {e}")
 
         elif args.all:
-            results = manager.score_all_researched(args.round)
+            results = manager.score_all_researched(score_round)
             logger.info(f"Scoring complete: {results['scored']} succeeded, {results['failed']} failed")
 
             if args.output:
@@ -1207,25 +1238,29 @@ def main():
             logger.error("Please specify --submission-id or --all")
 
     elif args.leaderboard:
-        leaderboard = manager.get_leaderboard(args.round)
+        sort_round = getattr(args, "round", None)
+        leaderboard = manager.get_leaderboard(sort_by_round=sort_round)
 
         if args.output:
             with open(args.output, "w") as f:
                 json.dump(leaderboard, f, indent=2)
             logger.info(f"Leaderboard saved to {args.output}")
         else:
-            print(f"\n{'=' * 60}")
-            print(f"CLANK TANK HACKATHON LEADERBOARD - ROUND {args.round}")
-            print(f"{'=' * 60}")
-            print(f"{'Rank':<6}{'Project':<30}{'Team':<20}{'Score':<10}")
-            print(f"{'-' * 60}")
+            sort_label = f"Round {sort_round}" if sort_round else "Round 2"
+            print(f"\n{'=' * 70}")
+            print(f"CLANK TANK HACKATHON LEADERBOARD  (sorted by {sort_label})")
+            print(f"{'=' * 70}")
+            print(f"{'Rank':<6}{'Project':<28}{'Category':<16}{'R1':>8}{'R2':>8}")
+            print(f"{'-' * 70}")
 
             for entry in leaderboard:
+                r1 = f"{entry['r1_score']:.1f}" if entry["r1_score"] is not None else "-"
+                r2 = f"{entry['r2_score']:.1f}" if entry["r2_score"] is not None else "-"
                 print(
-                    f"{entry['rank']:<6}{entry['project_name'][:28]:<30}{entry['team_name'][:18]:<20}{entry['avg_score']:<10}"
+                    f"{entry['rank']:<6}{entry['project_name'][:26]:<28}{entry['category'][:14]:<16}{r1:>8}{r2:>8}"
                 )
 
-            print(f"{'=' * 60}\n")
+            print(f"{'=' * 70}\n")
 
     elif args.synthesize:
         if args.submission_id:
@@ -1234,6 +1269,27 @@ def main():
             manager.run_round2_synthesis()
         else:
             logger.error("Please specify --submission-id or --all for synthesis")
+
+    elif args.research:
+        from hackathon.backend.research import HackathonResearcher
+
+        researcher = HackathonResearcher(db_path=args.db_file, version=args.version, force=args.force)
+        if args.submission_id:
+            results = researcher.research_submission(args.submission_id)
+            if args.output:
+                with open(args.output, "w") as f:
+                    json.dump(results, f, indent=2)
+                logger.info(f"Results saved to {args.output}")
+            else:
+                print(json.dumps(results, indent=2))
+        elif args.all:
+            results = researcher.research_all_pending()
+            logger.info(f"Researched {len(results)} submissions")
+            if args.output:
+                with open(args.output, "w") as f:
+                    json.dump(results, f, indent=2)
+        else:
+            logger.error("Please specify --submission-id or --all")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ uvicorn hackathon.backend.app:app --host 0.0.0.0 --port 8000
 python app.py --generate-static-data   # from hackathon/backend/
 ```
 
-### Frontend (hackathon/dashboard/frontend/)
+### Frontend (hackathon/frontend/)
 ```bash
 npm install
 npm run dev          # Start dev server
@@ -48,25 +48,20 @@ python -m hackathon.backend.migrate_schema [--dry-run]   # Migrate schema
 python -m hackathon.backend.sync_schema_to_frontend      # Sync schema → frontend types
 ```
 
-### Hackathon Pipeline
+### Hackathon Pipeline (unified CLI)
 ```bash
-python -m hackathon.backend.research --submission-id <id> --version v2          # GitHub + AI research
-python -m hackathon.backend.hackathon_manager --score --submission-id <id> --version v2       # Round 1: AI judge scoring
-python -m hackathon.backend.hackathon_manager --score --all --version v2                      # Score all researched
-python -m hackathon.backend.hackathon_manager --synthesize --submission-id <id> --version v2  # Round 2: AI + community
-python -m hackathon.backend.hackathon_manager --leaderboard --version v2                      # View leaderboard
-python -m hackathon.scripts.generate_episode --submission-id <id> --version v2                # Generate episode
+clanktank research   --submission-id <id> --version v2    # GitHub + AI research
+clanktank score      --submission-id <id> --version v2    # Round 1: AI judge scoring
+clanktank score      --all --version v2                   # Score all researched
+clanktank synthesize --submission-id <id> --version v2    # Round 2: AI + community
+clanktank leaderboard --version v2                        # View leaderboard
+clanktank episode    --submission-id <id> --version v2    # Generate episode
+clanktank serve --host 0.0.0.0 --port 8000               # Start API server
+clanktank db create                                       # Initialize database
+clanktank db migrate --dry-run                            # Migrate schema
 ```
 
-### Main Platform Pipeline
-```bash
-python scripts/sheet_processor.py -s "Block Tank Pitch Submission" -o ./data -j --db-file pitches.db  # Import sheets
-python scripts/pitch_manager.py --db-file data/pitches.db --list --filter-status submitted            # List pitches
-python scripts/pitch_manager.py --db-file data/pitches.db --research <id>                             # Research pitch
-python scripts/pitch_manager.py --db-file data/pitches.db --create-character all                      # Create characters
-node scripts/shmotime-recorder.js <episode-url>                                                        # Record episode
-python scripts/upload_to_youtube.py --from-json metadata.json                                          # Upload to YouTube
-```
+`uv run clanktank` or `python -m hackathon` both work. Old `hackathon_manager --score ...` paths still work for backward compatibility.
 
 ### Python Style
 ```bash
@@ -87,7 +82,7 @@ ruff format <file> # Format
 The hackathon system is schema-driven. `hackathon/backend/submission_schema.json` is the **single source of truth** for all field definitions. Changes flow:
 1. Edit `submission_schema.json`
 2. Run `python -m hackathon.backend.migrate_schema` to update database
-3. Run `python -m hackathon.backend.sync_schema_to_frontend` to regenerate TypeScript types at `hackathon/dashboard/frontend/src/types/submission.ts`
+3. Run `python -m hackathon.backend.sync_schema_to_frontend` to regenerate TypeScript types at `hackathon/frontend/src/types/submission.ts`
 
 Never hardcode field lists in Python or TypeScript — always load from schema.
 
@@ -108,7 +103,7 @@ Four personality-based judges with weighted scoring criteria (Innovation, Techni
 Judge personas defined in `hackathon/prompts/judge_personas.py`. Scoring pipeline: GitHub Analysis → AI Research (with GitIngest) → Round 1 AI Scoring → Community Voting (Discord) → Round 2 Synthesis.
 
 ### Frontend Caching
-The frontend has aggressive 5-minute caching (HTTP `Cache-Control: max-age=300` + in-memory cache in `hackathon/dashboard/frontend/src/lib/api.ts`). If backend data isn't appearing, hard refresh or wait 5 minutes.
+The frontend has aggressive 5-minute caching (HTTP `Cache-Control: max-age=300` + in-memory cache in `hackathon/frontend/src/lib/api.ts`). If backend data isn't appearing, hard refresh or wait 5 minutes.
 
 ### Status Progressions
 - **Main Platform**: submitted → researched → in_progress → done
@@ -143,7 +138,6 @@ Used in the research pipeline (`hackathon/backend/github_analyzer.py`) to genera
 Both SQLite: `data/pitches.db` (main platform), `data/hackathon.db` (hackathon). Override hackathon DB path with `HACKATHON_DB_PATH` env var.
 
 ### GitHub Actions
-- Daily episode recording at 04:15 UTC (`.github/workflows/daily-episode-recording.yml`)
 - Security scanning (`.github/workflows/security-scan.yml`)
 
 ## Workflow Preferences

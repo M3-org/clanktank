@@ -534,13 +534,17 @@ class VoteProcessor:
     """Processes and stores community votes."""
 
     def __init__(self, db_path: str | None = None, holders_registry: TokenHolderRegistry = None):
-        self.db_path = db_path or os.getenv("HACKATHON_DB_PATH", str(DEFAULT_DB_PATH))
+        from hackathon.backend.config import HACKATHON_DB_PATH as _DB_PATH
+
+        self.db_path = db_path or _DB_PATH
         self.holders_registry = holders_registry or TokenHolderRegistry()
         self.logger = logging.getLogger(__name__)
 
     def get_db_connection(self):
-        """Get database connection."""
-        return sqlite3.connect(self.db_path, timeout=30.0)
+        """Get database connection with consistent timeout and Row factory."""
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        conn.row_factory = sqlite3.Row
+        return conn
 
     def save_votes(self, votes: list[CommunityVote]) -> int:
         """Save votes to database, returns number of new votes saved."""

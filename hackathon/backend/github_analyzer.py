@@ -12,7 +12,6 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from urllib.parse import urlparse
 
-import requests
 from dotenv import find_dotenv, load_dotenv
 
 # Load environment variables (automatically finds .env in parent directories)
@@ -38,6 +37,11 @@ class GitHubAnalyzer:
         self.base_url = "https://api.github.com"
         self._blob_size_cache = {}
 
+        from hackathon.backend.http_client import create_session
+
+        self.session = create_session()
+        self.session.headers.update(self.headers)
+
     def extract_repo_info(self, repo_url):
         """Extract owner and repo name from GitHub URL."""
         try:
@@ -54,7 +58,7 @@ class GitHubAnalyzer:
         """Get basic repository data."""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
 
             if resp.status_code == 404:
                 return {"error": "Repository not found"}
@@ -71,7 +75,7 @@ class GitHubAnalyzer:
         """Get language breakdown for the repository."""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/languages"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
             resp.raise_for_status()
 
             languages = resp.json()
@@ -104,7 +108,7 @@ class GitHubAnalyzer:
 
             url = f"{self.base_url}/repos/{owner}/{repo}/commits"
             params = {"since": month_ago.isoformat(), "per_page": 50}
-            resp = requests.get(url, headers=self.headers, params=params)
+            resp = self.session.get(url, params=params, timeout=self.session.timeout)
             resp.raise_for_status()
             commits = resp.json()
 
@@ -151,7 +155,7 @@ class GitHubAnalyzer:
         """Get README content and analyze its structure."""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/readme"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
 
             if resp.status_code == 404:
                 return {"exists": False}
@@ -189,7 +193,7 @@ class GitHubAnalyzer:
         """Get file structure analysis for GitIngest optimization."""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
             resp.raise_for_status()
 
             tree = resp.json().get("tree", [])
@@ -294,7 +298,7 @@ class GitHubAnalyzer:
         for dep_file in dep_files[:3]:  # Limit to 3 files to avoid rate limits
             try:
                 url = f"{self.base_url}/repos/{owner}/{repo}/contents/{dep_file}"
-                resp = requests.get(url, headers=self.headers)
+                resp = self.session.get(url, timeout=self.session.timeout)
                 if resp.status_code == 200:
                     import base64
 
@@ -363,15 +367,16 @@ class GitHubAnalyzer:
     def get_gitingest_agentic_recommendation(self, repo_analysis, manifest, deps_info, loc_histogram):
         """Use an LLM to recommend GitIngest config based on comprehensive repo analysis."""
         import jsonschema
-        import requests
 
-        OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
-        if not OPENROUTER_API_KEY:
+        from hackathon.backend.config import OPENROUTER_API_KEY as _OPENROUTER_KEY
+        from hackathon.backend.http_client import create_session
+
+        if not _OPENROUTER_KEY:
             logger.warning("No OPENROUTER_API_KEY set, using heuristic fallback.")
             return self._get_heuristic_fallback(repo_analysis)
 
         BASE_URL = "https://openrouter.ai/api/v1/chat/completions"
-        AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "moonshotai/kimi-k2:free")
+        AI_MODEL_NAME = os.getenv("AI_MODEL_NAME", "")
         MODEL = AI_MODEL_NAME
 
         # Calculate token budget
@@ -427,10 +432,13 @@ Output only valid JSON."""
         )
         logger.info(f"Using model: {MODEL} for agentic recommendation")
 
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-        }
+        llm_session = create_session()
+        llm_session.headers.update(
+            {
+                "Authorization": f"Bearer {_OPENROUTER_KEY}",
+                "Content-Type": "application/json",
+            }
+        )
 
         # JSON schema for validation
         schema = {
@@ -448,7 +456,7 @@ Output only valid JSON."""
         try:
             logger.info("Requesting agentic GitIngest config recommendation from LLM...")
             logger.debug(f"Request payload: {json.dumps(payload, indent=2)}")
-            response = requests.post(BASE_URL, json=payload, headers=headers)
+            response = llm_session.post(BASE_URL, json=payload, timeout=llm_session.timeout)
             response.raise_for_status()
             result = response.json()
             content = result["choices"][0]["message"]["content"]
@@ -490,7 +498,6 @@ Output only valid JSON."""
         except Exception as e:
             logger.error(f"Agentic config step failed: {e}")
             logger.error(f"Request URL: {BASE_URL}")
-            logger.error(f"Request headers: {headers}")
             return self._get_heuristic_fallback(repo_analysis)
 
     def _get_heuristic_fallback(self, repo_analysis):
@@ -580,7 +587,7 @@ Output only valid JSON."""
         # File tree (truncated)
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
             resp.raise_for_status()
             tree = resp.json().get("tree", [])
             files = [item["path"] for item in tree if item["type"] == "blob"]
@@ -592,7 +599,7 @@ Output only valid JSON."""
         readme_head = ""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/readme"
-            resp = requests.get(url, headers=self.headers)
+            resp = self.session.get(url, timeout=self.session.timeout)
             if resp.status_code == 404:
                 readme_head = ""
             else:
@@ -612,7 +619,7 @@ Output only valid JSON."""
         contributors = []
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/contributors"
-            resp = requests.get(url, headers=self.headers, params={"per_page": 3})
+            resp = self.session.get(url, params={"per_page": 3}, timeout=self.session.timeout)
             resp.raise_for_status()
             contributors = [c["login"] for c in resp.json()]
         except Exception as e:
@@ -622,7 +629,9 @@ Output only valid JSON."""
         topics = []
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/topics"
-            resp = requests.get(url, headers={**self.headers, "Accept": "application/vnd.github.mercy-preview+json"})
+            resp = self.session.get(
+                url, headers={"Accept": "application/vnd.github.mercy-preview+json"}, timeout=self.session.timeout
+            )
             if resp.status_code == 200:
                 topics = resp.json().get("names", [])
         except Exception as e:

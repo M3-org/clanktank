@@ -2,6 +2,40 @@
 name = "clanktank"
 version = "0.1.0"
 requires-python = ">=3.11"
+dependencies = [
+    "python-dotenv>=1.0",
+    "requests>=2.31",
+    "aiohttp>=3.9",
+    "aiohttp-retry>=2.9",
+    "sqlalchemy>=2.0",
+    "fastapi>=0.104",
+    "uvicorn[standard]>=0.24",
+    "pydantic>=2.0",
+    "openai>=2.0",
+    "anthropic>=0.50",
+    "gspread>=6.0",
+    "google-auth>=2.0",
+    "discord.py>=2.0",
+    "gitingest>=0.1",
+    "pillow>=10.0",
+    "slowapi>=0.1",
+    "websockets>=12.0",
+    "python-multipart>=0.0.9",
+    "base58>=2.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["hackathon"]
+
+[project.scripts]
+clanktank = "hackathon.__main__:main"
+
+[tool.uv]
+package = true
 
 [tool.ruff]
 target-version = "py311"
@@ -23,7 +57,6 @@ ignore = [
   "B904",   # `raise` without `from` in except (too pervasive to fix in one pass)
   "B905",   # `zip()` without strict= (too noisy for existing code)
   "B008",   # function call in default arg (standard FastAPI pattern: File(), Depends())
-  "UP045",  # Optional[X] → X | None (breaks dynamic create_model() contexts)
   "RUF001", # ambiguous unicode chars (intentional en-dashes in user-facing strings)
   "RUF006", # dangling asyncio.create_task (existing pattern, needs careful refactor)
   "SIM105", # contextlib.suppress (stylistic, not a bug)
