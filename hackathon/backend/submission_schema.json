@@ -71,7 +71,7 @@
         "label": "Demo Video URL",
         "type": "url",
         "required": true,
-        "placeholder": "https://youtube.com/..."
+        "placeholder": "https://youtube.com/watch?v=... or direct .mp4 link"
       },
       {
         "name": "live_demo_url",
@@ -184,7 +184,7 @@
         "label": "Demo Video URL",
         "type": "url",
         "required": true,   
-        "placeholder": "https://youtube.com/..."
+        "placeholder": "https://youtube.com/watch?v=... or direct .mp4 link"
       },
       {
         "name": "project_image",

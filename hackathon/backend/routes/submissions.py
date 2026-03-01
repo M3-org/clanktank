@@ -8,6 +8,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile, status
 from fastapi import File as FastAPIFile
@@ -165,6 +166,38 @@ def validate_submission_github_url(data_dict: dict, action: str = "submission"):
         raise HTTPException(
             status_code=422,
             detail="Invalid GitHub repository URL format. Please use: https://github.com/username/repository",
+        )
+
+
+_VIDEO_EXTENSIONS = (".mp4", ".webm", ".mov", ".avi", ".mkv", ".m4v")
+_YOUTUBE_HOSTS = {"www.youtube.com", "youtube.com", "youtu.be", "www.youtu.be", "m.youtube.com"}
+
+
+def validate_video_url(url: str) -> bool:
+    """Validate demo video URL — must be a YouTube link or a direct video file URL."""
+    if not url:
+        return False
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return False
+    if parsed.scheme != "https":
+        return False
+    if parsed.hostname in _YOUTUBE_HOSTS:
+        return True
+    return parsed.path.lower().endswith(_VIDEO_EXTENSIONS)
+
+
+def validate_submission_video_url(data_dict: dict, action: str = "submission"):
+    """Validate demo video URL in submission data and raise HTTPException if invalid."""
+    video_url = data_dict.get("demo_video_url")
+    if video_url and not validate_video_url(video_url):
+        from hackathon.backend.simple_audit import log_security_event
+
+        log_security_event("invalid_video_url", f"rejected in {action}: {video_url}")
+        raise HTTPException(
+            status_code=422,
+            detail="Demo video must be a YouTube link or a direct video file URL (e.g., .mp4, .webm).",
         )
 
 
@@ -356,6 +389,9 @@ async def create_submission_latest(submission: SubmissionCreateV2, request: Requ
     # Validate GitHub URL for security
     validate_submission_github_url(data_dict, "create")
 
+    # Validate demo video URL
+    validate_submission_video_url(data_dict, "create")
+
     # Validate project_image field
     project_image = data_dict.get("project_image")
     if project_image:
@@ -485,6 +521,9 @@ async def edit_submission_latest(submission_id: int, submission: SubmissionCreat
 
             # Validate GitHub URL for security
             validate_submission_github_url(data, "edit")
+
+            # Validate demo video URL
+            validate_submission_video_url(data, "edit")
 
             # Auto-populate Discord username if field is empty
             if not data.get("discord_handle") or data.get("discord_handle").strip() == "":

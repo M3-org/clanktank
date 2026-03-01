@@ -43,16 +43,26 @@ class GitHubAnalyzer:
         self.session.headers.update(self.headers)
 
     def extract_repo_info(self, repo_url):
-        """Extract owner and repo name from GitHub URL."""
+        """Extract owner, repo name, and optional branch from GitHub URL.
+
+        Handles URLs like:
+          https://github.com/owner/repo
+          https://github.com/owner/repo/tree/branch-name
+          https://github.com/owner/repo/tree/feature/nested-branch
+        """
         try:
             parsed = urlparse(repo_url)
             path_parts = parsed.path.strip("/").split("/")
             if len(path_parts) >= 2:
-                return path_parts[0], path_parts[1]
-            return None, None
+                owner, repo = path_parts[0], path_parts[1]
+                branch = None
+                if len(path_parts) >= 4 and path_parts[2] == "tree":
+                    branch = "/".join(path_parts[3:]).rstrip("/") or None
+                return owner, repo, branch
+            return None, None, None
         except Exception as e:
             logger.error(f"Error parsing repo URL: {e}")
-            return None, None
+            return None, None, None
 
     def get_repo_data(self, owner, repo):
         """Get basic repository data."""
@@ -94,7 +104,7 @@ class GitHubAnalyzer:
             logger.error(f"Error fetching languages: {e}")
             return {}
 
-    def get_commit_data(self, owner, repo):
+    def get_commit_data(self, owner, repo, branch=None):
         """Collect raw commit data for analysis."""
         try:
             # Get submission deadline from environment
@@ -108,6 +118,8 @@ class GitHubAnalyzer:
 
             url = f"{self.base_url}/repos/{owner}/{repo}/commits"
             params = {"since": month_ago.isoformat(), "per_page": 50}
+            if branch:
+                params["sha"] = branch
             resp = self.session.get(url, params=params, timeout=self.session.timeout)
             resp.raise_for_status()
             commits = resp.json()
@@ -151,11 +163,12 @@ class GitHubAnalyzer:
             logger.error(f"Error collecting commit data: {e}")
             return {"error": f"commit_data_collection_failed: {e!s}"}
 
-    def get_readme(self, owner, repo):
+    def get_readme(self, owner, repo, branch=None):
         """Get README content and analyze its structure."""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/readme"
-            resp = self.session.get(url, timeout=self.session.timeout)
+            params = {"ref": branch} if branch else {}
+            resp = self.session.get(url, params=params, timeout=self.session.timeout)
 
             if resp.status_code == 404:
                 return {"exists": False}
@@ -189,10 +202,11 @@ class GitHubAnalyzer:
             logger.error(f"Error fetching README: {e}")
             return {"exists": False, "error": str(e)}
 
-    def get_file_structure(self, owner, repo, max_files=100):
+    def get_file_structure(self, owner, repo, max_files=100, branch=None):
         """Get file structure analysis for GitIngest optimization."""
         try:
-            url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
+            ref = branch or "HEAD"
+            url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/{ref}?recursive=1"
             resp = self.session.get(url, timeout=self.session.timeout)
             resp.raise_for_status()
 
@@ -576,17 +590,18 @@ Output only valid JSON."""
 
     def summarize_repo(self, repo_url, max_files=200, readme_lines=40):
         """Produce a holistic, objective summary of the repo for AI analysis."""
-        owner, repo = self.extract_repo_info(repo_url)
+        owner, repo, branch = self.extract_repo_info(repo_url)
         if not owner or not repo:
             return {"error": "Invalid GitHub URL", "url": repo_url}
-        logger.info(f"Summarizing repository: {owner}/{repo}")
+        logger.info(f"Summarizing repository: {owner}/{repo}" + (f" (branch: {branch})" if branch else ""))
         # Metadata
         repo_data = self.get_repo_data(owner, repo)
         if "error" in repo_data:
             return repo_data
         # File tree (truncated)
         try:
-            url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/HEAD?recursive=1"
+            ref = branch or "HEAD"
+            url = f"{self.base_url}/repos/{owner}/{repo}/git/trees/{ref}?recursive=1"
             resp = self.session.get(url, timeout=self.session.timeout)
             resp.raise_for_status()
             tree = resp.json().get("tree", [])
@@ -599,7 +614,8 @@ Output only valid JSON."""
         readme_head = ""
         try:
             url = f"{self.base_url}/repos/{owner}/{repo}/readme"
-            resp = self.session.get(url, timeout=self.session.timeout)
+            params = {"ref": branch} if branch else {}
+            resp = self.session.get(url, params=params, timeout=self.session.timeout)
             if resp.status_code == 404:
                 readme_head = ""
             else:
@@ -614,7 +630,7 @@ Output only valid JSON."""
         # Languages
         languages = self.get_languages(owner, repo)
         # Recent commit data for analysis
-        commit_data = self.get_commit_data(owner, repo)
+        commit_data = self.get_commit_data(owner, repo, branch=branch)
         # Contributors (top 3 by commit count)
         contributors = []
         try:
@@ -674,24 +690,27 @@ Output only valid JSON."""
             # Get GitHub token for private repos
             github_token = os.getenv("GITHUB_TOKEN")
 
-            logger.info(f"Running GitIngest (Python library) for {repo_url}")
+            # Extract branch from URL if present
+            _owner, _repo, branch = self.extract_repo_info(repo_url)
+
+            logger.info(f"Running GitIngest (Python library) for {repo_url}" + (f" (branch: {branch})" if branch else ""))
 
             # Log settings for debugging but let GitIngest handle filtering internally
             if settings and settings.get("rationale"):
                 logger.info(f"GitIngest rationale: {settings['rationale']}")
 
             # Use GitIngest's built-in intelligence (as in original implementation)
-            _summary, _tree, content = ingest(repo_url, token=github_token)
+            _summary, _tree, content = ingest(repo_url, branch=branch, token=github_token)
 
             # Post-process to ensure reasonable size for AI research (dynamic scaling)
             # Based on original implementation: small repos (~13k tokens), large repos (~144k tokens)
 
             # Get repository analysis from GitHub data
-            owner, repo = self.extract_repo_info(repo_url)
+            owner, repo, _branch = self.extract_repo_info(repo_url)
             if owner and repo:
                 try:
                     self.get_repo_data(owner, repo)
-                    file_structure = self.get_file_structure(owner, repo)
+                    file_structure = self.get_file_structure(owner, repo, branch=branch)
                     total_files = file_structure.get("total_files", 0)
                     is_large_repo = file_structure.get("is_large_repo", False)
                 except Exception:
@@ -774,17 +793,17 @@ Output only valid JSON."""
 
     def analyze_repository(self, repo_url):
         """Perform repository analysis for hackathon vibe check with two-stage file selection."""
-        owner, repo = self.extract_repo_info(repo_url)
+        owner, repo, branch = self.extract_repo_info(repo_url)
         if not owner or not repo:
             return {"error": "Invalid GitHub URL", "url": repo_url}
-        logger.info(f"Analyzing repository: {owner}/{repo}")
+        logger.info(f"Analyzing repository: {owner}/{repo}" + (f" (branch: {branch})" if branch else ""))
         repo_data = self.get_repo_data(owner, repo)
         if "error" in repo_data:
             return repo_data
 
         # Get file structure for GitIngest optimization
         logger.info("Getting file structure...")
-        file_structure = self.get_file_structure(owner, repo)
+        file_structure = self.get_file_structure(owner, repo, branch=branch)
         if "error" in file_structure:
             logger.error(f"File structure error: {file_structure}")
             return file_structure
@@ -817,9 +836,9 @@ Output only valid JSON."""
             "created_at": repo_data.get("created_at", ""),
             "updated_at": repo_data.get("updated_at", ""),
             "license": (repo_data.get("license", {}).get("name", "None") if repo_data.get("license") else "None"),
-            "readme_analysis": self.get_readme(owner, repo),
+            "readme_analysis": self.get_readme(owner, repo, branch=branch),
             "file_structure": file_structure,
-            "commit_activity": self.get_commit_data(owner, repo),
+            "commit_activity": self.get_commit_data(owner, repo, branch=branch),
             "file_manifest": manifest,
             "dependency_info": deps_info,
             "loc_histogram": loc_histogram,
@@ -865,7 +884,7 @@ def main():
 
         # Run GitIngest if requested
         if args.gitingest:
-            owner, repo = analyzer.extract_repo_info(args.repo_url)
+            owner, repo, _branch = analyzer.extract_repo_info(args.repo_url)
             if owner and repo:
                 gitingest_output = args.gitingest_output or f"gitingest-{repo}.txt"
                 gitingest_settings = results.get("gitingest_settings", {})
