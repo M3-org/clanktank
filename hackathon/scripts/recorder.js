@@ -1223,22 +1223,6 @@ function slugToTitleCase(slug) {
     .join('-');
 }
 
-function getSlugFromUrl(url) {
-  // Extracts the slug from a shmotime_episode URL robustly
-  if (!url) return null;
-  try {
-    const parts = url.split('/').filter(Boolean);
-    const idx = parts.findIndex(p => p === 'shmotime_episode');
-    if (idx >= 0 && idx + 1 < parts.length) {
-      return parts[idx + 1];
-    }
-    // Fallback: use last non-empty segment
-    return parts[parts.length - 1];
-  } catch (e) {
-    return null;
-  }
-}
-
 // Command line interface - simplified but keeping all functionality
 function parseArgs() {
   const args = process.argv.slice(2);
