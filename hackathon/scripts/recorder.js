@@ -103,7 +103,7 @@ class ShmotimeRecorder {
       // Re-encode to H.264 video and AAC audio for MP4 compatibility
       const ffmpegCmd = `ffmpeg -i "${inputFile}" -r ${targetFrameRate} -c:v libx264 -preset medium -crf 23 -c:a aac -strict experimental -b:a 192k -y "${outputPath}"`;
       
-      const { stdout, stderr } = await execAsync(ffmpegCmd);
+      const { stderr } = await execAsync(ffmpegCmd);
       if (stderr && this.options.verbose) {
           log(`FFmpeg stderr: ${stderr}`, 'debug');
       }
@@ -970,7 +970,6 @@ class ShmotimeRecorder {
               if (el) {
                 try {
                   el.click();
-                  clicked = true;
                   clickTargetInfo = `Clicked slate element: ${el.outerHTML.substring(0, 80)}...`;
                   break;
                 } catch (e) { /* continue */ }
@@ -1240,47 +1239,6 @@ function getSlugFromUrl(url) {
   }
 }
 
-// --- Canonical filename helper ---
-function getCanonicalBaseName(episodeData, options, url) {
-  // 1. Use --date if provided
-  let date = options?.dateOverride || '';
-  let title = '';
-  // Always prefer slug from URL for title if URL is present
-  let slug = null;
-  if (url) {
-    slug = getSlugFromUrl(url);
-    if (slug) {
-      title = slugifyTitle(slug.replace(/-/g, ' '));
-    }
-  }
-  // Fallback to episodeData name if slug is empty
-  if (!title) {
-    if (episodeData?.name) {
-      title = slugifyTitle(episodeData.name);
-    } else if (options?.episodeData?.name) {
-      title = slugifyTitle(options.episodeData.name);
-    } else {
-      title = 'Episode';
-    }
-  }
-  // 2. If no --date, try list file (if specified)
-  if (!date) {
-    const listMapping = loadListTxtMapping(options?.listPath);
-    if (!slug && url) {
-      slug = getSlugFromUrl(url);
-    }
-    if (slug && listMapping[slug]) {
-      date = listMapping[slug];
-    }
-  }
-  // 3. If still no date, use today
-  if (!date) {
-    const now = new Date();
-    date = now.toISOString().slice(0, 10);
-  }
-  return `${date}_Clank-Tank_${title}`;
-}
-
 // Command line interface - simplified but keeping all functionality
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -1450,7 +1408,7 @@ async function main() {
       }
       await player.waitForEpisodeToFinish(waitTime);
       console.log('Episode processing complete');
-      if (videoFile) console.log(`Video will be saved to: ${videoFile}`);
+      console.log(`Video will be saved to: ${videoFile}`);
     } else {
       await player.waitForEpisodeData();
       console.log('Episode data retrieval complete.');

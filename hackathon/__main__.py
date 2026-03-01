@@ -414,7 +414,6 @@ def cmd_submissions(args):
 
                 def _pad(text: str, width: int, right: bool = False) -> str:
                     """Pad by visible length, ignoring ANSI escape codes."""
-                    import re
                     visible = len(re.sub(r"\033\[[0-9;]*m", "", text))
                     pad = " " * max(0, width - visible)
                     return (pad + text) if right else (text + pad)
@@ -482,6 +481,7 @@ def cmd_submissions(args):
                                 nd = json.loads(s["notes"])
                                 comment = nd.get("overall_comment") or nd.get("round2_final_verdict") or ""
                             except (json.JSONDecodeError, TypeError):
+                                # Malformed notes JSON — fall back to other sources below
                                 pass
                         if not comment and s["final_verdict"]:
                             try:
@@ -676,8 +676,6 @@ def _set_env_key(env_path, key: str, value: str):
 
 def _fmt_prompt(text: str) -> str:
     """Highlight {template_vars} in a prompt string."""
-    import re
-
     return re.sub(r"\{(\w+)\}", lambda m: cyan(f"{{{m.group(1)}}}"), text)
 
 
@@ -743,6 +741,7 @@ def _print_judge_config(data: dict):
                         elif v < 1.0:
                             s = dim(s)
                     except ValueError:
+                        # Non-numeric cell — leave unstyled
                         pass
                 cells.append(s)
             print("  " + "  ".join(cells))
