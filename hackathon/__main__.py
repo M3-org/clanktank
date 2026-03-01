@@ -1260,7 +1260,7 @@ def main():
             print(red("node not found — install Node.js to use the recorder."))
             sys.exit(1)
 
-        recorder_script = Path(__file__).resolve().parents[1] / "scripts" / "recorder.js"
+        recorder_script = Path(__file__).resolve().parent / "scripts" / "recorder.js"
         if not recorder_script.exists():
             print(red(f"Recorder script not found: {recorder_script}"))
             sys.exit(1)

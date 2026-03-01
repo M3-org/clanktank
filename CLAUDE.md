@@ -63,16 +63,6 @@ clanktank db migrate --dry-run                            # Migrate schema
 
 `uv run clanktank` or `python -m hackathon` both work. Old `hackathon_manager --score ...` paths still work for backward compatibility.
 
-### Main Platform Pipeline
-```bash
-python scripts/sheet_processor.py -s "Block Tank Pitch Submission" -o ./data -j --db-file pitches.db  # Import sheets
-python scripts/pitch_manager.py --db-file data/pitches.db --list --filter-status submitted            # List pitches
-python scripts/pitch_manager.py --db-file data/pitches.db --research <id>                             # Research pitch
-python scripts/pitch_manager.py --db-file data/pitches.db --create-character all                      # Create characters
-node scripts/shmotime-recorder.js <episode-url>                                                        # Record episode
-python scripts/upload_to_youtube.py --from-json metadata.json                                          # Upload to YouTube
-```
-
 ### Python Style
 ```bash
 ruff check <file>  # Lint
@@ -148,7 +138,6 @@ Used in the research pipeline (`hackathon/backend/github_analyzer.py`) to genera
 Both SQLite: `data/pitches.db` (main platform), `data/hackathon.db` (hackathon). Override hackathon DB path with `HACKATHON_DB_PATH` env var.
 
 ### GitHub Actions
-- Daily episode recording at 04:15 UTC (`.github/workflows/daily-episode-recording.yml`)
 - Security scanning (`.github/workflows/security-scan.yml`)
 
 ## Workflow Preferences
